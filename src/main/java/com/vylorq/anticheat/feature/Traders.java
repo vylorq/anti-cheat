@@ -661,6 +661,14 @@ public final class Traders {
 
     /** Warns admins about profit loops and item flow imbalances (section 23.7). Runs hourly and on start. */
     public static void economyWarnings() {
+        for (String pr : economyProblems()) {
+            Ac.LOG.warn("[Economy] {}", pr);
+            Staff.broadcast(Msg.prefixed("§6[Economy] §f" + pr));
+        }
+    }
+
+    /** Sell-to rules that pay more than the item costs to buy, plus suspicious item flows. */
+    public static List<String> economyProblems() {
         Ac ac = Ac.get();
         Map<String, Double> payouts = new HashMap<>();
         for (Map.Entry<String, String[]> e : ac.traders.sellRules.entrySet()) {
@@ -676,10 +684,7 @@ public final class Traders {
         for (String f : ac.economy.flowWarnings(10.0, 200)) {
             problems.add("flow: " + f);
         }
-        for (String pr : problems) {
-            Ac.LOG.warn("[Economy] {}", pr);
-            Staff.broadcast(Msg.prefixed("§6[Economy] §f" + pr));
-        }
+        return problems;
     }
 
     // ---- Admin menus ----
