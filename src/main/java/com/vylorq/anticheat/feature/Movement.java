@@ -246,23 +246,40 @@ public final class Movement {
         in.onHoney = belowState.isOf(Blocks.HONEY_BLOCK);
         in.onSoulSand = belowState.isOf(Blocks.SOUL_SAND) || belowState.isOf(Blocks.SOUL_SOIL);
         in.onBed = belowToState.getBlock() instanceof BedBlock || belowState.getBlock() instanceof BedBlock;
-        in.inCobweb = blockIn(w, boxTo, st -> st.isOf(Blocks.COBWEB));
-        in.inPowderSnow = blockIn(w, boxTo, st -> st.isOf(Blocks.POWDER_SNOW));
-        in.inBerryBush = blockIn(w, boxTo, st -> st.isOf(Blocks.SWEET_BERRY_BUSH));
-        in.inScaffolding = blockIn(w, boxTo.expand(0, 0.1, 0), st -> st.isOf(Blocks.SCAFFOLDING));
-        in.inBubbleColumn = blockIn(w, boxTo, st -> st.isOf(Blocks.BUBBLE_COLUMN));
-        in.onClimbable = p.isClimbing() || blockIn(w, boxTo, st -> st.isIn(BlockTags.CLIMBABLE));
+        // One pass over the blocks the player touches instead of a separate scan per block type.
+        boolean climb = false, water = false, lava = false;
+        Box touch = boxTo.expand(0, 0.1, 0);
+        for (BlockPos pos : BlockPos.iterate(BlockPos.ofFloored(touch.minX, touch.minY, touch.minZ),
+                BlockPos.ofFloored(touch.maxX, touch.maxY, touch.maxZ))) {
+            BlockState st = w.getBlockState(pos);
+            if (st.isAir()) {
+                continue;
+            }
+            if (st.isOf(Blocks.COBWEB)) in.inCobweb = true;
+            else if (st.isOf(Blocks.POWDER_SNOW)) in.inPowderSnow = true;
+            else if (st.isOf(Blocks.SWEET_BERRY_BUSH)) in.inBerryBush = true;
+            else if (st.isOf(Blocks.SCAFFOLDING)) in.inScaffolding = true;
+            else if (st.isOf(Blocks.BUBBLE_COLUMN)) in.inBubbleColumn = true;
+            if (st.isIn(BlockTags.CLIMBABLE)) climb = true;
+            if (!st.getFluidState().isEmpty()) {
+                if (st.getFluidState().isIn(net.minecraft.registry.tag.FluidTags.WATER)) water = true;
+                else if (st.getFluidState().isIn(net.minecraft.registry.tag.FluidTags.LAVA)) lava = true;
+            }
+        }
+        in.onClimbable = p.isClimbing() || climb;
         if (in.onClimbable) {
             s.ticksSinceClimbable = 0;
         }
-        in.inWater = p.isTouchingWater() || blockIn(w, boxTo, st -> !st.getFluidState().isEmpty() && st.getFluidState().isIn(net.minecraft.registry.tag.FluidTags.WATER));
-        in.inLava = p.isInLava() || blockIn(w, boxTo, st -> st.getFluidState().isIn(net.minecraft.registry.tag.FluidTags.LAVA));
+        in.inWater = p.isTouchingWater() || water;
+        in.inLava = p.isInLava() || lava;
         if (in.inWater || in.inLava) {
             s.ticksSinceLiquid = 0;
         }
         BlockState feetState = w.getBlockState(BlockPos.ofFloored(to.x(), to.y() - 0.1, to.z()));
         in.onLiquidSurfaceOnly = !feetState.getFluidState().isEmpty() && !in.nearGround && !in.inWater;
-        in.pistonNearby = blockIn(w, boxTo.expand(1.5), st -> st.isOf(Blocks.MOVING_PISTON) || st.isOf(Blocks.PISTON_HEAD));
+        // Pistons only matter for moves that could otherwise fail a check; skip the scan for small moves.
+        in.pistonNearby = to.distanceSq(from) > 0.04
+                && blockIn(w, boxTo.expand(1.5), st -> st.isOf(Blocks.MOVING_PISTON) || st.isOf(Blocks.PISTON_HEAD));
 
         in.sprinting = p.isSprinting();
         in.sneaking = p.isSneaking();
