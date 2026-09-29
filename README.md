@@ -5,7 +5,7 @@ traders, secure player trading and new-player verification. Java and Bedrock (Ge
 It is built from `ANTICHEAT_SPEC.md`.
 
 > **Read "Status and what to check first" before using this on a real server.**
-> **Java + Bedrock crossplay setup (all free): see [CROSSPLAY.md](CROSSPLAY.md).**
+> **Java + Bedrock crossplay setup (all free): see [CROSSPLAY.md](CROSSPLAY.md). Free hosting on Oracle Cloud: [ORACLE_HOSTING.md](ORACLE_HOSTING.md).**
 
 ## Status and what to check first
 
