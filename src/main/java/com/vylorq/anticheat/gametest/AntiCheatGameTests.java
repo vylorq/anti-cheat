@@ -22,6 +22,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -81,6 +82,13 @@ public final class AntiCheatGameTests implements FabricGameTest {
             }
         }
         check(failed.length() == 0, "mixin targets failed to load:\n" + failed);
+        ctx.complete();
+    }
+
+    @GameTest(templateName = EMPTY_STRUCTURE)
+    public void defaultTradesHaveNoMoneyLoops(TestContext ctx) {
+        List<String> problems = com.vylorq.anticheat.feature.Traders.economyProblems();
+        check(problems.isEmpty(), "economy problems: " + problems);
         ctx.complete();
     }
 
