@@ -35,6 +35,55 @@ public final class AntiCheatGameTests implements FabricGameTest {
         }
     }
 
+    /** Every class a mixin targets. Loading one applies its mixins, so a broken injection fails here. */
+    private static final String[] MIXIN_TARGETS = {
+            "net.minecraft.item.BlockItem",
+            "net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket",
+            "net.minecraft.world.chunk.ChunkSection",
+            "net.minecraft.server.command.CommandManager",
+            "net.minecraft.block.DispenserBlock",
+            "net.minecraft.world.explosion.ExplosionImpl",
+            "net.minecraft.block.FarmlandBlock",
+            "net.minecraft.block.FireBlock",
+            "net.minecraft.fluid.FlowableFluid",
+            "net.minecraft.block.entity.HopperBlockEntity",
+            "net.minecraft.entity.player.HungerManager",
+            "net.minecraft.entity.ItemEntity",
+            "net.minecraft.entity.LivingEntity",
+            "net.minecraft.block.PistonBlock",
+            "net.minecraft.server.PlayerManager",
+            "net.minecraft.entity.projectile.ProjectileEntity",
+            "net.minecraft.server.network.ServerCommonNetworkHandler",
+            "net.minecraft.server.network.ServerPlayNetworkHandler",
+            "net.minecraft.block.TntBlock",
+            "net.minecraft.entity.passive.VillagerEntity",
+            "net.minecraft.world.World",
+            "net.minecraft.entity.mob.EndermanEntity$PickUpBlockGoal",
+            "net.minecraft.server.world.ServerChunkLoadingManager$EntityTracker",
+            "net.minecraft.block.AbstractRedstoneGateBlock",
+            "net.minecraft.block.ObserverBlock",
+            "net.minecraft.block.RedstoneTorchBlock",
+            "net.minecraft.screen.slot.CraftingResultSlot",
+            "net.minecraft.screen.slot.FurnaceOutputSlot",
+            "net.minecraft.entity.TntEntity",
+            "net.minecraft.entity.FallingBlockEntity",
+    };
+
+    @GameTest(templateName = EMPTY_STRUCTURE)
+    public void allMixinsApply(TestContext ctx) {
+        ClassLoader loader = AntiCheatGameTests.class.getClassLoader();
+        StringBuilder failed = new StringBuilder();
+        for (String name : MIXIN_TARGETS) {
+            try {
+                Class.forName(name, true, loader);
+            } catch (Throwable t) {
+                failed.append(name).append(": ").append(t).append('\n');
+            }
+        }
+        check(failed.length() == 0, "mixin targets failed to load:\n" + failed);
+        ctx.complete();
+    }
+
     @GameTest(templateName = EMPTY_STRUCTURE)
     public void modIsRunning(TestContext ctx) {
         check(Ac.running(), "AntiCheat services are not running");
