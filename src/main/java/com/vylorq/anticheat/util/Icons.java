@@ -23,6 +23,10 @@ public final class Icons {
         return of(new ItemStack(item), name, List.of(lore));
     }
 
+    public static ItemStack of(ItemConvertible item, String name, List<String> lore) {
+        return of(new ItemStack(item), name, lore);
+    }
+
     public static ItemStack of(ItemStack stack, String name, List<String> lore) {
         ItemStack s = stack.copy();
         if (name != null) {
