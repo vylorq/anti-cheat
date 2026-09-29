@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "anticheat",
+  "version": "${version}",
+  "name": "Anti-Cheat",
+  "description": "Server-side anti-cheat and server management: detection with admin review, staff tools, claims, barriers, lobby, jail, arenas, traders, secure trading and new-player verification. Works for Java and Bedrock (Geyser/Floodgate) players.",
+  "authors": ["vylorq"],
+  "license": "All-Rights-Reserved",
+  "environment": "server",
+  "entrypoints": {
+    "main": ["com.vylorq.anticheat.AntiCheatMod"],
+    "fabric-gametest": ["com.vylorq.anticheat.gametest.AntiCheatGameTests"]
+  },
+  "mixins": ["anticheat.mixins.json"],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "floodgate": "*",
+    "geyser-fabric": "*",
+    "fabric-permissions-api-v0": "*"
+  }
+}
