@@ -73,11 +73,11 @@ Then paste **one** of these into the server (put your Java Minecraft name after 
 
 Public repo:
 ```
-curl -fsSL https://raw.githubusercontent.com/vylorq/anti-cheat/claude/anticheat-full/scripts/oracle-setup.sh | OWNER=YourName bash
+curl -fsSL https://raw.githubusercontent.com/vylorq/anti-cheat/main/scripts/oracle-setup.sh | OWNER=YourName bash
 ```
 Private repo (replace `TOKEN` twice):
 ```
-curl -fsSL -H "Authorization: token TOKEN" https://raw.githubusercontent.com/vylorq/anti-cheat/claude/anticheat-full/scripts/oracle-setup.sh | OWNER=YourName GITHUB_TOKEN=TOKEN bash
+curl -fsSL -H "Authorization: token TOKEN" https://raw.githubusercontent.com/vylorq/anti-cheat/main/scripts/oracle-setup.sh | OWNER=YourName GITHUB_TOKEN=TOKEN bash
 ```
 
 It installs Java, opens the server firewall, **builds the mod on the server**, downloads Fabric, Fabric API,

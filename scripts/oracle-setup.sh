@@ -3,14 +3,14 @@
 #   Java + Bedrock (Geyser + Floodgate) + Fabric API + the anti-cheat mod, built from GitHub on the server.
 #
 # Run it on the server (put your Minecraft name after OWNER= to become the server owner):
-#   curl -fsSL https://raw.githubusercontent.com/vylorq/anti-cheat/claude/anticheat-full/scripts/oracle-setup.sh | OWNER=YourName bash
+#   curl -fsSL https://raw.githubusercontent.com/vylorq/anti-cheat/main/scripts/oracle-setup.sh | OWNER=YourName bash
 # If the GitHub repo is private, also pass a GitHub token:  ... | OWNER=YourName GITHUB_TOKEN=ghp_xxx bash
 # Run it again any time to update the mod (the world and settings are kept).
 set -euo pipefail
 
 MC_VERSION="${MC_VERSION:-1.21.4}"
 REPO="${REPO:-https://github.com/vylorq/anti-cheat.git}"
-BRANCH="${BRANCH:-claude/anticheat-full}"
+BRANCH="${BRANCH:-main}"
 SERVER_DIR="$HOME/mc"
 SRC_DIR="$HOME/anti-cheat"
 OWNER="${OWNER:-}"
