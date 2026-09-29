@@ -1,0 +1,725 @@
+package com.vylorq.anticheat.command;
+
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.vylorq.anticheat.Ac;
+import com.vylorq.anticheat.PlayerSession;
+import com.vylorq.anticheat.core.arena.Arena;
+import com.vylorq.anticheat.core.arena.ArenaManager;
+import com.vylorq.anticheat.core.arena.Kit;
+import com.vylorq.anticheat.core.barrier.Barrier;
+import com.vylorq.anticheat.core.claims.Claim;
+import com.vylorq.anticheat.core.claims.ClaimManager;
+import com.vylorq.anticheat.core.jail.JailManager;
+import com.vylorq.anticheat.core.lobby.Lobby;
+import com.vylorq.anticheat.core.perm.Perm;
+import com.vylorq.anticheat.core.util.Area;
+import com.vylorq.anticheat.core.util.Durations;
+import com.vylorq.anticheat.core.util.Vec3;
+import com.vylorq.anticheat.core.waiting.WaitingRoom;
+import com.vylorq.anticheat.feature.Arenas;
+import com.vylorq.anticheat.feature.Jail;
+import com.vylorq.anticheat.feature.LobbyFeature;
+import com.vylorq.anticheat.feature.Punish;
+import com.vylorq.anticheat.feature.Staff;
+import com.vylorq.anticheat.feature.StaffTools;
+import com.vylorq.anticheat.feature.Tools;
+import com.vylorq.anticheat.feature.Trades;
+import com.vylorq.anticheat.feature.Traders;
+import com.vylorq.anticheat.feature.WaitingRoomFeature;
+import com.vylorq.anticheat.gui.ArenaMenu;
+import com.vylorq.anticheat.gui.ClaimMenu;
+import com.vylorq.anticheat.perm.Perms;
+import com.vylorq.anticheat.util.ItemConv;
+import com.vylorq.anticheat.util.Mc;
+import com.vylorq.anticheat.util.Msg;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.BlockPos;
+
+import java.util.OptionalLong;
+import java.util.UUID;
+
+import static net.minecraft.server.command.CommandManager.literal;
+
+/** World and gameplay commands (sections 17-25). */
+final class WorldCommands {
+    private WorldCommands() {
+    }
+
+    private static ServerPlayerEntity self(CommandContext<ServerCommandSource> ctx) {
+        ServerPlayerEntity p = ctx.getSource().getPlayer();
+        if (p == null) {
+            Msg.err(ctx.getSource(), "general.players-only");
+        }
+        return p;
+    }
+
+    private static ServerPlayerEntity staff(CommandContext<ServerCommandSource> ctx, Perm perm) {
+        ServerPlayerEntity p = self(ctx);
+        if (p == null || !Perms.check(ctx.getSource(), perm)) {
+            return null;
+        }
+        return p;
+    }
+
+    /** The Claim Stick selection, or null with a hint. */
+    private static Area selection(ServerPlayerEntity p, boolean fullHeight) {
+        PlayerSession s = Ac.session(p);
+        if (s.corner1 == null || s.corner2 == null || !Mc.worldId(p.getWorld()).equals(s.cornerWorld)) {
+            Msg.send(p, "claim.need-selection");
+            return null;
+        }
+        ServerWorld w = p.getServerWorld();
+        int minY = fullHeight ? w.getBottomY() : Math.min(s.corner1.getY(), s.corner2.getY());
+        int maxY = fullHeight ? w.getTopYInclusive() : Math.max(s.corner1.getY(), s.corner2.getY());
+        return new Area(s.cornerWorld, s.corner1.getX(), minY, s.corner1.getZ(), s.corner2.getX(), maxY, s.corner2.getZ());
+    }
+
+    static void register(CommandDispatcher<ServerCommandSource> d) {
+        registerClaims(d);
+        registerBarriers(d);
+        registerLobby(d);
+        registerJail(d);
+        registerWaiting(d);
+        registerArenas(d);
+        registerTraders(d);
+    }
+
+    // ---- Claims ----
+
+    private static void registerClaims(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("claim").requires(s -> Perms.visible(s, Perm.CLAIM))
+                .then(literal("wand").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.CLAIM);
+                    if (p != null) {
+                        p.getInventory().insertStack(Tools.claimStick());
+                        Msg.ok(ctx.getSource(), "claim.wand-given");
+                    }
+                    return 1;
+                }))
+                .then(literal("create").then(Args.player("name").then(Args.word("time").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.CLAIM);
+                    if (p == null) return 0;
+                    OptionalLong t = Args.duration(ctx.getSource(), Args.str(ctx, "time"));
+                    Area a = selection(p, true);
+                    if (t.isEmpty() || a == null) return 0;
+                    var cfg = Ac.config().claims;
+                    ClaimManager.CreateResult r = Ac.get().claims.create(Args.str(ctx, "name"), a.world, a.minX, a.minZ, a.maxX, a.maxZ,
+                            p.getUuid(), Perms.isOwner(p.getUuid()), t.getAsLong(), cfg.minGap, cfg.maxClaimArea);
+                    if (r == ClaimManager.CreateResult.OK) {
+                        Ac.markDirty("claims");
+                        Staff.log(p, "claim-create", null, Args.str(ctx, "name"), a.minX + "," + a.minZ + " -> " + a.maxX + "," + a.maxZ
+                                + " " + Durations.format(t.getAsLong()));
+                        Msg.ok(ctx.getSource(), "claim.created", Args.str(ctx, "name"), Durations.format(t.getAsLong()));
+                    } else {
+                        Msg.err(ctx.getSource(), "claim.create-" + r.name().toLowerCase().replace('_', '-'));
+                    }
+                    return 1;
+                }))))
+                .then(literal("menu").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.CLAIM);
+                    if (p != null) {
+                        ClaimMenu.list(p, 0);
+                    }
+                    return 1;
+                }))
+                .then(literal("who").then(Args.player("name").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.CLAIM)) return 0;
+                    Claim c = Ac.get().claims.get(Args.str(ctx, "name"));
+                    if (c == null) {
+                        Msg.err(ctx.getSource(), "claim.not-found");
+                        return 0;
+                    }
+                    Msg.ok(ctx.getSource(), "claim.who-header", c.name);
+                    for (UUID id : Ac.get().claims.playersIn(c)) {
+                        var r = c.roleOf(id, System.currentTimeMillis());
+                        boolean watched = Ac.get().watchlist.isWatched(id);
+                        ctx.getSource().sendFeedback(() -> Msg.text((watched ? "§d⚑ " : "§f• ") + Args.nameOf(id, "?") + " §7" + (r == null ? "no role" : r.name().toLowerCase())), false);
+                    }
+                    return 1;
+                })))
+                .then(literal("near").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.CLAIM);
+                    if (p == null) return 0;
+                    for (Claim c : Ac.get().claims.near(Mc.worldId(p.getWorld()), p.getBlockX(), p.getBlockZ(), 200)) {
+                        StringBuilder managers = new StringBuilder();
+                        for (var e : c.members.values()) {
+                            if (e.role == com.vylorq.anticheat.core.claims.ClaimRole.MANAGER) {
+                                managers.append(e.name).append(' ');
+                            }
+                        }
+                        long left = c.remaining(System.currentTimeMillis());
+                        MutableText t = Msg.text("§a" + c.name + " §7" + c.minX + "," + c.minZ + " → " + c.maxX + "," + c.maxZ
+                                + " §7managers: §f" + (managers.isEmpty() ? "-" : managers.toString().trim())
+                                + " §7left: §f" + (left == Durations.PERMANENT ? "permanent" : Durations.format(left)));
+                        ctx.getSource().sendFeedback(() -> t, false);
+                    }
+                    return 1;
+                }))
+                .then(literal("spawn").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.CLAIM);
+                    if (p == null) return 0;
+                    Area a = selection(p, true);
+                    if (a == null) return 0;
+                    ClaimManager.CreateResult r = Ac.get().claims.create("spawn", a.world, a.minX, a.minZ, a.maxX, a.maxZ, p.getUuid(),
+                            Perms.isOwner(p.getUuid()), Durations.PERMANENT, 0, Integer.MAX_VALUE);
+                    if (r == ClaimManager.CreateResult.OK) {
+                        Claim c = Ac.get().claims.get("spawn");
+                        c.spawnProtection = true;
+                        c.settings.pvp = false;
+                        c.settings.explosions = false;
+                        Ac.markDirty("claims");
+                        Staff.log(p, "claim-spawn", null, "spawn", "");
+                        Msg.ok(ctx.getSource(), "claim.spawn-created");
+                    } else {
+                        Msg.err(ctx.getSource(), "claim.create-" + r.name().toLowerCase().replace('_', '-'));
+                    }
+                    return 1;
+                })));
+    }
+
+    // ---- Barriers ----
+
+    private static void registerBarriers(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("barrier").requires(s -> Perms.visible(s, Perm.BARRIER))
+                .then(literal("create").then(Args.player("name")
+                        .executes(ctx -> createBarrier(ctx, null, "box", null))
+                        .then(CommandManager.argument("radius", DoubleArgumentType.doubleArg(1, 1000))
+                                .executes(ctx -> createBarrier(ctx, DoubleArgumentType.getDouble(ctx, "radius"), "circle", null))
+                                .then(Args.word("shape").executes(ctx -> createBarrier(ctx, DoubleArgumentType.getDouble(ctx, "radius"), Args.str(ctx, "shape"), null))
+                                        .then(Args.word("time").executes(ctx -> createBarrier(ctx, DoubleArgumentType.getDouble(ctx, "radius"),
+                                                Args.str(ctx, "shape"), Args.str(ctx, "time"))))))
+                        .then(literal("for").then(Args.word("time").executes(ctx -> createBarrier(ctx, null, "box", Args.str(ctx, "time")))))))
+                .then(literal("remove").then(Args.player("name").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.BARRIER)) return 0;
+                    if (Ac.get().barriers.remove(Args.str(ctx, "name"))) {
+                        Ac.markDirty("barriers");
+                        Staff.log(ctx.getSource().getPlayer(), "barrier-remove", null, Args.str(ctx, "name"), "");
+                        Msg.ok(ctx.getSource(), "barrier.removed", Args.str(ctx, "name"));
+                    } else {
+                        Msg.err(ctx.getSource(), "barrier.not-found");
+                    }
+                    return 1;
+                })))
+                .then(literal("adminpass").then(Args.player("name").then(Args.word("onoff").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.BARRIER)) return 0;
+                    Barrier b = Ac.get().barriers.get(Args.str(ctx, "name"));
+                    if (b == null) {
+                        Msg.err(ctx.getSource(), "barrier.not-found");
+                        return 0;
+                    }
+                    b.adminsPass = Args.str(ctx, "onoff").equalsIgnoreCase("on");
+                    Ac.markDirty("barriers");
+                    Msg.ok(ctx.getSource(), "barrier.adminpass", b.name, b.adminsPass ? "on" : "off");
+                    return 1;
+                }))))
+                .then(literal("list").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.BARRIER)) return 0;
+                    for (Barrier b : Ac.get().barriers.list()) {
+                        Vec3 c = b.center();
+                        MutableText t = Msg.text("§6" + b.name + " §7" + b.shape + " " + b.world.replace("minecraft:", "") + " "
+                                + (b.expiresAt == Durations.PERMANENT ? "permanent" : Durations.formatRemaining(b.expiresAt, System.currentTimeMillis())) + " ");
+                        t.append(Msg.button("§b[TP]", "/ac tp " + b.world + " " + (int) c.x() + " " + (int) Math.max(c.y(), 64) + " " + (int) c.z(), "Teleport"));
+                        ctx.getSource().sendFeedback(() -> t, false);
+                    }
+                    return 1;
+                })));
+    }
+
+    private static int createBarrier(CommandContext<ServerCommandSource> ctx, Double radius, String shape, String time) {
+        ServerPlayerEntity p = staff(ctx, Perm.BARRIER);
+        if (p == null) return 0;
+        Barrier b = new Barrier();
+        b.name = Args.str(ctx, "name");
+        b.world = Mc.worldId(p.getWorld());
+        b.createdBy = p.getGameProfile().getName();
+        if (time != null) {
+            OptionalLong t = Args.duration(ctx.getSource(), time);
+            if (t.isEmpty()) return 0;
+            b.expiresAt = Durations.expiryFrom(System.currentTimeMillis(), t.getAsLong());
+        }
+        if (radius == null) {
+            Area a = selection(p, true);
+            if (a == null) return 0;
+            b.shape = Barrier.Shape.BOX;
+            b.minX = a.minX;
+            b.maxX = a.maxX;
+            b.minZ = a.minZ;
+            b.maxZ = a.maxZ;
+            b.cy = p.getY();
+        } else {
+            b.shape = switch (shape.toLowerCase()) {
+                case "sphere" -> Barrier.Shape.SPHERE;
+                case "box", "square" -> Barrier.Shape.BOX;
+                default -> Barrier.Shape.CYLINDER;
+            };
+            b.cx = p.getX();
+            b.cy = p.getY();
+            b.cz = p.getZ();
+            b.radius = radius;
+            if (b.shape == Barrier.Shape.BOX) {
+                b.minX = Math.floor(p.getX() - radius);
+                b.maxX = Math.floor(p.getX() + radius);
+                b.minZ = Math.floor(p.getZ() - radius);
+                b.maxZ = Math.floor(p.getZ() + radius);
+            }
+        }
+        // Everyone online right now belongs to the side they're on.
+        for (ServerPlayerEntity o : Ac.server().getPlayerManager().getPlayerList()) {
+            b.sides.put(o.getUuid(), b.contains(Mc.worldId(o.getWorld()), o.getX(), o.getY(), o.getZ()));
+        }
+        if (!Ac.get().barriers.add(b)) {
+            Msg.err(ctx.getSource(), "barrier.exists");
+            return 0;
+        }
+        Ac.markDirty("barriers");
+        Staff.log(p, "barrier-create", null, b.name, b.shape + " " + b.world);
+        Msg.ok(ctx.getSource(), "barrier.created", b.name, b.shape.name().toLowerCase());
+        return 1;
+    }
+
+    // ---- Lobby ----
+
+    private static void registerLobby(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("lobby")
+                .executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    if (Ac.get().jail.isJailed(p.getUuid()) || WaitingRoomFeature.waiting(p) || Arenas.inMatch(p) || StaffTools.isFrozen(p)) {
+                        Msg.err(ctx.getSource(), "lobby.blocked");
+                        return 0;
+                    }
+                    LobbyFeature.teleport(p);
+                    return 1;
+                })
+                .then(literal("set").requires(s -> Perms.visible(s, Perm.LOBBY_ADMIN)).executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.LOBBY_ADMIN);
+                    if (p == null) return 0;
+                    Area a = selection(p, true);
+                    if (a == null) return 0;
+                    Ac.get().lobby.data().area = a;
+                    if (Ac.get().lobby.data().spawn == null) {
+                        Ac.get().lobby.data().spawn = Mc.location(p);
+                    }
+                    Ac.markDirty("lobby");
+                    Staff.log(p, "lobby-set", null, null, a.minX + "," + a.minZ + " -> " + a.maxX + "," + a.maxZ);
+                    Msg.ok(ctx.getSource(), "lobby.set");
+                    return 1;
+                }))
+                .then(literal("setspawn").requires(s -> Perms.visible(s, Perm.LOBBY_ADMIN)).executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.LOBBY_ADMIN);
+                    if (p == null) return 0;
+                    Ac.get().lobby.data().spawn = Mc.location(p);
+                    Ac.markDirty("lobby");
+                    Staff.log(p, "lobby-setspawn", null, null, Mc.vec(p.getPos()).formatExact());
+                    Msg.ok(ctx.getSource(), "lobby.spawn-set");
+                    return 1;
+                }))
+                .then(literal("edit").requires(s -> Perms.visible(s, Perm.LOBBY_ADMIN)).executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.LOBBY_ADMIN);
+                    if (p == null) return 0;
+                    boolean on = Ac.get().lobby.toggleEdit(p.getUuid());
+                    Ac.markDirty("lobby");
+                    Staff.log(p, on ? "lobby-edit-on" : "lobby-edit-off", null, null, "");
+                    Msg.ok(ctx.getSource(), on ? "lobby.edit-on" : "lobby.edit-off");
+                    return 1;
+                }))
+                .then(literal("chest").requires(s -> Perms.visible(s, Perm.LOBBY_ADMIN)).then(Args.word("mode").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.LOBBY_ADMIN);
+                    if (p == null) return 0;
+                    Lobby.ChestMode mode = switch (Args.str(ctx, "mode").toLowerCase()) {
+                        case "view", "view_only", "viewonly" -> Lobby.ChestMode.VIEW_ONLY;
+                        case "take" -> Lobby.ChestMode.TAKE;
+                        case "loot" -> Lobby.ChestMode.LOOT;
+                        default -> null;
+                    };
+                    HitResult hit = p.raycast(6, 1f, false);
+                    if (mode == null || !(hit instanceof BlockHitResult bh) || hit.getType() != HitResult.Type.BLOCK
+                            || !(p.getWorld().getBlockEntity(bh.getBlockPos()) instanceof Inventory inv)) {
+                        Msg.err(ctx.getSource(), "lobby.chest-usage");
+                        return 0;
+                    }
+                    LobbyFeature.setChestMode(p.getServerWorld(), bh.getBlockPos(), mode, inv);
+                    Staff.log(p, "lobby-chest", null, null, mode + " at " + bh.getBlockPos().toShortString());
+                    Msg.ok(ctx.getSource(), "lobby.chest-set", mode.name().toLowerCase());
+                    return 1;
+                }))));
+    }
+
+    // ---- Jail ----
+
+    private static void registerJail(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("jail").requires(s -> Perms.visible(s, Perm.JAIL))
+                .then(literal("list").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.JAIL)) return 0;
+                    boolean onlineOnly = Ac.config().jail.onlineTimeOnly;
+                    for (JailManager.Record r : Ac.get().jail.list()) {
+                        ctx.getSource().sendFeedback(() -> Msg.text("§c• " + r.name + " §7" + r.reason + " §8(" +
+                                Durations.format(Ac.get().jail.remaining(r.player, onlineOnly)) + " left, cell " + r.cell + ")"), false);
+                    }
+                    return 1;
+                }))
+                .then(literal("setcell").then(Args.word("cell").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.JAIL);
+                    if (p == null) return 0;
+                    Ac.get().jail.setCell(Args.str(ctx, "cell"), Mc.location(p));
+                    Ac.markDirty("jail");
+                    Staff.log(p, "jail-setcell", null, Args.str(ctx, "cell"), Mc.vec(p.getPos()).formatExact());
+                    Msg.ok(ctx.getSource(), "jail.cell-set", Args.str(ctx, "cell"));
+                    return 1;
+                })))
+                .then(literal("delcell").then(Args.word("cell").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.JAIL)) return 0;
+                    Ac.get().jail.removeCell(Args.str(ctx, "cell"));
+                    Ac.markDirty("jail");
+                    Msg.ok(ctx.getSource(), "jail.cell-removed", Args.str(ctx, "cell"));
+                    return 1;
+                })))
+                .then(Args.player("player").then(Args.word("time").then(Args.rest("reason").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.JAIL)) return 0;
+                    ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
+                    OptionalLong d2 = Args.duration(ctx.getSource(), Args.str(ctx, "time"));
+                    if (t == null || d2.isEmpty() || !Punish.allowedOn(ctx.getSource().getPlayer(), t.getUuid())) return 0;
+                    if (Ac.get().jail.cells().isEmpty()) {
+                        Msg.err(ctx.getSource(), "jail.no-cells");
+                        return 0;
+                    }
+                    Jail.jail(t, Args.str(ctx, "reason"), d2.getAsLong(), Staff.name(ctx.getSource().getPlayer()));
+                    Staff.log(ctx.getSource().getPlayer(), "jail", t.getUuid(), t.getGameProfile().getName(),
+                            Durations.format(d2.getAsLong()) + " " + Args.str(ctx, "reason"));
+                    Ac.get().punishments.add(com.vylorq.anticheat.core.staff.Punishment.Type.JAIL, t.getUuid(), t.getGameProfile().getName(),
+                            Args.str(ctx, "reason"), Staff.name(ctx.getSource().getPlayer()), d2.getAsLong());
+                    Ac.markDirty("punishments");
+                    return 1;
+                })))));
+        d.register(literal("unjail").requires(s -> Perms.visible(s, Perm.JAIL))
+                .then(Args.player("player").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.JAIL)) return 0;
+                    UUID id = Args.known(ctx.getSource(), Args.str(ctx, "player"));
+                    if (id == null) return 0;
+                    if (!Ac.get().jail.isJailed(id)) {
+                        Msg.err(ctx.getSource(), "jail.not-jailed");
+                        return 0;
+                    }
+                    Jail.release(id, true);
+                    Ac.get().punishments.revoke(id, com.vylorq.anticheat.core.staff.Punishment.Type.JAIL, Staff.name(ctx.getSource().getPlayer()));
+                    Ac.markDirty("punishments");
+                    Staff.log(ctx.getSource().getPlayer(), "unjail", id, Args.nameOf(id, "?"), "");
+                    Msg.ok(ctx.getSource(), "jail.released", Args.nameOf(id, "?"));
+                    return 1;
+                })));
+    }
+
+    // ---- Waiting room ----
+
+    private static void registerWaiting(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("request").then(literal("join").executes(ctx -> {
+            ServerPlayerEntity p = self(ctx);
+            if (p != null) {
+                WaitingRoomFeature.requestJoin(p);
+            }
+            return 1;
+        })));
+        d.register(literal("requests").requires(s -> Perms.visible(s, Perm.WAITING_ROOM))
+                .executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.WAITING_ROOM);
+                    if (p == null) return 0;
+                    var list = Ac.get().waitingRoom.pending();
+                    if (list.isEmpty()) {
+                        Msg.ok(ctx.getSource(), "waiting.none");
+                    }
+                    for (WaitingRoom.Request r : list) {
+                        p.sendMessage(WaitingRoomFeature.requestText(r, p));
+                    }
+                    return 1;
+                })
+                .then(literal("accept").then(Args.player("player").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.WAITING_ROOM);
+                    UUID id = p == null ? null : Args.known(ctx.getSource(), Args.str(ctx, "player"));
+                    if (id != null) {
+                        WaitingRoomFeature.accept(p, id);
+                    }
+                    return 1;
+                })))
+                .then(literal("deny").then(Args.player("player").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.WAITING_ROOM);
+                    UUID id = p == null ? null : Args.known(ctx.getSource(), Args.str(ctx, "player"));
+                    if (id != null) {
+                        WaitingRoomFeature.deny(p, id);
+                    }
+                    return 1;
+                })))
+                .then(literal("tp").then(Args.player("player").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.WAITING_ROOM);
+                    if (p == null) return 0;
+                    ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
+                    if (t == null) return 0;
+                    boolean inv = Ac.get().staff.teleportInvisible(p.getUuid(), Ac.config().staff.teleportInvisibleByDefault);
+                    StaffTools.teleportTo(p, t.getServerWorld(), Mc.vec(t.getPos()), inv, t.getGameProfile().getName());
+                    return 1;
+                }))));
+        d.register(literal("waitingroom").requires(s -> Perms.visible(s, Perm.WAITING_ROOM))
+                .then(literal("set").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.WAITING_ROOM);
+                    if (p == null) return 0;
+                    WaitingRoom wr = Ac.get().waitingRoom;
+                    PlayerSession s = Ac.session(p);
+                    if (s.corner1 != null && s.corner2 != null && Mc.worldId(p.getWorld()).equals(s.cornerWorld)) {
+                        wr.data().area = new Area(s.cornerWorld, s.corner1.getX(), Math.min(s.corner1.getY(), s.corner2.getY()),
+                                s.corner1.getZ(), s.corner2.getX(), Math.max(s.corner1.getY(), s.corner2.getY()) + 3, s.corner2.getZ());
+                    }
+                    wr.data().spawn = Mc.location(p);
+                    WaitingRoomFeature.seedExisting();
+                    Ac.markDirty("waiting");
+                    Staff.log(p, "waitingroom-set", null, null, Mc.vec(p.getPos()).formatExact());
+                    Msg.ok(ctx.getSource(), "waiting.set");
+                    return 1;
+                })));
+    }
+
+    // ---- Arenas ----
+
+    private static void registerArenas(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("arena")
+                .then(literal("create").requires(s -> Perms.visible(s, Perm.ARENA_ADMIN)).then(Args.word("name").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.ARENA_ADMIN);
+                    if (p == null) return 0;
+                    Area a = selection(p, false);
+                    if (a == null) return 0;
+                    Arena ar = new Arena();
+                    ar.name = Args.str(ctx, "name");
+                    ar.area = a;
+                    if (!Ac.get().arenas.addArena(ar)) {
+                        Msg.err(ctx.getSource(), "arena.exists");
+                        return 0;
+                    }
+                    Ac.markDirty("arenas");
+                    Staff.log(p, "arena-create", null, ar.name, "");
+                    Msg.ok(ctx.getSource(), "arena.created", ar.name);
+                    ArenaMenu.edit(p, ar);
+                    return 1;
+                })))
+                .then(literal("menu").requires(s -> Perms.visible(s, Perm.ARENA_ADMIN)).executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.ARENA_ADMIN);
+                    if (p != null) {
+                        ArenaMenu.list(p);
+                    }
+                    return 1;
+                }))
+                .then(literal("join").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p != null) {
+                        ArenaMenu.join(p);
+                    }
+                    return 1;
+                }).then(Args.word("mode").executes(ctx -> arenaJoin(ctx, "sword"))
+                        .then(Args.word("kit").executes(ctx -> arenaJoin(ctx, Args.str(ctx, "kit"))))))
+                .then(literal("leave").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    Ac.get().arenas.leaveQueue(p.getUuid());
+                    if (Arenas.isSpectating(p)) {
+                        Arenas.stopSpectating(p);
+                    }
+                    Msg.ok(ctx.getSource(), "arena.left-queue");
+                    return 1;
+                }))
+                .then(literal("spectate").then(Args.word("name").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    Arena a = Ac.get().arenas.arena(Args.str(ctx, "name"));
+                    if (a == null) {
+                        Msg.err(ctx.getSource(), "arena.not-found");
+                        return 0;
+                    }
+                    Arenas.spectate(p, a);
+                    return 1;
+                })))
+                .then(literal("kit").requires(s -> Perms.visible(s, Perm.ARENA_ADMIN)).then(literal("save").then(Args.word("name").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.ARENA_ADMIN);
+                    if (p == null) return 0;
+                    Kit k = new Kit();
+                    k.name = Args.str(ctx, "name").toLowerCase();
+                    var inv = p.getInventory();
+                    for (int i = 0; i < inv.size(); i++) {
+                        ItemStack s = inv.getStack(i);
+                        if (!s.isEmpty()) {
+                            k.items.put(i, ItemConv.encode(s));
+                        }
+                    }
+                    for (var e : p.getStatusEffects()) {
+                        e.getEffectType().getKey().ifPresent(key -> k.effects.put(key.getValue().toString(), e.getAmplifier()));
+                    }
+                    k.description = java.util.List.of("Custom kit by " + p.getGameProfile().getName());
+                    Kit old = Ac.get().arenas.kit(k.name);
+                    if (old != null) {
+                        k.naturalRegen = old.naturalRegen;
+                    }
+                    Ac.get().arenas.saveKit(k);
+                    Ac.markDirty("arenas");
+                    Staff.log(p, "kit-save", null, k.name, k.items.size() + " stacks");
+                    Msg.ok(ctx.getSource(), "arena.kit-saved", k.name);
+                    return 1;
+                }))))
+                .then(literal("stats").executes(ctx -> arenaStats(ctx, null))
+                        .then(Args.player("player").executes(ctx -> arenaStats(ctx, Args.str(ctx, "player"))))));
+        d.register(literal("duel")
+                .then(literal("accept").then(Args.player("player").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    ServerPlayerEntity from = p == null ? null : Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
+                    if (from != null) {
+                        Arenas.acceptDuel(p, from);
+                    }
+                    return 1;
+                })))
+                .then(literal("deny").then(Args.player("player").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p != null && Ac.get().arenas.denyDuel(p.getUuid()) != null) {
+                        Msg.ok(ctx.getSource(), "duel.denied");
+                    }
+                    return 1;
+                })))
+                .then(Args.player("player").executes(ctx -> duel(ctx, "sword"))
+                        .then(Args.word("kit").executes(ctx -> duel(ctx, Args.str(ctx, "kit"))))));
+    }
+
+    private static int arenaJoin(CommandContext<ServerCommandSource> ctx, String kit) {
+        ServerPlayerEntity p = self(ctx);
+        if (p == null) return 0;
+        Arena.Mode mode = Arena.Mode.parse(Args.str(ctx, "mode"));
+        if (mode == null) {
+            Msg.err(ctx.getSource(), "arena.bad-mode");
+            return 0;
+        }
+        Arenas.join(p, mode, kit.toLowerCase());
+        return 1;
+    }
+
+    private static int duel(CommandContext<ServerCommandSource> ctx, String kit) {
+        ServerPlayerEntity p = self(ctx);
+        if (p == null) return 0;
+        ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
+        if (t == null || t == p) return 0;
+        Arenas.duel(p, t, kit.toLowerCase());
+        return 1;
+    }
+
+    private static int arenaStats(CommandContext<ServerCommandSource> ctx, String name) {
+        UUID id;
+        if (name == null) {
+            ServerPlayerEntity p = self(ctx);
+            if (p == null) return 0;
+            id = p.getUuid();
+        } else {
+            id = Args.known(ctx.getSource(), name);
+            if (id == null) return 0;
+        }
+        ArenaManager.Stats s = Ac.get().arenas.stats(id);
+        Msg.ok(ctx.getSource(), "arena.stats", Args.nameOf(id, "?"), s.wins, s.losses, s.kills);
+        for (var e : s.perKit.entrySet()) {
+            int[] v = e.getValue();
+            ctx.getSource().sendFeedback(() -> Msg.text("§7  " + e.getKey() + ": §a" + v[0] + "W §c" + v[1] + "L §f" + v[2] + " kills"), false);
+        }
+        return 1;
+    }
+
+    // ---- Traders and trading ----
+
+    private static void registerTraders(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("trader").requires(s -> Perms.visible(s, Perm.TRADER_ADMIN))
+                .then(literal("stick").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.TRADER_ADMIN);
+                    if (p != null) {
+                        p.getInventory().insertStack(Tools.traderStick());
+                        Msg.ok(ctx.getSource(), "trader.stick-given");
+                    }
+                    return 1;
+                }))
+                .then(literal("create").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.TRADER_ADMIN);
+                    if (p == null) return 0;
+                    HitResult hit = p.raycast(6, 1f, false);
+                    BlockPos on = hit instanceof BlockHitResult bh && hit.getType() == HitResult.Type.BLOCK ? bh.getBlockPos() : p.getBlockPos().down();
+                    var t = Traders.create(p, p.getServerWorld(), on, p.getYaw());
+                    if (t != null) {
+                        Traders.openEdit(p, t);
+                    }
+                    return 1;
+                }))
+                .then(literal("list").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.TRADER_ADMIN)) return 0;
+                    int i = 1;
+                    for (var t : Ac.get().traders.traders.values()) {
+                        int n = i++;
+                        MutableText line = Msg.text("§e" + n + ". §f" + t.name + " §7" + t.specialty + " " + t.type + " "
+                                + t.location.world().replace("minecraft:", "") + " " + (int) t.location.x() + " " + (int) t.location.y() + " " + (int) t.location.z() + " ");
+                        line.append(Msg.button("§b[TP]", "/ac tp " + t.location.world() + " " + (int) t.location.x() + " " + (int) t.location.y() + " " + (int) t.location.z(), "Teleport"));
+                        line.append(Text.literal(" ")).append(Msg.button("§e[Edit]", "/trader edit " + n, "Edit"));
+                        line.append(Text.literal(" ")).append(Msg.button("§c[Remove]", "/trader remove " + n, "Remove"));
+                        ctx.getSource().sendFeedback(() -> line, false);
+                    }
+                    return 1;
+                }))
+                .then(literal("edit").then(Args.word("number").executes(ctx -> traderByIndex(ctx, false))))
+                .then(literal("remove").then(Args.word("number").executes(ctx -> traderByIndex(ctx, true)))));
+        d.register(literal("trade")
+                .then(literal("accept").then(Args.player("player").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    ServerPlayerEntity from = p == null ? null : Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
+                    if (from != null) {
+                        Trades.accept(p, from);
+                    }
+                    return 1;
+                })))
+                .then(literal("deny").then(Args.player("player").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    ServerPlayerEntity from = p == null ? null : Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
+                    if (from != null) {
+                        Trades.deny(p, from);
+                    }
+                    return 1;
+                })))
+                .then(Args.player("player").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    ServerPlayerEntity t = p == null ? null : Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
+                    if (t != null) {
+                        Trades.request(p, t);
+                    }
+                    return 1;
+                })));
+    }
+
+    private static int traderByIndex(CommandContext<ServerCommandSource> ctx, boolean remove) {
+        ServerPlayerEntity p = staff(ctx, Perm.TRADER_ADMIN);
+        if (p == null) return 0;
+        int n;
+        try {
+            n = Integer.parseInt(Args.str(ctx, "number"));
+        } catch (NumberFormatException e) {
+            Msg.err(ctx.getSource(), "general.bad-number");
+            return 0;
+        }
+        var list = new java.util.ArrayList<>(Ac.get().traders.traders.values());
+        if (n < 1 || n > list.size()) {
+            Msg.err(ctx.getSource(), "trader.not-found");
+            return 0;
+        }
+        var t = list.get(n - 1);
+        if (remove) {
+            Traders.confirmRemove(p, t);
+        } else {
+            Traders.openEdit(p, t);
+        }
+        return 1;
+    }
+}

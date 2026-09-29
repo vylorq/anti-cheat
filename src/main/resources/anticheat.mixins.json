@@ -1,0 +1,38 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.vylorq.anticheat.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BlockItemMixin",
+    "ChunkDataPacketMixin",
+    "ChunkSectionMixin",
+    "CommandManagerMixin",
+    "CraftingResultSlotMixin",
+    "DispenserBlockMixin",
+    "EndermanPickUpMixin",
+    "EntityTrackerMixin",
+    "ExplosionMixin",
+    "FarmlandBlockMixin",
+    "FireBlockMixin",
+    "FlowableFluidMixin",
+    "HopperBlockEntityMixin",
+    "HungerManagerMixin",
+    "ItemEntityMixin",
+    "LivingEntityMixin",
+    "PistonBlockMixin",
+    "PlayerManagerMixin",
+    "ProjectileEntityMixin",
+    "RedstoneClockMixin",
+    "ServerCommonNetworkHandlerMixin",
+    "ServerPlayNetworkHandlerMixin",
+    "TntBlockMixin",
+    "TntEntityMixin",
+    "VillagerEntityMixin",
+    "WorldAccessor",
+    "WorldMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

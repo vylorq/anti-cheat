@@ -1,0 +1,1519 @@
+{
+"minecraft:oak_planks": [
+{
+"in": {
+"minecraft:oak_log": 1
+},
+"out": 4
+}
+],
+"minecraft:spruce_planks": [
+{
+"in": {
+"minecraft:spruce_log": 1
+},
+"out": 4
+}
+],
+"minecraft:birch_planks": [
+{
+"in": {
+"minecraft:birch_log": 1
+},
+"out": 4
+}
+],
+"minecraft:jungle_planks": [
+{
+"in": {
+"minecraft:jungle_log": 1
+},
+"out": 4
+}
+],
+"minecraft:acacia_planks": [
+{
+"in": {
+"minecraft:acacia_log": 1
+},
+"out": 4
+}
+],
+"minecraft:dark_oak_planks": [
+{
+"in": {
+"minecraft:dark_oak_log": 1
+},
+"out": 4
+}
+],
+"minecraft:mangrove_planks": [
+{
+"in": {
+"minecraft:mangrove_log": 1
+},
+"out": 4
+}
+],
+"minecraft:cherry_planks": [
+{
+"in": {
+"minecraft:cherry_log": 1
+},
+"out": 4
+}
+],
+"minecraft:pale_oak_planks": [
+{
+"in": {
+"minecraft:pale_oak_log": 1
+},
+"out": 4
+}
+],
+"minecraft:crimson_planks": [
+{
+"in": {
+"minecraft:crimson_stem": 1
+},
+"out": 4
+}
+],
+"minecraft:warped_planks": [
+{
+"in": {
+"minecraft:warped_stem": 1
+},
+"out": 4
+}
+],
+"minecraft:bamboo_planks": [
+{
+"in": {
+"minecraft:bamboo_block": 1
+},
+"out": 2
+}
+],
+"minecraft:stick": [
+{
+"in": {
+"minecraft:oak_planks": 2
+},
+"out": 4
+}
+],
+"minecraft:crafting_table": [
+{
+"in": {
+"minecraft:oak_planks": 4
+},
+"out": 1
+}
+],
+"minecraft:chest": [
+{
+"in": {
+"minecraft:oak_planks": 8
+},
+"out": 1
+}
+],
+"minecraft:barrel": [
+{
+"in": {
+"minecraft:oak_planks": 6,
+"minecraft:oak_slab": 2
+},
+"out": 1
+}
+],
+"minecraft:oak_slab": [
+{
+"in": {
+"minecraft:oak_planks": 3
+},
+"out": 6
+}
+],
+"minecraft:wooden_sword": [
+{
+"in": {
+"minecraft:oak_planks": 2,
+"minecraft:stick": 1
+},
+"out": 1
+}
+],
+"minecraft:wooden_axe": [
+{
+"in": {
+"minecraft:oak_planks": 3,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:wooden_pickaxe": [
+{
+"in": {
+"minecraft:oak_planks": 3,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:wooden_shovel": [
+{
+"in": {
+"minecraft:oak_planks": 1,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:wooden_hoe": [
+{
+"in": {
+"minecraft:oak_planks": 2,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:stone_sword": [
+{
+"in": {
+"minecraft:cobblestone": 2,
+"minecraft:stick": 1
+},
+"out": 1
+}
+],
+"minecraft:stone_axe": [
+{
+"in": {
+"minecraft:cobblestone": 3,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:stone_pickaxe": [
+{
+"in": {
+"minecraft:cobblestone": 3,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:stone_shovel": [
+{
+"in": {
+"minecraft:cobblestone": 1,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:stone_hoe": [
+{
+"in": {
+"minecraft:cobblestone": 2,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:iron_sword": [
+{
+"in": {
+"minecraft:iron_ingot": 2,
+"minecraft:stick": 1
+},
+"out": 1
+}
+],
+"minecraft:iron_axe": [
+{
+"in": {
+"minecraft:iron_ingot": 3,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:iron_pickaxe": [
+{
+"in": {
+"minecraft:iron_ingot": 3,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:iron_shovel": [
+{
+"in": {
+"minecraft:iron_ingot": 1,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:iron_hoe": [
+{
+"in": {
+"minecraft:iron_ingot": 2,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:golden_sword": [
+{
+"in": {
+"minecraft:gold_ingot": 2,
+"minecraft:stick": 1
+},
+"out": 1
+}
+],
+"minecraft:golden_axe": [
+{
+"in": {
+"minecraft:gold_ingot": 3,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:golden_pickaxe": [
+{
+"in": {
+"minecraft:gold_ingot": 3,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:golden_shovel": [
+{
+"in": {
+"minecraft:gold_ingot": 1,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:golden_hoe": [
+{
+"in": {
+"minecraft:gold_ingot": 2,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:diamond_sword": [
+{
+"in": {
+"minecraft:diamond": 2,
+"minecraft:stick": 1
+},
+"out": 1
+}
+],
+"minecraft:diamond_axe": [
+{
+"in": {
+"minecraft:diamond": 3,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:diamond_pickaxe": [
+{
+"in": {
+"minecraft:diamond": 3,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:diamond_shovel": [
+{
+"in": {
+"minecraft:diamond": 1,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:diamond_hoe": [
+{
+"in": {
+"minecraft:diamond": 2,
+"minecraft:stick": 2
+},
+"out": 1
+}
+],
+"minecraft:leather_helmet": [
+{
+"in": {
+"minecraft:leather": 5
+},
+"out": 1
+}
+],
+"minecraft:leather_chestplate": [
+{
+"in": {
+"minecraft:leather": 8
+},
+"out": 1
+}
+],
+"minecraft:leather_leggings": [
+{
+"in": {
+"minecraft:leather": 7
+},
+"out": 1
+}
+],
+"minecraft:leather_boots": [
+{
+"in": {
+"minecraft:leather": 4
+},
+"out": 1
+}
+],
+"minecraft:iron_helmet": [
+{
+"in": {
+"minecraft:iron_ingot": 5
+},
+"out": 1
+}
+],
+"minecraft:iron_chestplate": [
+{
+"in": {
+"minecraft:iron_ingot": 8
+},
+"out": 1
+}
+],
+"minecraft:iron_leggings": [
+{
+"in": {
+"minecraft:iron_ingot": 7
+},
+"out": 1
+}
+],
+"minecraft:iron_boots": [
+{
+"in": {
+"minecraft:iron_ingot": 4
+},
+"out": 1
+}
+],
+"minecraft:golden_helmet": [
+{
+"in": {
+"minecraft:gold_ingot": 5
+},
+"out": 1
+}
+],
+"minecraft:golden_chestplate": [
+{
+"in": {
+"minecraft:gold_ingot": 8
+},
+"out": 1
+}
+],
+"minecraft:golden_leggings": [
+{
+"in": {
+"minecraft:gold_ingot": 7
+},
+"out": 1
+}
+],
+"minecraft:golden_boots": [
+{
+"in": {
+"minecraft:gold_ingot": 4
+},
+"out": 1
+}
+],
+"minecraft:diamond_helmet": [
+{
+"in": {
+"minecraft:diamond": 5
+},
+"out": 1
+}
+],
+"minecraft:diamond_chestplate": [
+{
+"in": {
+"minecraft:diamond": 8
+},
+"out": 1
+}
+],
+"minecraft:diamond_leggings": [
+{
+"in": {
+"minecraft:diamond": 7
+},
+"out": 1
+}
+],
+"minecraft:diamond_boots": [
+{
+"in": {
+"minecraft:diamond": 4
+},
+"out": 1
+}
+],
+"minecraft:leather_horse_armor": [
+{
+"in": {
+"minecraft:leather": 7
+},
+"out": 1
+}
+],
+"minecraft:netherite_sword": [
+{
+"in": {
+"minecraft:diamond_sword": 1,
+"minecraft:netherite_ingot": 1,
+"minecraft:netherite_upgrade_smithing_template": 1
+},
+"out": 1
+}
+],
+"minecraft:netherite_axe": [
+{
+"in": {
+"minecraft:diamond_axe": 1,
+"minecraft:netherite_ingot": 1,
+"minecraft:netherite_upgrade_smithing_template": 1
+},
+"out": 1
+}
+],
+"minecraft:netherite_pickaxe": [
+{
+"in": {
+"minecraft:diamond_pickaxe": 1,
+"minecraft:netherite_ingot": 1,
+"minecraft:netherite_upgrade_smithing_template": 1
+},
+"out": 1
+}
+],
+"minecraft:netherite_shovel": [
+{
+"in": {
+"minecraft:diamond_shovel": 1,
+"minecraft:netherite_ingot": 1,
+"minecraft:netherite_upgrade_smithing_template": 1
+},
+"out": 1
+}
+],
+"minecraft:netherite_hoe": [
+{
+"in": {
+"minecraft:diamond_hoe": 1,
+"minecraft:netherite_ingot": 1,
+"minecraft:netherite_upgrade_smithing_template": 1
+},
+"out": 1
+}
+],
+"minecraft:netherite_helmet": [
+{
+"in": {
+"minecraft:diamond_helmet": 1,
+"minecraft:netherite_ingot": 1,
+"minecraft:netherite_upgrade_smithing_template": 1
+},
+"out": 1
+}
+],
+"minecraft:netherite_chestplate": [
+{
+"in": {
+"minecraft:diamond_chestplate": 1,
+"minecraft:netherite_ingot": 1,
+"minecraft:netherite_upgrade_smithing_template": 1
+},
+"out": 1
+}
+],
+"minecraft:netherite_leggings": [
+{
+"in": {
+"minecraft:diamond_leggings": 1,
+"minecraft:netherite_ingot": 1,
+"minecraft:netherite_upgrade_smithing_template": 1
+},
+"out": 1
+}
+],
+"minecraft:netherite_boots": [
+{
+"in": {
+"minecraft:diamond_boots": 1,
+"minecraft:netherite_ingot": 1,
+"minecraft:netherite_upgrade_smithing_template": 1
+},
+"out": 1
+}
+],
+"minecraft:netherite_ingot": [
+{
+"in": {
+"minecraft:netherite_scrap": 4,
+"minecraft:gold_ingot": 4
+},
+"out": 1
+}
+],
+"minecraft:shield": [
+{
+"in": {
+"minecraft:oak_planks": 6,
+"minecraft:iron_ingot": 1
+},
+"out": 1
+}
+],
+"minecraft:bow": [
+{
+"in": {
+"minecraft:stick": 3,
+"minecraft:string": 3
+},
+"out": 1
+}
+],
+"minecraft:crossbow": [
+{
+"in": {
+"minecraft:stick": 3,
+"minecraft:string": 2,
+"minecraft:iron_ingot": 1,
+"minecraft:tripwire_hook": 1
+},
+"out": 1
+}
+],
+"minecraft:tripwire_hook": [
+{
+"in": {
+"minecraft:iron_ingot": 1,
+"minecraft:stick": 1,
+"minecraft:oak_planks": 1
+},
+"out": 2
+}
+],
+"minecraft:fishing_rod": [
+{
+"in": {
+"minecraft:stick": 3,
+"minecraft:string": 2
+},
+"out": 1
+}
+],
+"minecraft:shears": [
+{
+"in": {
+"minecraft:iron_ingot": 2
+},
+"out": 1
+}
+],
+"minecraft:flint_and_steel": [
+{
+"in": {
+"minecraft:iron_ingot": 1,
+"minecraft:flint": 1
+},
+"out": 1
+}
+],
+"minecraft:arrow": [
+{
+"in": {
+"minecraft:flint": 1,
+"minecraft:stick": 1,
+"minecraft:feather": 1
+},
+"out": 4
+}
+],
+"minecraft:spectral_arrow": [
+{
+"in": {
+"minecraft:arrow": 4,
+"minecraft:glowstone_dust": 4
+},
+"out": 2
+}
+],
+"minecraft:mace": [
+{
+"in": {
+"minecraft:heavy_core": 1,
+"minecraft:breeze_rod": 1
+},
+"out": 1
+}
+],
+"minecraft:iron_block": [
+{
+"in": {
+"minecraft:iron_ingot": 9
+},
+"out": 1
+}
+],
+"minecraft:gold_block": [
+{
+"in": {
+"minecraft:gold_ingot": 9
+},
+"out": 1
+}
+],
+"minecraft:diamond_block": [
+{
+"in": {
+"minecraft:diamond": 9
+},
+"out": 1
+}
+],
+"minecraft:emerald_block": [
+{
+"in": {
+"minecraft:emerald": 9
+},
+"out": 1
+}
+],
+"minecraft:netherite_block": [
+{
+"in": {
+"minecraft:netherite_ingot": 9
+},
+"out": 1
+}
+],
+"minecraft:redstone_block": [
+{
+"in": {
+"minecraft:redstone": 9
+},
+"out": 1
+}
+],
+"minecraft:lapis_block": [
+{
+"in": {
+"minecraft:lapis_lazuli": 9
+},
+"out": 1
+}
+],
+"minecraft:coal_block": [
+{
+"in": {
+"minecraft:coal": 9
+},
+"out": 1
+}
+],
+"minecraft:copper_block": [
+{
+"in": {
+"minecraft:copper_ingot": 9
+},
+"out": 1
+}
+],
+"minecraft:stone_bricks": [
+{
+"in": {
+"minecraft:stone": 4
+},
+"out": 4
+}
+],
+"minecraft:chiseled_stone_bricks": [
+{
+"in": {
+"minecraft:stone_bricks": 2
+},
+"out": 1
+}
+],
+"minecraft:smooth_stone": [
+{
+"in": {
+"minecraft:stone": 1
+},
+"out": 1
+}
+],
+"minecraft:polished_andesite": [
+{
+"in": {
+"minecraft:andesite": 4
+},
+"out": 4
+}
+],
+"minecraft:polished_diorite": [
+{
+"in": {
+"minecraft:diorite": 4
+},
+"out": 4
+}
+],
+"minecraft:polished_granite": [
+{
+"in": {
+"minecraft:granite": 4
+},
+"out": 4
+}
+],
+"minecraft:bricks": [
+{
+"in": {
+"minecraft:brick": 4
+},
+"out": 1
+}
+],
+"minecraft:brick": [
+{
+"in": {
+"minecraft:clay_ball": 1
+},
+"out": 1
+}
+],
+"minecraft:deepslate_bricks": [
+{
+"in": {
+"minecraft:polished_deepslate": 4
+},
+"out": 4
+}
+],
+"minecraft:polished_deepslate": [
+{
+"in": {
+"minecraft:cobbled_deepslate": 4
+},
+"out": 4
+}
+],
+"minecraft:mud_bricks": [
+{
+"in": {
+"minecraft:packed_mud": 4
+},
+"out": 4
+}
+],
+"minecraft:packed_mud": [
+{
+"in": {
+"minecraft:mud": 1,
+"minecraft:wheat": 1
+},
+"out": 1
+}
+],
+"minecraft:tuff_bricks": [
+{
+"in": {
+"minecraft:polished_tuff": 4
+},
+"out": 4
+}
+],
+"minecraft:polished_tuff": [
+{
+"in": {
+"minecraft:tuff": 4
+},
+"out": 4
+}
+],
+"minecraft:polished_blackstone_bricks": [
+{
+"in": {
+"minecraft:polished_blackstone": 4
+},
+"out": 4
+}
+],
+"minecraft:polished_blackstone": [
+{
+"in": {
+"minecraft:blackstone": 4
+},
+"out": 4
+}
+],
+"minecraft:quartz_block": [
+{
+"in": {
+"minecraft:quartz": 4
+},
+"out": 1
+}
+],
+"minecraft:quartz_pillar": [
+{
+"in": {
+"minecraft:quartz_block": 2
+},
+"out": 2
+}
+],
+"minecraft:white_glazed_terracotta": [
+{
+"in": {
+"minecraft:white_terracotta": 1
+},
+"out": 1
+}
+],
+"minecraft:white_terracotta": [
+{
+"in": {
+"minecraft:terracotta": 8,
+"minecraft:white_dye": 1
+},
+"out": 8
+}
+],
+"minecraft:bookshelf": [
+{
+"in": {
+"minecraft:oak_planks": 6,
+"minecraft:book": 3
+},
+"out": 1
+}
+],
+"minecraft:book": [
+{
+"in": {
+"minecraft:paper": 3,
+"minecraft:leather": 1
+},
+"out": 1
+}
+],
+"minecraft:paper": [
+{
+"in": {
+"minecraft:sugar_cane": 3
+},
+"out": 3
+}
+],
+"minecraft:lantern": [
+{
+"in": {
+"minecraft:iron_nugget": 8,
+"minecraft:torch": 1
+},
+"out": 1
+}
+],
+"minecraft:torch": [
+{
+"in": {
+"minecraft:coal": 1,
+"minecraft:stick": 1
+},
+"out": 4
+}
+],
+"minecraft:clock": [
+{
+"in": {
+"minecraft:gold_ingot": 4,
+"minecraft:redstone": 1
+},
+"out": 1
+}
+],
+"minecraft:compass": [
+{
+"in": {
+"minecraft:iron_ingot": 4,
+"minecraft:redstone": 1
+},
+"out": 1
+}
+],
+"minecraft:map": [
+{
+"in": {
+"minecraft:paper": 8,
+"minecraft:compass": 1
+},
+"out": 1
+}
+],
+"minecraft:spyglass": [
+{
+"in": {
+"minecraft:copper_ingot": 2,
+"minecraft:amethyst_shard": 1
+},
+"out": 1
+}
+],
+"minecraft:item_frame": [
+{
+"in": {
+"minecraft:stick": 8,
+"minecraft:leather": 1
+},
+"out": 1
+}
+],
+"minecraft:painting": [
+{
+"in": {
+"minecraft:stick": 8,
+"minecraft:white_wool": 1
+},
+"out": 1
+}
+],
+"minecraft:campfire": [
+{
+"in": {
+"minecraft:stick": 3,
+"minecraft:coal": 1,
+"minecraft:oak_log": 3
+},
+"out": 1
+}
+],
+"minecraft:recovery_compass": [
+{
+"in": {
+"minecraft:echo_shard": 8,
+"minecraft:compass": 1
+},
+"out": 1
+}
+],
+"minecraft:white_banner": [
+{
+"in": {
+"minecraft:white_wool": 6,
+"minecraft:stick": 1
+},
+"out": 1
+}
+],
+"minecraft:glass_bottle": [
+{
+"in": {
+"minecraft:glass": 3
+},
+"out": 3
+}
+],
+"minecraft:blaze_powder": [
+{
+"in": {
+"minecraft:blaze_rod": 1
+},
+"out": 2
+}
+],
+"minecraft:bread": [
+{
+"in": {
+"minecraft:wheat": 3
+},
+"out": 1
+}
+],
+"minecraft:cooked_beef": [
+{
+"in": {
+"minecraft:beef": 1
+},
+"out": 1
+}
+],
+"minecraft:baked_potato": [
+{
+"in": {
+"minecraft:potato": 1
+},
+"out": 1
+}
+],
+"minecraft:cooked_cod": [
+{
+"in": {
+"minecraft:cod": 1
+},
+"out": 1
+}
+],
+"minecraft:cooked_salmon": [
+{
+"in": {
+"minecraft:salmon": 1
+},
+"out": 1
+}
+],
+"minecraft:pumpkin_pie": [
+{
+"in": {
+"minecraft:pumpkin": 1,
+"minecraft:sugar": 1,
+"minecraft:egg": 1
+},
+"out": 1
+}
+],
+"minecraft:cookie": [
+{
+"in": {
+"minecraft:wheat": 2,
+"minecraft:cocoa_beans": 1
+},
+"out": 8
+}
+],
+"minecraft:cake": [
+{
+"in": {
+"minecraft:milk_bucket": 3,
+"minecraft:sugar": 2,
+"minecraft:egg": 1,
+"minecraft:wheat": 3
+},
+"out": 1
+}
+],
+"minecraft:golden_carrot": [
+{
+"in": {
+"minecraft:carrot": 1,
+"minecraft:gold_nugget": 8
+},
+"out": 1
+}
+],
+"minecraft:golden_apple": [
+{
+"in": {
+"minecraft:apple": 1,
+"minecraft:gold_ingot": 8
+},
+"out": 1
+}
+],
+"minecraft:cod_bucket": [
+{
+"in": {
+"minecraft:cod": 1,
+"minecraft:water_bucket": 1
+},
+"out": 1
+}
+],
+"minecraft:bucket": [
+{
+"in": {
+"minecraft:iron_ingot": 3
+},
+"out": 1
+}
+],
+"minecraft:water_bucket": [
+{
+"in": {
+"minecraft:bucket": 1
+},
+"out": 1
+}
+],
+"minecraft:lava_bucket": [
+{
+"in": {
+"minecraft:bucket": 1
+},
+"out": 1
+}
+],
+"minecraft:milk_bucket": [
+{
+"in": {
+"minecraft:bucket": 1
+},
+"out": 1
+}
+],
+"minecraft:piston": [
+{
+"in": {
+"minecraft:oak_planks": 3,
+"minecraft:cobblestone": 4,
+"minecraft:iron_ingot": 1,
+"minecraft:redstone": 1
+},
+"out": 1
+}
+],
+"minecraft:sticky_piston": [
+{
+"in": {
+"minecraft:piston": 1,
+"minecraft:slime_ball": 1
+},
+"out": 1
+}
+],
+"minecraft:hopper": [
+{
+"in": {
+"minecraft:iron_ingot": 5,
+"minecraft:chest": 1
+},
+"out": 1
+}
+],
+"minecraft:observer": [
+{
+"in": {
+"minecraft:cobblestone": 6,
+"minecraft:redstone": 2,
+"minecraft:quartz": 1
+},
+"out": 1
+}
+],
+"minecraft:repeater": [
+{
+"in": {
+"minecraft:stone": 3,
+"minecraft:redstone": 1,
+"minecraft:redstone_torch": 2
+},
+"out": 1
+}
+],
+"minecraft:redstone_torch": [
+{
+"in": {
+"minecraft:redstone": 1,
+"minecraft:stick": 1
+},
+"out": 1
+}
+],
+"minecraft:comparator": [
+{
+"in": {
+"minecraft:stone": 3,
+"minecraft:quartz": 1,
+"minecraft:redstone_torch": 3
+},
+"out": 1
+}
+],
+"minecraft:dispenser": [
+{
+"in": {
+"minecraft:cobblestone": 7,
+"minecraft:redstone": 1,
+"minecraft:bow": 1
+},
+"out": 1
+}
+],
+"minecraft:rail": [
+{
+"in": {
+"minecraft:iron_ingot": 6,
+"minecraft:stick": 1
+},
+"out": 16
+}
+],
+"minecraft:powered_rail": [
+{
+"in": {
+"minecraft:gold_ingot": 6,
+"minecraft:stick": 1,
+"minecraft:redstone": 1
+},
+"out": 6
+}
+],
+"minecraft:minecart": [
+{
+"in": {
+"minecraft:iron_ingot": 5
+},
+"out": 1
+}
+],
+"minecraft:tnt": [
+{
+"in": {
+"minecraft:gunpowder": 5,
+"minecraft:sand": 4
+},
+"out": 1
+}
+],
+"minecraft:anvil": [
+{
+"in": {
+"minecraft:iron_block": 3,
+"minecraft:iron_ingot": 4
+},
+"out": 1
+}
+],
+"minecraft:enchanting_table": [
+{
+"in": {
+"minecraft:book": 1,
+"minecraft:diamond": 2,
+"minecraft:obsidian": 4
+},
+"out": 1
+}
+],
+"minecraft:beacon": [
+{
+"in": {
+"minecraft:glass": 5,
+"minecraft:nether_star": 1,
+"minecraft:obsidian": 3
+},
+"out": 1
+}
+],
+"minecraft:ender_chest": [
+{
+"in": {
+"minecraft:obsidian": 8,
+"minecraft:ender_eye": 1
+},
+"out": 1
+}
+],
+"minecraft:ender_eye": [
+{
+"in": {
+"minecraft:ender_pearl": 1,
+"minecraft:blaze_powder": 1
+},
+"out": 1
+}
+],
+"minecraft:shulker_box": [
+{
+"in": {
+"minecraft:shulker_shell": 2,
+"minecraft:chest": 1
+},
+"out": 1
+}
+],
+"minecraft:saddle": [
+{
+"in": {
+"minecraft:leather": 5,
+"minecraft:iron_ingot": 1
+},
+"out": 1
+}
+],
+"minecraft:bell": [
+{
+"in": {
+"minecraft:gold_ingot": 4
+},
+"out": 1
+}
+],
+"minecraft:orange_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:orange_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:magenta_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:magenta_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:light_blue_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:light_blue_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:yellow_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:yellow_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:lime_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:lime_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:pink_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:pink_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:gray_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:gray_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:light_gray_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:light_gray_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:cyan_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:cyan_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:purple_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:purple_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:blue_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:blue_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:brown_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:brown_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:green_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:green_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:red_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:red_dye": 1
+},
+"out": 1
+}
+],
+"minecraft:black_wool": [
+{
+"in": {
+"minecraft:white_wool": 1,
+"minecraft:black_dye": 1
+},
+"out": 1
+}
+]
+}

@@ -1,0 +1,39 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'com.vylorq.anticheat'
+version = '2.0.0'
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+    withSourcesJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Minecraft ships Gson, so the mod does not bundle it. Core only compiles against it.
+    compileOnly 'com.google.code.gson:gson:2.11.0'
+    // Bundled into the mod jar (jar-in-jar) by the root build.
+    api 'org.xerial:sqlite-jdbc:3.46.1.0'
+
+    testImplementation 'com.google.code.gson:gson:2.11.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events 'failed'
+        exceptionFormat 'full'
+    }
+}
