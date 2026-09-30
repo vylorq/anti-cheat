@@ -100,14 +100,21 @@ public final class MenuHandler extends GenericContainerScreenHandler {
             if (b == null || b.handler() == null) {
                 return;
             }
+            Menu.Click ck = click(button, action);
+            if (ck == Menu.Click.OTHER || ck == Menu.Click.MIDDLE || ck == Menu.Click.DROP) {
+                // Number keys, offhand swap, middle-click and drop never press a button (34.3).
+                return;
+            }
             if (b.perm() != null && !Perms.require(sp, b.perm())) {
                 sp.closeHandledScreen();
                 return;
             }
+            com.vylorq.anticheat.ui.Sounds.play(sp, com.vylorq.anticheat.ui.Sounds.Ui.CLICK);
             try {
-                b.handler().click(sp, click(button, action));
+                com.vylorq.anticheat.ui.Viewer.with(sp, () -> b.handler().click(sp, ck));
             } catch (Exception e) {
                 Ac.LOG.error("Menu action failed", e);
+                com.vylorq.anticheat.util.Msg.error(sp, "general.error");
             }
             return;
         }

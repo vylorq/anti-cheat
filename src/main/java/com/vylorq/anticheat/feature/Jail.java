@@ -43,6 +43,7 @@ public final class Jail {
                 Mc.location(target), false);
         Ac.markDirty("jail");
         toCell(target);
+        Mc.title(target, "§7" + Msg.trFor(target, "jail.title"), "§f" + reason, 10, 60, 20);
         if (Ac.config().jail.announce) {
             Ac.server().getPlayerManager().broadcast(Text.literal(Msg.tr("jail.announce", target.getGameProfile().name(), reason)), false);
         }
@@ -64,6 +65,8 @@ public final class Jail {
                 var spawn = Mc.worldSpawn(Ac.server());
                 Mc.teleport(p, Ac.server().getOverworld(), spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, 0, 0);
             }
+            com.vylorq.anticheat.ui.BossBars.hide(p, com.vylorq.anticheat.ui.BossBars.Kind.JAIL);
+            Mc.title(p, "§a" + Msg.trFor(p, "jail.released-title"), "", 10, 50, 20);
             String msg = Ac.config().jail.releaseMessage;
             if (announce && msg != null && !msg.isBlank()) {
                 p.sendMessage(Msg.prefixed(msg));
@@ -105,7 +108,13 @@ public final class Jail {
             ServerPlayerEntity p = ac.server.getPlayerManager().getPlayer(r.player);
             if (p != null) {
                 long left = ac.jail.remaining(r.player, onlineOnly);
-                Msg.actionBar(p, Msg.tr("jail.time-left", Durations.format(left), r.reason));
+                long total = r.expiresAt == Durations.PERMANENT || r.expiresAt <= r.jailedAt ? 0 : r.expiresAt - r.jailedAt;
+                float progress = total > 0 ? Math.min(1f, (float) left / total) : 1f;
+                String text = com.vylorq.anticheat.ui.Viewer.with(p, () -> Msg.tr("jail.bar", Durations.format(left)));
+                if (!com.vylorq.anticheat.ui.BossBars.show(p, com.vylorq.anticheat.ui.BossBars.Kind.JAIL,
+                        com.vylorq.anticheat.ui.Theme.c(text, 0xC8C8C8), progress, 3)) {
+                    Msg.actionBar(p, Msg.trFor(p, "jail.time-left", Durations.format(left), r.reason));
+                }
             }
         }
         Ac.markDirty("jail");

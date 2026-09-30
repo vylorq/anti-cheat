@@ -51,6 +51,7 @@ public final class Commands {
         WorldCommands.register(d);
         WatcherCommands.register(d);
         registerAc(d);
+        VigilCommands.register(d);
         // Public "caught" counter (section 28).
         d.register(literal("caught").executes(ctx -> {
             if (!Ac.config().fun.caughtCounter) {
@@ -71,9 +72,9 @@ public final class Commands {
     }
 
     private static void registerAc(CommandDispatcher<ServerCommandSource> d) {
-        d.register(literal("ac").requires(s -> Perms.visible(s, Perm.ALERTS))
-                .executes(ctx -> help(ctx))
-                .then(literal("help").executes(ctx -> help(ctx)))
+        // The admin root is /vigil (aliases /vg and the old /ac, added in VigilCommands).
+        d.register(literal("vigil").requires(VigilCommands::canSee)
+                .executes(VigilCommands::panel)
                 .then(literal("reload").executes(ctx -> {
                     if (!Perms.check(ctx.getSource(), Perm.RELOAD)) return 0;
                     String err = Ac.get().reload();
@@ -285,13 +286,6 @@ public final class Commands {
                         }))));
     }
 
-    private static int help(CommandContext<ServerCommandSource> ctx) {
-        for (String line : Msg.tr("ac.help").split("\n")) {
-            ctx.getSource().sendFeedback(() -> Msg.text(line), false);
-        }
-        return 1;
-    }
-
     private static int staffLog(CommandContext<ServerCommandSource> ctx, String player) {
         // Owners see everything; admins only their own actions.
         ServerPlayerEntity p = ctx.getSource().getPlayer();
@@ -363,7 +357,8 @@ public final class Commands {
     }
 
     private static void dropItemsMenu(ServerPlayerEntity p) {
-        Menu m = new Menu("§8Drop party items (close to save)", 6).perm(Perm.EVENTS);
+        Menu m = new Menu("", 6).titleText(com.vylorq.anticheat.ui.Theme.title(com.vylorq.anticheat.ui.Theme.Category.STAFF,
+                Msg.trFor(p, "event.drop-items-title"))).perm(Perm.EVENTS);
         Set<Integer> all = new HashSet<>();
         for (int i = 0; i < 54; i++) {
             all.add(i);

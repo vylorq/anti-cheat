@@ -121,7 +121,8 @@ public final class WaitingRoomFeature {
     }
 
     private static void askNext(ServerPlayerEntity p, int step) {
-        Msg.send(p, "waiting.question", step + 1, WaitingRoom.QUESTIONS[step]);
+        Msg.send(p, Msg.Type.INFO, "waiting.question", step + 1, WaitingRoom.QUESTIONS[step], WaitingRoom.QUESTIONS.length);
+        Mc.title(p, "", "§e" + Msg.trFor(p, "waiting.question-of", step + 1, WaitingRoom.QUESTIONS.length), 5, 60, 10);
         Ac.session(p).chatPrompt = answer -> {
             String next = Ac.get().waitingRoom.answer(p.getUuid(), answer);
             Ac.markDirty("waiting");

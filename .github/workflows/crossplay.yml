@@ -30,11 +30,13 @@ jobs:
           curl -fsSL -o mods/viafabric.jar "$(get viafabric "$V")"
           curl -fsSL -o mods/viaversion.jar "$(get viaversion)"
           curl -fsSL -o mods/viabackwards.jar "$(get viabackwards)"
-          cp ../build/libs/$(ls ../build/libs | grep -v sources | head -1) mods/anticheat.jar
+          cp ../build/libs/$(ls ../build/libs | grep -v sources | head -1) mods/vigil.jar
           ls mods
           echo eula=true > eula.txt
           printf 'online-mode=false\nenforce-secure-profile=false\nenable-rcon=true\nrcon.port=25575\nrcon.password=crossplay\n' > server.properties
           ln -sfn "$PWD" ~/mc
+          # The Bedrock bot is the owner (no PIN) so it can open the Vigil menus.
+          mkdir -p config/vigil && echo '{"general":{"ownerName":"BedrockBot"},"staff":{"requirePin":false}}' > config/vigil/config.json
           nohup java -Xmx3G -jar server.jar nogui > run.log 2>&1 < /dev/null &
           for i in $(seq 1 150); do grep -q 'Done (' run.log && break; grep -q 'Failed to start' run.log && break; sleep 2; done
           grep -E "Done \(|Failed|Caused by" run.log | head; grep -q 'Done (' run.log
@@ -65,7 +67,11 @@ jobs:
           const sleep = (ms) => new Promise(r => setTimeout(r, ms))
           const mc = (c) => { try { console.log('RCON', c, '->', execSync('python3 ../scripts/mc ' + c).toString().trim()) } catch (e) { console.log('RCON failed', c, e.message) } }
           const client = bedrock.createClient({ host: '127.0.0.1', port: 19132, username: 'BedrockBot', offline: true, skipPing: false })
-          let figures = 0, removed = 0
+          let figures = 0, removed = 0, containers = 0, items = 0, forms = 0, menus = 0
+          const run = (cmd) => client.queue('command_request', { command: cmd, origin: { type: 'player', uuid: '00000000-0000-0000-0000-000000000000', request_id: '', player_entity_id: 0n }, internal: false, version: '1' })
+          client.on('container_open', (p) => { containers++; console.log('BEDROCK container_open:', p.window_type || p.type || JSON.stringify(p).slice(0, 80)) })
+          client.on('inventory_content', (p) => { const n = (p.input || []).filter(i => i && i.network_id).length; if (n > 0) { items += n; menus++; console.log('BEDROCK menu items:', n) } })
+          client.on('modal_form_request', (p) => { forms++; console.log('BEDROCK form:', String(p.data).slice(0, 120)) })
           client.on('join', () => console.log('BEDROCK: join packet'))
           client.on('add_player', (p) => { figures++; console.log('BEDROCK add_player:', p.username, 'runtime id', String(p.runtime_id)) })
           client.on('remove_entity', () => removed++)
@@ -85,8 +91,15 @@ jobs:
             }
             mc('watcher night'); mc('watcher log')
             await sleep(2000)
-            console.log('BEDROCK: fake figures seen', figures, 'entities removed', removed)
-            process.exit(figures > 0 ? 0 : 5)
+            // The Vigil menus through Geyser: the panel, settings and the language picker.
+            for (const cmd of ['/vigil', '/settings', '/language', '/vigil help']) {
+              console.log('BEDROCK runs', cmd)
+              run(cmd)
+              await sleep(3000)
+            }
+            console.log('BEDROCK: fake figures seen', figures, 'entities removed', removed, 'windows', containers, 'menus shown', menus, 'menu items', items)
+            // Geyser reuses the open window for the next menu, so count the menus whose contents arrived.
+            process.exit(figures > 0 && containers >= 1 && menus >= 3 ? 0 : 5)
           })
           client.on('disconnect', (p) => { console.log('BEDROCK disconnected:', JSON.stringify(p)); process.exit(2) })
           client.on('kick', (p) => { console.log('BEDROCK kicked:', JSON.stringify(p)); process.exit(2) })

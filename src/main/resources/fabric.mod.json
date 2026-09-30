@@ -1,17 +1,32 @@
 {
   "schemaVersion": 1,
-  "id": "anticheat",
+  "id": "vigil",
+  "provides": [
+    "anticheat"
+  ],
   "version": "${version}",
-  "name": "Anti-Cheat",
-  "description": "Server-side anti-cheat and server management: detection with admin review, staff tools, claims, barriers, lobby, jail, arenas, traders, secure trading and new-player verification. Works for Java and Bedrock (Geyser/Floodgate) players.",
-  "authors": ["vylorq"],
+  "name": "Vigil",
+  "description": "Anti-cheat and server protection that keeps watch through the night.",
+  "authors": [
+    "vylorq"
+  ],
+  "contact": {
+    "sources": "https://github.com/vylorq/anti-cheat"
+  },
   "license": "All-Rights-Reserved",
+  "icon": "assets/vigil/icon.png",
   "environment": "server",
   "entrypoints": {
-    "main": ["com.vylorq.anticheat.AntiCheatMod"],
-    "fabric-gametest": ["com.vylorq.anticheat.gametest.AntiCheatGameTests"]
+    "main": [
+      "com.vylorq.anticheat.AntiCheatMod"
+    ],
+    "fabric-gametest": [
+      "com.vylorq.anticheat.gametest.AntiCheatGameTests"
+    ]
   },
-  "mixins": ["anticheat.mixins.json"],
+  "mixins": [
+    "vigil.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=${loader_version}",
     "minecraft": "~${minecraft_version}",
@@ -22,5 +37,11 @@
     "floodgate": "*",
     "geyser-fabric": "*",
     "fabric-permissions-api-v0": "*"
+  },
+  "custom": {
+    "modmenu": {
+      "badges": []
+    },
+    "vigil:full_title": "Vigil: Server Guard"
   }
 }

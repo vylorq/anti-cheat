@@ -115,7 +115,7 @@ public final class AntiCheatGameTests {
 
     @GameTest
     public void modIsRunning(TestContext ctx) {
-        check(Ac.running(), "AntiCheat services are not running");
+        check(Ac.running(), "Vigil services are not running");
         check(Ac.get().db != null, "database not open");
         ctx.complete();
     }
@@ -312,6 +312,149 @@ public final class AntiCheatGameTests {
                     : net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket.RAIN_STOPPED), "fake weather left");
         }
         check(lastSpawn[0] == null || lastSpawn[0].equals(w.getServer().getSpawnPoint()), "compass target left: " + lastSpawn[0]);
+        ctx.complete();
+    }
+
+    /** Data saved under the old mod id is moved to config/vigil on first start, and the database renamed. */
+    @GameTest
+    public void oldDataMovesToVigil(TestContext ctx) throws Exception {
+        java.nio.file.Path root = java.nio.file.Files.createTempDirectory("vigil-migrate");
+        java.nio.file.Path old = java.nio.file.Files.createDirectories(root.resolve("anticheat"));
+        java.nio.file.Files.writeString(old.resolve("config.json"), "{\"general\":{}}");
+        java.nio.file.Files.writeString(old.resolve("anticheat.db"), "db");
+        java.nio.file.Files.createDirectories(old.resolve("evidence"));
+        Ac.migrateFromAntiCheat(root);
+        java.nio.file.Path now = root.resolve("vigil");
+        check(!java.nio.file.Files.exists(old), "old folder still there");
+        check(java.nio.file.Files.readString(now.resolve("config.json")).contains("general"), "config not moved");
+        check(java.nio.file.Files.readString(now.resolve("vigil.db")).equals("db"), "database not renamed");
+        check(java.nio.file.Files.isDirectory(now.resolve("evidence")), "evidence not moved");
+        Ac.migrateFromAntiCheat(root);
+        check(java.nio.file.Files.exists(now.resolve("vigil.db")), "second start broke the data");
+        ctx.complete();
+    }
+
+    /** Finds text that is a language key instead of real words (a missing translation). */
+    private static void noRawKeys(com.vylorq.anticheat.gui.Menu m, String lang, List<String> problems) {
+        java.util.regex.Pattern key = java.util.regex.Pattern.compile("\\b(ui|panel|settings|set|help|cm|am|rv|in|tr|st|trade|cat|flow|language|watcher|alert)\\.[a-z0-9_.\\-]+\\b");
+        List<String> texts = new java.util.ArrayList<>();
+        texts.add(m.titleText().getString());
+        for (int i = 0; i < m.size(); i++) {
+            var stack = m.inventory().getStack(i);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            texts.add(stack.getName().getString());
+            var lore = stack.get(net.minecraft.component.DataComponentTypes.LORE);
+            if (lore != null) {
+                for (var l : lore.lines()) {
+                    texts.add(l.getString());
+                }
+            }
+        }
+        for (String t : texts) {
+            var mt = key.matcher(t);
+            if (mt.find()) {
+                problems.add(lang + " '" + m.titleText().getString() + "': " + mt.group());
+            }
+        }
+    }
+
+    /**
+     * Opens every Vigil menu as the owner, in English and in Arabic: nothing throws and no text is a raw language
+     * key (34.14, 34.15).
+     */
+    @GameTest(maxTicks = 400)
+    public void everyMenuRendersInEveryLanguage(TestContext ctx) {
+        var cfg = Ac.config();
+        String ownerBefore = cfg.general.ownerUuid;
+        boolean pinBefore = cfg.staff.requirePin;
+        var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(ctx.getWorld(),
+                new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "UiTester"));
+        cfg.general.ownerUuid = fake.getUuid().toString();
+        cfg.staff.requirePin = false;
+        List<String> problems = new java.util.ArrayList<>();
+        List<com.vylorq.anticheat.gui.Menu> opened = new java.util.ArrayList<>();
+        com.vylorq.anticheat.gui.Menu.onOpen = opened::add;
+        try {
+            for (String lang : List.of("en_us", "ar_sa")) {
+                Ac.get().misc.languages.put(fake.getUuid(), lang);
+                opened.clear();
+                java.util.List<Runnable> screens = new java.util.ArrayList<>();
+                screens.add(() -> com.vylorq.anticheat.gui.VigilPanel.open(fake));
+                for (var cat : com.vylorq.anticheat.ui.Theme.Category.values()) {
+                    screens.add(() -> com.vylorq.anticheat.gui.VigilPanel.openCategory(fake, cat));
+                }
+                for (var pg : com.vylorq.anticheat.gui.SettingsMenu.Page.values()) {
+                    screens.add(() -> com.vylorq.anticheat.gui.SettingsMenu.page(fake, pg));
+                }
+                screens.add(() -> com.vylorq.anticheat.gui.SettingsMenu.sensitivity(fake));
+                screens.add(() -> com.vylorq.anticheat.gui.InspectMenu.overview(fake, fake.getUuid()));
+                screens.add(() -> com.vylorq.anticheat.gui.InspectMenu.punish(fake, fake.getUuid()));
+                screens.add(() -> com.vylorq.anticheat.gui.InspectMenu.effects(fake, fake.getUuid()));
+                screens.add(() -> com.vylorq.anticheat.gui.InspectMenu.antiCheat(fake, fake.getUuid()));
+                screens.add(() -> com.vylorq.anticheat.gui.InspectMenu.location(fake, fake.getUuid()));
+                screens.add(() -> com.vylorq.anticheat.gui.InspectMenu.deaths(fake, fake.getUuid(), 0));
+                screens.add(() -> com.vylorq.anticheat.gui.StatsMenu.open(fake));
+                screens.add(() -> com.vylorq.anticheat.gui.ArenaMenu.join(fake));
+                screens.add(() -> com.vylorq.anticheat.gui.LanguageMenu.open(fake));
+                screens.add(() -> com.vylorq.anticheat.gui.Confirm.open(fake, com.vylorq.anticheat.ui.Theme.Category.CLAIMS, "Q", "D", null, () -> { }));
+                for (Runnable r : screens) {
+                    try {
+                        r.run();
+                    } catch (Throwable e) {
+                        problems.add(lang + ": " + e);
+                        Ac.LOG.error("Menu failed to render", e);
+                    }
+                }
+                for (var m : opened) {
+                    noRawKeys(m, lang, problems);
+                }
+                check(opened.size() >= 30, lang + ": only " + opened.size() + " menus opened");
+            }
+        } finally {
+            com.vylorq.anticheat.gui.Menu.onOpen = null;
+            cfg.general.ownerUuid = ownerBefore;
+            cfg.staff.requirePin = pinBefore;
+            Ac.get().misc.languages.remove(fake.getUuid());
+        }
+        check(problems.isEmpty(), "menu problems:\n" + String.join("\n", problems.subList(0, Math.min(20, problems.size()))));
+        ctx.complete();
+    }
+
+    /** Display items in a menu can't be taken, moved, swapped, dropped or collected (34.3). */
+    @GameTest
+    public void menuItemsCantBeTaken(TestContext ctx) {
+        var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(ctx.getWorld(),
+                new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ClickTester"));
+        fake.getInventory().clear();
+        com.vylorq.anticheat.gui.Menu m = com.vylorq.anticheat.gui.Menu.std(com.vylorq.anticheat.ui.Theme.Category.SETTINGS, "Test");
+        int[] clicks = {0};
+        m.renderer(menu -> menu.set(22, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 5), null, (p, c) -> clicks[0]++));
+        m.open(fake);
+        var handler = new com.vylorq.anticheat.gui.MenuHandler(net.minecraft.screen.ScreenHandlerType.GENERIC_9X6, 99, fake.getInventory(),
+                m.inventory(), 6, m);
+        fake.currentScreenHandler = handler;
+        for (var action : net.minecraft.screen.slot.SlotActionType.values()) {
+            int before = clicks[0];
+            for (int button : new int[]{0, 1, 40}) {
+                try {
+                    handler.onSlotClick(22, button, action, fake);
+                } catch (Throwable ignored) {
+                    // some combinations are invalid; they just mustn't give items
+                }
+                handler.setCursorStack(net.minecraft.item.ItemStack.EMPTY);
+            }
+            boolean presses = action == net.minecraft.screen.slot.SlotActionType.PICKUP || action == net.minecraft.screen.slot.SlotActionType.QUICK_MOVE;
+            check(presses || clicks[0] == before, action + " pressed a button (only clicks and shift-clicks should)");
+        }
+        handler.onSlotClick(-999, 0, net.minecraft.screen.slot.SlotActionType.PICKUP, fake);
+        for (int i = 0; i < fake.getInventory().size(); i++) {
+            check(!fake.getInventory().getStack(i).isOf(net.minecraft.item.Items.DIAMOND), "a display item reached the inventory (slot " + i + ")");
+        }
+        check(m.inventory().getStack(22).isOf(net.minecraft.item.Items.DIAMOND) && m.inventory().getStack(22).getCount() == 5, "display item changed");
+        check(clicks[0] > 0, "the button never worked");
+        fake.currentScreenHandler = fake.playerScreenHandler;
         ctx.complete();
     }
 }

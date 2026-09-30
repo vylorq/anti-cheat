@@ -1,5 +1,8 @@
 package com.vylorq.anticheat.feature;
 
+import com.vylorq.anticheat.ui.Btn;
+import com.vylorq.anticheat.ui.Theme;
+
 import com.vylorq.anticheat.Ac;
 import com.vylorq.anticheat.core.detect.CheckType;
 import com.vylorq.anticheat.core.item.ItemInfo;
@@ -36,8 +39,89 @@ import java.util.concurrent.ConcurrentHashMap;
  * crash can never lose or duplicate them. The swap happens in one server-thread step.
  */
 public final class Trades {
-    private static final int[] SIDE_A = {0, 1, 2, 3, 9, 10, 11, 12, 18, 19, 20, 21, 27, 28, 29, 30};
-    private static final int[] SIDE_B = {5, 6, 7, 8, 14, 15, 16, 17, 23, 24, 25, 26, 32, 33, 34, 35};
+    /** Rows 2-5, left four columns: the first player's items (as stored). */
+    private static final int[] SIDE_A = {9, 10, 11, 12, 18, 19, 20, 21, 27, 28, 29, 30, 36, 37, 38, 39};
+    /** Rows 2-5, right four columns: the second player's items (as stored). */
+    private static final int[] SIDE_B = {14, 15, 16, 17, 23, 24, 25, 26, 32, 33, 34, 35, 41, 42, 43, 44};
+
+    static boolean isItemSlot(int slot) {
+        int r = slot / 9;
+        int c = slot % 9;
+        return r >= 1 && r <= 4 && c != 4;
+    }
+
+    /**
+     * What one player sees (34.9): their own items on the left, the other's on the right. Item slots go to the
+     * shared trade inventory (mirrored left-right for the second player); every other slot holds that viewer's
+     * own buttons, so each player's controls can say "you" and "them".
+     */
+    static final class TradeView implements net.minecraft.inventory.Inventory {
+        private final net.minecraft.inventory.Inventory shared;
+        private final boolean mirror;
+        private final ItemStack[] icons = new ItemStack[54];
+
+        TradeView(net.minecraft.inventory.Inventory shared, boolean mirror) {
+            this.shared = shared;
+            this.mirror = mirror;
+        }
+
+        private int map(int slot) {
+            return mirror ? (slot / 9) * 9 + (8 - slot % 9) : slot;
+        }
+
+        @Override
+        public int size() {
+            return 54;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return shared.isEmpty();
+        }
+
+        @Override
+        public ItemStack getStack(int slot) {
+            if (isItemSlot(slot)) {
+                return shared.getStack(map(slot));
+            }
+            ItemStack i = icons[slot];
+            return i == null ? ItemStack.EMPTY : i;
+        }
+
+        @Override
+        public ItemStack removeStack(int slot, int amount) {
+            return isItemSlot(slot) ? shared.removeStack(map(slot), amount) : ItemStack.EMPTY;
+        }
+
+        @Override
+        public ItemStack removeStack(int slot) {
+            return isItemSlot(slot) ? shared.removeStack(map(slot)) : ItemStack.EMPTY;
+        }
+
+        @Override
+        public void setStack(int slot, ItemStack stack) {
+            if (isItemSlot(slot)) {
+                shared.setStack(map(slot), stack);
+            } else {
+                icons[slot] = stack;
+            }
+        }
+
+        @Override
+        public void markDirty() {
+            shared.markDirty();
+        }
+
+        @Override
+        public boolean canPlayerUse(net.minecraft.entity.player.PlayerEntity player) {
+            return true;
+        }
+
+        @Override
+        public void clear() {
+            java.util.Arrays.fill(icons, ItemStack.EMPTY);
+        }
+    }
 
     /** One running trade. */
     static final class Session {
@@ -165,16 +249,18 @@ public final class Trades {
 
     private static void open(ServerPlayerEntity a, ServerPlayerEntity b) {
         SecureTrade t = new SecureTrade(a.getUuid(), b.getUuid(), Ac.config().playerTrade.countdownSeconds * 1000L);
-        Menu ma = new Menu(Msg.tr("trade.title", b.getGameProfile().name()), 6);
-        Menu mb = new Menu(Msg.tr("trade.title", a.getGameProfile().name()), 6);
+        Menu ma = new Menu("", 6);
+        Menu mb = new Menu("", 6);
         Session s = new Session(t, ma, mb);
-        ma.backedBy(s.items).allowPlayerInventory(true);
-        mb.backedBy(s.items).allowPlayerInventory(true);
+        ma.titleText(title(a, b.getGameProfile().name(), -1));
+        mb.titleText(title(b, a.getGameProfile().name(), -1));
+        ma.backedBy(new TradeView(s.items, false)).allowPlayerInventory(true);
+        mb.backedBy(new TradeView(s.items, true)).allowPlayerInventory(true);
+        // In each player's own view their items are on the left (for the second player the view is mirrored).
         ma.editable(set(SIDE_A), (p, slot) -> changed(s, p)).reserved(set(SIDE_B));
-        mb.editable(set(SIDE_B), (p, slot) -> changed(s, p)).reserved(set(SIDE_A));
-        // Both players look at the same inventory, so the controls are identical for both.
-        ma.renderer(m -> render(s, m));
-        mb.renderer(m -> render(s, m));
+        mb.editable(set(SIDE_A), (p, slot) -> changed(s, p)).reserved(set(SIDE_B));
+        ma.renderer(m -> render(s, m, t.a()));
+        mb.renderer(m -> render(s, m, t.b()));
         ma.onClose(p -> closedBy(s, p));
         mb.onClose(p -> closedBy(s, p));
         BY_PLAYER.put(a.getUuid(), s);
@@ -185,65 +271,94 @@ public final class Trades {
                 b.getUuid(), b.getGameProfile().name(), "");
     }
 
-    private static void render(Session s, Menu m) {
+    private static net.minecraft.text.Text title(ServerPlayerEntity viewer, String other, int secs) {
+        String t = Msg.trFor(viewer, "trade.title", other);
+        if (secs >= 0) {
+            t += " · " + Msg.trFor(viewer, "trade.in-seconds", secs);
+        }
+        return Theme.title(Theme.Category.PLAYER, t);
+    }
+
+    private static String name(UUID id) {
+        ServerPlayerEntity p = Ac.server().getPlayerManager().getPlayer(id);
+        return p == null ? "?" : p.getGameProfile().name();
+    }
+
+    private static void render(Session s, Menu m, UUID me) {
         SecureTrade t = s.trade;
-        ServerPlayerEntity a = Ac.server().getPlayerManager().getPlayer(t.a());
-        ServerPlayerEntity b = Ac.server().getPlayerManager().getPlayer(t.b());
-        String an = a == null ? "?" : a.getGameProfile().name();
-        String bn = b == null ? "?" : b.getGameProfile().name();
-        for (int r = 0; r < 4; r++) {
-            m.icon(r * 9 + 4, Icons.of(Items.IRON_BARS, "§7« " + an + " §8| §7" + bn + " »"));
+        UUID them = me.equals(t.a()) ? t.b() : t.a();
+        String myName = name(me);
+        String theirName = name(them);
+        ItemStack glass = Btn.pane(Theme.Category.PLAYER.glass);
+        for (int i = 0; i < 54; i++) {
+            if (!isItemSlot(i)) {
+                m.icon(i, glass);
+            }
         }
-        for (int i = 36; i < 54; i++) {
-            m.icon(i, Icons.filler());
+        for (int r = 1; r <= 4; r++) {
+            m.icon(r * 9 + 4, Btn.of(Items.IRON_BARS).color(Theme.SOFT).name(Msg.tr("trade.divider")).line("« " + Msg.tr("trade.you") + "   " + theirName + " »").build());
         }
-        m.icon(36, status(t, t.a(), an));
-        m.icon(44, status(t, t.b(), bn));
+        m.icon(1, head(t, me, myName, Msg.tr("trade.you")));
+        m.icon(7, head(t, them, theirName, theirName));
+        int secs = t.secondsLeft(System.currentTimeMillis());
+        m.icon(4, Btn.of(secs >= 0 ? Items.CLOCK : Items.EMERALD).color(Theme.GOLD_LIGHT).name(secs >= 0 ? Msg.tr("trade.in-seconds", secs) : Msg.tr("trade.how"))
+                .desc(Msg.tr(secs >= 0 ? "trade.countdown-desc" : "trade.how-desc")).glint(secs >= 0).build());
         // Shulker boxes: show what's inside so nobody gets scammed with an empty box.
-        int preview = 37;
-        for (UUID owner : List.of(t.a(), t.b())) {
+        int preview = 50;
+        for (UUID owner : List.of(me, them)) {
             for (ItemStack st : side(s, owner)) {
-                if (preview > 43) {
+                if (preview > 52) {
                     break;
                 }
                 if (st.contains(DataComponentTypes.CONTAINER)) {
-                    String who = owner.equals(t.a()) ? an : bn;
-                    m.icon(preview++, contentsIcon(st, "§eContents of " + who + "'s " + st.getName().getString()));
+                    m.icon(preview++, contentsIcon(st, Msg.tr("trade.contents", owner.equals(me) ? Msg.tr("trade.you") : theirName, st.getName().getString())));
                 }
             }
         }
         int seen = t.revision();
-        if (t.step() == SecureTrade.Step.OPEN || t.step() == SecureTrade.Step.BOTH_READY) {
-            m.set(48, Icons.of(Items.LIME_CONCRETE, "§aReady / not ready", "Click to toggle your ready state"),
-                    (p, c) -> {
-                        s.trade.toggleReady(p.getUuid());
-                        refresh(s);
-                    });
+        boolean ready = t.isReady(me);
+        boolean confirmed = t.isConfirmed(me);
+        Btn action;
+        if (confirmed) {
+            action = Btn.of(Items.EMERALD_BLOCK).color(Theme.GREEN).name(Theme.Sym.CHECK.sp() + Msg.tr("trade.confirmed")).desc(Msg.tr("trade.waiting-for", theirName));
+        } else if (t.step() == SecureTrade.Step.BOTH_READY) {
+            action = Btn.of(Items.LIME_CONCRETE).color(Theme.GREEN).name(Msg.tr("trade.confirm")).desc(Msg.tr("trade.confirm-desc"))
+                    .left(Msg.tr("trade.action.confirm")).glint(true);
+        } else if (ready) {
+            action = Btn.of(Items.YELLOW_CONCRETE).color(Theme.GOLD).name(Theme.Sym.CHECK.sp() + Msg.tr("trade.ready")).desc(Msg.tr("trade.waiting-for", theirName))
+                    .left(Msg.tr("trade.action.unready"));
+        } else {
+            action = Btn.of(Items.GRAY_CONCRETE).color(Theme.SOFT).name(Msg.tr("trade.not-ready")).desc(Msg.tr("trade.ready-desc"))
+                    .left(Msg.tr("trade.action.ready"));
         }
-        if (t.step() == SecureTrade.Step.BOTH_READY) {
-            m.set(50, Icons.of(Items.EMERALD, "§aConfirm trade", "Both players must confirm"),
-                    (p, c) -> {
-                        if (!s.trade.confirm(p.getUuid(), seen, System.currentTimeMillis())) {
-                            Msg.send(p, "trade.changed");
-                        }
-                        refresh(s);
-                    });
+        m.set(47, action.amount(1).build(), (p, c) -> {
+            if (s.trade.step() == SecureTrade.Step.BOTH_READY && !s.trade.isConfirmed(p.getUuid())) {
+                if (!s.trade.confirm(p.getUuid(), seen, System.currentTimeMillis())) {
+                    Msg.send(p, "trade.changed");
+                }
+            } else if (s.trade.step() == SecureTrade.Step.OPEN || s.trade.step() == SecureTrade.Step.BOTH_READY) {
+                s.trade.toggleReady(p.getUuid());
+            }
+            refresh(s);
+        });
+        m.set(45, Btn.of(Items.BARRIER).color(Theme.RED).name(Msg.tr("trade.cancel")).desc(Msg.tr("trade.cancel-desc"))
+                .left(Msg.tr("ui.cancel").toLowerCase(java.util.Locale.ROOT)).build(), (p, c) -> cancel(s, SecureTrade.CancelReason.CLOSED));
+        ServerPlayerEntity viewer = Ac.server().getPlayerManager().getPlayer(me);
+        if (viewer != null) {
+            m.retitle(viewer, title(viewer, theirName, secs));
         }
-        int secs = t.secondsLeft(System.currentTimeMillis());
-        if (secs >= 0) {
-            m.icon(49, Icons.of(Items.CLOCK, "§6Trading in " + secs + "...", "Any change cancels the countdown"));
-        }
-        m.set(53, Icons.of(Items.BARRIER, "§cCancel trade"), (p, c) -> cancel(s, SecureTrade.CancelReason.CLOSED));
     }
 
-    private static ItemStack status(SecureTrade t, UUID who, String name) {
+    private static ItemStack head(SecureTrade t, UUID who, String name, String label) {
+        Btn b = Btn.head(who, name).color(Theme.GOLD_LIGHT).name(label);
         if (t.isConfirmed(who)) {
-            return Icons.of(Items.EMERALD_BLOCK, "§a" + name + ": confirmed");
+            b.status(Theme.GREEN, Theme.Sym.CHECK.sp() + Msg.tr("trade.confirmed"));
+        } else if (t.isReady(who)) {
+            b.status(Theme.GOLD, Theme.Sym.DOT.sp() + Msg.tr("trade.ready"));
+        } else {
+            b.status(Theme.RED, Theme.Sym.DOT.sp() + Msg.tr("trade.not-ready"));
         }
-        if (t.isReady(who)) {
-            return Icons.of(Items.LIME_WOOL, "§a" + name + ": ready");
-        }
-        return Icons.of(Items.RED_WOOL, "§c" + name + ": not ready");
+        return b.build();
     }
 
     private static void refresh(Session s) {
@@ -478,7 +593,7 @@ public final class Trades {
     /** A paper icon listing a shulker box's contents (works for Bedrock too, where the tooltip doesn't show it). */
     public static ItemStack contentsIcon(ItemStack box, String title) {
         ContainerComponent c = box.get(DataComponentTypes.CONTAINER);
-        ItemStack s = Icons.of(Items.PAPER, title);
+        ItemStack s = Btn.of(Items.PAPER).color(Theme.GOLD_LIGHT).name(title).build();
         if (c == null) {
             return s;
         }
@@ -490,7 +605,7 @@ public final class Trades {
             n++;
         }
         if (n == 0) {
-            lines.add("§c(empty)");
+            lines.add("§c" + Msg.tr("trade.empty-box"));
         }
         return Icons.withLore(s, lines);
     }

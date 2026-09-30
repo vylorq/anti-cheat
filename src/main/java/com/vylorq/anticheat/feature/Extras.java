@@ -125,7 +125,22 @@ public final class Extras {
         int warn = RestartScheduler.warningDue(nextRestart, lastRestartTick, now, cfg.warnMinutes);
         lastRestartTick = now;
         if (warn > 0) {
-            Ac.server().getPlayerManager().broadcast(Text.literal(Msg.tr("restart.warning", warn)), false);
+            for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
+                Msg.warn(p, "restart.warning", warn);
+            }
+        }
+        int maxWarn = 0;
+        for (int w : cfg.warnMinutes) {
+            maxWarn = Math.max(maxWarn, w);
+        }
+        long left = nextRestart - now;
+        if (maxWarn > 0 && left > 0 && left <= maxWarn * 60_000L) {
+            String time = String.format(java.util.Locale.ROOT, "%d:%02d", left / 60_000, (left / 1000) % 60);
+            for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
+                com.vylorq.anticheat.ui.BossBars.show(p, com.vylorq.anticheat.ui.BossBars.Kind.RESTART,
+                        com.vylorq.anticheat.ui.Theme.c(Msg.trFor(p, "restart.bar", time), com.vylorq.anticheat.ui.Theme.GOLD),
+                        (float) left / (maxWarn * 60_000L), 2);
+            }
         }
         if (now >= nextRestart) {
             nextRestart = -1;
@@ -198,7 +213,7 @@ public final class Extras {
                     failed.accept(err);
                 }
             });
-        }, "AntiCheat-Backup");
+        }, "Vigil-Backup");
         t.setDaemon(true);
         t.start();
     }

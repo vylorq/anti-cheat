@@ -56,6 +56,12 @@ public final class Mc {
     private Mc() {
     }
 
+    /** Runs a command as the player (menu buttons reuse commands, so permission checks and logging stay in one place). */
+    public static void run(ServerPlayerEntity p, String command) {
+        MinecraftServer server = p.getEntityWorld().getServer();
+        server.getCommandManager().parseAndExecute(p.getCommandSource(), command.startsWith("/") ? command.substring(1) : command);
+    }
+
     public static String worldId(World w) {
         return w.getRegistryKey().getValue().toString();
     }

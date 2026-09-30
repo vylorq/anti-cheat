@@ -52,7 +52,7 @@ public final class Perms {
         if (isOwner(p.getUuid())) {
             return Role.OWNER;
         }
-        if (PermissionsApi.check(p, "anticheat.admin", Ac.config().permissions.adminOpLevel)) {
+        if (PermissionsApi.check(p, "vigil.admin", Ac.config().permissions.adminOpLevel)) {
             return Role.ADMIN;
         }
         return Role.PLAYER;

@@ -30,17 +30,18 @@ public final class Icons {
     public static ItemStack of(ItemStack stack, String name, List<String> lore) {
         ItemStack s = stack.copy();
         if (name != null) {
-            s.set(DataComponentTypes.CUSTOM_NAME, Text.literal("§r" + name));
+            s.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name).styled(st -> st.withItalic(false)));
         }
         if (lore != null && !lore.isEmpty()) {
             List<Text> lines = new ArrayList<>();
             for (String l : lore) {
                 for (String part : l.split("\n")) {
-                    lines.add(Text.literal("§r§7" + part));
+                    lines.add(Text.literal("§7" + part).styled(st -> st.withItalic(false)));
                 }
             }
             s.set(DataComponentTypes.LORE, new LoreComponent(lines));
         }
+        com.vylorq.anticheat.ui.Btn.hideClutter(s);
         return s;
     }
 
@@ -52,7 +53,7 @@ public final class Icons {
             lines.addAll(old.lines());
         }
         for (String l : extra) {
-            lines.add(Text.literal("§r§7" + l));
+            lines.add(Text.literal("§7" + l).styled(st -> st.withItalic(false)));
         }
         s.set(DataComponentTypes.LORE, new LoreComponent(lines));
         return s;
@@ -65,17 +66,20 @@ public final class Icons {
     }
 
     public static ItemStack filler() {
-        return of(Items.GRAY_STAINED_GLASS_PANE, " ");
+        return com.vylorq.anticheat.ui.Btn.pane(Items.GRAY_STAINED_GLASS_PANE);
     }
 
     public static ItemStack glass(Item pane, String name, String... lore) {
         return of(pane, name, lore);
     }
 
+    /** A toggle button: lime dye when on, gray dye when off, with "● Enabled/Disabled" and a click hint. */
     public static ItemStack toggle(boolean on, String name, String... lore) {
-        List<String> l = new ArrayList<>(List.of(lore));
-        l.add(on ? "§aON §7- click to turn off" : "§cOFF §7- click to turn on");
-        return of(new ItemStack(on ? Items.LIME_DYE : Items.GRAY_DYE), (on ? "§a" : "§c") + name, l);
+        var b = com.vylorq.anticheat.ui.Btn.of(on ? Items.LIME_DYE : Items.GRAY_DYE).name(name);
+        for (String l : lore) {
+            b.desc(l);
+        }
+        return b.onOff(on).left(com.vylorq.anticheat.util.Msg.tr(on ? "ui.action.turn-off" : "ui.action.turn-on")).build();
     }
 
     public static ItemStack glint(ItemStack s) {

@@ -1,5 +1,11 @@
 package com.vylorq.anticheat.feature;
 
+import com.vylorq.anticheat.gui.Confirm;
+import com.vylorq.anticheat.gui.Input;
+import com.vylorq.anticheat.ui.Btn;
+import com.vylorq.anticheat.ui.Theme;
+import com.vylorq.anticheat.core.util.Durations;
+
 import com.vylorq.anticheat.Ac;
 import com.vylorq.anticheat.PlayerSession;
 import com.vylorq.anticheat.core.detect.CheckType;
@@ -56,7 +62,8 @@ import java.util.UUID;
 public final class Traders {
     public static final String TAG = "ac_trader";
     private static final SplittableRandom RANDOM = new SplittableRandom();
-    private static final int[] PAYMENT = {19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43};
+    /** Your offer: the right side of the window (the item for sale is on the left). */
+    private static final int[] PAYMENT = {13, 14, 15, 16, 22, 23, 24, 25, 31, 32, 33, 34, 40, 41, 42, 43};
     /** Rotation time per trader (for restock-sniping detection). */
     private static final Map<UUID, Long> LAST_ROTATION = new HashMap<>();
     private static final List<String> LOOKS = List.of("plains", "desert", "jungle", "savanna", "snow", "swamp", "taiga");
@@ -279,18 +286,36 @@ public final class Traders {
         return s;
     }
 
-    private static ItemStack offerIcon(TraderOffer o) {
+    static int rarityColor(Rarity r) {
+        return switch (r) {
+            case COMMON -> Theme.WHITE;
+            case UNCOMMON -> Theme.GREEN;
+            case RARE -> 0x5B8CFF;
+            case LEGENDARY -> Theme.GOLD;
+        };
+    }
+
+    private static ItemStack offerIcon(TraderOffer o, boolean clickable) {
         ItemStack s = stackFor(o);
-        List<String> lore = new ArrayList<>();
-        lore.add(o.rarity.color + o.rarity.name());
         if (o.soldOut()) {
-            lore.add("§c§lSOLD OUT §7- new offers soon");
-            ItemStack gray = Icons.of(Items.GRAY_STAINED_GLASS_PANE, "§8" + s.getName().getString() + " §c(SOLD OUT)", List.of("§7Restocks with the next rotation"));
-            return gray;
+            return Btn.of(Items.GRAY_STAINED_GLASS_PANE).color(Theme.SOFT).name(s.getName().getString())
+                    .status(Theme.RED, Theme.Sym.CROSS.sp() + Msg.tr("tr.sold-out")).desc(Msg.tr("tr.restock")).build();
         }
-        lore.add("§7Stock: §f" + o.stock);
-        lore.add("§eClick to make an offer");
-        return Icons.withLore(s, lore);
+        Btn b = Btn.of(s).color(rarityColor(o.rarity)).name(s.getName().getString())
+                .status(rarityColor(o.rarity), Theme.Sym.DOT.sp() + Msg.tr("tr.rarity." + o.rarity.name().toLowerCase(java.util.Locale.ROOT)))
+                .line(Msg.tr("tr.stock", o.stock));
+        if (clickable) {
+            b.left(Msg.tr("tr.action.offer"));
+        }
+        return b.amount(s.getCount()).build();
+    }
+
+    private static ItemStack mysteryIcon(TraderOffer o, boolean clickable) {
+        Btn b = Btn.of(Items.CHEST).color(Theme.VIOLET).name(Msg.tr("tr.mystery")).desc(Msg.tr("tr.mystery-desc")).line(Msg.tr("tr.stock", o.stock));
+        if (clickable) {
+            b.left(Msg.tr("tr.action.offer"));
+        }
+        return b.build();
     }
 
     // ---- Player interaction ----
@@ -308,28 +333,19 @@ public final class Traders {
     }
 
     private static void openOffers(ServerPlayerEntity p, Trader t) {
-        Menu m = new Menu("§8" + t.name, 3);
+        Menu m = Menu.std(Theme.Category.PLAYER, t.name);
         m.renderer(menu -> {
-            menu.fillBorder();
-            int slot = 10;
-            for (TraderOffer o : t.offers) {
-                if (slot == 17) {
-                    slot = 19;
-                }
-                if (slot > 25) {
-                    break;
-                }
-                ItemStack icon = t.type == Trader.Type.MYSTERY
-                        ? Icons.of(Items.CHEST, "§dMystery Box", "Random loot by rarity", "§7Left: §f" + o.stock, "§eClick to make an offer")
-                        : offerIcon(o);
-                menu.set(slot++, icon, (pl, c) -> {
-                    if (o.soldOut()) {
-                        Msg.send(pl, "trader.sold-out");
-                        return;
-                    }
-                    openNegotiation(pl, t, o);
-                });
-            }
+            menu.info(Btn.of(Items.EMERALD).color(Theme.GOLD_LIGHT).name(t.name).desc(Msg.tr("tr.offers-desc"))
+                    .line(Msg.tr("tr.next-rotation", Durations.format(Math.max(0, t.nextRotation - System.currentTimeMillis())))).build());
+            menu.list(t.offers, o -> t.type == Trader.Type.MYSTERY ? mysteryIcon(o, true) : offerIcon(o, true),
+                    o -> (pl, c) -> {
+                        if (o.soldOut()) {
+                            Msg.send(pl, "trader.sold-out");
+                            return;
+                        }
+                        openNegotiation(pl, t, o);
+                    },
+                    null, List.of(), Msg.tr("tr.no-offers"), Msg.tr("tr.restock"));
         });
         m.open(p);
     }
@@ -337,7 +353,8 @@ public final class Traders {
     private static final Set<UUID> NEGOTIATING = new HashSet<>();
 
     private static void openNegotiation(ServerPlayerEntity p, Trader t, TraderOffer o) {
-        Menu m = new Menu("§8" + t.name + " §7- your offer", 6);
+        Menu m = new Menu("", 6);
+        m.titleText(Theme.title(Theme.Category.PLAYER, t.name, Msg.trFor(p, "tr.your-offer")));
         Set<Integer> pay = new HashSet<>();
         for (int i : PAYMENT) {
             pay.add(i);
@@ -346,28 +363,38 @@ public final class Traders {
         m.editable(pay, (pl, slot) -> saveEscrow(pl, m));
         String[] verdict = {null};
         m.renderer(menu -> {
+            ItemStack glass = Btn.pane(Theme.Category.PLAYER.glass);
             for (int i = 0; i < 54; i++) {
                 if (!pay.contains(i)) {
-                    menu.icon(i, Icons.filler());
+                    menu.icon(i, glass);
                 }
             }
-            ItemStack show = t.type == Trader.Type.MYSTERY ? Icons.of(Items.CHEST, "§dMystery Box", "Random loot by rarity") : offerIcon(o);
-            if (verdict[0] != null) {
-                show = Icons.withLore(show, List.of("", verdict[0]));
+            for (int r = 1; r <= 4; r++) {
+                menu.icon(r * 9 + 3, Btn.pane(Items.BLACK_STAINED_GLASS_PANE));
             }
-            menu.icon(4, show);
-            menu.icon(10, Icons.of(Items.OAK_SIGN, "§ePut your payment below", "Any items you like.",
-                    "The trader will tell you if it's enough.", "Payments are kept by the trader."));
+            menu.icon(20, t.type == Trader.Type.MYSTERY ? mysteryIcon(o, false) : offerIcon(o, false));
+            menu.icon(4, Btn.of(Items.OAK_SIGN).color(Theme.GOLD_LIGHT).name(Msg.tr("tr.how")).desc(Msg.tr("tr.how-desc")).build());
+            Btn button;
+            if (verdict[0] == null) {
+                button = Btn.of(Items.EMERALD).color(Theme.GREEN).name(Msg.tr("tr.offer")).desc(Msg.tr("tr.offer-desc"));
+            } else {
+                char code = verdict[0].length() > 1 && verdict[0].charAt(0) == '§' ? verdict[0].charAt(1) : '7';
+                net.minecraft.item.Item icon = code == 'a' ? Items.LIME_CONCRETE : code == 'e' ? Items.YELLOW_CONCRETE : code == 'c' ? Items.RED_CONCRETE : Items.EMERALD;
+                int color = code == 'a' ? Theme.GREEN : code == 'e' ? Theme.GOLD : code == 'c' ? Theme.RED : Theme.SOFT;
+                button = Btn.of(icon).color(color).name(verdict[0].replaceAll("§.", "")).desc(Msg.tr("tr.offer-again"));
+            }
+            menu.set(49, button.left(Msg.tr("tr.action.offer")).build(), (pl, c) -> {
+                verdict[0] = offer(pl, t, o, m);
+                if (verdict[0] != null) {
+                    menu.refresh();
+                    menu.retitle(pl, Theme.title(Theme.Category.PLAYER, t.name, verdict[0].replaceAll("§.", "")));
+                }
+            });
             menu.set(45, Menu.back(), (pl, c) -> {
                 returnPayment(pl, m);
                 openOffers(pl, t);
             });
-            menu.set(49, Icons.of(Items.EMERALD, "§aOffer", "Click to offer what you put in"), (pl, c) -> {
-                verdict[0] = offer(pl, t, o, m);
-                if (verdict[0] != null) {
-                    menu.refresh();
-                }
-            });
+            menu.set(53, Menu.close(), (pl, c) -> pl.closeHandledScreen());
         });
         m.onClose(pl -> {
             returnPayment(pl, m);
@@ -419,11 +446,11 @@ public final class Traders {
         TraderEconomy.Settings st = settings();
         List<ItemStack> payStacks = payment(m);
         if (payStacks.isEmpty()) {
-            return "§7Put something in first.";
+            return "§7" + Msg.tr("tr.v.empty");
         }
         if (!ac.economy.rateOk(p.getUuid(), st.tradesPerMinute)) {
             PlayerSessionFlags.flag(p, CheckType.TRADE_MACRO, 0.5, "trade rate limit");
-            return "§cSlow down.";
+            return "§c" + Msg.tr("tr.v.slow");
         }
         List<ItemInfo> infos = new ArrayList<>();
         String illegal = null;
@@ -438,7 +465,7 @@ public final class Traders {
         }
         if (illegal != null) {
             saveEscrow(p, m);
-            return "§cThe trader refuses that.";
+            return "§c" + Msg.tr("tr.v.refuses");
         }
         double demand = ac.economy.demand(o.signature(), st);
         OfferEvaluator.Result res = OfferEvaluator.evaluate(o, infos, values(), demand, t.mood,
@@ -446,15 +473,15 @@ public final class Traders {
         switch (res.verdict()) {
             case REJECTED -> {
                 Mc.sound(p, SoundEvents.ENTITY_VILLAGER_NO, 1f, 1f);
-                return "§c" + (res.reason() == null ? "Not accepted." : res.reason());
+                return "§c" + (res.reason() == null ? Msg.tr("tr.v.not-accepted") : res.reason());
             }
             case WAY_TOO_LOW -> {
                 Mc.sound(p, SoundEvents.ENTITY_VILLAGER_NO, 1f, 1f);
-                return "§c§lWay too low";
+                return "§c" + Msg.tr("tr.v.too-low");
             }
             case GETTING_CLOSER -> {
                 Mc.sound(p, SoundEvents.ENTITY_VILLAGER_AMBIENT, 1f, 1f);
-                return "§e§lGetting closer";
+                return "§e" + Msg.tr("tr.v.closer");
             }
             default -> {
                 // fall through to the deal
@@ -470,14 +497,14 @@ public final class Traders {
                 prize = ac.economy.randomOfRarity(Rarity.COMMON, st, Ac.config().illegalItems.bannedItems, RANDOM);
             }
             if (prize == null) {
-                return "§cThe trader has nothing to put in a box yet.";
+                return "§c" + Msg.tr("tr.v.no-box");
             }
             goods = stackFor(prize);
         } else {
             goods = stackFor(o);
         }
         if (!hasRoom(p, goods)) {
-            return "§cMake room in your inventory first.";
+            return "§c" + Msg.tr("tr.v.room");
         }
         String macro = ac.economy.macroCheck(p.getUuid(), LAST_ROTATION.getOrDefault(t.entity, 0L));
         if (macro != null) {
@@ -506,7 +533,7 @@ public final class Traders {
         ac.dupeWatch.legitGain(p.getUuid(), Dupes.value(List.of(goods)), System.currentTimeMillis());
         Ac.markDirty("traders");
         Ac.markDirty("economy");
-        return "§a§lDeal!";
+        return "§a" + Msg.tr("tr.v.deal");
     }
 
     private static boolean hasRoom(ServerPlayerEntity p, ItemStack s) {
@@ -535,9 +562,9 @@ public final class Traders {
     // ---- Sell-to and request traders ----
 
     private static void openSellTo(ServerPlayerEntity p, Trader t) {
-        Menu m = new Menu("§8" + t.name + " §7- buying", 3);
+        Menu m = Menu.std(Theme.Category.PLAYER, 3, t.name, Msg.trFor(p, "tr.buying"));
         m.renderer(menu -> {
-            menu.fillBorder();
+            menu.info(Btn.of(Items.EMERALD).color(Theme.GOLD_LIGHT).name(t.name).desc(Msg.tr("tr.buying-desc")).build());
             int slot = 10;
             for (Map.Entry<String, String[]> e : Ac.get().traders.sellRules.entrySet()) {
                 if (slot > 16) {
@@ -548,8 +575,9 @@ public final class Traders {
                 String reward = e.getValue()[1];
                 int rewardCount = Integer.parseInt(e.getValue()[2]);
                 ItemStack icon = new ItemStack(Registries.ITEM.get(Identifier.of(item)), Math.min(64, amount));
-                menu.set(slot++, Icons.withLore(icon, List.of("§7Sell §f" + amount + "x §7for §a" + rewardCount + "x " + reward.replace("minecraft:", ""),
-                        "§eClick to sell")), (pl, c) -> sell(pl, t, item, amount, reward, rewardCount));
+                menu.set(slot++, Btn.of(icon).color(Theme.WHITE).name(icon.getName().getString())
+                        .line(Msg.tr("tr.sell-line", amount, rewardCount, reward.replace("minecraft:", "")))
+                        .left(Msg.tr("tr.action.sell")).build(), (pl, c) -> sell(pl, t, item, amount, reward, rewardCount));
             }
         });
         m.open(p);
@@ -611,12 +639,13 @@ public final class Traders {
         if (t.requestItem == null || !com.vylorq.anticheat.core.stats.AcStats.day(System.currentTimeMillis()).equals(t.requestDay)) {
             rotate(t);
         }
-        Menu m = new Menu("§8" + t.name + " §7- request", 3);
+        Menu m = Menu.std(Theme.Category.PLAYER, 3, t.name, Msg.trFor(p, "tr.request"));
         m.renderer(menu -> {
-            menu.fillBorder();
             ItemStack want = new ItemStack(Registries.ITEM.get(Identifier.of(t.requestItem)), Math.min(64, t.requestCount));
-            menu.set(13, Icons.withLore(want, List.of("§7Bring me §f" + t.requestCount + "x " + t.requestItem.replace("minecraft:", ""),
-                    "§7Reward: a random §aUncommon §7item", "§eClick to hand in")), (pl, c) -> handIn(pl, t));
+            menu.set(13, Btn.of(want).color(Theme.WHITE).name(want.getName().getString())
+                    .desc(Msg.tr("tr.request-desc", t.requestCount, t.requestItem.replace("minecraft:", "")))
+                    .status(Theme.GREEN, Theme.Sym.DOT.sp() + Msg.tr("tr.request-reward"))
+                    .left(Msg.tr("tr.action.hand-in")).build(), (pl, c) -> handIn(pl, t));
         });
         m.open(p);
     }
@@ -690,20 +719,26 @@ public final class Traders {
     // ---- Admin menus ----
 
     public static void openEdit(ServerPlayerEntity admin, Trader t) {
-        Menu m = new Menu("§8Edit trader: " + t.name, 3).perm(Perm.TRADER_ADMIN);
+        Theme.Category cat = Theme.Category.TRADERS;
+        Menu m = Menu.std(cat, Msg.trFor(admin, "cat.traders"), t.name).perm(Perm.TRADER_ADMIN);
         m.renderer(menu -> {
-            menu.fillBorder();
-            menu.set(10, Icons.of(Items.NAME_TAG, "§eRename", "Now: " + t.name), (pl, c) -> Prompts.ask(pl, "New trader name:", name -> {
-                t.name = name.length() > 32 ? name.substring(0, 32) : name;
-                VillagerEntity v = entity(t);
-                if (v != null) {
-                    applyLook(v, t);
+            menu.info(Btn.of(Items.EMERALD).name(cat, t.name).line(Msg.tr("panel.offers", t.offers.size()))
+                    .line(Msg.tr("tr.next-rotation", Durations.format(Math.max(0, t.nextRotation - System.currentTimeMillis())))).build());
+            menu.set(20, Btn.of(Items.NAME_TAG).name(cat, Msg.tr("cm.rename")).line(Msg.tr("settings.now", t.name))
+                    .left(Msg.tr("panel.action.change")).build(), (pl, c) -> Input.text(pl, Msg.tr("cm.rename"), t.name, name -> {
+                if (name != null && !name.isBlank()) {
+                    t.name = name.length() > 32 ? name.substring(0, 32) : name;
+                    VillagerEntity v = entity(t);
+                    if (v != null) {
+                        applyLook(v, t);
+                    }
+                    Ac.markDirty("traders");
+                    Staff.log(pl, "trader-rename", null, t.name, "");
                 }
-                Ac.markDirty("traders");
-                Staff.log(pl, "trader-rename", null, t.name, "");
                 openEdit(pl, t);
             }));
-            menu.set(11, Icons.of(Items.BOOK, "§eSpecialty: §f" + t.specialty.name(), "Click to change"), (pl, c) -> {
+            Btn spec = Btn.of(Items.BOOK).name(cat, Msg.tr("tr.specialty")).line(Msg.tr("settings.now", t.specialty.name().toLowerCase(java.util.Locale.ROOT)));
+            menu.set(21, spec.left(Msg.tr("settings.next-option")).right(Msg.tr("settings.prev-option")).build(), (pl, c) -> {
                 Specialty[] all = Specialty.values();
                 t.specialty = all[(t.specialty.ordinal() + (c.isRight() ? all.length - 1 : 1)) % all.length];
                 VillagerEntity v = entity(t);
@@ -713,7 +748,8 @@ public final class Traders {
                 rotate(t);
                 menu.refresh();
             });
-            menu.set(12, Icons.of(Items.GRASS_BLOCK, "§eLook: §f" + t.look.replace("minecraft:", ""), "Villager biome type"), (pl, c) -> {
+            menu.set(22, Btn.of(Items.GRASS_BLOCK).name(cat, Msg.tr("tr.look")).line(Msg.tr("settings.now", t.look.replace("minecraft:", "")))
+                    .left(Msg.tr("settings.next-option")).build(), (pl, c) -> {
                 int i = LOOKS.indexOf(t.look.replace("minecraft:", ""));
                 t.look = "minecraft:" + LOOKS.get((i + 1) % LOOKS.size());
                 VillagerEntity v = entity(t);
@@ -723,23 +759,32 @@ public final class Traders {
                 Ac.markDirty("traders");
                 menu.refresh();
             });
-            menu.set(13, Icons.of(Items.CHEST, "§eType: §f" + t.type.name(), "SELLS, BUYS (sell-to), REQUESTS, MYSTERY"), (pl, c) -> {
+            Btn type = Btn.of(Items.CHEST).name(cat, Msg.tr("tr.type"));
+            for (Trader.Type ty : Trader.Type.values()) {
+                boolean cur = ty == t.type;
+                type.status(cur ? Theme.GOLD_LIGHT : Theme.SOFT, (cur ? Theme.Sym.ARROW.sp() : "  ") + Msg.tr("tr.type." + ty.name().toLowerCase(java.util.Locale.ROOT)));
+            }
+            menu.set(23, type.left(Msg.tr("settings.next-option")).build(), (pl, c) -> {
                 Trader.Type[] all = Trader.Type.values();
                 t.type = all[(t.type.ordinal() + 1) % all.length];
                 rotate(t);
                 menu.refresh();
             });
-            menu.set(14, Icons.of(Items.EMERALD, "§aForce restock", "New random offers now"), (pl, c) -> {
+            menu.set(24, Btn.of(Items.EMERALD).name(cat, Msg.tr("tr.restock-now")).desc(Msg.tr("tr.restock-now-desc"))
+                    .left(Msg.tr("panel.action.do")).build(), (pl, c) -> {
                 rotate(t);
                 Staff.log(pl, "trader-restock", null, t.name, "");
                 Msg.send(pl, "trader.restocked");
+                menu.refresh();
             });
-            menu.set(15, Icons.of(Items.ENDER_PEARL, "§eMove", "Then right-click a block with the Trader Stick"), (pl, c) -> {
+            menu.set(30, Btn.of(Items.ENDER_PEARL).name(cat, Msg.tr("tr.move")).desc(Msg.tr("tr.move-desc"))
+                    .left(Msg.tr("panel.action.do")).build(), (pl, c) -> {
                 Ac.session(pl).traderMove = t.entity;
                 pl.closeHandledScreen();
                 Msg.send(pl, "trader.move-hint");
             });
-            menu.set(16, Icons.of(Items.WRITABLE_BOOK, "§eTrade log", "Recent trades with this trader"), (pl, c) -> {
+            menu.set(31, Btn.of(Items.WRITABLE_BOOK).name(cat, Msg.tr("tr.log")).desc(Msg.tr("tr.log-desc"))
+                    .left(Msg.tr("ui.action.open")).build(), (pl, c) -> {
                 pl.closeHandledScreen();
                 try {
                     for (var row : Ac.get().db.query("SELECT id, time, a_name, detail FROM trades WHERE b_name = ? ORDER BY id DESC LIMIT 15", t.name)) {
@@ -750,22 +795,25 @@ public final class Traders {
                     Msg.send(pl, "general.error");
                 }
             });
-            menu.set(22, Icons.of(Items.TNT, "§cRemove trader", "Asks for confirmation"), (pl, c) -> confirmRemove(pl, t));
+            menu.set(32, Btn.of(Items.TNT).name(Theme.Category.PUNISHMENTS, Msg.tr("tr.remove")).desc(Msg.tr("tr.remove-desc"))
+                    .shift(Msg.tr("panel.action.delete")).build(), (pl, c) -> {
+                if (!c.isShift()) {
+                    Msg.warn(pl, "cm.delete-shift");
+                    return;
+                }
+                confirmRemove(pl, t);
+            });
         });
         m.open(admin);
     }
 
     public static void confirmRemove(ServerPlayerEntity admin, Trader t) {
-        Menu m = new Menu("§8Remove " + t.name + "?", 1).perm(Perm.TRADER_ADMIN);
-        m.renderer(menu -> {
-            menu.set(2, Icons.of(Items.LIME_CONCRETE, "§aYes, remove it"), (pl, c) -> {
-                remove(pl, t);
-                pl.closeHandledScreen();
-                Msg.send(pl, "trader.removed");
-            });
-            menu.set(6, Icons.of(Items.RED_CONCRETE, "§cNo, keep it"), (pl, c) -> pl.closeHandledScreen());
-        });
-        m.open(admin);
+        Confirm.open(admin, Theme.Category.TRADERS, Msg.tr("panel.confirm.delete-trader", t.name), Msg.tr("panel.confirm.delete-trader-detail"),
+                Btn.of(Items.EMERALD).name(Theme.Category.TRADERS, t.name).build(), () -> {
+                    remove(admin, t);
+                    admin.closeHandledScreen();
+                    Msg.send(admin, "trader.removed");
+                });
     }
 
     /** Right-click with the Trader Stick. @return true if handled. */

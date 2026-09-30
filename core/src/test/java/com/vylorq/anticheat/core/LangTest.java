@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LangTest {
     static Map<String, String> read(String lang) throws Exception {
-        try (var in = Lang.class.getResourceAsStream("/anticheat/lang/" + lang + ".json")) {
+        try (var in = Lang.class.getResourceAsStream("/vigil/lang/" + lang + ".json")) {
             assertNotNull(in, lang + " missing");
             return new Gson().fromJson(new InputStreamReader(in, StandardCharsets.UTF_8), new TypeToken<Map<String, String>>() { }.getType());
         }

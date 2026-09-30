@@ -101,7 +101,7 @@ public final class BlockLog {
                     }
                 });
             }
-        }, "AntiCheat-Rollback");
+        }, "Vigil-Rollback");
         t.setDaemon(true);
         t.start();
     }
@@ -142,7 +142,7 @@ public final class BlockLog {
             } catch (Exception e) {
                 Ac.LOG.error("Could not mark rollback", e);
             }
-        }, "AntiCheat-RollbackMark");
+        }, "Vigil-RollbackMark");
         t.setDaemon(true);
         t.start();
         Staff.log(admin, restore ? "restore" : "rollback", null, targetName, done + " blocks");
@@ -180,7 +180,7 @@ public final class BlockLog {
             } catch (Exception e) {
                 Ac.LOG.error("Inspector query failed", e);
             }
-        }, "AntiCheat-Inspector");
+        }, "Vigil-Inspector");
         t.setDaemon(true);
         t.start();
     }

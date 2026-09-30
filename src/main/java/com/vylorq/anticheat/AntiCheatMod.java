@@ -22,6 +22,7 @@ public final class AntiCheatMod implements ModInitializer {
     public void onInitialize() {
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             com.vylorq.anticheat.feature.Watcher.reset();
+            com.vylorq.anticheat.ui.BossBars.reset();
             Ac.start(server);
             Ac.get().engine.setListener(new DetectionListener());
             Xray.reloadLists();
@@ -48,6 +49,8 @@ public final class AntiCheatMod implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> Commands.register(dispatcher));
         Protection.register();
         com.vylorq.anticheat.feature.Watcher.register();
-        Ac.LOG.info("AntiCheat loaded.");
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register(
+                (handler, server) -> com.vylorq.anticheat.ui.BossBars.forget(handler.player.getUuid()));
+        Ac.LOG.info("Vigil loaded.");
     }
 }

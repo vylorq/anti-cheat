@@ -65,7 +65,8 @@ public final class LobbyFeature {
             return false;
         }
         int rows = Math.max(1, Math.min(6, (inv.size() + 8) / 9));
-        Menu m = new Menu(Msg.tr("lobby.view-only"), rows);
+        Menu m = new Menu("", rows).titleText(com.vylorq.anticheat.ui.Theme.title(com.vylorq.anticheat.ui.Theme.Category.LOBBY,
+                Msg.trFor(p, "lobby.view-only").replaceAll("§.", "")));
         m.renderer(menu -> {
             for (int i = 0; i < Math.min(inv.size(), menu.size()); i++) {
                 menu.icon(i, inv.getStack(i).copy());

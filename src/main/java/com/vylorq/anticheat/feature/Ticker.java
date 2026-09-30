@@ -55,6 +55,7 @@ public final class Ticker {
     }
 
     private static void everySecond(Ac ac) {
+        com.vylorq.anticheat.ui.BossBars.tick();
         MenuHandler.tickLive();
         Jail.tick();
         Claims.tick();
@@ -110,7 +111,7 @@ public final class Ticker {
             } catch (Exception e) {
                 Ac.LOG.error("Hourly maintenance failed", e);
             }
-        }, "AntiCheat-Maintenance");
+        }, "Vigil-Maintenance");
         t.setDaemon(true);
         t.start();
     }

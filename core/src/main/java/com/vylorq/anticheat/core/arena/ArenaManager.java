@@ -98,6 +98,17 @@ public final class ArenaManager {
         return false;
     }
 
+    /** Players waiting for a match in this mode (any kit). */
+    public synchronized int queued(Arena.Mode mode) {
+        int n = 0;
+        for (Map.Entry<String, List<UUID>> e : queues.entrySet()) {
+            if (e.getKey().startsWith(mode.name() + "|")) {
+                n += e.getValue().size();
+            }
+        }
+        return n;
+    }
+
     public synchronized void leaveQueue(UUID player) {
         for (List<UUID> q : queues.values()) {
             q.remove(player);

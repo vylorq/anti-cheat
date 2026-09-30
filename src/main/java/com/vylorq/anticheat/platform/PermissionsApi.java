@@ -40,12 +40,22 @@ public final class PermissionsApi {
         return checkEntity != null;
     }
 
+    /** Same node under the mod's old id (anticheat.*), so permissions given before the rename keep working. */
+    private static String legacy(String node) {
+        return node.startsWith("vigil.") ? "anticheat." + node.substring("vigil.".length()) : null;
+    }
+
     /** Permission node check with an op-level fallback. */
     public static boolean check(ServerPlayerEntity e, String node, int fallbackLevel) {
         init();
         if (checkEntity != null) {
             try {
-                return (boolean) checkEntity.invoke(null, e, node, fallbackLevel);
+                if ((boolean) checkEntity.invoke(null, e, node, fallbackLevel)) {
+                    return true;
+                }
+                String old = legacy(node);
+                // Level 5 doesn't exist, so the old node only counts when it was granted explicitly.
+                return old != null && (boolean) checkEntity.invoke(null, e, old, 5);
             } catch (Throwable ignored) {
                 // fall through
             }
@@ -57,7 +67,11 @@ public final class PermissionsApi {
         init();
         if (checkSource != null) {
             try {
-                return (boolean) checkSource.invoke(null, s, node, fallbackLevel);
+                if ((boolean) checkSource.invoke(null, s, node, fallbackLevel)) {
+                    return true;
+                }
+                String old = legacy(node);
+                return old != null && (boolean) checkSource.invoke(null, s, old, 5);
             } catch (Throwable ignored) {
                 // fall through
             }

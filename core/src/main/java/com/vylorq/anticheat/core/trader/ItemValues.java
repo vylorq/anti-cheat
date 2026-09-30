@@ -116,7 +116,7 @@ public final class ItemValues {
         com.google.gson.Gson gson = new com.google.gson.Gson();
         Map<String, Double> base = new HashMap<>();
         Map<String, List<Recipe>> recipes = new HashMap<>();
-        try (java.io.InputStream in = ItemValues.class.getResourceAsStream("/anticheat/trader_values.json")) {
+        try (java.io.InputStream in = ItemValues.class.getResourceAsStream("/vigil/trader_values.json")) {
             if (in != null) {
                 Map<String, Double> m = gson.fromJson(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8),
                         new com.google.gson.reflect.TypeToken<Map<String, Double>>() { }.getType());
@@ -125,7 +125,7 @@ public final class ItemValues {
         } catch (java.io.IOException ignored) {
             // no bundled values
         }
-        try (java.io.InputStream in = ItemValues.class.getResourceAsStream("/anticheat/trader_recipes.json")) {
+        try (java.io.InputStream in = ItemValues.class.getResourceAsStream("/vigil/trader_recipes.json")) {
             if (in != null) {
                 com.google.gson.JsonObject o = gson.fromJson(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8),
                         com.google.gson.JsonObject.class);

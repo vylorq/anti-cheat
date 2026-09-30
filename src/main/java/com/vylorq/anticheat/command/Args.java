@@ -77,7 +77,12 @@ public final class Args {
         }
         UUID id = Ac.get().joins.findByName(name);
         if (id == null) {
-            Msg.err(src, "general.unknown-player", name);
+            String close = closest(name, false);
+            if (close != null) {
+                Msg.err(src, "general.unknown-player-suggest", name, close);
+            } else {
+                Msg.err(src, "general.unknown-player", name);
+            }
         }
         return id;
     }
@@ -85,9 +90,40 @@ public final class Args {
     public static ServerPlayerEntity requireOnline(ServerCommandSource src, String name) {
         ServerPlayerEntity p = online(name);
         if (p == null) {
-            Msg.err(src, "general.not-online", name);
+            String close = closest(name, true);
+            if (close != null) {
+                Msg.err(src, "general.not-online-suggest", name, close);
+            } else {
+                Msg.err(src, "general.not-online", name);
+            }
         }
         return p;
+    }
+
+    /** The nearest player name to a typo ("Stev" -> "Steve"), or null when nothing is close. */
+    public static String closest(String typed, boolean onlineOnly) {
+        String t = typed.toLowerCase(java.util.Locale.ROOT);
+        String best = null;
+        int bestDist = Integer.MAX_VALUE;
+        java.util.List<String> names = new java.util.ArrayList<>();
+        for (ServerPlayerEntity o : Ac.server().getPlayerManager().getPlayerList()) {
+            names.add(o.getGameProfile().name());
+        }
+        if (!onlineOnly) {
+            names.addAll(Ac.get().joins.data().names.values());
+        }
+        for (String n : names) {
+            if (n == null) {
+                continue;
+            }
+            String bare = n.length() > 1 && !Character.isLetterOrDigit(n.charAt(0)) ? n.substring(1) : n;
+            int d = Math.min(VigilCommands.distance(t, n.toLowerCase(java.util.Locale.ROOT)), VigilCommands.distance(t, bare.toLowerCase(java.util.Locale.ROOT)));
+            if (d < bestDist) {
+                bestDist = d;
+                best = n;
+            }
+        }
+        return best != null && bestDist <= Math.max(1, Math.min(3, t.length() / 3)) ? best : null;
     }
 
     public static String nameOf(UUID id, String fallback) {
