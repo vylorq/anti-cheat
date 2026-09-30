@@ -53,7 +53,7 @@ if ! ./gradlew build --no-daemon > "$HOME/build.log" 2>&1; then
   grep -E "error:|FAILED|What went wrong" -A3 "$HOME/build.log" | head -80 || true
   fail "The build failed. Copy the errors above (or run: cat ~/build.log) and send them to Claude to fix. Then run this script again."
 fi
-MOD_JAR=$(ls build/libs/anticheat-*.jar | grep -v sources | head -1)
+MOD_JAR="$SRC_DIR/$(ls build/libs/anticheat-*.jar | grep -v sources | head -1)"
 
 say "Downloading the Fabric server for Minecraft $MC_VERSION"
 mkdir -p "$SERVER_DIR/mods"
