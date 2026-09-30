@@ -1,0 +1,55 @@
+name: API probe
+on:
+  push:
+    branches: [claude/port-1.21.11]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Resolve Minecraft
+        run: ./gradlew --no-daemon compileJava -x :core:compileJava > /dev/null 2>&1 || true
+      - name: Dump APIs
+        run: |
+          MC=$(find ~/.gradle/caches -name "minecraft-merged*1.21.11*.jar" ! -name "*sources*" | head -1)
+          [ -n "$MC" ] || MC=$(find ~/.gradle/caches .gradle -name "*minecraft*1.21.11*yarn*.jar" ! -name "*sources*" | head -1)
+          echo "MC=$MC"
+          AUTH=$(find ~/.gradle/caches -name "authlib-*.jar" | head -1)
+          GT=$(find ~/.gradle/caches .gradle -name "fabric-gametest-api-v1*.jar" ! -name "*sources*" | head -1)
+          CP="$MC:$AUTH:$GT"
+          dump() { echo "#### $1"; javap -cp "$CP" -p "$1" 2>&1 | grep -E "$2" | head -60; }
+          dump com.mojang.authlib.GameProfile 'public'
+          dump net.minecraft.server.network.ServerPlayerEntity 'World|Pos|Server|Spawn|Permission|getRespawn|Respawn'
+          dump net.minecraft.entity.Entity 'World|getPos|EntityPos|getServer|Permission'
+          dump net.minecraft.server.command.ServerCommandSource 'Permission|permission'
+          dump net.minecraft.server.MinecraftServer 'Pvp|pvp|UserCache|NameToId|GameRules|ApiServices|getPlayerManager|Spawn'
+          dump net.minecraft.server.world.ServerWorld 'Spawn|GameRules|getRules'
+          dump net.minecraft.nbt.StringNbtReader 'public'
+          dump net.minecraft.nbt.NbtCompound 'getList|getCompound|getIntArray|getString|getInt\(|getLong|getBoolean|getDouble'
+          dump net.minecraft.world.GameMode 'public static'
+          dump net.minecraft.item.ItemStack 'Nbt|CODEC|fromNbt|toNbt|encode'
+          dump net.minecraft.block.entity.BlockEntity 'read|write|create|Nbt'
+          dump net.minecraft.entity.effect.StatusEffectInstance 'Nbt|CODEC'
+          dump net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket 'public'
+          dump net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket 'public'
+          dump net.minecraft.text.HoverEvent 'public|class'
+          dump net.minecraft.text.ClickEvent 'public|class'
+          dump 'net.minecraft.text.HoverEvent$ShowText' 'public'
+          dump 'net.minecraft.text.ClickEvent$RunCommand' 'public'
+          dump 'net.minecraft.text.ClickEvent$SuggestCommand' 'public'
+          dump net.minecraft.component.type.ProfileComponent 'public'
+          dump net.minecraft.server.PlayerManager 'Operator|getOpList|isOperator|BannedProfile|Whitelist'
+          dump net.minecraft.entity.passive.VillagerEntity 'VillagerData|Type'
+          dump net.minecraft.village.VillagerData 'public'
+          dump net.minecraft.test.GameTestException 'public'
+          dump net.minecraft.test.TestContext 'getWorld|complete|getAbsolutePos'
+          echo "#### gametest api classes"; unzip -l "$GT" | grep -oE "net/fabricmc/fabric/api/gametest/v1/[A-Za-z$]+\.class"
+          for c in $(unzip -l "$GT" | grep -oE "net/fabricmc/fabric/api/gametest/v1/[A-Za-z]+\.class" | sed 's/\.class//; s#/#.#g'); do dump "$c" '.'; done
+          echo "#### GameRules location"; unzip -l "$MC" | grep -oE "net/minecraft/world/[a-z/]*GameRule[A-Za-z]*\.class" | sort -u | head
+          for c in $(unzip -l "$MC" | grep -oE "net/minecraft/world/[a-z/]*GameRules\.class" | sed 's/\.class//; s#/#.#g'); do dump "$c" 'DO_|KEEP|SHOW_DEATH|PVP|IMMEDIATE|MOB_GRIEF|FIRE|TNT|get|public static final'; done
+          dump net.minecraft.server.PlayerConfigEntry 'public'
+          dump net.minecraft.util.UserCache 'public'
+          echo "#### NameToIdCache"; unzip -l "$MC" | grep -oiE "net/minecraft/[a-z/]*(NameToId|UserCache)[A-Za-z]*\.class"
