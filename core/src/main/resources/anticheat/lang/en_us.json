@@ -277,5 +277,21 @@
   "tempadmin.not": "§c{0} is not a temporary admin.",
   "tempadmin.you-are": "§aYou have temporary admin access. It ends when you leave, and everything you changed is put back.",
   "tempadmin.ended": "§eTemporary admin for {0} ended; everything was put back.",
-  "ac.help": "§6AntiCheat §7- admin commands\n§f/review §7open the review queue\n§f/inspect <player> §7inspect / spectate / teleport\n§f/whereis <player>\n§f/watch add|remove|list|history\n§f/exempt add|remove|list §7(owner)\n§f/freeze, /warn, /mute, /kick, /tempban, /ban, /unban, /unmute\n§f/report list, /vanish, /sc, /login <pin>, /maintenance on|off\n§f/rollback|restore <player> <time> [radius]\n§f/deaths <player>, /lag, /settings\n§f/claim wand|create|menu|who|near|spawn\n§f/barrier create|remove|list\n§f/lobby set|setspawn|edit|chest, /jail ..., /unjail\n§f/arena create|menu|join|spectate|kit save|stats, /duel\n§f/trader stick|create|list|edit|remove\n§f/requests, /waitingroom set\n§f/ac reload|alerts|stats|log|pin|admin|tempadmin|tp|export|farm|event|restart|backup|inspector"
+  "ac.help": "§6AntiCheat §7- admin commands\n§f/review §7open the review queue\n§f/inspect <player> §7inspect / spectate / teleport\n§f/whereis <player>\n§f/watch add|remove|list|history\n§f/exempt add|remove|list §7(owner)\n§f/freeze, /warn, /mute, /kick, /tempban, /ban, /unban, /unmute\n§f/report list, /vanish, /sc, /login <pin>, /maintenance on|off\n§f/rollback|restore <player> <time> [radius]\n§f/deaths <player>, /lag, /settings\n§f/claim wand|create|menu|who|near|spawn\n§f/barrier create|remove|list\n§f/lobby set|setspawn|edit|chest, /jail ..., /unjail\n§f/arena create|menu|join|spectate|kit save|stats, /duel\n§f/trader stick|create|list|edit|remove\n§f/requests, /waitingroom set\n§f/ac reload|alerts|stats|log|pin|admin|tempadmin|tp|export|farm|event|restart|backup|inspector",
+  "watcher.on": "§8The Watcher is awake.",
+  "watcher.off": "§7The Watcher is asleep. Every running effect was stopped.",
+  "watcher.status": "§8The Watcher: {0}§8. Events every {1}-{2} minutes. Excluded players: {3}.",
+  "watcher.summoned": "§8The Watcher visits {0}: {1}.",
+  "watcher.summon-failed": "§c{0} can't get {1} right now (no place for it here, or they're in creative for gifts).",
+  "watcher.busy": "§c{0} is already seeing something. Wait a moment.",
+  "watcher.excluded-player": "§c{0} is on the Watcher exclude list.",
+  "watcher.unknown-effect": "§cUnknown effect: {0}",
+  "watcher.night": "§8Watcher Night: {0} player(s) saw it.",
+  "watcher.exclude-added": "§a{0} will never see the Watcher.",
+  "watcher.exclude-removed": "§a{0} can see the Watcher again.",
+  "watcher.exclude-none": "§7Nobody is excluded.",
+  "watcher.exclude-list": "§8Excluded: §f{0}",
+  "watcher.log-empty": "§7Nobody has seen anything yet.",
+  "watcher.log-header": "§8Who saw what (newest last):",
+  "watcher.help": "§8/watcher on|off §7- wake or sleep\n§8/watcher summon <player> [effect]\n§8/watcher night\n§8/watcher log\n§8/watcher exclude add|remove|list <player>"
 }

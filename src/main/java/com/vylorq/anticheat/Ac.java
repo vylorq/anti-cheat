@@ -39,6 +39,7 @@ import com.vylorq.anticheat.core.trader.TraderEconomy;
 import com.vylorq.anticheat.core.util.Clock;
 import com.vylorq.anticheat.core.util.Durations;
 import com.vylorq.anticheat.core.waiting.WaitingRoom;
+import com.vylorq.anticheat.core.watcher.WatcherScheduler;
 import com.vylorq.anticheat.core.xray.OreAlerts;
 import com.vylorq.anticheat.core.xray.XrayTrap;
 import net.fabricmc.loader.api.FabricLoader;
@@ -147,6 +148,7 @@ public final class Ac {
     public ItemValues itemValues;
     public Escrow escrow;
     public Misc misc;
+    public WatcherScheduler watcher;
     public final DiscordWebhook discord = new DiscordWebhook();
 
     public final Map<UUID, PlayerSession> sessions = new ConcurrentHashMap<>();
@@ -238,6 +240,7 @@ public final class Ac {
         traders = state.load("traders", Traders.class, new Traders());
         escrow = state.load("escrow", Escrow.class, new Escrow());
         misc = state.load("misc", Misc.class, new Misc());
+        watcher = new WatcherScheduler(state.load("watcher", WatcherScheduler.Data.class, null), clock, new java.util.Random());
         if (misc.xraySecret == 0) {
             misc.xraySecret = new SecureRandom().nextLong();
             markDirty("misc");
@@ -333,13 +336,14 @@ public final class Ac {
             case "traders" -> traders;
             case "escrow" -> escrow;
             case "misc" -> misc;
+            case "watcher" -> watcher.data();
             default -> null;
         };
     }
 
     public static final List<String> ALL_KEYS = List.of("watchlist", "exempt", "shadow", "reviews", "stats", "pins",
             "punishments", "reports", "staff", "deaths", "claims", "barriers", "redstone", "joins", "lobby", "jail",
-            "waiting", "arenas", "economy", "traders", "escrow", "misc");
+            "waiting", "arenas", "economy", "traders", "escrow", "misc", "watcher");
 
     /** Saves dirty modules (called every few seconds on the server thread). */
     public void saveDirty() {

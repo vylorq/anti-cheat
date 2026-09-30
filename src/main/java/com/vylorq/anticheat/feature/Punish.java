@@ -165,11 +165,18 @@ public final class Punish {
     /** Lightning with no damage or fire. */
     public static void banEffect(ServerPlayerEntity p) {
         ServerWorld w = p.getEntityWorld();
-        LightningEntity bolt = EntityType.LIGHTNING_BOLT.create(w, SpawnReason.TRIGGERED);
-        if (bolt != null) {
-            bolt.refreshPositionAfterTeleport(p.getX(), p.getY(), p.getZ());
-            bolt.setCosmetic(true);
-            w.spawnEntity(bolt);
+        net.minecraft.util.math.Vec3d at = p.getEntityPos();
+        Runnable strike = () -> {
+            LightningEntity bolt = EntityType.LIGHTNING_BOLT.create(w, SpawnReason.TRIGGERED);
+            if (bolt != null) {
+                bolt.refreshPositionAfterTeleport(at.x, at.y, at.z);
+                bolt.setCosmetic(true);
+                w.spawnEntity(bolt);
+            }
+        };
+        // The Watcher appears where the cheater stood just before the strike (33.5).
+        if (!Watcher.banAppearance(w, at, p.getYaw(), strike)) {
+            strike.run();
         }
     }
 }

@@ -67,6 +67,8 @@ public final class AntiCheatGameTests {
             "net.minecraft.screen.slot.FurnaceOutputSlot",
             "net.minecraft.entity.TntEntity",
             "net.minecraft.entity.FallingBlockEntity",
+            "net.minecraft.server.MinecraftServer",
+            "net.minecraft.entity.PlayerLikeEntity",
     };
 
     @GameTest
@@ -203,6 +205,113 @@ public final class AntiCheatGameTests {
         check(changed >= 1, "restore changed nothing");
         check(w.getBlockState(p).isOf(Blocks.GOLD_BLOCK), "gold block not restored");
         java.nio.file.Files.deleteIfExists(BlockSnapshots.file(name));
+        ctx.complete();
+    }
+
+    /**
+     * Every Watcher effect is packets only (33.7): the world, the player's inventory and the weather are untouched,
+     * and everything sent is taken back by the end (fake figures destroyed, fake blocks and slots resent as real).
+     */
+    @GameTest(maxTicks = 200)
+    public void watcherEffectsAreFakeAndCleanedUp(TestContext ctx) {
+        ServerWorld w = ctx.getWorld();
+        for (int x = 0; x < 8; x++) {
+            for (int z = 0; z < 8; z++) {
+                ctx.setBlockState(new BlockPos(x, 0, z), Blocks.STONE);
+                for (int y = 1; y <= 3; y++) {
+                    ctx.setBlockState(new BlockPos(x, y, z), z == 7 ? Blocks.STONE : Blocks.AIR);
+                }
+            }
+        }
+        ctx.setBlockState(new BlockPos(1, 1, 3), Blocks.TORCH);
+        ctx.setBlockState(new BlockPos(5, 1, 3), Blocks.LANTERN);
+        BlockPos origin = ctx.getAbsolutePos(BlockPos.ORIGIN);
+        java.util.Map<BlockPos, BlockState> before = new java.util.HashMap<>();
+        for (BlockPos pos : BlockPos.iterate(origin.add(-1, -1, -1), origin.add(8, 5, 8))) {
+            before.put(pos.toImmutable(), w.getBlockState(pos));
+        }
+        var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(w,
+                new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "WatchTester"));
+        BlockPos stand = ctx.getAbsolutePos(new BlockPos(3, 1, 2));
+        fake.refreshPositionAndAngles(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5, 0f, 0f);
+        fake.getInventory().setStack(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.COMPASS));
+        boolean rainBefore = w.isRaining();
+
+        java.util.Map<Integer, Integer> figures = new java.util.HashMap<>();
+        java.util.Map<java.util.UUID, Integer> listed = new java.util.HashMap<>();
+        java.util.Map<BlockPos, BlockState> lastBlock = new java.util.HashMap<>();
+        java.util.Map<Integer, net.minecraft.item.ItemStack> lastSlot = new java.util.HashMap<>();
+        java.util.List<String> started = new java.util.ArrayList<>();
+        Object[] lastRain = {null};
+        Object[] lastSpawn = {null};
+        com.vylorq.anticheat.feature.Watcher.spy = (pl, pk) -> {
+            if (pl != fake) {
+                return;
+            }
+            if (pk instanceof net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket sp) {
+                figures.merge(sp.getEntityId(), 1, Integer::sum);
+            } else if (pk instanceof net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket d) {
+                for (int id : d.getEntityIds()) {
+                    figures.merge(id, -1, Integer::sum);
+                }
+            } else if (pk instanceof net.minecraft.network.packet.s2c.play.PlayerListS2CPacket l) {
+                for (var e : l.getEntries()) {
+                    listed.merge(e.profileId(), 1, Integer::sum);
+                }
+            } else if (pk instanceof net.minecraft.network.packet.s2c.play.PlayerRemoveS2CPacket r) {
+                for (var id : r.profileIds()) {
+                    listed.merge(id, -1, Integer::sum);
+                }
+            } else if (pk instanceof net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket b) {
+                lastBlock.put(b.getPos().toImmutable(), b.getState());
+            } else if (pk instanceof net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket u && u.getSyncId() == 0) {
+                lastSlot.put(u.getSlot(), u.getStack());
+            } else if (pk instanceof net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket g
+                    && (g.getReason() == net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket.RAIN_STARTED
+                    || g.getReason() == net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket.RAIN_STOPPED)) {
+                lastRain[0] = g.getReason();
+            } else if (pk instanceof net.minecraft.network.packet.s2c.play.PlayerSpawnPositionS2CPacket sp) {
+                lastSpawn[0] = sp.respawnData();
+            }
+        };
+        try {
+            for (var eff : com.vylorq.anticheat.core.watcher.WatcherEffect.values()) {
+                if (com.vylorq.anticheat.feature.Watcher.runForTest(fake, eff, 1300)) {
+                    started.add(eff.id());
+                }
+            }
+        } finally {
+            com.vylorq.anticheat.feature.Watcher.spy = null;
+        }
+        for (String must : List.of("flicker", "sign", "footsteps", "turn_around", "gift", "wrong_compass", "message", "whisper")) {
+            check(started.contains(must), must + " did not start; started: " + started);
+        }
+        for (var e : before.entrySet()) {
+            check(w.getBlockState(e.getKey()).equals(e.getValue()), "real block changed at " + e.getKey() + ": " + w.getBlockState(e.getKey()));
+        }
+        for (var e : figures.entrySet()) {
+            check(e.getValue() == 0, "fake figure " + e.getKey() + " left behind (" + e.getValue() + ")");
+        }
+        for (var e : listed.entrySet()) {
+            check(e.getValue() == 0, "fake profile " + e.getKey() + " left in the player list");
+        }
+        for (var e : lastBlock.entrySet()) {
+            check(e.getValue().equals(w.getBlockState(e.getKey())), "fake block left at " + e.getKey() + ": " + e.getValue());
+        }
+        for (var e : lastSlot.entrySet()) {
+            check(net.minecraft.item.ItemStack.areEqual(e.getValue(), fake.getInventory().getStack(e.getKey())),
+                    "fake slot " + e.getKey() + " left: " + e.getValue());
+        }
+        for (int i = 1; i < fake.getInventory().size(); i++) {
+            check(fake.getInventory().getStack(i).isEmpty(), "a Watcher item became real in slot " + i);
+        }
+        check(fake.getInventory().getStack(0).isOf(net.minecraft.item.Items.COMPASS), "compass changed");
+        check(w.isRaining() == rainBefore, "real weather changed");
+        if (lastRain[0] != null) {
+            check(lastRain[0] == (rainBefore ? net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket.RAIN_STARTED
+                    : net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket.RAIN_STOPPED), "fake weather left");
+        }
+        check(lastSpawn[0] == null || lastSpawn[0].equals(w.getServer().getSpawnPoint()), "compass target left: " + lastSpawn[0]);
         ctx.complete();
     }
 }

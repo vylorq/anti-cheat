@@ -5,6 +5,7 @@ import com.vylorq.anticheat.core.config.AcConfig;
 import com.vylorq.anticheat.core.detect.CheckType;
 import com.vylorq.anticheat.core.perm.Perm;
 import com.vylorq.anticheat.core.perm.PermissionPolicy;
+import com.vylorq.anticheat.core.watcher.WatcherEffect;
 import com.vylorq.anticheat.feature.Staff;
 import com.vylorq.anticheat.perm.Perms;
 import com.vylorq.anticheat.util.Icons;
@@ -144,6 +145,14 @@ public final class SettingsMenu {
                 Ac.get().staff.setMaintenance(v);
                 Ac.markDirty("staff");
             }, "maintenance");
+            if (Perms.has(admin, Perm.WATCHER)) {
+                menu.set(44, Icons.of(Items.BLACK_CANDLE, "§8The Watcher", "Effects, frequency and messages", "§7Owner only"),
+                        (p, c) -> {
+                            if (Perms.require(p, Perm.WATCHER)) {
+                                watcher(p);
+                            }
+                        });
+            }
         });
         m.open(admin);
     }
@@ -164,6 +173,102 @@ public final class SettingsMenu {
             set.accept(v);
             changed(p, key, v);
             menu.refresh();
+        });
+    }
+
+    // ---- The Watcher (section 33.9): owner only ----
+
+    private static void watcherChanged(ServerPlayerEntity p, String what, Object value) {
+        Ac.get().configManager.save();
+        Staff.log(p, "watcher-settings", null, what, String.valueOf(value));
+    }
+
+    public static void watcher(ServerPlayerEntity owner) {
+        Menu m = new Menu("§8The Watcher", 6).perm(Perm.WATCHER);
+        m.renderer(menu -> {
+            AcConfig.Watcher w = Ac.config().watcher;
+            menu.set(4, Icons.toggle(w.enabled, "The Watcher"), (p, c) -> {
+                if (!Perms.require(p, Perm.WATCHER)) return;
+                w.enabled = !w.enabled;
+                if (!w.enabled) {
+                    com.vylorq.anticheat.feature.Watcher.stopAll();
+                }
+                watcherChanged(p, "enabled", w.enabled);
+                menu.refresh();
+            });
+            int slot = 9;
+            for (WatcherEffect e : WatcherEffect.values()) {
+                boolean on = !w.disabledEffects.contains(e.id()) && (e != WatcherEffect.RUSH || w.rareRush);
+                int weight = w.weights.getOrDefault(e.id(), e.defaultWeight);
+                String kind = e.kind == WatcherEffect.Kind.POOLED ? "§7Weight: §f" + weight + " §8(right +1, shift-right -1)"
+                        : e.kind == WatcherEffect.Kind.RARE ? "§7Rare" : "§7When a player sleeps";
+                menu.set(slot++, Icons.of(on ? Items.ENDER_EYE : Items.GRAY_DYE, (on ? "§a" : "§c") + e.id(), "Left: on/off", kind), (p, c) -> {
+                    if (!Perms.require(p, Perm.WATCHER)) return;
+                    if (c.isRight() && e.kind == WatcherEffect.Kind.POOLED) {
+                        int v = Math.max(0, Math.min(100, weight + (c.isShift() ? -1 : 1)));
+                        w.weights.put(e.id(), v);
+                        watcherChanged(p, "weight." + e.id(), v);
+                    } else if (e == WatcherEffect.RUSH) {
+                        w.rareRush = !w.rareRush;
+                        w.disabledEffects.remove(e.id());
+                        watcherChanged(p, "rareRush", w.rareRush);
+                    } else {
+                        if (!w.disabledEffects.remove(e.id())) {
+                            w.disabledEffects.add(e.id());
+                        }
+                        watcherChanged(p, "effect." + e.id(), !w.disabledEffects.contains(e.id()));
+                    }
+                    menu.refresh();
+                });
+            }
+            watcherNumber(menu, 36, "Min minutes between events", w.minMinutes, 5, 5, 600, v -> w.minMinutes = Math.min(v, w.maxMinutes), "minMinutes");
+            watcherNumber(menu, 37, "Max minutes between events", w.maxMinutes, 5, 5, 600, v -> w.maxMinutes = Math.max(v, w.minMinutes), "maxMinutes");
+            menu.set(38, Icons.toggle(w.nightEnabled, "Watcher Night"), (p, c) -> {
+                if (!Perms.require(p, Perm.WATCHER)) return;
+                w.nightEnabled = !w.nightEnabled;
+                watcherChanged(p, "nightEnabled", w.nightEnabled);
+                menu.refresh();
+            });
+            menu.set(39, Icons.toggle(w.banAppearance, "Ban appearance"), (p, c) -> {
+                if (!Perms.require(p, Perm.WATCHER)) return;
+                w.banAppearance = !w.banAppearance;
+                watcherChanged(p, "banAppearance", w.banAppearance);
+                menu.refresh();
+            });
+            watcherText(menu, 41, "Watching message", w.watchingText, v -> w.watchingText = v, "watchingText");
+            watcherText(menu, 42, "Glitched message", w.glitchText, v -> w.glitchText = v, "glitchText");
+            watcherText(menu, 43, "Sign lines (use | between lines)", String.join("|", w.signLines),
+                    v -> w.signLines = new java.util.ArrayList<>(java.util.Arrays.asList(v.split("\\|", -1))), "signLines");
+            watcherText(menu, 44, "Whisper text", w.whisperText, v -> w.whisperText = v, "whisperText");
+            watcherText(menu, 45, "Your-own-voice text", w.ownVoiceText, v -> w.ownVoiceText = v, "ownVoiceText");
+            watcherText(menu, 46, "Sleep text", w.sleepText, v -> w.sleepText = v, "sleepText");
+            watcherText(menu, 47, "Server list messages (use | between)", String.join("|", w.serverListMessages),
+                    v -> w.serverListMessages = new java.util.ArrayList<>(java.util.Arrays.stream(v.split("\\|")).map(String::trim)
+                            .filter(x -> !x.isEmpty()).toList()), "serverListMessages");
+            menu.set(49, Menu.back(), (p, c) -> open(p));
+        });
+        m.open(owner);
+    }
+
+    private static void watcherNumber(Menu menu, int slot, String name, int value, int step, int min, int max, Consumer<Integer> set, String key) {
+        menu.set(slot, Icons.of(Items.CLOCK, "§e" + name + ": §f" + value, "Left: +" + step, "Right: -" + step), (p, c) -> {
+            if (!Perms.require(p, Perm.WATCHER)) return;
+            int v = Math.max(min, Math.min(max, value + (c.isRight() ? -step : step)));
+            set.accept(v);
+            watcherChanged(p, key, v);
+            menu.refresh();
+        });
+    }
+
+    private static void watcherText(Menu menu, int slot, String name, String value, Consumer<String> set, String key) {
+        menu.set(slot, Icons.of(Items.PAPER, "§e" + name, "§f" + value, "§7Click to change"), (p, c) -> {
+            if (!Perms.require(p, Perm.WATCHER)) return;
+            p.closeHandledScreen();
+            Prompts.ask(p, name + ":", txt -> {
+                set.accept(txt);
+                watcherChanged(p, key, txt);
+                watcher(p);
+            });
         });
     }
 

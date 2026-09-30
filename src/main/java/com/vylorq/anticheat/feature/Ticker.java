@@ -32,6 +32,7 @@ public final class Ticker {
         }
         Trades.tick();
         Extras.tick();
+        Watcher.tick(server);
         if (ticks % 20 == 0) {
             everySecond(ac);
         }

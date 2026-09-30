@@ -33,7 +33,8 @@ jobs:
           cp ../build/libs/$(ls ../build/libs | grep -v sources | head -1) mods/anticheat.jar
           ls mods
           echo eula=true > eula.txt
-          printf 'online-mode=false\nenforce-secure-profile=false\n' > server.properties
+          printf 'online-mode=false\nenforce-secure-profile=false\nenable-rcon=true\nrcon.port=25575\nrcon.password=crossplay\n' > server.properties
+          ln -sfn "$PWD" ~/mc
           nohup java -Xmx3G -jar server.jar nogui > run.log 2>&1 < /dev/null &
           for i in $(seq 1 150); do grep -q 'Done (' run.log && break; grep -q 'Failed to start' run.log && break; sleep 2; done
           grep -E "Done \(|Failed|Caused by" run.log | head; grep -q 'Done (' run.log
@@ -60,16 +61,40 @@ jobs:
           node -e "const v=require('bedrock-protocol/package.json').version;const d=require('minecraft-data');console.log('bedrock-protocol',v,'latest bedrock',d.versions.bedrock[0].minecraftVersion)"
           cat > bot.js <<'JS'
           const bedrock = require('bedrock-protocol')
+          const { execSync } = require('child_process')
+          const sleep = (ms) => new Promise(r => setTimeout(r, ms))
+          const mc = (c) => { try { console.log('RCON', c, '->', execSync('python3 ../scripts/mc ' + c).toString().trim()) } catch (e) { console.log('RCON failed', c, e.message) } }
           const client = bedrock.createClient({ host: '127.0.0.1', port: 19132, username: 'BedrockBot', offline: true, skipPing: false })
+          let figures = 0, removed = 0
           client.on('join', () => console.log('BEDROCK: join packet'))
-          client.on('spawn', () => { console.log('BEDROCK: spawned in world'); setTimeout(() => process.exit(0), 3000) })
-          client.on('text', (p) => console.log('BEDROCK text:', p.message))
+          client.on('add_player', (p) => { figures++; console.log('BEDROCK add_player:', p.username, 'runtime id', String(p.runtime_id)) })
+          client.on('remove_entity', () => removed++)
+          client.on('text', (p) => console.log('BEDROCK text:', p.message, (p.parameters || []).join(',')))
+          client.on('set_title', (p) => console.log('BEDROCK title:', p.type, p.text))
+          client.on('spawn', async () => {
+            console.log('BEDROCK: spawned in world')
+            await sleep(4000)
+            // Every Watcher effect through Geyser: the Bedrock client must stay connected through all of them.
+            for (const eff of ['turn_around', 'appear', 'doppelganger', 'mirroring', 'rush', 'bedside', 'sign', 'flicker', 'storm',
+                               'gift', 'wrong_compass', 'message', 'glitch_text', 'whisper', 'own_voice', 'fake_join', 'footsteps',
+                               'silence', 'knocking', 'animals_stare', 'sleep_well']) {
+              mc('watcher summon BedrockBot ' + eff)
+              await sleep(3500)
+              mc('watcher off'); mc('watcher on')
+              await sleep(500)
+            }
+            mc('watcher night'); mc('watcher log')
+            await sleep(2000)
+            console.log('BEDROCK: fake figures seen', figures, 'entities removed', removed)
+            process.exit(figures > 0 ? 0 : 5)
+          })
           client.on('disconnect', (p) => { console.log('BEDROCK disconnected:', JSON.stringify(p)); process.exit(2) })
           client.on('kick', (p) => { console.log('BEDROCK kicked:', JSON.stringify(p)); process.exit(2) })
           client.on('error', (e) => { console.log('BEDROCK error:', e.message); process.exit(3) })
-          setTimeout(() => { console.log('BEDROCK: timed out'); process.exit(4) }, 90000)
+          setTimeout(() => { console.log('BEDROCK: timed out'); process.exit(4) }, 240000)
           JS
-          node bot.js; rc=$?
-          echo "--- server log"; grep -E "BedrockBot|joined the game|lost connection|floodgate|Floodgate" ../srv/run.log | tail -n 15
+          rc=0; node bot.js || rc=$?
+          echo "--- server log"; grep -E "BedrockBot|joined the game|lost connection|floodgate|Floodgate|Watcher|Exception" ../srv/run.log | tail -n 40
           echo "--- geyser log"; tail -n 25 ../geyser/geyser.log
           grep -q "joined the game" ../srv/run.log
+          exit $rc
