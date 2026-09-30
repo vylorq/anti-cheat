@@ -106,6 +106,8 @@ public class Menu {
     protected int filter;
     protected String query = "";
     private boolean goingBack;
+    /** The top of the tree (the Vigil Panel): never gets a Back button. */
+    private boolean root;
 
     public Menu(String title, int rows) {
         this.title = title;
@@ -176,6 +178,11 @@ public class Menu {
     public Menu reserved(Set<Integer> slots) {
         this.reserved.clear();
         this.reserved.addAll(slots);
+        return this;
+    }
+
+    public Menu root() {
+        this.root = true;
         return this;
     }
 
@@ -310,7 +317,7 @@ public class Menu {
 
     public void open(ServerPlayerEntity p) {
         // Remember where we came from so Back can return there (on the same page, same filter).
-        if (!goingBack && p.currentScreenHandler instanceof MenuHandler h && h.menu() != this && parent == null
+        if (!root && !goingBack && p.currentScreenHandler instanceof MenuHandler h && h.menu() != this && parent == null
                 && !h.menu().hasAncestor(this)) {
             parent = h.menu();
         }

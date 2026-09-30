@@ -51,6 +51,7 @@ public final class Commands {
         WorldCommands.register(d);
         WatcherCommands.register(d);
         registerAc(d);
+        VigilCommands.register(d);
         // Public "caught" counter (section 28).
         d.register(literal("caught").executes(ctx -> {
             if (!Ac.config().fun.caughtCounter) {
@@ -71,9 +72,9 @@ public final class Commands {
     }
 
     private static void registerAc(CommandDispatcher<ServerCommandSource> d) {
-        d.register(literal("ac").requires(s -> Perms.visible(s, Perm.ALERTS))
-                .executes(ctx -> help(ctx))
-                .then(literal("help").executes(ctx -> help(ctx)))
+        // The admin root is /vigil (aliases /vg and the old /ac, added in VigilCommands).
+        d.register(literal("vigil").requires(VigilCommands::canSee)
+                .executes(VigilCommands::panel)
                 .then(literal("reload").executes(ctx -> {
                     if (!Perms.check(ctx.getSource(), Perm.RELOAD)) return 0;
                     String err = Ac.get().reload();
@@ -283,13 +284,6 @@ public final class Commands {
                             Msg.ok(ctx.getSource(), "ac.owner-set", Args.nameOf(id, "?"));
                             return 1;
                         }))));
-    }
-
-    private static int help(CommandContext<ServerCommandSource> ctx) {
-        for (String line : Msg.tr("ac.help").split("\n")) {
-            ctx.getSource().sendFeedback(() -> Msg.text(line), false);
-        }
-        return 1;
     }
 
     private static int staffLog(CommandContext<ServerCommandSource> ctx, String player) {
