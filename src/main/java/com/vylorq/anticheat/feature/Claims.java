@@ -101,9 +101,14 @@ public final class Claims {
             Claim c = t.entered();
             s.lastClaimId = c.id;
             if (c.settings.entryMessages) {
-                String left = c.expiresAt == Durations.PERMANENT ? Msg.tr("claim.permanent")
+                String left = c.expiresAt == Durations.PERMANENT ? Msg.trFor(p, "claim.permanent")
                         : Durations.format(c.remaining(System.currentTimeMillis()));
-                Msg.actionBar(p, Msg.tr("claim.enter", c.name, left));
+                String bar = Msg.trFor(p, "claim.bar", c.name, left);
+                if (!com.vylorq.anticheat.ui.BossBars.show(p, com.vylorq.anticheat.ui.BossBars.Kind.CLAIM,
+                        com.vylorq.anticheat.ui.Theme.c(bar, com.vylorq.anticheat.ui.Theme.GREEN), 1f, 4)) {
+                    Msg.actionBar(p, Msg.trFor(p, "claim.enter", c.name, left));
+                }
+                Mc.title(p, "", "§a" + c.name, 5, 30, 10);
             }
             boolean member = c.roleOf(p.getUuid(), System.currentTimeMillis()) != null;
             if (c.settings.alerts && !member && !Perms.isActiveStaff(p)) {
@@ -112,7 +117,8 @@ public final class Claims {
         } else if (t.left() != null) {
             s.lastClaimId = null;
             if (t.left().settings.entryMessages) {
-                Msg.actionBar(p, Msg.tr("claim.leave", t.left().name));
+                com.vylorq.anticheat.ui.BossBars.hide(p, com.vylorq.anticheat.ui.BossBars.Kind.CLAIM);
+                Msg.actionBar(p, Msg.trFor(p, "claim.leave", t.left().name));
             }
         }
     }

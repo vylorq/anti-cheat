@@ -53,14 +53,14 @@ public final class BossBars {
      *
      * @param seconds how long it stays without being updated again
      */
-    public static void show(ServerPlayerEntity p, Kind kind, Text text, float progress, int seconds) {
+    public static boolean show(ServerPlayerEntity p, Kind kind, Text text, float progress, int seconds) {
         if (!Ac.running() || !Ac.config().general.bossBars) {
-            return;
+            return false;
         }
         Shown cur = SHOWN.get(p.getUuid());
         if (cur != null && cur.kind != kind) {
             if (cur.kind.priority > kind.priority) {
-                return;
+                return false;
             }
             cur.bar.clearPlayers();
             SHOWN.remove(p.getUuid());
@@ -74,6 +74,7 @@ public final class BossBars {
         cur.bar.setName(text);
         cur.bar.setPercent(Math.max(0f, Math.min(1f, progress)));
         cur.until = System.currentTimeMillis() + seconds * 1000L;
+        return true;
     }
 
     public static void hide(ServerPlayerEntity p, Kind kind) {

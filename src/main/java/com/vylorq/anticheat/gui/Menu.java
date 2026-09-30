@@ -336,6 +336,9 @@ public class Menu {
         }
     }
 
+    /** Test hook: sees every menu as it opens (after rendering). */
+    public static Consumer<Menu> onOpen;
+
     public void open(ServerPlayerEntity p) {
         // Remember where we came from so Back can return there (on the same page, same filter).
         if (!root && !goingBack && p.currentScreenHandler instanceof MenuHandler h && h.menu() != this && parent == null
@@ -345,6 +348,9 @@ public class Menu {
         goingBack = false;
         viewer = p;
         render();
+        if (onOpen != null) {
+            onOpen.accept(this);
+        }
         ScreenHandlerType<?> type = switch (rows) {
             case 1 -> ScreenHandlerType.GENERIC_9X1;
             case 2 -> ScreenHandlerType.GENERIC_9X2;
@@ -380,6 +386,10 @@ public class Menu {
         }
         parent.goingBack = true;
         parent.open(p);
+    }
+
+    public Text titleText() {
+        return titleText != null ? titleText : Text.literal(title);
     }
 
     public boolean isOpenFor(ServerPlayerEntity p) {

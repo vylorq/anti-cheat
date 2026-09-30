@@ -357,7 +357,8 @@ public final class Commands {
     }
 
     private static void dropItemsMenu(ServerPlayerEntity p) {
-        Menu m = new Menu("§8Drop party items (close to save)", 6).perm(Perm.EVENTS);
+        Menu m = new Menu("", 6).titleText(com.vylorq.anticheat.ui.Theme.title(com.vylorq.anticheat.ui.Theme.Category.STAFF,
+                Msg.trFor(p, "event.drop-items-title"))).perm(Perm.EVENTS);
         Set<Integer> all = new HashSet<>();
         for (int i = 0; i < 54; i++) {
             all.add(i);

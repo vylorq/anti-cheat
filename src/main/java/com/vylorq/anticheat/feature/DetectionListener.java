@@ -31,17 +31,9 @@ public final class DetectionListener implements DetectionEngine.Listener {
     @Override
     public void onAlert(DetectionEngine.Flag f, boolean instant) {
         String name = f.name();
-        MutableText t = Msg.prefixed(Msg.tr("alert.flag", color(f.suspicion()) + name, f.check().displayName(),
-                f.suspicion(), f.detail() == null ? "" : f.detail()) + (f.watched() ? " §d[W]" : ""));
-        t.append(Text.literal(" "));
-        t.append(Msg.button("§b[Inspect]", "/inspect " + Msg.q(name), "Open /inspect"));
-        t.append(Text.literal(" "));
-        t.append(Msg.button("§e[Spectate]", "/inspect " + Msg.q(name) + " spectate", "Spectate unseen"));
-        for (ServerPlayerEntity p : Staff.online()) {
-            if (Alerts.enabled(p.getUuid())) {
-                p.sendMessage(t);
-            }
-        }
+        Staff.alert(p -> Alerts.enabled(p.getUuid()), () -> Msg.tr("alert.flag", name, f.check().displayName(),
+                f.suspicion(), f.detail() == null ? "" : f.detail()) + (f.watched() ? " (" + Msg.tr("rv.watched") + ")" : ""),
+                name, null, instant);
     }
 
     @Override
@@ -57,9 +49,7 @@ public final class DetectionListener implements DetectionEngine.Listener {
     @Override
     public void onCaseOpened(ReviewCase c) {
         Ac.markDirty("reviews");
-        MutableText t = Msg.prefixed(Msg.tr("review.opened", c.playerName, c.suspicion));
-        t.append(Text.literal(" ")).append(Msg.button("§b[Review]", "/review " + c.id, "Open this case"));
-        Staff.broadcast(t);
+        Staff.alert(p -> true, () -> Msg.tr("review.opened", c.playerName, c.suspicion), c.playerName, c.id, true);
         Discord.send("review", "Review case #" + c.id + ": " + c.playerName,
                 "Suspicion " + c.suspicion + "\nTop checks: " + String.join(", ", c.topChecks(3))
                         + (c.bedrock ? "\nBedrock player" : ""), 0xE67E22);
@@ -74,7 +64,7 @@ public final class DetectionListener implements DetectionEngine.Listener {
     public void onAutoWatch(UUID player, String name, String reason) {
         Ac.markDirty("watchlist");
         Staff.log("System", null, "watch-auto", player, name, reason);
-        Staff.broadcast(Msg.prefixed(Msg.tr("watch.auto", name, reason)));
+        Staff.alert(p -> true, () -> Msg.tr("watch.auto", name, reason), name, null, true);
     }
 
     @Override
