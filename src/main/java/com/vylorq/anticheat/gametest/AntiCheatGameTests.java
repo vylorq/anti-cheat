@@ -505,7 +505,7 @@ public final class AntiCheatGameTests {
 
             // A built portal room works while the End is closed, and isn't hidden.
             var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "EndBuilder"));
-            BlockPos c = com.vylorq.anticheat.feature.EndLock.build(w, ctx.getAbsolutePos(new BlockPos(1, 2, 1)), Direction.SOUTH);
+            BlockPos c = com.vylorq.anticheat.feature.EndLock.build(w, ctx.getAbsolutePos(new BlockPos(1, 2, 1)).up(40), Direction.SOUTH);
             check(w.getBlockState(c).isOf(Blocks.END_PORTAL) && w.getBlockState(c.north(2)).isOf(Blocks.END_PORTAL_FRAME), "portal room not built");
             check(((net.minecraft.block.EndPortalBlock) Blocks.END_PORTAL).createTeleportTarget(w, fake, c) != null, "built portal doesn't work");
             check(com.vylorq.anticheat.feature.EndLock.hide(w, c.getX() - 2, c.getY(), c.getZ() - 2, c.getX() + 2, c.getY(), c.getZ() + 2) == 0,
