@@ -84,11 +84,26 @@ if [ -d world ] && [ "$(cat .mc-version 2>/dev/null)" != "$MC_VERSION" ]; then
   echo "  Saved in ~/backups"
 fi
 
+# Newest Fabric build of a project for any Minecraft version (for ViaVersion, which supports many versions).
+modrinth_latest() {
+  local project="$1"
+  local url
+  url=$(curl -fsSL -G "https://api.modrinth.com/v2/project/$project/version" \
+        --data-urlencode 'loaders=["fabric"]' | jq -r '.[0].files[] | select(.primary) | .url' | head -1)
+  [ -n "$url" ] && [ "$url" != "null" ] || fail "Could not find $project on Modrinth. Try again in a few minutes."
+  rm -f "mods/$project"-*.jar mods/"${project^}"-*.jar
+  curl -fsSL -o "mods/$project-latest.jar" "$url"
+  echo "  $project OK"
+}
+
 say "Downloading Fabric API, Floodgate and ViaFabric"
 modrinth fabric-api
 modrinth floodgate
 # ViaFabric lets Java players on newer Minecraft versions join, and lets the newest Geyser connect.
+# Its bundled ViaVersion crashes on 1.21.11, so the newest ViaVersion (and ViaBackwards) are added next to it.
 modrinth viafabric
+modrinth_latest viaversion
+modrinth_latest viabackwards
 # Geyser now runs as its own program (always the newest, so every Bedrock version works); remove the old mod.
 rm -f mods/geyser-*.jar mods/Geyser-*.jar
 cp "$MOD_JAR" mods/anticheat.jar

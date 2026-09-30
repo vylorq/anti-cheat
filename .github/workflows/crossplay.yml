@@ -1,0 +1,75 @@
+# End-to-end crossplay test: a server set up like scripts/oracle-setup.sh (mod, Floodgate, ViaFabric + newest
+# ViaVersion) behind the newest Geyser, and a fake player on the newest Bedrock version joins it.
+name: Crossplay
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  bedrock-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Build mod
+        run: ./gradlew build -x test -x :core:test --no-daemon -q
+      - name: Server like the Oracle one
+        run: |
+          mkdir -p srv/mods && cd srv
+          L=$(curl -fsSL https://meta.fabricmc.net/v2/versions/loader/1.21.11 | jq -r '[.[]|select(.loader.stable)][0].loader.version')
+          I=$(curl -fsSL https://meta.fabricmc.net/v2/versions/installer | jq -r '[.[]|select(.stable)][0].version')
+          curl -fsSL -o server.jar "https://meta.fabricmc.net/v2/versions/loader/1.21.11/$L/$I/server/jar"
+          get() { curl -fsSL -G "https://api.modrinth.com/v2/project/$1/version" --data-urlencode 'loaders=["fabric"]' $2 | jq -r '.[0].files[]|select(.primary).url'; }
+          V='--data-urlencode game_versions=["1.21.11"]'
+          curl -fsSL -o mods/fabric-api.jar "$(get fabric-api "$V")"
+          curl -fsSL -o mods/floodgate.jar "$(get floodgate "$V")"
+          curl -fsSL -o mods/viafabric.jar "$(get viafabric "$V")"
+          curl -fsSL -o mods/viaversion.jar "$(get viaversion)"
+          curl -fsSL -o mods/viabackwards.jar "$(get viabackwards)"
+          cp ../build/libs/$(ls ../build/libs | grep -v sources | head -1) mods/anticheat.jar
+          ls mods
+          echo eula=true > eula.txt
+          printf 'online-mode=false\nenforce-secure-profile=false\n' > server.properties
+          nohup java -Xmx3G -jar server.jar nogui > run.log 2>&1 < /dev/null &
+          for i in $(seq 1 150); do grep -q 'Done (' run.log && break; grep -q 'Failed to start' run.log && break; sleep 2; done
+          grep -E "Done \(|Failed|Caused by" run.log | head; grep -q 'Done (' run.log
+          ls config/floodgate
+      - name: Newest Geyser standalone
+        run: |
+          mkdir geyser && cd geyser
+          curl -fsSL -o Geyser.jar https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/standalone
+          cp ../srv/config/floodgate/key.pem key.pem
+          nohup java -Xmx1G -jar Geyser.jar --nogui > geyser.log 2>&1 < /dev/null &
+          for i in $(seq 1 60); do [ -f config.yml ] && break; sleep 2; done
+          pkill -f Geyser.jar || true; sleep 3
+          sed -i 's/auth-type: .*/auth-type: floodgate/; s/address: auto/address: 127.0.0.1/' config.yml
+          grep -q "validate-bedrock-login" config.yml && sed -i 's/validate-bedrock-login: .*/validate-bedrock-login: false/' config.yml || echo "validate-bedrock-login: false" >> config.yml
+          grep -nE "auth-type|address|port|validate" config.yml | head
+          nohup java -Xmx1G -jar Geyser.jar --nogui > geyser.log 2>&1 < /dev/null &
+          for i in $(seq 1 60); do grep -qi "Done (" geyser.log && break; sleep 2; done
+          tail -n 15 geyser.log
+          grep -i "Done (" geyser.log
+          grep -iE "supported|bedrock version|minecraft version" geyser.log | head -5 || true
+      - name: Fake Bedrock player joins through Geyser
+        run: |
+          mkdir bot && cd bot && npm init -y >/dev/null && npm i bedrock-protocol@latest >/dev/null 2>&1
+          node -e "const v=require('bedrock-protocol/package.json').version;const d=require('minecraft-data');console.log('bedrock-protocol',v,'latest bedrock',d.versions.bedrock[0].minecraftVersion)"
+          cat > bot.js <<'JS'
+          const bedrock = require('bedrock-protocol')
+          const client = bedrock.createClient({ host: '127.0.0.1', port: 19132, username: 'BedrockBot', offline: true, skipPing: false })
+          client.on('join', () => console.log('BEDROCK: join packet'))
+          client.on('spawn', () => { console.log('BEDROCK: spawned in world'); setTimeout(() => process.exit(0), 3000) })
+          client.on('text', (p) => console.log('BEDROCK text:', p.message))
+          client.on('disconnect', (p) => { console.log('BEDROCK disconnected:', JSON.stringify(p)); process.exit(2) })
+          client.on('kick', (p) => { console.log('BEDROCK kicked:', JSON.stringify(p)); process.exit(2) })
+          client.on('error', (e) => { console.log('BEDROCK error:', e.message); process.exit(3) })
+          setTimeout(() => { console.log('BEDROCK: timed out'); process.exit(4) }, 90000)
+          JS
+          node bot.js; rc=$?
+          echo "--- server log"; grep -E "BedrockBot|joined the game|lost connection|floodgate|Floodgate" ../srv/run.log | tail -n 15
+          echo "--- geyser log"; tail -n 25 ../geyser/geyser.log
+          grep -q "joined the game" ../srv/run.log
