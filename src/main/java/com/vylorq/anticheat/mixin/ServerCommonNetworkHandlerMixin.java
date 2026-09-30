@@ -2,7 +2,6 @@ package com.vylorq.anticheat.mixin;
 
 import com.vylorq.anticheat.Ac;
 import com.vylorq.anticheat.feature.Combat;
-import net.minecraft.network.PacketCallbacks;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.ExplosionS2CPacket;
@@ -21,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ServerCommonNetworkHandler.class)
 public abstract class ServerCommonNetworkHandlerMixin {
     @Inject(method = "send", at = @At("HEAD"))
-    private void ac$onSend(Packet<?> packet, PacketCallbacks callbacks, CallbackInfo ci) {
+    private void ac$onSend(Packet<?> packet, io.netty.channel.ChannelFutureListener callbacks, CallbackInfo ci) {
         if (!Ac.running() || !((Object) this instanceof ServerPlayNetworkHandler handler) || handler.player == null) {
             return;
         }
