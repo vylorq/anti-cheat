@@ -1,7 +1,10 @@
-name: ViaFabric check
+# End-to-end crossplay test: a server set up like scripts/oracle-setup.sh (mod, Floodgate, ViaFabric + newest
+# ViaVersion) behind the newest Geyser, and a fake player on the newest Bedrock version joins it.
+name: Crossplay
 on:
   push:
-    branches: [claude/viafabric-check]
+  pull_request:
+  workflow_dispatch:
 jobs:
   bedrock-e2e:
     runs-on: ubuntu-latest
