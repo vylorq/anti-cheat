@@ -255,14 +255,8 @@ public final class Commands {
                 .then(literal("backup").executes(ctx -> {
                     if (!Perms.check(ctx.getSource(), Perm.RESTART)) return 0;
                     Msg.ok(ctx.getSource(), "backup.started");
-                    Ac.server().saveAll(true, true, true);
-                    try {
-                        var f = Ac.get().db.backup(Ac.get().dir.resolve("backups"), Ac.config().storage.backupsToKeep);
-                        var w = Extras.backupWorld();
-                        Msg.ok(ctx.getSource(), "backup.done", w.getFileName() + (f == null ? "" : ", " + f.getFileName()));
-                    } catch (Exception e) {
-                        Msg.err(ctx.getSource(), "backup.failed", e.getMessage());
-                    }
+                    var src = ctx.getSource();
+                    Extras.backupAsync(names -> Msg.ok(src, "backup.done", names), e -> Msg.err(src, "backup.failed", e.getMessage()));
                     return 1;
                 }))
                 .then(literal("setowner").requires(s -> s.getPlayer() == null && s.hasPermissionLevel(4))
