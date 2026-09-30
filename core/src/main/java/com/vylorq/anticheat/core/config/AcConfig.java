@@ -60,6 +60,11 @@ public class AcConfig {
         public boolean sounds = true;
         /** Boss bars for jail time, claim entry, restarts and maintenance. */
         public boolean bossBars = true;
+        /**
+         * Whether players can go to the End. While closed, eyes of ender can't be put into portal frames and no
+         * portal takes anyone there (leaving the End still works). Open it in /settings or here.
+         */
+        public boolean endOpen = false;
         /** Checks pause/loosen when server TPS drops below this. */
         public double lagTpsThreshold = 18.0;
         public boolean debug = false;

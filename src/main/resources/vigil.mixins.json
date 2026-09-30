@@ -10,6 +10,7 @@
     "CommandManagerMixin",
     "CraftingResultSlotMixin",
     "DispenserBlockMixin",
+    "EndPortalBlockMixin",
     "EndermanPickUpMixin",
     "EntityTrackerMixin",
     "ExplosionMixin",

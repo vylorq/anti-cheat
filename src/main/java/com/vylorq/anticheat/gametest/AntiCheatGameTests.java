@@ -42,6 +42,7 @@ public final class AntiCheatGameTests {
             "net.minecraft.world.chunk.ChunkSection",
             "net.minecraft.server.command.CommandManager",
             "net.minecraft.block.DispenserBlock",
+            "net.minecraft.block.EndPortalBlock",
             "net.minecraft.world.explosion.ExplosionImpl",
             "net.minecraft.block.FarmlandBlock",
             "net.minecraft.block.FireBlock",
@@ -455,6 +456,30 @@ public final class AntiCheatGameTests {
         check(m.inventory().getStack(22).isOf(net.minecraft.item.Items.DIAMOND) && m.inventory().getStack(22).getCount() == 5, "display item changed");
         check(clicks[0] > 0, "the button never worked");
         fake.currentScreenHandler = fake.playerScreenHandler;
+        ctx.complete();
+    }
+
+    @GameTest
+    public void endStaysClosedUntilOpened(TestContext ctx) {
+        var cfg = Ac.config().general;
+        boolean was = cfg.endOpen;
+        var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(ctx.getWorld(),
+                new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "EndTester"));
+        BlockPos frame = ctx.getAbsolutePos(new BlockPos(1, 1, 1));
+        ctx.getWorld().setBlockState(frame, Blocks.END_PORTAL_FRAME.getDefaultState());
+        fake.setStackInHand(net.minecraft.util.Hand.MAIN_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.ENDER_EYE));
+        var hit = new net.minecraft.util.hit.BlockHitResult(net.minecraft.util.math.Vec3d.ofCenter(frame), Direction.UP, frame, false);
+        var portal = (net.minecraft.block.EndPortalBlock) Blocks.END_PORTAL;
+        try {
+            cfg.endOpen = false;
+            var r = net.fabricmc.fabric.api.event.player.UseBlockCallback.EVENT.invoker().interact(fake, ctx.getWorld(), net.minecraft.util.Hand.MAIN_HAND, hit);
+            check(r == net.minecraft.util.ActionResult.FAIL, "an eye of ender went into a frame while the End is closed");
+            check(portal.createTeleportTarget(ctx.getWorld(), fake, frame) == null, "an End portal worked while the End is closed");
+            cfg.endOpen = true;
+            check(portal.createTeleportTarget(ctx.getWorld(), fake, frame) != null, "End portals don't work after opening the End");
+        } finally {
+            cfg.endOpen = was;
+        }
         ctx.complete();
     }
 }

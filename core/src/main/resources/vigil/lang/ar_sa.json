@@ -1317,5 +1317,8 @@
   "general.unknown-player-suggest": "§cلا يوجد لاعب باسم '{0}'. هل تقصد {1}؟",
   "general.not-online-suggest": "§c{0} غير متصل. هل تقصد {1}؟",
   "event.drop-items-title": "أغراض حفلة الإسقاط (أغلق للحفظ)",
-  "settings.reset-done": "{0}: عادت للافتراضي"
+  "settings.reset-done": "{0}: عادت للافتراضي",
+  "end.closed": "النهاية مغلقة حالياً.",
+  "set.the-end": "النهاية",
+  "set.the-end.desc": "مطفأ: لا توضع عيون الإندر في إطارات البوابة ولا توصل أي بوابة إلى النهاية. شغّله لفتحها."
 }

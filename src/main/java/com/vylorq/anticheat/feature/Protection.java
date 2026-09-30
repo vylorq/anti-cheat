@@ -286,10 +286,28 @@ public final class Protection {
         return null;
     }
 
+    /** Tells a player the End is closed (at most once every 3 seconds). */
+    public static void endClosed(ServerPlayerEntity p) {
+        long now = System.currentTimeMillis();
+        Long last = END_TOLD.get(p.getUuid());
+        if (last == null || now - last > 3000) {
+            END_TOLD.put(p.getUuid(), now);
+            Msg.actionBar(p, Msg.trFor(p, "end.closed"));
+        }
+    }
+
+    private static final java.util.Map<java.util.UUID, Long> END_TOLD = new java.util.concurrent.ConcurrentHashMap<>();
+
     private static ActionResult useBlock(ServerPlayerEntity p, ServerWorld w, Hand hand, BlockHitResult hit) {
         Ac ac = Ac.get();
         BlockPos pos = hit.getBlockPos();
         ItemStack stack = p.getStackInHand(hand);
+        if (!Ac.config().general.endOpen && stack.isOf(net.minecraft.item.Items.ENDER_EYE)
+                && w.getBlockState(pos).isOf(Blocks.END_PORTAL_FRAME)) {
+            endClosed(p);
+            p.playerScreenHandler.syncState();
+            return ActionResult.FAIL;
+        }
         String tool = Tools.toolOf(stack);
         if (tool != null && hand == Hand.MAIN_HAND) {
             switch (tool) {

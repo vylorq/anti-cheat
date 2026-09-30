@@ -1317,5 +1317,8 @@
   "general.unknown-player-suggest": "§cNo player named '{0}'. Did you mean {1}?",
   "general.not-online-suggest": "§c{0} is not online. Did you mean {1}?",
   "event.drop-items-title": "Drop party items (close to save)",
-  "settings.reset-done": "{0}: back to defaults"
+  "settings.reset-done": "{0}: back to defaults",
+  "end.closed": "The End is closed for now.",
+  "set.the-end": "The End",
+  "set.the-end.desc": "Off: eyes of ender can't go into portal frames and no portal leads to the End. Turn on to open it."
 }
