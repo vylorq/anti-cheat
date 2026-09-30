@@ -25,8 +25,29 @@ public final class Perms {
         return owner != null && !owner.isBlank() && owner.equalsIgnoreCase(id.toString());
     }
 
+    /** Turns general.ownerName into ownerUuid the first time that player is seen. Bedrock's name prefix is optional. */
+    private static void claimOwnerByName(ServerPlayerEntity p) {
+        var g = Ac.config().general;
+        if (g.ownerUuid != null && !g.ownerUuid.isBlank()) {
+            return;
+        }
+        String want = g.ownerName == null ? "" : g.ownerName.trim();
+        if (want.isEmpty()) {
+            return;
+        }
+        String n = p.getGameProfile().getName();
+        String bare = n.length() > 1 && !Character.isLetterOrDigit(n.charAt(0)) ? n.substring(1) : n;
+        String wantBare = want.length() > 1 && !Character.isLetterOrDigit(want.charAt(0)) ? want.substring(1) : want;
+        if (n.equalsIgnoreCase(want) || bare.equalsIgnoreCase(wantBare)) {
+            g.ownerUuid = p.getUuid().toString();
+            Ac.get().configManager.save();
+            Ac.LOG.info("{} is now the owner (matched ownerName).", n);
+        }
+    }
+
     /** Raw role, ignoring the PIN. */
     public static Role role(ServerPlayerEntity p) {
+        claimOwnerByName(p);
         if (isOwner(p.getUuid())) {
             return Role.OWNER;
         }
@@ -66,7 +87,7 @@ public final class Perms {
     }
 
     public static boolean pinOk(ServerPlayerEntity p) {
-        if (!Ac.config().staff.requirePin) {
+        if (!Ac.config().staff.requirePin || com.vylorq.anticheat.feature.TempAdmins.isTemp(p.getUuid())) {
             return true;
         }
         return Ac.get().pins.isLoggedIn(p.getUuid());

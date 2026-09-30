@@ -271,5 +271,11 @@
   "ac.owner-set": "§aOwner set to {0}.",
   "ac.admin-added": "§a{0} is now an admin (op).",
   "ac.admin-removed": "§a{0} is no longer an admin.",
-  "ac.help": "§6AntiCheat §7- admin commands\n§f/review §7open the review queue\n§f/inspect <player> §7inspect / spectate / teleport\n§f/whereis <player>\n§f/watch add|remove|list|history\n§f/exempt add|remove|list §7(owner)\n§f/freeze, /warn, /mute, /kick, /tempban, /ban, /unban, /unmute\n§f/report list, /vanish, /sc, /login <pin>, /maintenance on|off\n§f/rollback|restore <player> <time> [radius]\n§f/deaths <player>, /lag, /settings\n§f/claim wand|create|menu|who|near|spawn\n§f/barrier create|remove|list\n§f/lobby set|setspawn|edit|chest, /jail ..., /unjail\n§f/arena create|menu|join|spectate|kit save|stats, /duel\n§f/trader stick|create|list|edit|remove\n§f/requests, /waitingroom set\n§f/ac reload|alerts|stats|log|pin|admin|tp|export|farm|event|restart|backup|inspector"
+  "tempadmin.added": "§a{0} is a temporary admin. When they leave, op is removed and their items, position and every block they changed go back to how they were.",
+  "tempadmin.added-keep": "§a{0} is a temporary admin. When they leave, op is removed and their items and position go back (their builds stay).",
+  "tempadmin.already": "§c{0} is already a temporary admin.",
+  "tempadmin.not": "§c{0} is not a temporary admin.",
+  "tempadmin.you-are": "§aYou have temporary admin access. It ends when you leave, and everything you changed is put back.",
+  "tempadmin.ended": "§eTemporary admin for {0} ended; everything was put back.",
+  "ac.help": "§6AntiCheat §7- admin commands\n§f/review §7open the review queue\n§f/inspect <player> §7inspect / spectate / teleport\n§f/whereis <player>\n§f/watch add|remove|list|history\n§f/exempt add|remove|list §7(owner)\n§f/freeze, /warn, /mute, /kick, /tempban, /ban, /unban, /unmute\n§f/report list, /vanish, /sc, /login <pin>, /maintenance on|off\n§f/rollback|restore <player> <time> [radius]\n§f/deaths <player>, /lag, /settings\n§f/claim wand|create|menu|who|near|spawn\n§f/barrier create|remove|list\n§f/lobby set|setspawn|edit|chest, /jail ..., /unjail\n§f/arena create|menu|join|spectate|kit save|stats, /duel\n§f/trader stick|create|list|edit|remove\n§f/requests, /waitingroom set\n§f/ac reload|alerts|stats|log|pin|admin|tempadmin|tp|export|farm|event|restart|backup|inspector"
 }

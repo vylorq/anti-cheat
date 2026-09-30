@@ -106,6 +106,7 @@ public final class Joins {
             }
             Ac.markDirty("misc");
         }
+        TempAdmins.onJoin(p);
         Arenas.onJoin(p);
         Jail.onJoin(p);
         WaitingRoomFeature.onJoin(p);
@@ -168,6 +169,7 @@ public final class Joins {
         long now = System.currentTimeMillis();
         String name = p.getGameProfile().getName();
         PlayerSession s = Ac.sessionOrNull(p.getUuid());
+        TempAdmins.onLeave(p);
         Trades.onDisconnect(p);
         Traders.onDisconnect(p);
         Arenas.onDisconnect(p);

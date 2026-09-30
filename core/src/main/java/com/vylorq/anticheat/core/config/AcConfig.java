@@ -44,6 +44,11 @@ public class AcConfig {
     public static class General {
         /** Owner UUID. The owner has every power. Leave empty until set. */
         public String ownerUuid = "";
+        /**
+         * Owner by in-game name, for when the UUID isn't known yet (Bedrock players, or set up from the phone).
+         * The first player with this name to join becomes the owner and ownerUuid is filled in.
+         */
+        public String ownerName = "";
         /** Language file: en_us or ar_sa. */
         public String language = "en_us";
         /** Prefix used in chat messages. */
