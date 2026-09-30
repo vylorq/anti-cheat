@@ -108,6 +108,15 @@ public final class AntiCheatGameTests {
         check(fake.getInventory().getStack(0).isOf(net.minecraft.item.Items.STICK) && fake.getInventory().getStack(0).getCount() == 3,
                 "inventory not restored: " + fake.getInventory().getStack(0));
         check(fake.getEnderChestInventory().getStack(0).isEmpty(), "ender chest not restored");
+
+        // Temporary owner: owner powers during the visit, gone afterwards.
+        check(!com.vylorq.anticheat.perm.Perms.isOwner(fake.getUuid()), "owner before grant");
+        com.vylorq.anticheat.feature.TempAdmins.grant(null, fake, true, true);
+        check(com.vylorq.anticheat.perm.Perms.isOwner(fake.getUuid()), "temp owner is not owner");
+        check(com.vylorq.anticheat.perm.Perms.role(fake) == com.vylorq.anticheat.core.perm.Role.OWNER, "temp owner role");
+        com.vylorq.anticheat.feature.TempAdmins.end(null, fake);
+        check(!com.vylorq.anticheat.perm.Perms.isOwner(fake.getUuid()), "still owner after end");
+        check(!pm.isOperator(new net.minecraft.server.PlayerConfigEntry(fake.getGameProfile())), "still op after temp owner end");
         ctx.complete();
     }
 

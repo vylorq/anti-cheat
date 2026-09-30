@@ -30,6 +30,8 @@ public final class TempAdmins {
         public boolean keepBuilds;
         /** Whether they were already op before, so ending it doesn't remove a real admin. */
         public boolean wasOp;
+        /** Temporary owner: every owner power for the visit, not just admin. */
+        public boolean owner;
         public PlayerSnapshot snapshot;
     }
 
@@ -41,13 +43,26 @@ public final class TempAdmins {
         return Ac.running() && grants().containsKey(id);
     }
 
+    public static boolean isTempOwner(UUID id) {
+        if (!Ac.running()) {
+            return false;
+        }
+        Grant g = grants().get(id);
+        return g != null && g.owner;
+    }
+
     public static void grant(ServerPlayerEntity by, ServerPlayerEntity p, boolean keepBuilds) {
+        grant(by, p, keepBuilds, false);
+    }
+
+    public static void grant(ServerPlayerEntity by, ServerPlayerEntity p, boolean keepBuilds, boolean owner) {
         var server = Ac.server();
         GameProfile profile = p.getGameProfile();
         Grant g = new Grant();
         g.name = profile.name();
         g.since = System.currentTimeMillis();
         g.keepBuilds = keepBuilds;
+        g.owner = owner;
         g.wasOp = server.getPlayerManager().isOperator(new PlayerConfigEntry(profile));
         g.snapshot = PlayerState.capture(p, "tempadmin");
         g.snapshot.enderChest = new ArrayList<>();
@@ -63,8 +78,10 @@ public final class TempAdmins {
         if (!g.wasOp) {
             server.getPlayerManager().addToOperators(new PlayerConfigEntry(profile));
         }
-        Staff.log(by, "tempadmin-add", p.getUuid(), g.name, keepBuilds ? "keep builds" : "revert builds");
-        Msg.send(p, "tempadmin.you-are");
+        Staff.log(by, owner ? "tempowner-add" : "tempadmin-add", p.getUuid(), g.name, keepBuilds ? "keep builds" : "revert builds");
+        Msg.send(p, owner ? "tempowner.you-are" : "tempadmin.you-are");
+        // Refresh the command list so the new commands show up right away.
+        server.getPlayerManager().sendCommandTree(p);
     }
 
     /**
@@ -82,6 +99,9 @@ public final class TempAdmins {
             server.getPlayerManager().removeFromOperators(new PlayerConfigEntry(p.getGameProfile()));
         }
         Ac.get().pins.logout(p.getUuid());
+        if (!p.isDisconnected()) {
+            server.getPlayerManager().sendCommandTree(p);
+        }
         if (g.snapshot != null) {
             PlayerState.apply(p, g.snapshot, true);
             if (g.snapshot.enderChest != null) {
