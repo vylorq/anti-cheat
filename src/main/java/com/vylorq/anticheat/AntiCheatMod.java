@@ -48,6 +48,6 @@ public final class AntiCheatMod implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> Commands.register(dispatcher));
         Protection.register();
         com.vylorq.anticheat.feature.Watcher.register();
-        Ac.LOG.info("AntiCheat loaded.");
+        Ac.LOG.info("Vigil loaded.");
     }
 }

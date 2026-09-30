@@ -23,8 +23,8 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: anticheat-mod
-          path: build/libs/anticheat-*.jar
+          name: vigil-mod
+          path: build/libs/vigil-*.jar
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@v4
@@ -53,7 +53,7 @@ jobs:
           exit ${PIPESTATUS[0]}
       - name: Show mixin and mod errors
         if: always()
-        run: grep -nE "Mixin|mixin|ERROR|Exception|anticheat" gametest.log | grep -vE "^\s*$" | head -200 || true
+        run: grep -nE "Mixin|mixin|ERROR|Exception|vigil|Vigil" gametest.log | grep -vE "^\s*$" | head -200 || true
       - name: Upload server logs
         if: always()
         uses: actions/upload-artifact@v4

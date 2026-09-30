@@ -13,7 +13,7 @@ import java.util.Map;
 
 /**
  * Server-side translations (section 27). Messages are looked up by key; {@code {0}}, {@code {1}}... are replaced
- * by arguments. English is always loaded as the fallback. Files in {@code config/anticheat/lang/} override the
+ * by arguments. English is always loaded as the fallback. Files in {@code config/vigil/lang/} override the
  * bundled ones so owners can edit wording.
  */
 public final class Lang {
@@ -30,7 +30,7 @@ public final class Lang {
 
     private static Map<String, String> read(String language, Path overrideDir) {
         Map<String, String> out = new HashMap<>();
-        try (InputStream in = Lang.class.getResourceAsStream("/anticheat/lang/" + language + ".json")) {
+        try (InputStream in = Lang.class.getResourceAsStream("/vigil/lang/" + language + ".json")) {
             if (in != null) {
                 Map<String, String> m = GSON.fromJson(new InputStreamReader(in, StandardCharsets.UTF_8),
                         new TypeToken<Map<String, String>>() { }.getType());

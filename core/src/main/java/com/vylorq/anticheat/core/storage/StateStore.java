@@ -15,7 +15,7 @@ public final class StateStore {
     private final Database db;
     private final Consumer<Exception> errors;
     private final ExecutorService writer = Executors.newSingleThreadExecutor(r -> {
-        Thread t = new Thread(r, "AntiCheat-StateWriter");
+        Thread t = new Thread(r, "Vigil-StateWriter");
         t.setDaemon(true);
         return t;
     });

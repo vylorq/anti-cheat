@@ -40,7 +40,7 @@ public final class DiscordWebhook {
     public static String payload(String title, String body, int color) {
         String t = escape(clean(title));
         String b = escape(clean(body.length() > 3900 ? body.substring(0, 3900) + "..." : body));
-        return "{\"username\":\"Anti-Cheat\",\"allowed_mentions\":{\"parse\":[]},\"embeds\":[{\"title\":\"" + t
+        return "{\"username\":\"Vigil\",\"allowed_mentions\":{\"parse\":[]},\"embeds\":[{\"title\":\"" + t
                 + "\",\"description\":\"" + b + "\",\"color\":" + color + "}]}";
     }
 

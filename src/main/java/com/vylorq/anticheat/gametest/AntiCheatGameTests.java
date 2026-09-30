@@ -115,7 +115,7 @@ public final class AntiCheatGameTests {
 
     @GameTest
     public void modIsRunning(TestContext ctx) {
-        check(Ac.running(), "AntiCheat services are not running");
+        check(Ac.running(), "Vigil services are not running");
         check(Ac.get().db != null, "database not open");
         ctx.complete();
     }
@@ -312,6 +312,25 @@ public final class AntiCheatGameTests {
                     : net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket.RAIN_STOPPED), "fake weather left");
         }
         check(lastSpawn[0] == null || lastSpawn[0].equals(w.getServer().getSpawnPoint()), "compass target left: " + lastSpawn[0]);
+        ctx.complete();
+    }
+
+    /** Data saved under the old mod id is moved to config/vigil on first start, and the database renamed. */
+    @GameTest
+    public void oldDataMovesToVigil(TestContext ctx) throws Exception {
+        java.nio.file.Path root = java.nio.file.Files.createTempDirectory("vigil-migrate");
+        java.nio.file.Path old = java.nio.file.Files.createDirectories(root.resolve("anticheat"));
+        java.nio.file.Files.writeString(old.resolve("config.json"), "{\"general\":{}}");
+        java.nio.file.Files.writeString(old.resolve("anticheat.db"), "db");
+        java.nio.file.Files.createDirectories(old.resolve("evidence"));
+        Ac.migrateFromAntiCheat(root);
+        java.nio.file.Path now = root.resolve("vigil");
+        check(!java.nio.file.Files.exists(old), "old folder still there");
+        check(java.nio.file.Files.readString(now.resolve("config.json")).contains("general"), "config not moved");
+        check(java.nio.file.Files.readString(now.resolve("vigil.db")).equals("db"), "database not renamed");
+        check(java.nio.file.Files.isDirectory(now.resolve("evidence")), "evidence not moved");
+        Ac.migrateFromAntiCheat(root);
+        check(java.nio.file.Files.exists(now.resolve("vigil.db")), "second start broke the data");
         ctx.complete();
     }
 }

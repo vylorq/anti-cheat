@@ -198,7 +198,7 @@ public final class Extras {
                     failed.accept(err);
                 }
             });
-        }, "AntiCheat-Backup");
+        }, "Vigil-Backup");
         t.setDaemon(true);
         t.start();
     }

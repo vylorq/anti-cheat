@@ -110,7 +110,7 @@ public final class Ticker {
             } catch (Exception e) {
                 Ac.LOG.error("Hourly maintenance failed", e);
             }
-        }, "AntiCheat-Maintenance");
+        }, "Vigil-Maintenance");
         t.setDaemon(true);
         t.start();
     }

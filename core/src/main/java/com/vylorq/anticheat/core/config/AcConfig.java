@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The whole mod configuration. Serialized to {@code config/anticheat/config.json} with Gson.
+ * The whole mod configuration. Serialized to {@code config/vigil/config.json} with Gson.
  * Every field has a sensible default so a missing or partial file still works.
  */
 public class AcConfig {

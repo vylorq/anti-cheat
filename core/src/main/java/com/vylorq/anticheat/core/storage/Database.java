@@ -359,7 +359,7 @@ public final class Database implements AutoCloseable {
             return null;
         }
         Files.createDirectories(dir);
-        Path out = dir.resolve("anticheat-" + java.time.LocalDate.now() + "-" + System.currentTimeMillis() % 100000 + ".db");
+        Path out = dir.resolve("vigil-" + java.time.LocalDate.now() + "-" + System.currentTimeMillis() % 100000 + ".db");
         synchronized (lock) {
             try (Statement s = conn.createStatement()) {
                 s.execute("VACUUM INTO '" + out.toAbsolutePath().toString().replace("'", "''") + "'");

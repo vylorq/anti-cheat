@@ -53,7 +53,7 @@ if ! ./gradlew build --no-daemon > "$HOME/build.log" 2>&1; then
   grep -E "error:|FAILED|What went wrong" -A3 "$HOME/build.log" | head -80 || true
   fail "The build failed. Copy the errors above (or run: cat ~/build.log) and send them to Claude to fix. Then run this script again."
 fi
-MOD_JAR="$SRC_DIR/$(ls build/libs/anticheat-*.jar | grep -v sources | head -1)"
+MOD_JAR="$SRC_DIR/$(ls build/libs/vigil-*.jar | grep -v sources | head -1)"
 
 say "Downloading the Fabric server for Minecraft $MC_VERSION"
 mkdir -p "$SERVER_DIR/mods"
@@ -106,7 +106,15 @@ modrinth_latest viaversion
 modrinth_latest viabackwards
 # Geyser now runs as its own program (always the newest, so every Bedrock version works); remove the old mod.
 rm -f mods/geyser-*.jar mods/Geyser-*.jar
-cp "$MOD_JAR" mods/anticheat.jar
+# The mod is now called Vigil: replace the old jar and move its data folder (while the server is stopped).
+rm -f mods/anticheat.jar
+if [ -d config/anticheat ] && [ ! -e config/vigil ]; then
+  sudo systemctl stop minecraft 2>/dev/null || true
+  mv config/anticheat config/vigil
+  [ -f config/vigil/anticheat.db ] && [ ! -e config/vigil/vigil.db ] && mv config/vigil/anticheat.db config/vigil/vigil.db
+  echo "  Moved the mod's saved data to config/vigil"
+fi
+cp "$MOD_JAR" mods/vigil.jar
 echo "$MC_VERSION" > .mc-version
 
 echo "eula=true" > eula.txt
@@ -201,7 +209,7 @@ else
 fi
 
 # Make OWNER the server owner (full access to every staff tool).
-ANTI_CFG="$SERVER_DIR/config/anticheat/config.json"
+ANTI_CFG="$SERVER_DIR/config/vigil/config.json"
 if [ -n "$OWNER" ]; then
   # By name, so it works for Java and Bedrock alike: the first player with this name to join becomes the owner.
   say "Making $OWNER the owner (as soon as they join)"
@@ -223,7 +231,7 @@ cat <<EOF
   Java players:     $IP
   Bedrock players:  $IP   port 19132
 
-  Run a server command:  mc <command>     e.g.  mc list    mc ac tempadmin add Steve
+  Run a server command:  mc <command>     e.g.  mc list    mc vigil tempadmin add Steve
   Server log:        journalctl -u minecraft -f      (Ctrl+C to leave)
   Bedrock log:       journalctl -u geyser -f
   Stop/start:        sudo systemctl stop minecraft   /   sudo systemctl start minecraft

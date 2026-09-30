@@ -30,7 +30,7 @@ jobs:
           curl -fsSL -o mods/viafabric.jar "$(get viafabric "$V")"
           curl -fsSL -o mods/viaversion.jar "$(get viaversion)"
           curl -fsSL -o mods/viabackwards.jar "$(get viabackwards)"
-          cp ../build/libs/$(ls ../build/libs | grep -v sources | head -1) mods/anticheat.jar
+          cp ../build/libs/$(ls ../build/libs | grep -v sources | head -1) mods/vigil.jar
           ls mods
           echo eula=true > eula.txt
           printf 'online-mode=false\nenforce-secure-profile=false\nenable-rcon=true\nrcon.port=25575\nrcon.password=crossplay\n' > server.properties

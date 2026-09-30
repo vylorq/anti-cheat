@@ -64,8 +64,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Static accessors keep feature code short.
  */
 public final class Ac {
-    public static final String MOD_ID = "anticheat";
-    public static final Logger LOG = LoggerFactory.getLogger("AntiCheat");
+    public static final String MOD_ID = "vigil";
+    /** The mod's id before it was renamed to Vigil; its data folder is moved on first start. */
+    public static final String OLD_MOD_ID = "anticheat";
+    public static final Logger LOG = LoggerFactory.getLogger("Vigil");
 
     /** Extra persisted things that don't belong to a core module. */
     public static final class Misc {
@@ -193,9 +195,34 @@ public final class Ac {
     // ---- lifecycle ----
 
     public static void start(MinecraftServer server) {
+        migrateFromAntiCheat(FabricLoader.getInstance().getConfigDir());
         Ac ac = new Ac(server);
         instance = ac;
         ac.init();
+    }
+
+    /**
+     * The mod used to be called "anticheat". Moves config/anticheat to config/vigil (config, database, language
+     * files, evidence, backups, snapshots) the first time Vigil starts, so nothing is lost. Safe to call every start.
+     */
+    public static void migrateFromAntiCheat(Path configDir) {
+        Path oldDir = configDir.resolve(OLD_MOD_ID);
+        Path newDir = configDir.resolve(MOD_ID);
+        try {
+            if (java.nio.file.Files.isDirectory(oldDir) && !java.nio.file.Files.exists(newDir)) {
+                java.nio.file.Files.move(oldDir, newDir);
+                LOG.info("Moved {} to {} (the mod is now called Vigil).", oldDir, newDir);
+            }
+            Path oldDb = newDir.resolve(OLD_MOD_ID + ".db");
+            Path newDb = newDir.resolve(MOD_ID + ".db");
+            if (java.nio.file.Files.exists(oldDb) && !java.nio.file.Files.exists(newDb)) {
+                java.nio.file.Files.move(oldDb, newDb);
+                LOG.info("Renamed the database to {}.", newDb.getFileName());
+            }
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("Vigil could not move its old data from " + oldDir + " to " + newDir
+                    + ". Move that folder by hand, then start again.", e);
+        }
     }
 
     private void init() {
@@ -209,10 +236,10 @@ public final class Ac {
             if ("mysql".equalsIgnoreCase(cfg.storage.type) && !cfg.storage.jdbcUrl.isBlank()) {
                 db = Database.openMysql(cfg.storage.jdbcUrl, cfg.storage.user, cfg.storage.password);
             } else {
-                db = Database.openSqlite(dir.resolve("anticheat.db"));
+                db = Database.openSqlite(dir.resolve("vigil.db"));
             }
         } catch (Exception e) {
-            throw new IllegalStateException("AntiCheat could not open its database", e);
+            throw new IllegalStateException("Vigil could not open its database", e);
         }
         logs = new LogWriter(db, e -> LOG.error("Log write failed", e));
         state = new StateStore(db, e -> LOG.error("State save failed", e));
@@ -254,7 +281,7 @@ public final class Ac {
         clips = new ClipStore(dir.resolve("evidence"));
         engine = new DetectionEngine(Ac::config, clock, violations, warnings, watchlist, exempt, shadow, reviews, evidence, stats);
         predictor = new MovementPredictor(movementSettings(cfg));
-        LOG.info("AntiCheat started (storage: {}).", db.dialect());
+        LOG.info("Vigil started (storage: {}).", db.dialect());
     }
 
     /** Applies config changes live (/ac reload). */
@@ -387,7 +414,7 @@ public final class Ac {
             ac.logs.close();
             ac.db.close();
         } catch (Exception e) {
-            LOG.error("Error while stopping AntiCheat", e);
+            LOG.error("Error while stopping Vigil", e);
         }
         instance = null;
     }

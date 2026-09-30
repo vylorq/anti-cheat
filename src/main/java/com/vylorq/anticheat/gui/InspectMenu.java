@@ -534,7 +534,7 @@ public final class InspectMenu {
             } catch (Exception e) {
                 Ac.LOG.error("Activity query failed", e);
             }
-        }, "AntiCheat-Inspect");
+        }, "Vigil-Inspect");
         t.setDaemon(true);
         t.start();
     }

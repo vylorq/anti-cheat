@@ -62,7 +62,7 @@ public enum Perm {
 
     Perm(Role minimum) {
         this.minimum = minimum;
-        this.node = "anticheat." + name().toLowerCase(Locale.ROOT).replace('_', '.');
+        this.node = "vigil." + name().toLowerCase(Locale.ROOT).replace('_', '.');
     }
 
     public Role minimum() {

@@ -28,7 +28,7 @@ public final class LogWriter implements AutoCloseable {
         this.db = db;
         this.errors = errors;
         this.exec = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "AntiCheat-LogWriter");
+            Thread t = new Thread(r, "Vigil-LogWriter");
             t.setDaemon(true);
             return t;
         });
