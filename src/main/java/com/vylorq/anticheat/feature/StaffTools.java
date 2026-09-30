@@ -255,7 +255,7 @@ public final class StaffTools {
             case WRONG -> Msg.send(p, "staff.pin.wrong", Ac.config().staff.maxPinAttempts - ac.pins.failedAttempts(p.getUuid()));
             case LOCKED -> {
                 Msg.send(p, "staff.pin.locked", Ac.config().staff.pinLockMinutes);
-                Staff.broadcastOwner(Msg.prefixed(Msg.tr("staff.pin.owner-alert", p.getGameProfile().name(), Mc.worldId(p.getWorld()))));
+                Staff.broadcastOwner(Msg.prefixed(Msg.tr("staff.pin.owner-alert", p.getGameProfile().name(), Mc.worldId(p.getEntityWorld()))));
                 Staff.log(p, "pin-locked", null, null, "too many wrong attempts");
             }
             case NO_PIN_SET -> Msg.send(p, "staff.pin.set-first");

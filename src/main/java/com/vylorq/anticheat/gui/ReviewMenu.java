@@ -181,7 +181,7 @@ public final class ReviewMenu {
                 menu.set(39, Icons.of(Items.ENDER_PEARL, "§bTeleport", "Left: your default, right: the other"), Perm.TELEPORT, (a, cl) -> {
                     a.closeHandledScreen();
                     boolean inv = ac.staff.teleportInvisible(a.getUuid(), Ac.config().staff.teleportInvisibleByDefault) != cl.isRight();
-                    StaffTools.teleportTo(a, target.getEntityWorld(), Mc.vec(target.getPos()), inv, c.playerName);
+                    StaffTools.teleportTo(a, target.getEntityWorld(), Mc.vec(target.getEntityPos()), inv, c.playerName);
                 });
             }
             menu.set(42, Icons.of(Items.LIME_CONCRETE, "§aDismiss (false flag)", "Closes the case and resets points.",

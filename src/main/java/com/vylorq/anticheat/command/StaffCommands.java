@@ -96,7 +96,7 @@ final class StaffCommands {
                     }
                     String n = Msg.q(t.getGameProfile().name());
                     MutableText msg = Msg.prefixed(Msg.tr("whereis.result", t.getGameProfile().name(),
-                            Mc.vec(t.getEntityPos()).formatExact(), Mc.worldId(t.getWorld())));
+                            Mc.vec(t.getEntityPos()).formatExact(), Mc.worldId(t.getEntityWorld())));
                     msg.append(Text.literal(" ")).append(Msg.button("§b[TP]", "/inspect " + n + " tp", "Teleport (your default)"))
                             .append(Text.literal(" ")).append(Msg.button("§7[visible]", "/inspect " + n + " tp visible", "Teleport visibly"))
                             .append(Text.literal(" ")).append(Msg.button("§8[invisible]", "/inspect " + n + " tp invisible", "Teleport in vanish"));
@@ -370,7 +370,7 @@ final class StaffCommands {
         } else if (sub.equals("tp") && Perms.check(ctx.getSource(), Perm.TELEPORT)) {
             boolean inv = invisible != null ? invisible
                     : Ac.get().staff.teleportInvisible(p.getUuid(), Ac.config().staff.teleportInvisibleByDefault);
-            StaffTools.teleportTo(p, t.getEntityWorld(), Mc.vec(t.getPos()), inv, t.getGameProfile().name());
+            StaffTools.teleportTo(p, t.getEntityWorld(), Mc.vec(t.getEntityPos()), inv, t.getGameProfile().name());
         }
         return 1;
     }

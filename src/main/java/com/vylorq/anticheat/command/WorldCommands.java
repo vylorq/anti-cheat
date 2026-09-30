@@ -465,7 +465,7 @@ final class WorldCommands {
                     ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
                     if (t == null) return 0;
                     boolean inv = Ac.get().staff.teleportInvisible(p.getUuid(), Ac.config().staff.teleportInvisibleByDefault);
-                    StaffTools.teleportTo(p, t.getEntityWorld(), Mc.vec(t.getPos()), inv, t.getGameProfile().name());
+                    StaffTools.teleportTo(p, t.getEntityWorld(), Mc.vec(t.getEntityPos()), inv, t.getGameProfile().name());
                     return 1;
                 }))));
         d.register(literal("waitingroom").requires(s -> Perms.visible(s, Perm.WAITING_ROOM))

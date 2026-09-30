@@ -59,7 +59,7 @@ public final class Barriers {
             Ac.markDirty("barriers");
         }
         for (ServerPlayerEntity p : ac.server.getPlayerManager().getPlayerList()) {
-            for (Barrier b : ac.barriers.nearWall(Mc.worldId(p.getEntityWorld()), Mc.vec(p.getPos()), 4)) {
+            for (Barrier b : ac.barriers.nearWall(Mc.worldId(p.getEntityWorld()), Mc.vec(p.getEntityPos()), 4)) {
                 showWall(p, b);
             }
         }

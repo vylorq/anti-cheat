@@ -155,7 +155,7 @@ public final class InspectMenu {
                     }
                     boolean invisible = c.isRight() != invDefault;
                     a.closeHandledScreen();
-                    StaffTools.teleportTo(a, p.getEntityWorld(), Mc.vec(p.getPos()), invisible, p.getGameProfile().name());
+                    StaffTools.teleportTo(a, p.getEntityWorld(), Mc.vec(p.getEntityPos()), invisible, p.getGameProfile().name());
                 });
                 boolean frozen = ac.staff.isFrozen(target);
                 menu.set(30, Icons.of(Items.PACKED_ICE, frozen ? "§bUnfreeze" : "§bFreeze"), Perm.FREEZE, (a, c) -> {

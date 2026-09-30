@@ -238,7 +238,7 @@ public final class WaitingRoomFeature {
         Text t = Text.literal("§8[Waiting] §7" + p.getGameProfile().name() + ": §f" + message);
         p.sendMessage(t);
         for (ServerPlayerEntity admin : Staff.online()) {
-            if (spawn != null && spawn.world().equals(Mc.worldId(admin.getEntityWorld())) && spawn.vec().distance(Mc.vec(admin.getPos())) <= 32) {
+            if (spawn != null && spawn.world().equals(Mc.worldId(admin.getEntityWorld())) && spawn.vec().distance(Mc.vec(admin.getEntityPos())) <= 32) {
                 admin.sendMessage(t);
             }
         }
