@@ -1,0 +1,26 @@
+name: Version probe
+on:
+  push:
+    branches: [claude/version-probe]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Versions
+        run: |
+          echo "== Minecraft releases (newest first)"
+          curl -s https://meta.fabricmc.net/v2/versions/game | jq -r '[.[] | select(.stable)][0:8][] .version'
+          echo "== Yarn builds for newest releases"
+          for v in $(curl -s https://meta.fabricmc.net/v2/versions/game | jq -r '[.[] | select(.stable)][0:6][] .version'); do
+            echo "$v: $(curl -s https://meta.fabricmc.net/v2/versions/yarn/$v | jq -r '.[0].version // "none"')"
+          done
+          echo "== Loader"; curl -s https://meta.fabricmc.net/v2/versions/loader | jq -r '[.[] | select(.stable)][0].version'
+          for p in geyser floodgate fabric-api viafabric; do
+            echo "== $p (fabric)"
+            curl -s -G "https://api.modrinth.com/v2/project/$p/version" --data-urlencode 'loaders=["fabric"]' \
+              | jq -r '.[0:6][] | "\(.version_number)  mc=\(.game_versions|join(","))  \(.date_published[0:10])"'
+          done
+          echo "== Geyser download API"
+          curl -s https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest | jq -c '{version, build, downloads: (.downloads|keys)}'
+          echo "== Geyser supported bedrock (README)"
+          curl -s https://raw.githubusercontent.com/GeyserMC/Geyser/master/README.md | grep -i -E "bedrock|java edition" | head -8
