@@ -1317,5 +1317,14 @@
   "general.unknown-player-suggest": "§cNo player named '{0}'. Did you mean {1}?",
   "general.not-online-suggest": "§c{0} is not online. Did you mean {1}?",
   "event.drop-items-title": "Drop party items (close to save)",
-  "settings.reset-done": "{0}: back to defaults"
+  "settings.reset-done": "{0}: back to defaults",
+  "end.closed": "§5The End is closed for now.",
+  "set.the-end": "The End",
+  "set.the-end.desc": "Off: stronghold portal rooms are hidden everywhere, eyes of ender don't work and no portal leads to the End (except ones built with /vigil end portal). On: everything comes back.",
+  "help.end": "Open or close the End, or build a portal room",
+  "end.status-open": "§aThe End is open.",
+  "end.status-closed": "§eThe End is closed: stronghold portal rooms are hidden and eyes of ender don't work. §7/vigil end open",
+  "end.opened": "§aThe End is open. Hidden portal rooms come back as players get near them.",
+  "end.closed-now": "§eThe End is closed. Portal rooms disappear as players get near them.",
+  "end.portal-built": "§aEnd portal room built at {0}. It works even while the End is closed."
 }

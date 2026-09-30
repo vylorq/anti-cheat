@@ -93,6 +93,41 @@ final class WorldCommands {
         registerWaiting(d);
         registerArenas(d);
         registerTraders(d);
+        registerEnd(d);
+    }
+
+    // ---- The End ----
+
+    private static void registerEnd(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("end").requires(s -> Perms.visible(s, Perm.SETTINGS))
+                .executes(ctx -> {
+                    Msg.ok(ctx.getSource(), com.vylorq.anticheat.feature.EndLock.open() ? "end.status-open" : "end.status-closed");
+                    return 1;
+                })
+                .then(literal("open").executes(ctx -> setEnd(ctx, true)))
+                .then(literal("close").executes(ctx -> setEnd(ctx, false)))
+                .then(literal("portal").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.SETTINGS);
+                    if (p == null) {
+                        return 0;
+                    }
+                    ServerWorld w = (ServerWorld) p.getEntityWorld();
+                    BlockPos c = com.vylorq.anticheat.feature.EndLock.build(w, p.getBlockPos(), p.getHorizontalFacing());
+                    Staff.log(p, "end-portal", null, Mc.worldId(w) + " " + c.toShortString(), "");
+                    Msg.ok(ctx.getSource(), "end.portal-built", c.toShortString());
+                    return 1;
+                })));
+    }
+
+    private static int setEnd(CommandContext<ServerCommandSource> ctx, boolean open) {
+        if (!Perms.check(ctx.getSource(), Perm.SETTINGS)) {
+            return 0;
+        }
+        Ac.config().general.endOpen = open;
+        Ac.get().configManager.save();
+        Staff.log(ctx.getSource().getPlayer(), open ? "end-open" : "end-close", null, "", "");
+        Msg.ok(ctx.getSource(), open ? "end.opened" : "end.closed-now");
+        return 1;
     }
 
     // ---- Claims ----

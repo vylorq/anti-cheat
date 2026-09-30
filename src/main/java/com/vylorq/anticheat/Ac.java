@@ -154,6 +154,7 @@ public final class Ac {
     public ItemValues itemValues;
     public Escrow escrow;
     public Misc misc;
+    public com.vylorq.anticheat.feature.EndLock.Data end;
     public WatcherScheduler watcher;
     public final DiscordWebhook discord = new DiscordWebhook();
 
@@ -271,6 +272,7 @@ public final class Ac {
         traders = state.load("traders", Traders.class, new Traders());
         escrow = state.load("escrow", Escrow.class, new Escrow());
         misc = state.load("misc", Misc.class, new Misc());
+        end = state.load("end", com.vylorq.anticheat.feature.EndLock.Data.class, new com.vylorq.anticheat.feature.EndLock.Data());
         watcher = new WatcherScheduler(state.load("watcher", WatcherScheduler.Data.class, null), clock, new java.util.Random());
         if (misc.xraySecret == 0) {
             misc.xraySecret = new SecureRandom().nextLong();
@@ -367,6 +369,7 @@ public final class Ac {
             case "traders" -> traders;
             case "escrow" -> escrow;
             case "misc" -> misc;
+            case "end" -> end;
             case "watcher" -> watcher.data();
             default -> null;
         };
@@ -374,7 +377,7 @@ public final class Ac {
 
     public static final List<String> ALL_KEYS = List.of("watchlist", "exempt", "shadow", "reviews", "stats", "pins",
             "punishments", "reports", "staff", "deaths", "claims", "barriers", "redstone", "joins", "lobby", "jail",
-            "waiting", "arenas", "economy", "traders", "escrow", "misc", "watcher");
+            "waiting", "arenas", "economy", "traders", "escrow", "misc", "watcher", "end");
 
     /** Saves dirty modules (called every few seconds on the server thread). */
     public void saveDirty() {

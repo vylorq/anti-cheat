@@ -42,6 +42,7 @@ public final class AntiCheatGameTests {
             "net.minecraft.world.chunk.ChunkSection",
             "net.minecraft.server.command.CommandManager",
             "net.minecraft.block.DispenserBlock",
+            "net.minecraft.block.EndPortalBlock",
             "net.minecraft.world.explosion.ExplosionImpl",
             "net.minecraft.block.FarmlandBlock",
             "net.minecraft.block.FireBlock",
@@ -455,6 +456,64 @@ public final class AntiCheatGameTests {
         check(m.inventory().getStack(22).isOf(net.minecraft.item.Items.DIAMOND) && m.inventory().getStack(22).getCount() == 5, "display item changed");
         check(clicks[0] > 0, "the button never worked");
         fake.currentScreenHandler = fake.playerScreenHandler;
+        ctx.complete();
+    }
+
+    @GameTest
+    public void endStaysClosedUntilOpened(TestContext ctx) {
+        var cfg = Ac.config().general;
+        boolean was = cfg.endOpen;
+        var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(ctx.getWorld(),
+                new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "EndTester"));
+        BlockPos frame = ctx.getAbsolutePos(new BlockPos(1, 1, 1));
+        ctx.getWorld().setBlockState(frame, Blocks.END_PORTAL_FRAME.getDefaultState());
+        fake.setStackInHand(net.minecraft.util.Hand.MAIN_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.ENDER_EYE));
+        var hit = new net.minecraft.util.hit.BlockHitResult(net.minecraft.util.math.Vec3d.ofCenter(frame), Direction.UP, frame, false);
+        var portal = (net.minecraft.block.EndPortalBlock) Blocks.END_PORTAL;
+        try {
+            cfg.endOpen = false;
+            var r = net.fabricmc.fabric.api.event.player.UseBlockCallback.EVENT.invoker().interact(fake, ctx.getWorld(), net.minecraft.util.Hand.MAIN_HAND, hit);
+            check(r == net.minecraft.util.ActionResult.FAIL, "an eye of ender went into a frame while the End is closed");
+            check(portal.createTeleportTarget(ctx.getWorld(), fake, frame) == null, "an End portal worked while the End is closed");
+            cfg.endOpen = true;
+            check(portal.createTeleportTarget(ctx.getWorld(), fake, frame) != null, "End portals don't work after opening the End");
+        } finally {
+            cfg.endOpen = was;
+        }
+        ctx.complete();
+    }
+
+    @GameTest
+    public void endPortalRoomsHideAndComeBack(TestContext ctx) {
+        var cfg = Ac.config().general;
+        boolean was = cfg.endOpen;
+        var w = ctx.getWorld();
+        BlockPos a = ctx.getAbsolutePos(new BlockPos(1, 1, 1));
+        BlockPos b = a.east();
+        var frame = Blocks.END_PORTAL_FRAME.getDefaultState()
+                .with(net.minecraft.block.EndPortalFrameBlock.FACING, Direction.WEST).with(net.minecraft.block.EndPortalFrameBlock.EYE, true);
+        w.setBlockState(a, frame);
+        w.setBlockState(b, Blocks.END_PORTAL.getDefaultState());
+        try {
+            cfg.endOpen = false;
+            int hidden = com.vylorq.anticheat.feature.EndLock.hide(w, a.getX(), a.getY(), a.getZ(), b.getX(), b.getY(), b.getZ());
+            check(hidden == 2, "hid " + hidden + " blocks instead of 2");
+            check(!w.getBlockState(a).isOf(Blocks.END_PORTAL_FRAME) && !w.getBlockState(b).isOf(Blocks.END_PORTAL), "portal room still there");
+            int back = com.vylorq.anticheat.feature.EndLock.restore(w, a.getX(), a.getY(), a.getZ(), b.getX(), b.getY(), b.getZ());
+            check(back == 2 && w.getBlockState(a).equals(frame) && w.getBlockState(b).isOf(Blocks.END_PORTAL),
+                    "portal room didn't come back exactly (" + back + ", " + w.getBlockState(a) + ")");
+
+            // A built portal room works while the End is closed, and isn't hidden.
+            var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "EndBuilder"));
+            BlockPos c = com.vylorq.anticheat.feature.EndLock.build(w, ctx.getAbsolutePos(new BlockPos(1, 2, 1)).up(40), Direction.SOUTH);
+            check(w.getBlockState(c).isOf(Blocks.END_PORTAL) && w.getBlockState(c.north(2)).isOf(Blocks.END_PORTAL_FRAME), "portal room not built");
+            check(((net.minecraft.block.EndPortalBlock) Blocks.END_PORTAL).createTeleportTarget(w, fake, c) != null, "built portal doesn't work");
+            check(com.vylorq.anticheat.feature.EndLock.hide(w, c.getX() - 2, c.getY(), c.getZ() - 2, c.getX() + 2, c.getY(), c.getZ() + 2) == 0,
+                    "built portal room got hidden");
+        } finally {
+            cfg.endOpen = was;
+            Ac.get().end.built.clear();
+        }
         ctx.complete();
     }
 }
