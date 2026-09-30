@@ -160,7 +160,7 @@ public final class SettingsMenu {
         void click(ServerPlayerEntity p, Menu.Click c, Menu menu) {
             boolean v = !get.apply(cfg());
             set.accept(cfg(), v);
-            changed(p, this, onOff(v));
+            applied(p, this, onOff(v));
         }
 
         @Override
@@ -206,7 +206,7 @@ public final class SettingsMenu {
             int d = c.isShift() ? step * 10 : c.isRight() ? -step : step;
             int v = Math.max(min, Math.min(max, get.apply(cfg()) + d));
             set.accept(cfg(), v);
-            changed(p, this, String.valueOf(v));
+            applied(p, this, String.valueOf(v));
         }
 
         @Override
@@ -257,7 +257,7 @@ public final class SettingsMenu {
             double d = c.isShift() ? step * 10 : c.isRight() ? -step : step;
             double v = Math.max(min, Math.min(max, Math.round((get.apply(cfg()) + d) * 1000) / 1000.0));
             set.accept(cfg(), v);
-            changed(p, this, fmt(v));
+            applied(p, this, fmt(v));
         }
 
         @Override
@@ -305,7 +305,7 @@ public final class SettingsMenu {
             int i = Math.max(0, values.indexOf(get.apply(cfg())));
             String v = values.get(Math.floorMod(i + (c.isRight() ? -1 : 1), values.size()));
             set.accept(cfg(), v);
-            changed(p, this, label.apply(v));
+            applied(p, this, label.apply(v));
         }
 
         @Override
@@ -355,7 +355,7 @@ public final class SettingsMenu {
                         Msg.error(p, "general.bad-duration");
                     } else {
                         set.accept(cfg(), d.getAsLong());
-                        changed(p, this, show(d.getAsLong()));
+                        applied(p, this, show(d.getAsLong()));
                     }
                     reopen(p, menu);
                 });
@@ -370,7 +370,7 @@ public final class SettingsMenu {
             }
             long v = Durations.parse(PRESETS[next]).orElse(Durations.PERMANENT);
             set.accept(cfg(), v);
-            changed(p, this, show(v));
+            applied(p, this, show(v));
         }
 
         @Override
@@ -411,7 +411,7 @@ public final class SettingsMenu {
             Input.text(p, name(), get.apply(cfg()), txt -> {
                 if (txt != null) {
                     set.accept(cfg(), txt);
-                    changed(p, this, txt);
+                    applied(p, this, txt);
                 }
                 reopen(p, menu);
             });
@@ -473,7 +473,7 @@ public final class SettingsMenu {
                                 List<String> l = new ArrayList<>(get.apply(cfg()));
                                 l.add(txt.trim());
                                 set.accept(cfg(), l);
-                                changed(pl, self, "+ " + txt.trim());
+                                applied(pl, self, "+ " + txt.trim());
                             }
                             reopen(pl, menu);
                         }));
@@ -485,7 +485,7 @@ public final class SettingsMenu {
                             List<String> l = new ArrayList<>(get.apply(cfg()));
                             l.remove(e);
                             set.accept(cfg(), l);
-                            changed(pl, self, "- " + e);
+                            applied(pl, self, "- " + e);
                             menu.refresh();
                         },
                         e -> e, List.of(), Msg.tr("settings.list-empty"), Msg.tr("settings.list-empty-hint"));
@@ -500,7 +500,7 @@ public final class SettingsMenu {
     }
 
     /** Anything that isn't a plain config value (game rules, maintenance, links to other menus). */
-    static final class Custom extends S {
+    static class Custom extends S {
         final Supplier<String> now;
         final Supplier<String> def;
         final BiConsumer<ServerPlayerEntity, Menu.Click> click;
@@ -574,7 +574,7 @@ public final class SettingsMenu {
                 () -> onOff(rule(key) != inverted), () -> onOff(key.getDefaultValue() != inverted), null,
                 (p, ck) -> {
                     setRule(p, key, !rule(key));
-                    changed(p, null, id + "=" + onOff(rule(key) != inverted));
+                    applied(p, null, id + "=" + onOff(rule(key) != inverted));
                 },
                 () -> setRule(null, key, key.getDefaultValue()));
         return c.icon(() -> rule(key) != inverted ? Items.LIME_DYE : Items.GRAY_DYE);
@@ -634,19 +634,19 @@ public final class SettingsMenu {
                     MinecraftServer s = Ac.server();
                     Difficulty next = Difficulty.byId((s.getSaveProperties().getDifficulty().getId() + (ck.isRight() ? 3 : 1)) % 4);
                     s.setDifficulty(next, true);
-                    changed(p, null, "difficulty=" + next.getName());
+                    applied(p, null, "difficulty=" + next.getName());
                 }, () -> Ac.server().setDifficulty(Difficulty.NORMAL, true)));
         l.add(gameRule("mob-griefing", GameRules.DO_MOB_GRIEFING, false));
         l.add(new Custom("fire-spread", Page.WORLD, Items.FLINT_AND_STEEL, () -> onOff(fireSpreads()), () -> onOff(true), "ui.action.turn-on",
                 (p, ck) -> {
                     setFireSpread(!fireSpreads());
-                    changed(p, null, "fire-spread=" + onOff(fireSpreads()));
+                    applied(p, null, "fire-spread=" + onOff(fireSpreads()));
                 }, () -> setFireSpread(true)).icon(() -> fireSpreads() ? Items.LIME_DYE : Items.GRAY_DYE));
         l.add(new Custom("explosions", Page.WORLD, Items.TNT, () -> onOff(Ac.get().misc.explosionsEnabled), () -> onOff(true), "ui.action.turn-on",
                 (p, ck) -> {
                     Ac.get().misc.explosionsEnabled = !Ac.get().misc.explosionsEnabled;
                     Ac.markDirty("misc");
-                    changed(p, null, "explosions=" + onOff(Ac.get().misc.explosionsEnabled));
+                    applied(p, null, "explosions=" + onOff(Ac.get().misc.explosionsEnabled));
                 }, () -> {
             Ac.get().misc.explosionsEnabled = true;
             Ac.markDirty("misc");
@@ -783,13 +783,13 @@ public final class SettingsMenu {
                     if (ck.isRight() && e.kind == WatcherEffect.Kind.POOLED) {
                         int v = Math.max(0, Math.min(100, w.weights.getOrDefault(id, e.defaultWeight) + (ck.isShift() ? 10 : 1)));
                         w.weights.put(id, v);
-                        changed(p, null, "watcher." + id + ".weight=" + v);
+                        applied(p, null, "watcher." + id + ".weight=" + v);
                         return;
                     }
                     if (!w.disabledEffects.remove(id)) {
                         w.disabledEffects.add(id);
                     }
-                    changed(p, null, "watcher." + id + "=" + onOff(!w.disabledEffects.contains(id)));
+                    applied(p, null, "watcher." + id + "=" + onOff(!w.disabledEffects.contains(id)));
                 }, () -> {
             cfg().watcher.disabledEffects.remove(id);
             cfg().watcher.weights.remove(id);
@@ -834,7 +834,7 @@ public final class SettingsMenu {
 
     // ---- saving ----
 
-    private static void changed(ServerPlayerEntity p, S s, String value) {
+    private static void applied(ServerPlayerEntity p, S s, String value) {
         Ac.get().configManager.save();
         String err = Ac.get().reload();
         if (err != null) {
@@ -923,7 +923,7 @@ public final class SettingsMenu {
                         for (S s : list) {
                             s.reset();
                         }
-                        changed(p, null, "reset page " + pg.id());
+                        applied(p, null, "reset page " + pg.id());
                         page(p, pg);
                     }));
             settingsList(admin, menu, list);
@@ -960,7 +960,7 @@ public final class SettingsMenu {
                         Confirm.open(p, Category.SETTINGS, Msg.tr("settings.confirm-reset", s.name()),
                                 Msg.tr("settings.confirm-reset-one", s.def() == null ? "" : s.def()), null, () -> {
                                     s.reset();
-                                    changed(p, s, s.now());
+                                    applied(p, s, s.now());
                                     menu.open(p);
                                 });
                         return;
@@ -1025,7 +1025,7 @@ public final class SettingsMenu {
                         double next = LEVELS[Math.floorMod((i >= LEVELS.length ? 3 : i) + (c.isRight() ? -1 : 1), LEVELS.length)];
                         cfg.detection.disabledChecks.remove(t.id());
                         cfg.detection.sensitivity.put(t.id(), next);
-                        changed(p, null, "sensitivity." + t.id() + "=" + next);
+                        applied(p, null, "sensitivity." + t.id() + "=" + next);
                         menu.refresh();
                     },
                     CheckType::displayName, List.of(), "", "");
