@@ -302,8 +302,8 @@ public final class Protection {
         Ac ac = Ac.get();
         BlockPos pos = hit.getBlockPos();
         ItemStack stack = p.getStackInHand(hand);
-        if (!Ac.config().general.endOpen && stack.isOf(net.minecraft.item.Items.ENDER_EYE)
-                && w.getBlockState(pos).isOf(Blocks.END_PORTAL_FRAME)) {
+        if (stack.isOf(net.minecraft.item.Items.ENDER_EYE) && w.getBlockState(pos).isOf(Blocks.END_PORTAL_FRAME)
+                && !EndLock.allowedAt(w, pos)) {
             endClosed(p);
             p.playerScreenHandler.syncState();
             return ActionResult.FAIL;
@@ -420,6 +420,12 @@ public final class Protection {
             return ActionResult.FAIL;
         }
         ItemStack stack = p.getStackInHand(hand);
+        if (stack.isOf(Items.ENDER_EYE) && !EndLock.open()) {
+            // Nothing to find while the End is closed.
+            endClosed(p);
+            p.playerScreenHandler.syncState();
+            return ActionResult.FAIL;
+        }
         if (stack.isOf(Items.FIREWORK_ROCKET) && p.isGliding()) {
             Ac.session(p).ticksSinceFirework = 0;
         }

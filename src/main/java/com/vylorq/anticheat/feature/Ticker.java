@@ -58,6 +58,7 @@ public final class Ticker {
         com.vylorq.anticheat.ui.BossBars.tick();
         MenuHandler.tickLive();
         Jail.tick();
+        EndLock.tick(ac.server);
         Claims.tick();
         Barriers.tick();
         Arenas.tick();

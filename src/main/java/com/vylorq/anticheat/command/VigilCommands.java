@@ -75,6 +75,7 @@ public final class VigilCommands {
             new Help(Group.TOOLS, "maintenance", "/maintenance on|off", "help.maintenance", Perm.MAINTENANCE),
             new Help(Group.TOOLS, "lag", "/lag", "help.lag", Perm.LAG),
             new Help(Group.TOOLS, "settings", "/settings", "help.settings", Perm.SETTINGS),
+            new Help(Group.TOOLS, "end", "/vigil end open|close|portal", "help.end", Perm.SETTINGS),
             new Help(Group.TOOLS, "watcher", "/vigil watcher on|off|summon|night|log|exclude", "help.watcher", Perm.WATCHER),
             new Help(Group.TOOLS, "alerts", "/vigil alerts", "help.alerts", Perm.ALERTS),
             new Help(Group.TOOLS, "stats", "/vigil stats", "help.stats", Perm.STATS),
@@ -96,7 +97,7 @@ public final class VigilCommands {
     /** Commands reachable as /vigil &lt;name&gt; (they also stay top-level). */
     private static final List<String> UNDER_VIGIL = List.of("review", "inspect", "whereis", "watch", "exempt", "freeze", "jail", "unjail",
             "claim", "barrier", "lobby", "arena", "trader", "requests", "deaths", "rollback", "restore", "lag", "vanish", "maintenance",
-            "settings", "watcher", "waitingroom", "report", "warn", "mute", "unmute", "kick", "tempban", "ban", "unban", "login");
+            "settings", "end", "watcher", "waitingroom", "report", "warn", "mute", "unmute", "kick", "tempban", "ban", "unban", "login");
 
     private static final int PER_PAGE = 9;
 

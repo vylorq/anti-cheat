@@ -482,4 +482,38 @@ public final class AntiCheatGameTests {
         }
         ctx.complete();
     }
+
+    @GameTest
+    public void endPortalRoomsHideAndComeBack(TestContext ctx) {
+        var cfg = Ac.config().general;
+        boolean was = cfg.endOpen;
+        var w = ctx.getWorld();
+        BlockPos a = ctx.getAbsolutePos(new BlockPos(1, 1, 1));
+        BlockPos b = a.east();
+        var frame = Blocks.END_PORTAL_FRAME.getDefaultState()
+                .with(net.minecraft.block.EndPortalFrameBlock.FACING, Direction.WEST).with(net.minecraft.block.EndPortalFrameBlock.EYE, true);
+        w.setBlockState(a, frame);
+        w.setBlockState(b, Blocks.END_PORTAL.getDefaultState());
+        try {
+            cfg.endOpen = false;
+            int hidden = com.vylorq.anticheat.feature.EndLock.hide(w, a.getX(), a.getY(), a.getZ(), b.getX(), b.getY(), b.getZ());
+            check(hidden == 2, "hid " + hidden + " blocks instead of 2");
+            check(!w.getBlockState(a).isOf(Blocks.END_PORTAL_FRAME) && !w.getBlockState(b).isOf(Blocks.END_PORTAL), "portal room still there");
+            int back = com.vylorq.anticheat.feature.EndLock.restore(w, a.getX(), a.getY(), a.getZ(), b.getX(), b.getY(), b.getZ());
+            check(back == 2 && w.getBlockState(a).equals(frame) && w.getBlockState(b).isOf(Blocks.END_PORTAL),
+                    "portal room didn't come back exactly (" + back + ", " + w.getBlockState(a) + ")");
+
+            // A built portal room works while the End is closed, and isn't hidden.
+            var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "EndBuilder"));
+            BlockPos c = com.vylorq.anticheat.feature.EndLock.build(w, ctx.getAbsolutePos(new BlockPos(1, 2, 1)), Direction.SOUTH);
+            check(w.getBlockState(c).isOf(Blocks.END_PORTAL) && w.getBlockState(c.north(2)).isOf(Blocks.END_PORTAL_FRAME), "portal room not built");
+            check(((net.minecraft.block.EndPortalBlock) Blocks.END_PORTAL).createTeleportTarget(w, fake, c) != null, "built portal doesn't work");
+            check(com.vylorq.anticheat.feature.EndLock.hide(w, c.getX() - 2, c.getY(), c.getZ() - 2, c.getX() + 2, c.getY(), c.getZ() + 2) == 0,
+                    "built portal room got hidden");
+        } finally {
+            cfg.endOpen = was;
+            Ac.get().end.built.clear();
+        }
+        ctx.complete();
+    }
 }
