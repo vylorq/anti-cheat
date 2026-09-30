@@ -164,7 +164,7 @@ public final class Punish {
 
     /** Lightning with no damage or fire. */
     public static void banEffect(ServerPlayerEntity p) {
-        ServerWorld w = p.getServerWorld();
+        ServerWorld w = p.getEntityWorld();
         LightningEntity bolt = EntityType.LIGHTNING_BOLT.create(w, SpawnReason.TRIGGERED);
         if (bolt != null) {
             bolt.refreshPositionAfterTeleport(p.getX(), p.getY(), p.getZ());

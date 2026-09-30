@@ -50,7 +50,7 @@ public final class PermissionsApi {
                 // fall through
             }
         }
-        return e.hasPermissionLevel(fallbackLevel);
+        return com.vylorq.anticheat.util.Mc.hasLevel(e, fallbackLevel);
     }
 
     public static boolean check(ServerCommandSource s, String node, int fallbackLevel) {
@@ -62,6 +62,6 @@ public final class PermissionsApi {
                 // fall through
             }
         }
-        return s.hasPermissionLevel(fallbackLevel);
+        return com.vylorq.anticheat.util.Mc.hasLevel(s, fallbackLevel);
     }
 }

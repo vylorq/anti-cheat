@@ -86,7 +86,7 @@ public final class Trades {
     }
 
     private static String distanceProblem(ServerPlayerEntity a, ServerPlayerEntity b) {
-        if (a.getWorld() != b.getWorld()) {
+        if (a.getEntityWorld() != b.getEntityWorld()) {
             return "trade.too-far";
         }
         if (a.squaredDistanceTo(b) > Math.pow(Ac.config().playerTrade.maxDistance, 2)) {

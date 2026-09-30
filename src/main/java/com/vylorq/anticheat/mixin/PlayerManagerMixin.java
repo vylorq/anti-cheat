@@ -22,7 +22,7 @@ import java.net.SocketAddress;
 public abstract class PlayerManagerMixin {
     @ModifyReturnValue(method = "checkCanJoin", at = @At("RETURN"))
     private Text ac$checkCanJoin(Text original, @Local(argsOnly = true) SocketAddress address,
-                                 @Local(argsOnly = true) GameProfile profile) {
+                                 @Local(argsOnly = true) net.minecraft.server.PlayerConfigEntry profile) {
         if (original != null || !Ac.running()) {
             return original;
         }

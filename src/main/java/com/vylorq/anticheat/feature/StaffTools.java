@@ -144,16 +144,6 @@ public final class StaffTools {
         public void clear() {
             d.clear();
         }
-
-        @Override
-        public void onOpen(PlayerEntity player) {
-            // silent
-        }
-
-        @Override
-        public void onClose(PlayerEntity player) {
-            // silent
-        }
     }
 
     // ---- Freeze ----
@@ -190,8 +180,8 @@ public final class StaffTools {
             return;
         }
         StaffState.SpectateReturn ret = new StaffState.SpectateReturn();
-        ret.world = Mc.worldId(admin.getWorld());
-        ret.pos = Mc.vec(admin.getPos());
+        ret.world = Mc.worldId(admin.getEntityWorld());
+        ret.pos = Mc.vec(admin.getEntityPos());
         ret.yaw = admin.getYaw();
         ret.pitch = admin.getPitch();
         ret.gameMode = admin.interactionManager.getGameMode().asString();
@@ -203,7 +193,7 @@ public final class StaffTools {
             setVanish(admin, true);
         }
         admin.changeGameMode(GameMode.SPECTATOR);
-        Mc.teleport(admin, (ServerWorld) target.getWorld(), target.getX(), target.getY(), target.getZ(), target.getYaw(), target.getPitch());
+        Mc.teleport(admin, (ServerWorld) target.getEntityWorld(), target.getX(), target.getY(), target.getZ(), target.getYaw(), target.getPitch());
         admin.setCameraEntity(target);
         Staff.log(admin, "spectate", target.getUuid(), target.getGameProfile().name(), "");
         Msg.send(admin, "spectate.started", target.getGameProfile().name());
@@ -216,7 +206,7 @@ public final class StaffTools {
         }
         Ac.saveNow("staff");
         admin.setCameraEntity(admin);
-        admin.changeGameMode(GameMode.byName(ret.gameMode, GameMode.SURVIVAL));
+        admin.changeGameMode(GameMode.byId(ret.gameMode, GameMode.SURVIVAL));
         ServerWorld w = Mc.world(Ac.server(), ret.world);
         if (w != null) {
             Mc.teleport(admin, w, ret.pos.x(), ret.pos.y(), ret.pos.z(), ret.yaw, ret.pitch);

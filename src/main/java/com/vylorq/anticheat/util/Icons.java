@@ -60,7 +60,7 @@ public final class Icons {
 
     public static ItemStack head(UUID id, String name, String display, String... lore) {
         ItemStack s = new ItemStack(Items.PLAYER_HEAD);
-        s.set(DataComponentTypes.PROFILE, new ProfileComponent(new GameProfile(id, name.length() > 16 ? name.substring(0, 16) : name)));
+        s.set(DataComponentTypes.PROFILE, ProfileComponent.ofStatic(new GameProfile(id, name.length() > 16 ? name.substring(0, 16) : name)));
         return of(s, display, List.of(lore));
     }
 

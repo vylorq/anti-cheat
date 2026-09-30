@@ -11,6 +11,7 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
@@ -38,8 +39,28 @@ public final class ItemConv {
         if (stack == null || stack.isEmpty()) {
             return "";
         }
-        NbtElement nbt = stack.toNbt(registries());
-        return nbt.asString();
+        return toNbt(stack).toString();
+    }
+
+    /** Stack to NBT with the item codec (empty stacks give an empty compound). */
+    public static NbtCompound toNbt(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return new NbtCompound();
+        }
+        NbtElement e = ItemStack.CODEC.encodeStart(registries().getOps(NbtOps.INSTANCE), stack).getOrThrow();
+        return e instanceof NbtCompound c ? c : new NbtCompound();
+    }
+
+    public static ItemStack fromNbt(NbtCompound nbt) {
+        if (nbt == null || nbt.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        return ItemStack.CODEC.parse(registries().getOps(NbtOps.INSTANCE), nbt).result().orElse(ItemStack.EMPTY);
+    }
+
+    /** Parses SNBT text into a compound. */
+    public static NbtCompound parseSnbt(String s) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        return StringNbtReader.readCompound(s);
     }
 
     public static ItemStack decode(String s) {
@@ -47,8 +68,7 @@ public final class ItemConv {
             return ItemStack.EMPTY;
         }
         try {
-            NbtCompound nbt = StringNbtReader.parse(s);
-            return ItemStack.fromNbt(registries(), nbt).orElse(ItemStack.EMPTY);
+            return fromNbt(parseSnbt(s));
         } catch (Exception e) {
             Ac.LOG.warn("Could not decode stored item: {}", e.getMessage());
             return ItemStack.EMPTY;
@@ -125,7 +145,7 @@ public final class ItemConv {
             return null;
         }
         NbtCompound n = c.copyNbt();
-        return n.contains(key) ? n.getString(key) : null;
+        return n.getString(key).orElse(null);
     }
 
     public static void setTag(ItemStack s, String key, String value) {

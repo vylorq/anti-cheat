@@ -26,10 +26,7 @@ public abstract class ServerCommonNetworkHandlerMixin {
             return;
         }
         if (packet instanceof EntityVelocityUpdateS2CPacket v && v.getEntityId() == handler.player.getId()) {
-            double x = v.getVelocityX();
-            double y = v.getVelocityY();
-            double z = v.getVelocityZ();
-            Combat.onVelocity(handler.player, Math.sqrt(x * x + y * y + z * z));
+            Combat.onVelocity(handler.player, v.getVelocity().length());
         } else if (packet instanceof ExplosionS2CPacket e) {
             e.playerKnockback().ifPresent(k -> Combat.onVelocity(handler.player, k.length()));
         } else if (packet instanceof PlayerPositionLookS2CPacket) {

@@ -51,15 +51,15 @@ public final class Msg {
     /** Clickable text that runs a command. */
     public static MutableText button(String label, String command, String hover) {
         return Text.literal(label).styled(s -> s
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(hover))));
+                .withClickEvent(new ClickEvent.RunCommand(command))
+                .withHoverEvent(new HoverEvent.ShowText(Text.literal(hover))));
     }
 
     /** Clickable text that fills the chat box. */
     public static MutableText suggest(String label, String command, String hover) {
         return Text.literal(label).styled(s -> s
-                .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(hover))));
+                .withClickEvent(new ClickEvent.SuggestCommand(command))
+                .withHoverEvent(new HoverEvent.ShowText(Text.literal(hover))));
     }
 
     public static MutableText gray(String s) {

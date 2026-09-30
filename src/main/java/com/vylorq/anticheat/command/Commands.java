@@ -273,7 +273,7 @@ public final class Commands {
                     Extras.backupAsync(names -> Msg.ok(src, "backup.done", names), e -> Msg.err(src, "backup.failed", e.getMessage()));
                     return 1;
                 }))
-                .then(literal("setowner").requires(s -> s.getPlayer() == null && s.hasPermissionLevel(4))
+                .then(literal("setowner").requires(s -> s.getPlayer() == null && Mc.hasLevel(s, 4))
                         .then(Args.player("player").executes(ctx -> {
                             UUID id = Args.known(ctx.getSource(), Args.str(ctx, "player"));
                             if (id == null) return 0;
@@ -337,19 +337,20 @@ public final class Commands {
         if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
         String name = Args.str(ctx, "player");
         var server = Ac.server();
-        var profile = server.getUserCache() == null ? null : server.getUserCache().findByName(name).orElse(null);
-        if (profile == null) {
-            Msg.err(ctx.getSource(), "general.unknown-player", name);
+        UUID id = Args.known(ctx.getSource(), name);
+        if (id == null) {
             return 0;
         }
+        String realName = Args.nameOf(id, name);
+        var entry = new net.minecraft.server.PlayerConfigEntry(id, realName);
         if (add) {
-            server.getPlayerManager().addToOperators(profile);
+            server.getPlayerManager().addToOperators(entry);
         } else {
-            server.getPlayerManager().removeFromOperators(profile);
-            Ac.get().pins.logout(profile.getId());
+            server.getPlayerManager().removeFromOperators(entry);
+            Ac.get().pins.logout(id);
         }
-        Staff.log(ctx.getSource().getPlayer(), add ? "admin-add" : "admin-remove", profile.getId(), profile.getName(), "");
-        Msg.ok(ctx.getSource(), add ? "ac.admin-added" : "ac.admin-removed", profile.getName());
+        Staff.log(ctx.getSource().getPlayer(), add ? "admin-add" : "admin-remove", id, realName, "");
+        Msg.ok(ctx.getSource(), add ? "ac.admin-added" : "ac.admin-removed", realName);
         return 1;
     }
 

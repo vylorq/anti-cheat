@@ -68,8 +68,8 @@ public final class Extras {
     }
 
     public static void startDropParty(ServerPlayerEntity admin, int seconds) {
-        dropWorld = admin.getServerWorld();
-        dropAt = admin.getPos();
+        dropWorld = admin.getEntityWorld();
+        dropAt = admin.getEntityPos();
         dropEnd = System.currentTimeMillis() + seconds * 1000L;
         Ac.server().getPlayerManager().broadcast(Text.literal(Msg.tr("event.drop-party", seconds)), false);
     }

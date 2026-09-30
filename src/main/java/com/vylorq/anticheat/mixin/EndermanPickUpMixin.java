@@ -18,7 +18,7 @@ public abstract class EndermanPickUpMixin {
 
     @Inject(method = "canStart", at = @At("HEAD"), cancellable = true, require = 0)
     private void ac$canStart(CallbackInfoReturnable<Boolean> cir) {
-        if (WorldGuard.claimedOrLobby(enderman.getWorld(), enderman.getBlockPos())) {
+        if (WorldGuard.claimedOrLobby(enderman.getEntityWorld(), enderman.getBlockPos())) {
             cir.setReturnValue(false);
         }
     }

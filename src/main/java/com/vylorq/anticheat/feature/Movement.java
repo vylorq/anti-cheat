@@ -62,9 +62,9 @@ public final class Movement {
         if (!changesPos) {
             return false;
         }
-        ServerWorld world = (ServerWorld) p.getWorld();
+        ServerWorld world = (ServerWorld) p.getEntityWorld();
         String w = Mc.worldId(world);
-        Vec3 from = Mc.vec(p.getPos());
+        Vec3 from = Mc.vec(p.getEntityPos());
         Vec3 to = new Vec3(x, y, z);
         boolean moved = from.distanceSq(to) > 1.0E-6;
 
@@ -346,7 +346,7 @@ public final class Movement {
         }
         PlayerSession s = Ac.session(p);
         s.ticksSinceVehicle = 0;
-        Vec3 now = Mc.vec(v.getPos());
+        Vec3 now = Mc.vec(v.getEntityPos());
         Vec3 last = VehicleTrack.last(p.getUuid(), v, now);
         if (last == null || s.ticksSinceTeleport < 40 || s.ticksSinceVelocity < 40 || Tps.tps() < Ac.config().general.lagTpsThreshold) {
             VehicleTrack.set(p.getUuid(), v, now);

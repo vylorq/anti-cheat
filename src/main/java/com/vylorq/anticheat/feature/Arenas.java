@@ -232,7 +232,7 @@ public final class Arenas {
             if (p == null || a == null) {
                 continue;
             }
-            if (!a.area.contains(Mc.worldId(p.getWorld()), p.getX(), p.getY(), p.getZ())) {
+            if (!a.area.contains(Mc.worldId(p.getEntityWorld()), p.getX(), p.getY(), p.getZ())) {
                 stopSpectating(p);
             }
         }
@@ -245,7 +245,7 @@ public final class Arenas {
         double r = Math.max(3, maxR - secondsIntoSudden * 0.5);
         for (ServerPlayerEntity p : online(m)) {
             if (m.alive.contains(p.getUuid()) && Math.hypot(p.getX() - c.x(), p.getZ() - c.z()) > r) {
-                p.damage((ServerWorld) p.getWorld(), p.getDamageSources().outOfWorld(), 2.0f);
+                p.damage((ServerWorld) p.getEntityWorld(), p.getDamageSources().outOfWorld(), 2.0f);
             }
         }
     }
@@ -458,7 +458,7 @@ public final class Arenas {
         PlayerSnapshot s = am().takePending(p.getUuid());
         Ac.saveNow("arenas");
         if (s != null) {
-            p.changeGameMode(GameMode.byName(s.gameMode, GameMode.SURVIVAL));
+            p.changeGameMode(GameMode.byId(s.gameMode, GameMode.SURVIVAL));
             if (s.location != null) {
                 Mc.teleport(p, Ac.server(), s.location);
             }

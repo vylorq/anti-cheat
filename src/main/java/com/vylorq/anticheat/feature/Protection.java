@@ -251,7 +251,7 @@ public final class Protection {
             return true;
         }
         for (ServerPlayerEntity where : new ServerPlayerEntity[]{attacker, victim}) {
-            Claim c = Ac.get().claims.at(Mc.worldId(where.getWorld()), where.getX(), where.getZ());
+            Claim c = Ac.get().claims.at(Mc.worldId(where.getEntityWorld()), where.getX(), where.getZ());
             if (c != null && c.isActive() && !Ac.get().claims.can(c, attacker.getUuid(), false, ClaimAction.PVP, true)) {
                 return false;
             }
@@ -456,7 +456,7 @@ public final class Protection {
             return ActionResult.PASS;
         }
         BlockPos pos = entity.getBlockPos();
-        if (!LobbyFeature.allowed(p, (ServerWorld) entity.getWorld(), pos, la) || !Claims.check(p, entity.getWorld(), pos, a)) {
+        if (!LobbyFeature.allowed(p, (ServerWorld) entity.getEntityWorld(), pos, la) || !Claims.check(p, entity.getEntityWorld(), pos, a)) {
             return ActionResult.FAIL;
         }
         return ActionResult.PASS;
@@ -500,7 +500,7 @@ public final class Protection {
             }
             if (a != null) {
                 BlockPos pos = entity.getBlockPos();
-                if (!LobbyFeature.allowed(p, (ServerWorld) entity.getWorld(), pos, la) || !Claims.check(p, entity.getWorld(), pos, a)) {
+                if (!LobbyFeature.allowed(p, (ServerWorld) entity.getEntityWorld(), pos, la) || !Claims.check(p, entity.getEntityWorld(), pos, a)) {
                     return ActionResult.FAIL;
                 }
             }

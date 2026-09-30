@@ -74,8 +74,8 @@ public final class Ticker {
             }
             if (++s.trailTimer >= 5) {
                 s.trailTimer = 0;
-                s.trail.addLast(new java.text.SimpleDateFormat("HH:mm:ss").format(new java.util.Date()) + " " + Mc.worldId(p.getWorld())
-                        .replace("minecraft:", "") + " " + Mc.vec(p.getPos()).formatExact());
+                s.trail.addLast(new java.text.SimpleDateFormat("HH:mm:ss").format(new java.util.Date()) + " " + Mc.worldId(p.getEntityWorld())
+                        .replace("minecraft:", "") + " " + Mc.vec(p.getEntityPos()).formatExact());
                 while (s.trail.size() > 120) {
                     s.trail.pollFirst();
                 }

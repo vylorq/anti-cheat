@@ -92,13 +92,13 @@ public final class BlockSnapshots {
             return -1;
         }
         NbtCompound root = NbtIo.readCompressed(f, NbtSizeTracker.ofUnlimitedBytes());
-        NbtList pal = root.getList("palette", 10);
+        NbtList pal = root.getListOrEmpty("palette");
         List<BlockState> palette = new ArrayList<>();
         for (int i = 0; i < pal.size(); i++) {
-            palette.add(NbtHelper.toBlockState(Mc.blockLookup(), pal.getCompound(i)));
+            palette.add(NbtHelper.toBlockState(Mc.blockLookup(), pal.getCompoundOrEmpty(i)));
         }
-        int[] area = root.getIntArray("area");
-        int[] data = root.getIntArray("data");
+        int[] area = root.getIntArray("area").orElse(new int[6]);
+        int[] data = root.getIntArray("data").orElse(new int[0]);
         int changed = 0;
         int i = 0;
         for (int y = area[1]; y <= area[4]; y++) {
@@ -116,14 +116,13 @@ public final class BlockSnapshots {
                 }
             }
         }
-        NbtList bes = root.getList("blockEntities", 10);
+        NbtList bes = root.getListOrEmpty("blockEntities");
         for (int j = 0; j < bes.size(); j++) {
-            NbtCompound n = bes.getCompound(j);
-            BlockPos pos = new BlockPos(n.getInt("ac_x"), n.getInt("ac_y"), n.getInt("ac_z"));
+            NbtCompound n = bes.getCompoundOrEmpty(j);
+            BlockPos pos = new BlockPos(n.getInt("ac_x", 0), n.getInt("ac_y", 0), n.getInt("ac_z", 0));
             BlockEntity be = w.getBlockEntity(pos);
             if (be != null) {
-                be.read(n, w.getRegistryManager());
-                be.markDirty();
+                Mc.loadBlockEntity(be, n, w.getRegistryManager());
             }
         }
         // Items dropped during the match are cleared too.

@@ -55,7 +55,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
     @Inject(method = "onVehicleMove", at = @At("TAIL"))
     private void ac$afterVehicleMove(VehicleMoveC2SPacket packet, CallbackInfo ci) {
-        if (Ac.running() && player.getServer() != null && player.getServer().isOnThread()) {
+        if (Ac.running() && player.getEntityWorld().getServer() != null && player.getEntityWorld().getServer().isOnThread()) {
             Movement.afterVehicleMove(player);
         }
     }
@@ -75,7 +75,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
     private void ac$onClickSlot(ClickSlotC2SPacket packet, CallbackInfo ci) {
         if (Ac.running()) {
             Ac.get().evidence.record(player.getUuid(), EvidenceEvent.Type.INVENTORY, player.getX(), player.getY(), player.getZ(),
-                    player.getYaw(), player.getPitch(), "inventory click slot " + packet.getSlot() + " " + packet.getActionType());
+                    player.getYaw(), player.getPitch(), "inventory click slot " + packet.slot() + " " + packet.actionType());
         }
     }
 

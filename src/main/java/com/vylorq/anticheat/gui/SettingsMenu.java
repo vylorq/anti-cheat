@@ -12,7 +12,8 @@ import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.rule.GameRule;
+import net.minecraft.world.rule.GameRules;
 
 import java.util.function.Consumer;
 
@@ -34,16 +35,30 @@ public final class SettingsMenu {
         Staff.log(p, "settings", null, what, String.valueOf(value));
     }
 
-    private static boolean rule(MinecraftServer s, GameRules.Key<GameRules.BooleanRule> key) {
-        return s.getGameRules().getBoolean(key);
+    private static boolean rule(MinecraftServer s, GameRule<Boolean> key) {
+        return s.getOverworld().getGameRules().getValue(key);
     }
 
-    private static void setRule(ServerPlayerEntity p, GameRules.Key<GameRules.BooleanRule> key, boolean v) {
+    private static void setRule(ServerPlayerEntity p, GameRule<Boolean> key, boolean v) {
         MinecraftServer s = Ac.server();
         for (var w : s.getWorlds()) {
-            w.getGameRules().get(key).set(v, s);
+            w.getGameRules().setValue(key, v, s);
         }
-        Staff.log(p, "settings", null, key.getName(), String.valueOf(v));
+        Staff.log(p, "settings", null, key.toShortString(), String.valueOf(v));
+    }
+
+    /** Fire spread is a radius since 1.21.11: 0 turns it off. */
+    private static boolean fireSpreads(MinecraftServer s) {
+        return s.getOverworld().getGameRules().getValue(GameRules.FIRE_SPREAD_RADIUS_AROUND_PLAYER) > 0;
+    }
+
+    private static void setFireSpread(ServerPlayerEntity p, boolean on) {
+        MinecraftServer s = Ac.server();
+        int radius = on ? GameRules.FIRE_SPREAD_RADIUS_AROUND_PLAYER.getDefaultValue() : 0;
+        for (var w : s.getWorlds()) {
+            w.getGameRules().setValue(GameRules.FIRE_SPREAD_RADIUS_AROUND_PLAYER, radius, s);
+        }
+        Staff.log(p, "settings", null, "fire_spread", String.valueOf(on));
     }
 
     public static void open(ServerPlayerEntity admin) {
@@ -54,10 +69,9 @@ public final class SettingsMenu {
         m.renderer(menu -> {
             MinecraftServer s = Ac.server();
             AcConfig cfg = Ac.config();
-            menu.set(10, Icons.toggle(s.isPvpEnabled(), "PvP"), (p, c) -> {
+            menu.set(10, Icons.toggle(rule(s, GameRules.PVP), "PvP"), (p, c) -> {
                 if (!allowed(p)) return;
-                s.setPvpEnabled(!s.isPvpEnabled());
-                Staff.log(p, "settings", null, "pvp", String.valueOf(s.isPvpEnabled()));
+                setRule(p, GameRules.PVP, !rule(s, GameRules.PVP));
                 menu.refresh();
             });
             menu.set(11, Icons.toggle(rule(s, GameRules.KEEP_INVENTORY), "Keep inventory"), (p, c) -> {
@@ -65,9 +79,9 @@ public final class SettingsMenu {
                 setRule(p, GameRules.KEEP_INVENTORY, !rule(s, GameRules.KEEP_INVENTORY));
                 menu.refresh();
             });
-            menu.set(12, Icons.toggle(rule(s, GameRules.NATURAL_REGENERATION), "Natural regeneration"), (p, c) -> {
+            menu.set(12, Icons.toggle(rule(s, GameRules.NATURAL_HEALTH_REGENERATION), "Natural regeneration"), (p, c) -> {
                 if (!allowed(p)) return;
-                setRule(p, GameRules.NATURAL_REGENERATION, !rule(s, GameRules.NATURAL_REGENERATION));
+                setRule(p, GameRules.NATURAL_HEALTH_REGENERATION, !rule(s, GameRules.NATURAL_HEALTH_REGENERATION));
                 menu.refresh();
             });
             menu.set(13, Icons.of(Items.ZOMBIE_HEAD, "§eDifficulty: §f" + s.getSaveProperties().getDifficulty().getName(), "Click to cycle"), (p, c) -> {
@@ -82,9 +96,9 @@ public final class SettingsMenu {
                 setRule(p, GameRules.DO_MOB_GRIEFING, !rule(s, GameRules.DO_MOB_GRIEFING));
                 menu.refresh();
             });
-            menu.set(15, Icons.toggle(rule(s, GameRules.DO_FIRE_TICK), "Fire spread"), (p, c) -> {
+            menu.set(15, Icons.toggle(fireSpreads(s), "Fire spread"), (p, c) -> {
                 if (!allowed(p)) return;
-                setRule(p, GameRules.DO_FIRE_TICK, !rule(s, GameRules.DO_FIRE_TICK));
+                setFireSpread(p, !fireSpreads(s));
                 menu.refresh();
             });
             menu.set(16, Icons.toggle(Ac.get().misc.explosionsEnabled, "Explosions break blocks"), (p, c) -> {
@@ -94,14 +108,14 @@ public final class SettingsMenu {
                 Staff.log(p, "settings", null, "explosions", String.valueOf(Ac.get().misc.explosionsEnabled));
                 menu.refresh();
             });
-            menu.set(19, Icons.toggle(!rule(s, GameRules.DO_DAYLIGHT_CYCLE), "Time lock"), (p, c) -> {
+            menu.set(19, Icons.toggle(!rule(s, GameRules.ADVANCE_TIME), "Time lock"), (p, c) -> {
                 if (!allowed(p)) return;
-                setRule(p, GameRules.DO_DAYLIGHT_CYCLE, !rule(s, GameRules.DO_DAYLIGHT_CYCLE));
+                setRule(p, GameRules.ADVANCE_TIME, !rule(s, GameRules.ADVANCE_TIME));
                 menu.refresh();
             });
-            menu.set(20, Icons.toggle(!rule(s, GameRules.DO_WEATHER_CYCLE), "Weather lock"), (p, c) -> {
+            menu.set(20, Icons.toggle(!rule(s, GameRules.ADVANCE_WEATHER), "Weather lock"), (p, c) -> {
                 if (!allowed(p)) return;
-                setRule(p, GameRules.DO_WEATHER_CYCLE, !rule(s, GameRules.DO_WEATHER_CYCLE));
+                setRule(p, GameRules.ADVANCE_WEATHER, !rule(s, GameRules.ADVANCE_WEATHER));
                 menu.refresh();
             });
             toggle(menu, 21, "Chat", cfg.chat.chatEnabled, v -> cfg.chat.chatEnabled = v, "chat");

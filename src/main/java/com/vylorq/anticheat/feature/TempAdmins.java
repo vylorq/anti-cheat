@@ -7,6 +7,7 @@ import com.vylorq.anticheat.util.ItemConv;
 import com.vylorq.anticheat.util.Msg;
 import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.ArrayList;
@@ -44,10 +45,10 @@ public final class TempAdmins {
         var server = Ac.server();
         GameProfile profile = p.getGameProfile();
         Grant g = new Grant();
-        g.name = profile.getName();
+        g.name = profile.name();
         g.since = System.currentTimeMillis();
         g.keepBuilds = keepBuilds;
-        g.wasOp = server.getPlayerManager().isOperator(profile);
+        g.wasOp = server.getPlayerManager().isOperator(new PlayerConfigEntry(profile));
         g.snapshot = PlayerState.capture(p, "tempadmin");
         g.snapshot.enderChest = new ArrayList<>();
         EnderChestInventory ender = p.getEnderChestInventory();
@@ -60,7 +61,7 @@ public final class TempAdmins {
         grants().put(p.getUuid(), g);
         Ac.saveNow("misc");
         if (!g.wasOp) {
-            server.getPlayerManager().addToOperators(profile);
+            server.getPlayerManager().addToOperators(new PlayerConfigEntry(profile));
         }
         Staff.log(by, "tempadmin-add", p.getUuid(), g.name, keepBuilds ? "keep builds" : "revert builds");
         Msg.send(p, "tempadmin.you-are");
@@ -78,7 +79,7 @@ public final class TempAdmins {
         Ac.saveNow("misc");
         var server = Ac.server();
         if (!g.wasOp) {
-            server.getPlayerManager().removeFromOperators(p.getGameProfile());
+            server.getPlayerManager().removeFromOperators(new PlayerConfigEntry(p.getGameProfile()));
         }
         Ac.get().pins.logout(p.getUuid());
         if (g.snapshot != null) {
@@ -116,7 +117,7 @@ public final class TempAdmins {
         var server = Ac.server();
         for (Map.Entry<UUID, Grant> e : grants().entrySet()) {
             if (!e.getValue().wasOp) {
-                server.getPlayerManager().removeFromOperators(new GameProfile(e.getKey(), e.getValue().name));
+                server.getPlayerManager().removeFromOperators(new PlayerConfigEntry(e.getKey(), e.getValue().name));
             }
         }
     }

@@ -46,7 +46,7 @@ public final class Claims {
             return true;
         }
         boolean staff = Perms.isActiveStaff(p);
-        return Ac.get().claims.can(c, p.getUuid(), staff, a, protectionOn(c, p.getWorld()));
+        return Ac.get().claims.can(c, p.getUuid(), staff, a, protectionOn(c, p.getEntityWorld()));
     }
 
     public static Claim at(World w, BlockPos pos) {
@@ -137,7 +137,7 @@ public final class Claims {
                 case EXPIRED, DELETED -> {
                     String msg = Msg.tr("claim.expired", c.name);
                     for (ServerPlayerEntity o : ac.server.getPlayerManager().getPlayerList()) {
-                        boolean inside = c.contains(Mc.worldId(o.getWorld()), o.getX(), o.getZ());
+                        boolean inside = c.contains(Mc.worldId(o.getEntityWorld()), o.getX(), o.getZ());
                         boolean wasMember = c.pendingExpiryNotice.remove(o.getUuid());
                         if (inside || wasMember || Perms.isActiveStaff(o)) {
                             o.sendMessage(Msg.prefixed(msg));
@@ -190,22 +190,22 @@ public final class Claims {
     /** Every second for players holding the Claim Stick: their selection and nearby claim borders. */
     public static void showBorders(ServerPlayerEntity p) {
         PlayerSession s = Ac.session(p);
-        if (s.corner1 != null && s.corner2 != null && Mc.worldId(p.getWorld()).equals(s.cornerWorld)) {
+        if (s.corner1 != null && s.corner2 != null && Mc.worldId(p.getEntityWorld()).equals(s.cornerWorld)) {
             outline(p, Math.min(s.corner1.getX(), s.corner2.getX()), Math.min(s.corner1.getZ(), s.corner2.getZ()),
                     Math.max(s.corner1.getX(), s.corner2.getX()), Math.max(s.corner1.getZ(), s.corner2.getZ()), true);
         }
-        for (Claim c : Ac.get().claims.near(Mc.worldId(p.getWorld()), p.getBlockX(), p.getBlockZ(), 48)) {
+        for (Claim c : Ac.get().claims.near(Mc.worldId(p.getEntityWorld()), p.getBlockX(), p.getBlockZ(), 48)) {
             outline(p, c.minX, c.minZ, c.maxX, c.maxZ, false);
         }
     }
 
     /** Pushes a player out of a private claim they ended up inside (pearls, chorus fruit, teleports, other mods). */
     public static void enforceInside(ServerPlayerEntity p) {
-        Claim c = Ac.get().claims.at(Mc.worldId(p.getWorld()), p.getX(), p.getZ());
+        Claim c = Ac.get().claims.at(Mc.worldId(p.getEntityWorld()), p.getX(), p.getZ());
         if (c == null || canEnter(p, c)) {
             return;
         }
-        ServerWorld w = (ServerWorld) p.getWorld();
+        ServerWorld w = (ServerWorld) p.getEntityWorld();
         // Nearest point outside the claim along the shortest axis.
         double x = p.getX();
         double z = p.getZ();

@@ -75,11 +75,11 @@ final class WorldCommands {
     /** The Claim Stick selection, or null with a hint. */
     private static Area selection(ServerPlayerEntity p, boolean fullHeight) {
         PlayerSession s = Ac.session(p);
-        if (s.corner1 == null || s.corner2 == null || !Mc.worldId(p.getWorld()).equals(s.cornerWorld)) {
+        if (s.corner1 == null || s.corner2 == null || !Mc.worldId(p.getEntityWorld()).equals(s.cornerWorld)) {
             Msg.send(p, "claim.need-selection");
             return null;
         }
-        ServerWorld w = p.getServerWorld();
+        ServerWorld w = p.getEntityWorld();
         int minY = fullHeight ? w.getBottomY() : Math.min(s.corner1.getY(), s.corner2.getY());
         int maxY = fullHeight ? w.getTopYInclusive() : Math.max(s.corner1.getY(), s.corner2.getY());
         return new Area(s.cornerWorld, s.corner1.getX(), minY, s.corner1.getZ(), s.corner2.getX(), maxY, s.corner2.getZ());
@@ -151,7 +151,7 @@ final class WorldCommands {
                 .then(literal("near").executes(ctx -> {
                     ServerPlayerEntity p = staff(ctx, Perm.CLAIM);
                     if (p == null) return 0;
-                    for (Claim c : Ac.get().claims.near(Mc.worldId(p.getWorld()), p.getBlockX(), p.getBlockZ(), 200)) {
+                    for (Claim c : Ac.get().claims.near(Mc.worldId(p.getEntityWorld()), p.getBlockX(), p.getBlockZ(), 200)) {
                         StringBuilder managers = new StringBuilder();
                         for (var e : c.members.values()) {
                             if (e.role == com.vylorq.anticheat.core.claims.ClaimRole.MANAGER) {
@@ -241,7 +241,7 @@ final class WorldCommands {
         if (p == null) return 0;
         Barrier b = new Barrier();
         b.name = Args.str(ctx, "name");
-        b.world = Mc.worldId(p.getWorld());
+        b.world = Mc.worldId(p.getEntityWorld());
         b.createdBy = p.getGameProfile().name();
         if (time != null) {
             OptionalLong t = Args.duration(ctx.getSource(), time);
@@ -276,7 +276,7 @@ final class WorldCommands {
         }
         // Everyone online right now belongs to the side they're on.
         for (ServerPlayerEntity o : Ac.server().getPlayerManager().getPlayerList()) {
-            b.sides.put(o.getUuid(), b.contains(Mc.worldId(o.getWorld()), o.getX(), o.getY(), o.getZ()));
+            b.sides.put(o.getUuid(), b.contains(Mc.worldId(o.getEntityWorld()), o.getX(), o.getY(), o.getZ()));
         }
         if (!Ac.get().barriers.add(b)) {
             Msg.err(ctx.getSource(), "barrier.exists");
@@ -321,7 +321,7 @@ final class WorldCommands {
                     if (p == null) return 0;
                     Ac.get().lobby.data().spawn = Mc.location(p);
                     Ac.markDirty("lobby");
-                    Staff.log(p, "lobby-setspawn", null, null, Mc.vec(p.getPos()).formatExact());
+                    Staff.log(p, "lobby-setspawn", null, null, Mc.vec(p.getEntityPos()).formatExact());
                     Msg.ok(ctx.getSource(), "lobby.spawn-set");
                     return 1;
                 }))
@@ -345,11 +345,11 @@ final class WorldCommands {
                     };
                     HitResult hit = p.raycast(6, 1f, false);
                     if (mode == null || !(hit instanceof BlockHitResult bh) || hit.getType() != HitResult.Type.BLOCK
-                            || !(p.getWorld().getBlockEntity(bh.getBlockPos()) instanceof Inventory inv)) {
+                            || !(p.getEntityWorld().getBlockEntity(bh.getBlockPos()) instanceof Inventory inv)) {
                         Msg.err(ctx.getSource(), "lobby.chest-usage");
                         return 0;
                     }
-                    LobbyFeature.setChestMode(p.getServerWorld(), bh.getBlockPos(), mode, inv);
+                    LobbyFeature.setChestMode(p.getEntityWorld(), bh.getBlockPos(), mode, inv);
                     Staff.log(p, "lobby-chest", null, null, mode + " at " + bh.getBlockPos().toShortString());
                     Msg.ok(ctx.getSource(), "lobby.chest-set", mode.name().toLowerCase());
                     return 1;
@@ -374,7 +374,7 @@ final class WorldCommands {
                     if (p == null) return 0;
                     Ac.get().jail.setCell(Args.str(ctx, "cell"), Mc.location(p));
                     Ac.markDirty("jail");
-                    Staff.log(p, "jail-setcell", null, Args.str(ctx, "cell"), Mc.vec(p.getPos()).formatExact());
+                    Staff.log(p, "jail-setcell", null, Args.str(ctx, "cell"), Mc.vec(p.getEntityPos()).formatExact());
                     Msg.ok(ctx.getSource(), "jail.cell-set", Args.str(ctx, "cell"));
                     return 1;
                 })))
@@ -465,7 +465,7 @@ final class WorldCommands {
                     ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
                     if (t == null) return 0;
                     boolean inv = Ac.get().staff.teleportInvisible(p.getUuid(), Ac.config().staff.teleportInvisibleByDefault);
-                    StaffTools.teleportTo(p, t.getServerWorld(), Mc.vec(t.getPos()), inv, t.getGameProfile().name());
+                    StaffTools.teleportTo(p, t.getEntityWorld(), Mc.vec(t.getPos()), inv, t.getGameProfile().name());
                     return 1;
                 }))));
         d.register(literal("waitingroom").requires(s -> Perms.visible(s, Perm.WAITING_ROOM))
@@ -474,14 +474,14 @@ final class WorldCommands {
                     if (p == null) return 0;
                     WaitingRoom wr = Ac.get().waitingRoom;
                     PlayerSession s = Ac.session(p);
-                    if (s.corner1 != null && s.corner2 != null && Mc.worldId(p.getWorld()).equals(s.cornerWorld)) {
+                    if (s.corner1 != null && s.corner2 != null && Mc.worldId(p.getEntityWorld()).equals(s.cornerWorld)) {
                         wr.data().area = new Area(s.cornerWorld, s.corner1.getX(), Math.min(s.corner1.getY(), s.corner2.getY()),
                                 s.corner1.getZ(), s.corner2.getX(), Math.max(s.corner1.getY(), s.corner2.getY()) + 3, s.corner2.getZ());
                     }
                     wr.data().spawn = Mc.location(p);
                     WaitingRoomFeature.seedExisting();
                     Ac.markDirty("waiting");
-                    Staff.log(p, "waitingroom-set", null, null, Mc.vec(p.getPos()).formatExact());
+                    Staff.log(p, "waitingroom-set", null, null, Mc.vec(p.getEntityPos()).formatExact());
                     Msg.ok(ctx.getSource(), "waiting.set");
                     return 1;
                 })));
@@ -650,7 +650,7 @@ final class WorldCommands {
                     if (p == null) return 0;
                     HitResult hit = p.raycast(6, 1f, false);
                     BlockPos on = hit instanceof BlockHitResult bh && hit.getType() == HitResult.Type.BLOCK ? bh.getBlockPos() : p.getBlockPos().down();
-                    var t = Traders.create(p, p.getServerWorld(), on, p.getYaw());
+                    var t = Traders.create(p, p.getEntityWorld(), on, p.getYaw());
                     if (t != null) {
                         Traders.openEdit(p, t);
                     }

@@ -149,7 +149,7 @@ public final class Traders {
     public static void applyLook(VillagerEntity v, Trader t) {
         VillagerType type = Registries.VILLAGER_TYPE.get(Identifier.of(t.look));
         VillagerProfession prof = Registries.VILLAGER_PROFESSION.get(Identifier.of(t.specialty.profession()));
-        v.setVillagerData(v.getVillagerData().withType(type).withProfession(prof).withLevel(5));
+        v.setVillagerData(v.getVillagerData().withType(Registries.VILLAGER_TYPE.getEntry(type)).withProfession(Registries.VILLAGER_PROFESSION.getEntry(prof)).withLevel(5));
         v.setCustomName(Text.literal("§e" + t.name));
         v.setCustomNameVisible(true);
     }
@@ -178,7 +178,7 @@ public final class Traders {
         float yaw = admin.getYaw() + 180f;
         t.location = new Location(Mc.worldId(w), on.getX() + 0.5, on.getY() + 1, on.getZ() + 0.5, yaw, 0);
         if (v != null) {
-            if (v.getWorld() != w) {
+            if (v.getEntityWorld() != w) {
                 v.discard();
                 all().remove(t.entity);
                 VillagerEntity nv = EntityType.VILLAGER.create(w, SpawnReason.COMMAND);

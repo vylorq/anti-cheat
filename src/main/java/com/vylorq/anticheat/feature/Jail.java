@@ -61,7 +61,7 @@ public final class Jail {
             if (r.returnTo != null && Mc.teleport(p, Ac.server(), r.returnTo)) {
                 // returned to where they were jailed
             } else {
-                var spawn = Ac.server().getOverworld().getSpawnPos();
+                var spawn = Mc.worldSpawn(Ac.server());
                 Mc.teleport(p, Ac.server().getOverworld(), spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, 0, 0);
             }
             String msg = Ac.config().jail.releaseMessage;
@@ -81,7 +81,7 @@ public final class Jail {
         if (cell == null) {
             return false;
         }
-        if (!cell.world().equals(Mc.worldId(p.getWorld())) || cell.vec().distance(to) > RADIUS) {
+        if (!cell.world().equals(Mc.worldId(p.getEntityWorld())) || cell.vec().distance(to) > RADIUS) {
             Mc.teleport(p, Ac.server(), cell);
             return true;
         }

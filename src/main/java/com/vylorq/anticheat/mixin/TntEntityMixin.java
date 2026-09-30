@@ -20,7 +20,7 @@ public abstract class TntEntityMixin {
             return;
         }
         Entity self = (Entity) (Object) this;
-        if (self.getWorld().isClient()) {
+        if (self.getEntityWorld().isClient()) {
             return;
         }
         Vec3d v = self.getVelocity();
