@@ -141,6 +141,20 @@ public final class Commands {
                 .then(literal("admin")
                         .then(literal("add").then(Args.player("player").executes(ctx -> admin(ctx, true))))
                         .then(literal("remove").then(Args.player("player").executes(ctx -> admin(ctx, false)))))
+                .then(literal("tempadmin")
+                        .then(literal("add").then(Args.player("player")
+                                .executes(ctx -> tempAdmin(ctx, false))
+                                .then(literal("keepbuilds").executes(ctx -> tempAdmin(ctx, true)))))
+                        .then(literal("remove").then(Args.player("player").executes(ctx -> {
+                            if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
+                            ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
+                            if (t == null) return 0;
+                            if (!com.vylorq.anticheat.feature.TempAdmins.end(ctx.getSource().getPlayer(), t)) {
+                                Msg.err(ctx.getSource(), "tempadmin.not", t.getGameProfile().getName());
+                                return 0;
+                            }
+                            return 1;
+                        }))))
                 .then(literal("tp").then(Args.word("world")
                         .then(CommandManager.argument("x", DoubleArgumentType.doubleArg())
                                 .then(CommandManager.argument("y", DoubleArgumentType.doubleArg())
@@ -302,6 +316,20 @@ public final class Commands {
         } catch (Exception e) {
             Msg.err(ctx.getSource(), "general.error");
         }
+        return 1;
+    }
+
+    private static int tempAdmin(CommandContext<ServerCommandSource> ctx, boolean keepBuilds) {
+        if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
+        ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
+        if (t == null) return 0;
+        String name = t.getGameProfile().getName();
+        if (com.vylorq.anticheat.feature.TempAdmins.isTemp(t.getUuid())) {
+            Msg.err(ctx.getSource(), "tempadmin.already", name);
+            return 0;
+        }
+        com.vylorq.anticheat.feature.TempAdmins.grant(ctx.getSource().getPlayer(), t, keepBuilds);
+        Msg.ok(ctx.getSource(), keepBuilds ? "tempadmin.added-keep" : "tempadmin.added", name);
         return 1;
     }
 

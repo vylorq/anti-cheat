@@ -2,7 +2,7 @@
 # One-command Minecraft server setup for a fresh Oracle Cloud Ubuntu server (Always Free, ARM or x86).
 #   Java + Bedrock (Geyser + Floodgate) + Fabric API + the anti-cheat mod, built from GitHub on the server.
 #
-# Run it on the server (put your Minecraft name after OWNER= to become the server owner):
+# Run it on the server (put your Minecraft name, Java or Bedrock, after OWNER= to become the server owner):
 #   curl -fsSL https://raw.githubusercontent.com/vylorq/anti-cheat/main/scripts/oracle-setup.sh | OWNER=YourName bash
 # If the GitHub repo is private, also pass a GitHub token:  ... | OWNER=YourName GITHUB_TOKEN=ghp_xxx bash
 # Run it again any time to update the mod (the world and settings are kept).
@@ -92,6 +92,24 @@ enforce-secure-profile=false
 EOF
 fi
 
+# Console access from the terminal ("mc <command>") through RCON. The port stays closed in both firewalls,
+# so only this machine can use it.
+set_prop() {
+  if grep -q "^$1=" server.properties; then
+    sed -i "s|^$1=.*|$1=$2|" server.properties
+  else
+    echo "$1=$2" >> server.properties
+  fi
+}
+RCON_PASS=$(grep -oP '^rcon.password=\K.+' server.properties || true)
+[ -n "$RCON_PASS" ] || RCON_PASS=$(head -c 24 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 24)
+set_prop enable-rcon true
+set_prop rcon.port 25575
+set_prop rcon.password "$RCON_PASS"
+set_prop broadcast-rcon-to-ops false
+chmod +x "$SRC_DIR/scripts/mc"
+sudo ln -sf "$SRC_DIR/scripts/mc" /usr/local/bin/mc
+
 say "Creating the background service (starts on boot, restarts on crash)"
 sudo tee /etc/systemd/system/minecraft.service > /dev/null <<EOF
 [Unit]
@@ -124,21 +142,16 @@ fi
 # Make OWNER the server owner (full access to every staff tool).
 ANTI_CFG="$SERVER_DIR/config/anticheat/config.json"
 if [ -n "$OWNER" ]; then
-  say "Making $OWNER the owner"
-  RAW=$(curl -fsSL "https://api.mojang.com/users/profiles/minecraft/$OWNER" | jq -r '.id // empty' || true)
-  if [ -z "$RAW" ]; then
-    echo "  Could not find the Java account '$OWNER'. Use: ac setowner <name> in the console instead."
+  # By name, so it works for Java and Bedrock alike: the first player with this name to join becomes the owner.
+  say "Making $OWNER the owner (as soon as they join)"
+  for _ in $(seq 1 24); do [ -f "$ANTI_CFG" ] && break; sleep 5; done
+  if [ -f "$ANTI_CFG" ]; then
+    sudo systemctl stop minecraft
+    jq --arg n "$OWNER" '.general.ownerName = $n | .general.ownerUuid = ""' "$ANTI_CFG" > "$ANTI_CFG.tmp" && mv "$ANTI_CFG.tmp" "$ANTI_CFG"
+    sudo systemctl start minecraft
+    echo "  $OWNER becomes the owner the next time they join."
   else
-    UUID="${RAW:0:8}-${RAW:8:4}-${RAW:12:4}-${RAW:16:4}-${RAW:20:12}"
-    for _ in $(seq 1 24); do [ -f "$ANTI_CFG" ] && break; sleep 5; done
-    if [ -f "$ANTI_CFG" ]; then
-      sudo systemctl stop minecraft
-      jq --arg u "$UUID" '.general.ownerUuid = $u' "$ANTI_CFG" > "$ANTI_CFG.tmp" && mv "$ANTI_CFG.tmp" "$ANTI_CFG"
-      sudo systemctl start minecraft
-      echo "  $OWNER ($UUID) is now the owner."
-    else
-      echo "  The mod's config was not created yet. Run this script again in a minute to set the owner."
-    fi
+    echo "  The mod's config was not created yet. Run this script again in a minute to set the owner."
   fi
 fi
 
@@ -149,6 +162,7 @@ cat <<EOF
   Java players:     $IP
   Bedrock players:  $IP   port 19132
 
+  Run a server command:  mc <command>     e.g.  mc list    mc ac tempadmin add Steve
   Server log:        journalctl -u minecraft -f      (Ctrl+C to leave)
   Stop/start:        sudo systemctl stop minecraft   /   sudo systemctl start minecraft
   Update the mod:    run the same setup command again

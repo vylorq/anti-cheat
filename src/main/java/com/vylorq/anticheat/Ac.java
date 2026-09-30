@@ -83,6 +83,8 @@ public final class Ac {
         public Map<UUID, List<String>> pendingMessages = new LinkedHashMap<>();
         /** Players who get a Staff alert when they join, because a review arrived while offline. */
         public boolean explosionsEnabled = true;
+        /** Temporary admins and the state to put back when their visit ends. */
+        public Map<UUID, com.vylorq.anticheat.feature.TempAdmins.Grant> tempAdmins = new LinkedHashMap<>();
     }
 
     /** Items held by the mod on a player's behalf (trade windows, trader offers). Returned after a crash. */

@@ -93,6 +93,26 @@ public final class AntiCheatGameTests implements FabricGameTest {
     }
 
     @GameTest(templateName = EMPTY_STRUCTURE)
+    public void tempAdminPutsEverythingBack(TestContext ctx) {
+        var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(ctx.getWorld(),
+                new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "TempTester"));
+        var pm = ctx.getWorld().getServer().getPlayerManager();
+        fake.getInventory().setStack(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.STICK, 3));
+        com.vylorq.anticheat.feature.TempAdmins.grant(null, fake, true);
+        check(com.vylorq.anticheat.feature.TempAdmins.isTemp(fake.getUuid()), "grant not recorded");
+        check(pm.isOperator(fake.getGameProfile()), "not op after grant");
+        fake.getInventory().setStack(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_BLOCK, 64));
+        fake.getEnderChestInventory().setStack(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.NETHERITE_INGOT, 64));
+        check(com.vylorq.anticheat.feature.TempAdmins.end(null, fake), "end returned false");
+        check(!pm.isOperator(fake.getGameProfile()), "still op after end");
+        check(!com.vylorq.anticheat.feature.TempAdmins.isTemp(fake.getUuid()), "grant not cleared");
+        check(fake.getInventory().getStack(0).isOf(net.minecraft.item.Items.STICK) && fake.getInventory().getStack(0).getCount() == 3,
+                "inventory not restored: " + fake.getInventory().getStack(0));
+        check(fake.getEnderChestInventory().getStack(0).isEmpty(), "ender chest not restored");
+        ctx.complete();
+    }
+
+    @GameTest(templateName = EMPTY_STRUCTURE)
     public void modIsRunning(TestContext ctx) {
         check(Ac.running(), "AntiCheat services are not running");
         check(Ac.get().db != null, "database not open");
