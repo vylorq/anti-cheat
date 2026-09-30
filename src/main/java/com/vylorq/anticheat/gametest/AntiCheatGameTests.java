@@ -68,7 +68,7 @@ public final class AntiCheatGameTests {
             "net.minecraft.entity.TntEntity",
             "net.minecraft.entity.FallingBlockEntity",
             "net.minecraft.server.MinecraftServer",
-            "net.minecraft.entity.player.PlayerEntity",
+            "net.minecraft.entity.PlayerLikeEntity",
     };
 
     @GameTest
