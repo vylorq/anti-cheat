@@ -126,7 +126,7 @@ public final class Traders {
         t.specialty = Specialty.LIBRARIAN;
         t.location = new Location(Mc.worldId(w), x, y, z, facing, 0);
         t.createdAt = System.currentTimeMillis();
-        t.createdBy = admin.getGameProfile().getName();
+        t.createdBy = admin.getGameProfile().name();
         applyLook(v, t);
         w.spawnEntity(v);
         all().put(t.entity, t);
@@ -149,7 +149,7 @@ public final class Traders {
     public static void applyLook(VillagerEntity v, Trader t) {
         VillagerType type = Registries.VILLAGER_TYPE.get(Identifier.of(t.look));
         VillagerProfession prof = Registries.VILLAGER_PROFESSION.get(Identifier.of(t.specialty.profession()));
-        v.setVillagerData(v.getVillagerData().withType(type).withProfession(prof).withLevel(5));
+        v.setVillagerData(v.getVillagerData().withType(Registries.VILLAGER_TYPE.getEntry(type)).withProfession(Registries.VILLAGER_PROFESSION.getEntry(prof)).withLevel(5));
         v.setCustomName(Text.literal("§e" + t.name));
         v.setCustomNameVisible(true);
     }
@@ -178,7 +178,7 @@ public final class Traders {
         float yaw = admin.getYaw() + 180f;
         t.location = new Location(Mc.worldId(w), on.getX() + 0.5, on.getY() + 1, on.getZ() + 0.5, yaw, 0);
         if (v != null) {
-            if (v.getWorld() != w) {
+            if (v.getEntityWorld() != w) {
                 v.discard();
                 all().remove(t.entity);
                 VillagerEntity nv = EntityType.VILLAGER.create(w, SpawnReason.COMMAND);
@@ -501,7 +501,7 @@ public final class Traders {
             mysteryAnimation(p, mysteryRarity, goods);
         }
         Mc.sound(p, SoundEvents.ENTITY_VILLAGER_YES, 1f, 1f);
-        ac.logs.trade(System.currentTimeMillis(), "trader", p.getUuid(), p.getGameProfile().getName(), null, t.name,
+        ac.logs.trade(System.currentTimeMillis(), "trader", p.getUuid(), p.getGameProfile().name(), null, t.name,
                 "bought " + ItemConv.info(goods).describe() + " for " + paid);
         ac.dupeWatch.legitGain(p.getUuid(), Dupes.value(List.of(goods)), System.currentTimeMillis());
         Ac.markDirty("traders");
@@ -601,7 +601,7 @@ public final class Traders {
         Trades.giveBack(p, List.of(r));
         ac.economy.flow(itemId, amount, 0);
         ac.economy.flow(reward, 0, rewardCount);
-        ac.logs.trade(System.currentTimeMillis(), "sell-to-trader", p.getUuid(), p.getGameProfile().getName(), null, t.name,
+        ac.logs.trade(System.currentTimeMillis(), "sell-to-trader", p.getUuid(), p.getGameProfile().name(), null, t.name,
                 "sold " + amount + "x " + itemId + " for " + rewardCount + "x " + reward);
         Mc.sound(p, SoundEvents.ENTITY_VILLAGER_YES, 1f, 1f);
         Ac.markDirty("economy");
@@ -642,7 +642,7 @@ public final class Traders {
         ItemStack r = stackFor(prize);
         Trades.giveBack(p, List.of(r));
         ac.economy.flow(t.requestItem, t.requestCount, 0);
-        ac.logs.trade(System.currentTimeMillis(), "request-trader", p.getUuid(), p.getGameProfile().getName(), null, t.name,
+        ac.logs.trade(System.currentTimeMillis(), "request-trader", p.getUuid(), p.getGameProfile().name(), null, t.name,
                 "handed in " + t.requestCount + "x " + t.requestItem + " for " + ItemConv.info(r).describe());
         Mc.sound(p, SoundEvents.ENTITY_VILLAGER_YES, 1f, 1f);
         Ac.markDirty("economy");

@@ -1,5 +1,6 @@
 package com.vylorq.anticheat.feature;
 
+import com.vylorq.anticheat.util.ItemConv;
 import com.vylorq.anticheat.Ac;
 import com.vylorq.anticheat.core.blocklog.BlockChange;
 import com.vylorq.anticheat.core.blocklog.RollbackPlanner;
@@ -27,12 +28,12 @@ public final class BlockLog {
     }
 
     public static String encode(BlockState s) {
-        return NbtHelper.fromBlockState(s).asString();
+        return NbtHelper.fromBlockState(s).toString();
     }
 
     public static BlockState decode(String s) {
         try {
-            return NbtHelper.toBlockState(Mc.blockLookup(), StringNbtReader.parse(s));
+            return NbtHelper.toBlockState(Mc.blockLookup(), ItemConv.parseSnbt(s));
         } catch (Exception e) {
             return null;
         }
@@ -48,7 +49,7 @@ public final class BlockLog {
         BlockChange c = new BlockChange();
         c.time = System.currentTimeMillis();
         c.actor = actor == null ? null : actor.getUuid();
-        c.actorName = actor == null ? actorName : actor.getGameProfile().getName();
+        c.actorName = actor == null ? actorName : actor.getGameProfile().name();
         c.world = Mc.worldId(w);
         c.x = pos.getX();
         c.y = pos.getY();
@@ -57,7 +58,7 @@ public final class BlockLog {
         c.before = encode(before);
         c.after = encode(after);
         if (beforeEntity != null) {
-            c.beforeNbt = beforeEntity.createNbtWithIdentifyingData(w.getRegistryManager()).asString();
+            c.beforeNbt = beforeEntity.createNbtWithIdentifyingData(w.getRegistryManager()).toString();
         }
         Ac.get().logs.block(c);
     }
@@ -66,7 +67,7 @@ public final class BlockLog {
         BlockChange c = new BlockChange();
         c.time = System.currentTimeMillis();
         c.actor = actor.getUuid();
-        c.actorName = actor.getGameProfile().getName();
+        c.actorName = actor.getGameProfile().name();
         c.world = Mc.worldId(w);
         c.x = pos.getX();
         c.y = pos.getY();
@@ -84,7 +85,7 @@ public final class BlockLog {
                                 boolean restore) {
         Ac ac = Ac.get();
         ac.logs.flush();
-        String world = admin == null ? null : Mc.worldId(admin.getWorld());
+        String world = admin == null ? null : Mc.worldId(admin.getEntityWorld());
         Integer cx = admin == null || radius == null ? null : admin.getBlockX();
         Integer cz = admin == null || radius == null ? null : admin.getBlockZ();
         long since = System.currentTimeMillis() - sinceMillis;
@@ -121,8 +122,8 @@ public final class BlockLog {
                 BlockEntity be = w.getBlockEntity(pos);
                 if (be != null) {
                     try {
-                        NbtCompound n = StringNbtReader.parse(op.nbt());
-                        be.read(n, w.getRegistryManager());
+                        NbtCompound n = ItemConv.parseSnbt(op.nbt());
+                        Mc.loadBlockEntity(be, n, w.getRegistryManager());
                         be.markDirty();
                     } catch (Exception ignored) {
                         // keep the block, skip its contents

@@ -232,7 +232,7 @@ public final class Arenas {
             if (p == null || a == null) {
                 continue;
             }
-            if (!a.area.contains(Mc.worldId(p.getWorld()), p.getX(), p.getY(), p.getZ())) {
+            if (!a.area.contains(Mc.worldId(p.getEntityWorld()), p.getX(), p.getY(), p.getZ())) {
                 stopSpectating(p);
             }
         }
@@ -245,7 +245,7 @@ public final class Arenas {
         double r = Math.max(3, maxR - secondsIntoSudden * 0.5);
         for (ServerPlayerEntity p : online(m)) {
             if (m.alive.contains(p.getUuid()) && Math.hypot(p.getX() - c.x(), p.getZ() - c.z()) > r) {
-                p.damage((ServerWorld) p.getWorld(), p.getDamageSources().outOfWorld(), 2.0f);
+                p.damage((ServerWorld) p.getEntityWorld(), p.getDamageSources().outOfWorld(), 2.0f);
             }
         }
     }
@@ -268,8 +268,8 @@ public final class Arenas {
             return true;
         }
         int winner = m.eliminate(p.getUuid(), killer == null ? null : killer.getUuid());
-        announce(m, killer != null ? Msg.tr("arena.killed", p.getGameProfile().getName(), killer.getGameProfile().getName())
-                : Msg.tr("arena.died", p.getGameProfile().getName()));
+        announce(m, killer != null ? Msg.tr("arena.killed", p.getGameProfile().name(), killer.getGameProfile().name())
+                : Msg.tr("arena.died", p.getGameProfile().name()));
         p.changeGameMode(GameMode.SPECTATOR);
         Location spot = m.arena.spectatorSpot != null ? m.arena.spectatorSpot : m.arena.spawnFor(0, 0);
         Mc.teleport(p, Ac.server(), spot);
@@ -364,7 +364,7 @@ public final class Arenas {
         p.getInventory().clear();
         int winner = m.eliminate(p.getUuid(), null);
         am().detach(p.getUuid());
-        announce(m, Msg.tr("arena.left", p.getGameProfile().getName()));
+        announce(m, Msg.tr("arena.left", p.getGameProfile().name()));
         if (winner >= 0 && m.phase != Match.Phase.ENDED) {
             roundOver(m, winner);
         } else if (m.phase == Match.Phase.COUNTDOWN && online(m).size() <= 1) {
@@ -393,9 +393,9 @@ public final class Arenas {
             return;
         }
         am().requestDuel(from.getUuid(), to.getUuid(), kit);
-        Msg.send(from, "duel.sent", to.getGameProfile().getName());
-        String n = Msg.q(from.getGameProfile().getName());
-        to.sendMessage(Msg.prefixed(Msg.tr("duel.received", from.getGameProfile().getName(), kit)).append(Text.literal(" "))
+        Msg.send(from, "duel.sent", to.getGameProfile().name());
+        String n = Msg.q(from.getGameProfile().name());
+        to.sendMessage(Msg.prefixed(Msg.tr("duel.received", from.getGameProfile().name(), kit)).append(Text.literal(" "))
                 .append(Msg.button("§a[Accept]", "/duel accept " + n, "Accept the duel")).append(Text.literal(" "))
                 .append(Msg.button("§c[Decline]", "/duel deny " + n, "Decline")));
     }
@@ -458,7 +458,7 @@ public final class Arenas {
         PlayerSnapshot s = am().takePending(p.getUuid());
         Ac.saveNow("arenas");
         if (s != null) {
-            p.changeGameMode(GameMode.byName(s.gameMode, GameMode.SURVIVAL));
+            p.changeGameMode(GameMode.byId(s.gameMode, GameMode.SURVIVAL));
             if (s.location != null) {
                 Mc.teleport(p, Ac.server(), s.location);
             }

@@ -10,11 +10,10 @@ import com.vylorq.anticheat.feature.WorldGuard;
 import com.vylorq.anticheat.feature.Xray;
 import com.vylorq.anticheat.util.BlockSnapshots;
 import com.vylorq.anticheat.util.Mc;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.test.GameTest;
 import net.minecraft.test.GameTestException;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.math.BlockPos;
@@ -29,10 +28,10 @@ import java.util.Map;
  * In-game tests run on a headless server: {@code ./gradlew runGametest}. They check the parts that need a real
  * world (anti-x-ray chunk rewriting, claim border rules, safe setback spots, block snapshots).
  */
-public final class AntiCheatGameTests implements FabricGameTest {
+public final class AntiCheatGameTests {
     private static void check(boolean ok, String what) {
         if (!ok) {
-            throw new GameTestException(what);
+            throw new GameTestException(net.minecraft.text.Text.literal(what), 0);
         }
     }
 
@@ -70,7 +69,7 @@ public final class AntiCheatGameTests implements FabricGameTest {
             "net.minecraft.entity.FallingBlockEntity",
     };
 
-    @GameTest(templateName = EMPTY_STRUCTURE)
+    @GameTest
     public void allMixinsApply(TestContext ctx) {
         ClassLoader loader = AntiCheatGameTests.class.getClassLoader();
         StringBuilder failed = new StringBuilder();
@@ -85,14 +84,14 @@ public final class AntiCheatGameTests implements FabricGameTest {
         ctx.complete();
     }
 
-    @GameTest(templateName = EMPTY_STRUCTURE)
+    @GameTest
     public void defaultTradesHaveNoMoneyLoops(TestContext ctx) {
         List<String> problems = com.vylorq.anticheat.feature.Traders.economyProblems();
         check(problems.isEmpty(), "economy problems: " + problems);
         ctx.complete();
     }
 
-    @GameTest(templateName = EMPTY_STRUCTURE)
+    @GameTest
     public void tempAdminPutsEverythingBack(TestContext ctx) {
         var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(ctx.getWorld(),
                 new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "TempTester"));
@@ -100,11 +99,11 @@ public final class AntiCheatGameTests implements FabricGameTest {
         fake.getInventory().setStack(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.STICK, 3));
         com.vylorq.anticheat.feature.TempAdmins.grant(null, fake, true);
         check(com.vylorq.anticheat.feature.TempAdmins.isTemp(fake.getUuid()), "grant not recorded");
-        check(pm.isOperator(fake.getGameProfile()), "not op after grant");
+        check(pm.isOperator(new net.minecraft.server.PlayerConfigEntry(fake.getGameProfile())), "not op after grant");
         fake.getInventory().setStack(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_BLOCK, 64));
         fake.getEnderChestInventory().setStack(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.NETHERITE_INGOT, 64));
         check(com.vylorq.anticheat.feature.TempAdmins.end(null, fake), "end returned false");
-        check(!pm.isOperator(fake.getGameProfile()), "still op after end");
+        check(!pm.isOperator(new net.minecraft.server.PlayerConfigEntry(fake.getGameProfile())), "still op after end");
         check(!com.vylorq.anticheat.feature.TempAdmins.isTemp(fake.getUuid()), "grant not cleared");
         check(fake.getInventory().getStack(0).isOf(net.minecraft.item.Items.STICK) && fake.getInventory().getStack(0).getCount() == 3,
                 "inventory not restored: " + fake.getInventory().getStack(0));
@@ -112,14 +111,14 @@ public final class AntiCheatGameTests implements FabricGameTest {
         ctx.complete();
     }
 
-    @GameTest(templateName = EMPTY_STRUCTURE)
+    @GameTest
     public void modIsRunning(TestContext ctx) {
         check(Ac.running(), "AntiCheat services are not running");
         check(Ac.get().db != null, "database not open");
         ctx.complete();
     }
 
-    @GameTest(templateName = EMPTY_STRUCTURE)
+    @GameTest
     public void xrayHidesEnclosedOreOnly(TestContext ctx) {
         ServerWorld w = ctx.getWorld();
         BlockPos base = ctx.getAbsolutePos(new BlockPos(1, 2, 1));
@@ -150,7 +149,7 @@ public final class AntiCheatGameTests implements FabricGameTest {
         ctx.complete();
     }
 
-    @GameTest(templateName = EMPTY_STRUCTURE)
+    @GameTest
     public void claimBordersStopCrossings(TestContext ctx) {
         ServerWorld w = ctx.getWorld();
         BlockPos a = ctx.getAbsolutePos(new BlockPos(0, 1, 0));
@@ -170,7 +169,7 @@ public final class AntiCheatGameTests implements FabricGameTest {
         ctx.complete();
     }
 
-    @GameTest(templateName = EMPTY_STRUCTURE)
+    @GameTest
     public void setbackAvoidsLava(TestContext ctx) {
         ServerWorld w = ctx.getWorld();
         BlockPos floor = ctx.getAbsolutePos(new BlockPos(2, 0, 2));
@@ -191,7 +190,7 @@ public final class AntiCheatGameTests implements FabricGameTest {
         ctx.complete();
     }
 
-    @GameTest(templateName = EMPTY_STRUCTURE)
+    @GameTest
     public void snapshotsRestoreBlocks(TestContext ctx) throws Exception {
         ServerWorld w = ctx.getWorld();
         BlockPos p = ctx.getAbsolutePos(new BlockPos(1, 1, 1));

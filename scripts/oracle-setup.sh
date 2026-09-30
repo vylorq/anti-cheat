@@ -8,7 +8,7 @@
 # Run it again any time to update the mod (the world and settings are kept).
 set -euo pipefail
 
-MC_VERSION="${MC_VERSION:-1.21.4}"
+MC_VERSION="${MC_VERSION:-1.21.11}"
 REPO="${REPO:-https://github.com/vylorq/anti-cheat.git}"
 BRANCH="${BRANCH:-main}"
 SERVER_DIR="$HOME/mc"
@@ -75,11 +75,24 @@ modrinth() {
   echo "  $project OK"
 }
 
-say "Downloading Fabric API, Geyser and Floodgate"
+# Back up the world once before it is upgraded to a new Minecraft version (upgrades can't be undone).
+if [ -d world ] && [ "$(cat .mc-version 2>/dev/null)" != "$MC_VERSION" ]; then
+  say "Backing up the world before upgrading it to Minecraft $MC_VERSION"
+  mkdir -p "$HOME/backups"
+  sudo systemctl stop minecraft 2>/dev/null || true
+  tar czf "$HOME/backups/world-before-$MC_VERSION-$(date +%F-%H%M).tar.gz" world config
+  echo "  Saved in ~/backups"
+fi
+
+say "Downloading Fabric API, Floodgate and ViaFabric"
 modrinth fabric-api
-modrinth geyser
 modrinth floodgate
+# ViaFabric lets Java players on newer Minecraft versions join, and lets the newest Geyser connect.
+modrinth viafabric
+# Geyser now runs as its own program (always the newest, so every Bedrock version works); remove the old mod.
+rm -f mods/geyser-*.jar mods/Geyser-*.jar
 cp "$MOD_JAR" mods/anticheat.jar
+echo "$MC_VERSION" > .mc-version
 
 echo "eula=true" > eula.txt
 if [ ! -f server.properties ]; then
@@ -130,13 +143,46 @@ sudo systemctl daemon-reload
 sudo systemctl enable minecraft >/dev/null
 sudo systemctl restart minecraft
 
-# Bedrock players log in through Floodgate (no Java account needed).
-GEYSER_CFG="$SERVER_DIR/config/Geyser-Fabric/config.yml"
-say "Waiting for the first start to create the Geyser settings (up to 5 minutes)"
-for _ in $(seq 1 60); do [ -f "$GEYSER_CFG" ] && break; sleep 5; done
-if [ -f "$GEYSER_CFG" ] && ! grep -q "auth-type: floodgate" "$GEYSER_CFG"; then
-  sed -i 's/auth-type: .*/auth-type: floodgate/' "$GEYSER_CFG"
-  sudo systemctl restart minecraft
+# Bedrock: the newest Geyser runs next to the server as its own service and joins through ViaFabric.
+# Bedrock players log in with Floodgate (no Java account needed), which needs Floodgate's key.
+GEYSER_DIR="$HOME/geyser"
+FLOODGATE_KEY="$SERVER_DIR/config/floodgate/key.pem"
+say "Setting up Geyser (Bedrock support)"
+mkdir -p "$GEYSER_DIR"
+curl -fsSL -o "$GEYSER_DIR/Geyser.jar" "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/standalone" \
+  || fail "Could not download Geyser. Try again in a few minutes."
+echo "  Waiting for the server to create Floodgate's key (up to 5 minutes)"
+for _ in $(seq 1 60); do [ -f "$FLOODGATE_KEY" ] && break; sleep 5; done
+[ -f "$FLOODGATE_KEY" ] || fail "Floodgate's key was not created. Check the server log: journalctl -u minecraft -n 50"
+cp "$FLOODGATE_KEY" "$GEYSER_DIR/key.pem"
+sudo tee /etc/systemd/system/geyser.service > /dev/null <<EOF
+[Unit]
+Description=Geyser (Bedrock players)
+After=minecraft.service
+
+[Service]
+User=$USER
+WorkingDirectory=$GEYSER_DIR
+ExecStart=/usr/bin/java -Xms512M -Xmx1536M -jar Geyser.jar --nogui
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload
+sudo systemctl enable geyser >/dev/null
+sudo systemctl restart geyser
+GEYSER_CFG="$GEYSER_DIR/config.yml"
+for _ in $(seq 1 36); do [ -f "$GEYSER_CFG" ] && break; sleep 5; done
+if [ -f "$GEYSER_CFG" ]; then
+  if ! grep -q "auth-type: floodgate" "$GEYSER_CFG" || grep -q "address: auto" "$GEYSER_CFG"; then
+    sed -i 's/auth-type: .*/auth-type: floodgate/; s/address: auto/address: 127.0.0.1/' "$GEYSER_CFG"
+    sudo systemctl restart geyser
+  fi
+  echo "  Geyser OK"
+else
+  echo "  Geyser did not create its settings yet. Check: journalctl -u geyser -n 50"
 fi
 
 # Make OWNER the server owner (full access to every staff tool).
@@ -164,6 +210,7 @@ cat <<EOF
 
   Run a server command:  mc <command>     e.g.  mc list    mc ac tempadmin add Steve
   Server log:        journalctl -u minecraft -f      (Ctrl+C to leave)
+  Bedrock log:       journalctl -u geyser -f
   Stop/start:        sudo systemctl stop minecraft   /   sudo systemctl start minecraft
   Update the mod:    run the same setup command again
   Set the owner:     run the setup command again with OWNER=YourName

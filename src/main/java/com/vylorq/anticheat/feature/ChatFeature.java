@@ -27,7 +27,7 @@ public final class ChatFeature {
         if (Prompts.onChat(p, message)) {
             return false;
         }
-        ac.logs.chat(now, p.getUuid(), p.getGameProfile().getName(), "chat", message);
+        ac.logs.chat(now, p.getUuid(), p.getGameProfile().name(), "chat", message);
         ac.evidence.record(p.getUuid(), EvidenceEvent.Type.CHAT, p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch(), "chat: " + message);
         if (WaitingRoomFeature.waiting(p)) {
             WaitingRoomFeature.chat(p, message);
@@ -61,7 +61,7 @@ public final class ChatFeature {
             Msg.send(p, "chat.blocked." + v.name().toLowerCase());
             ac.logs.activity(now, p.getUuid(), "chat-blocked", v.name() + ": " + message);
             if (v == ChatFilter.Verdict.ADVERTISING) {
-                Staff.broadcast(Msg.prefixed(Msg.tr("chat.ad-alert", p.getGameProfile().getName(), message)));
+                Staff.broadcast(Msg.prefixed(Msg.tr("chat.ad-alert", p.getGameProfile().name(), message)));
             }
             return false;
         }

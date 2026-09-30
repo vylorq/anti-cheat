@@ -57,7 +57,7 @@ public final class Dupes {
         int jump = Ac.get().dupeWatch.sample(p.getUuid(), value, System.currentTimeMillis(),
                 cfg.windowSeconds * 1000L, cfg.valueJumpThreshold);
         if (jump > 0) {
-            Staff.broadcast(Msg.prefixed(Msg.tr("dupe.alert", p.getGameProfile().getName(), jump, cfg.windowSeconds)));
+            Staff.broadcast(Msg.prefixed(Msg.tr("dupe.alert", p.getGameProfile().name(), jump, cfg.windowSeconds)));
             Ac.get().logs.activity(System.currentTimeMillis(), p.getUuid(), "dupe-watch", "valuables +" + jump);
             PlayerSessionFlags.flag(p, CheckType.DUPE, 1.0, "valuables jumped by " + jump);
         }

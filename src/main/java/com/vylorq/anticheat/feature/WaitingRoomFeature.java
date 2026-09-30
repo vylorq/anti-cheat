@@ -82,8 +82,8 @@ public final class WaitingRoomFeature {
         WaitingRoom wr = Ac.get().waitingRoom;
         Location spawn = wr.data().spawn;
         boolean inside = wr.data().area != null
-                ? wr.data().area.contains(Mc.worldId(p.getWorld()), to.x(), to.y(), to.z())
-                : spawn.world().equals(Mc.worldId(p.getWorld())) && spawn.vec().distance(to) <= RADIUS;
+                ? wr.data().area.contains(Mc.worldId(p.getEntityWorld()), to.x(), to.y(), to.z())
+                : spawn.world().equals(Mc.worldId(p.getEntityWorld())) && spawn.vec().distance(to) <= RADIUS;
         if (!inside) {
             Mc.teleport(p, Ac.server(), spawn);
             return true;
@@ -104,7 +104,7 @@ public final class WaitingRoomFeature {
             Msg.send(p, "waiting.pending");
             return;
         }
-        WaitingRoom.Request r = ac.waitingRoom.start(p.getUuid(), p.getGameProfile().getName(), s.bedrock, s.ip);
+        WaitingRoom.Request r = ac.waitingRoom.start(p.getUuid(), p.getGameProfile().name(), s.bedrock, s.ip);
         Ac.markDirty("waiting");
         UUID id = p.getUuid();
         if (s.bedrock && Floodgate.askText(id, Msg.tr("waiting.form-title"), List.of(WaitingRoom.QUESTIONS),
@@ -193,7 +193,7 @@ public final class WaitingRoomFeature {
             if (ac.lobby.isSet()) {
                 Mc.teleport(p, ac.server, ac.lobby.data().spawn);
             } else {
-                var spawn = ac.server.getOverworld().getSpawnPos();
+                var spawn = Mc.worldSpawn(ac.server);
                 Mc.teleport(p, ac.server.getOverworld(), spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, 0, 0);
             }
             Mc.title(p, Msg.tr("waiting.accepted-title"), Msg.tr("waiting.accepted-subtitle"), 10, 60, 20);
@@ -235,10 +235,10 @@ public final class WaitingRoomFeature {
     /** Chat from a waiting player only reaches admins standing in the waiting room. */
     public static void chat(ServerPlayerEntity p, String message) {
         Location spawn = Ac.get().waitingRoom.data().spawn;
-        Text t = Text.literal("§8[Waiting] §7" + p.getGameProfile().getName() + ": §f" + message);
+        Text t = Text.literal("§8[Waiting] §7" + p.getGameProfile().name() + ": §f" + message);
         p.sendMessage(t);
         for (ServerPlayerEntity admin : Staff.online()) {
-            if (spawn != null && spawn.world().equals(Mc.worldId(admin.getWorld())) && spawn.vec().distance(Mc.vec(admin.getPos())) <= 32) {
+            if (spawn != null && spawn.world().equals(Mc.worldId(admin.getEntityWorld())) && spawn.vec().distance(Mc.vec(admin.getEntityPos())) <= 32) {
                 admin.sendMessage(t);
             }
         }

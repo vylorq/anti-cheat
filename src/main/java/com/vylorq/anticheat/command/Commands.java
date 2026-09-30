@@ -150,7 +150,7 @@ public final class Commands {
                             ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
                             if (t == null) return 0;
                             if (!com.vylorq.anticheat.feature.TempAdmins.end(ctx.getSource().getPlayer(), t)) {
-                                Msg.err(ctx.getSource(), "tempadmin.not", t.getGameProfile().getName());
+                                Msg.err(ctx.getSource(), "tempadmin.not", t.getGameProfile().name());
                                 return 0;
                             }
                             return 1;
@@ -273,7 +273,7 @@ public final class Commands {
                     Extras.backupAsync(names -> Msg.ok(src, "backup.done", names), e -> Msg.err(src, "backup.failed", e.getMessage()));
                     return 1;
                 }))
-                .then(literal("setowner").requires(s -> s.getPlayer() == null && s.hasPermissionLevel(4))
+                .then(literal("setowner").requires(s -> s.getPlayer() == null && Mc.hasLevel(s, 4))
                         .then(Args.player("player").executes(ctx -> {
                             UUID id = Args.known(ctx.getSource(), Args.str(ctx, "player"));
                             if (id == null) return 0;
@@ -323,7 +323,7 @@ public final class Commands {
         if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
         ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
         if (t == null) return 0;
-        String name = t.getGameProfile().getName();
+        String name = t.getGameProfile().name();
         if (com.vylorq.anticheat.feature.TempAdmins.isTemp(t.getUuid())) {
             Msg.err(ctx.getSource(), "tempadmin.already", name);
             return 0;
@@ -337,19 +337,20 @@ public final class Commands {
         if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
         String name = Args.str(ctx, "player");
         var server = Ac.server();
-        var profile = server.getUserCache() == null ? null : server.getUserCache().findByName(name).orElse(null);
-        if (profile == null) {
-            Msg.err(ctx.getSource(), "general.unknown-player", name);
+        UUID id = Args.known(ctx.getSource(), name);
+        if (id == null) {
             return 0;
         }
+        String realName = Args.nameOf(id, name);
+        var entry = new net.minecraft.server.PlayerConfigEntry(id, realName);
         if (add) {
-            server.getPlayerManager().addToOperators(profile);
+            server.getPlayerManager().addToOperators(entry);
         } else {
-            server.getPlayerManager().removeFromOperators(profile);
-            Ac.get().pins.logout(profile.getId());
+            server.getPlayerManager().removeFromOperators(entry);
+            Ac.get().pins.logout(id);
         }
-        Staff.log(ctx.getSource().getPlayer(), add ? "admin-add" : "admin-remove", profile.getId(), profile.getName(), "");
-        Msg.ok(ctx.getSource(), add ? "ac.admin-added" : "ac.admin-removed", profile.getName());
+        Staff.log(ctx.getSource().getPlayer(), add ? "admin-add" : "admin-remove", id, realName, "");
+        Msg.ok(ctx.getSource(), add ? "ac.admin-added" : "ac.admin-removed", realName);
         return 1;
     }
 
@@ -400,7 +401,7 @@ public final class Commands {
             root = root.substring(colon + 1);
         }
         long now = System.currentTimeMillis();
-        ac.logs.chat(now, p.getUuid(), p.getGameProfile().getName(), "command", "/" + command);
+        ac.logs.chat(now, p.getUuid(), p.getGameProfile().name(), "command", "/" + command);
         ac.evidence.record(p.getUuid(), EvidenceEvent.Type.COMMAND, p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch(), "/" + command);
         if (WaitingRoomFeature.waiting(p) && !(root.equals("request") || root.equals("login"))) {
             Msg.send(p, "waiting.only-request");

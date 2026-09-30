@@ -1,5 +1,6 @@
 package com.vylorq.anticheat.perm;
 
+import com.vylorq.anticheat.util.Mc;
 import com.vylorq.anticheat.Ac;
 import com.vylorq.anticheat.core.detect.CheckType;
 import com.vylorq.anticheat.core.perm.Perm;
@@ -35,7 +36,7 @@ public final class Perms {
         if (want.isEmpty()) {
             return;
         }
-        String n = p.getGameProfile().getName();
+        String n = p.getGameProfile().name();
         String bare = n.length() > 1 && !Character.isLetterOrDigit(n.charAt(0)) ? n.substring(1) : n;
         String wantBare = want.length() > 1 && !Character.isLetterOrDigit(want.charAt(0)) ? want.substring(1) : want;
         if (n.equalsIgnoreCase(want) || bare.equalsIgnoreCase(wantBare)) {
@@ -67,14 +68,8 @@ public final class Perms {
         if (online != null) {
             return role(online);
         }
-        var ops = server.getPlayerManager().getOpList();
-        for (String name : ops.getNames()) {
-            var profile = server.getUserCache() == null ? null : server.getUserCache().findByName(name).orElse(null);
-            if (profile != null && profile.getId().equals(id)) {
-                return Role.ADMIN;
-            }
-        }
-        return Role.PLAYER;
+        return server.getPlayerManager().isOperator(new net.minecraft.server.PlayerConfigEntry(id, ""))
+                ? Role.ADMIN : Role.PLAYER;
     }
 
     public static boolean isStaff(ServerPlayerEntity p) {
@@ -119,7 +114,7 @@ public final class Perms {
         ServerPlayerEntity p = src.getPlayer();
         if (p == null) {
             // Console and command blocks with op level 4.
-            return src.hasPermissionLevel(4) || (perm.minimum() != Role.OWNER && src.hasPermissionLevel(3));
+            return Mc.hasLevel(src, 4) || (perm.minimum() != Role.OWNER && Mc.hasLevel(src, 3));
         }
         return has(p, perm);
     }
@@ -128,7 +123,7 @@ public final class Perms {
     public static boolean visible(ServerCommandSource src, Perm perm) {
         ServerPlayerEntity p = src.getPlayer();
         if (p == null) {
-            return src.hasPermissionLevel(3);
+            return Mc.hasLevel(src, 3);
         }
         Role r = role(p);
         return perm.minimum() == Role.PLAYER || PermissionPolicy.allowed(r, perm);

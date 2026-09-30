@@ -38,12 +38,12 @@ public final class Joins {
     /**
      * Before the player is let in. @return a disconnect reason, or null to allow.
      */
-    public static Text checkLogin(SocketAddress address, GameProfile profile) {
+    public static Text checkLogin(SocketAddress address, net.minecraft.server.PlayerConfigEntry profile) {
         Ac ac = Ac.get();
-        if (ac == null || profile == null || profile.getId() == null) {
+        if (ac == null || profile == null || profile.id() == null) {
             return null;
         }
-        UUID id = profile.getId();
+        UUID id = profile.id();
         boolean staffish = Perms.isOwner(id) || ac.server.getPlayerManager().isOperator(profile);
         Punishment ban = ac.punishments.active(id, Punishment.Type.BAN);
         if (ban == null) {
@@ -59,7 +59,7 @@ public final class Joins {
             var cfg = Ac.config().joins;
             JoinGuard.Verdict v = ac.joins.checkJoin(id, ip(address), System.currentTimeMillis(), cfg.maxNewAccountsPerMinute, cfg.subnetWaveSize);
             if (v != JoinGuard.Verdict.OK) {
-                Staff.broadcast(Msg.prefixed(Msg.tr("joins.blocked", profile.getName(), ip(address), v.name())));
+                Staff.broadcast(Msg.prefixed(Msg.tr("joins.blocked", profile.name(), ip(address), v.name())));
                 return Text.literal(Msg.tr("joins.try-later"));
             }
         }
@@ -69,7 +69,7 @@ public final class Joins {
     public static void onJoin(ServerPlayerEntity p) {
         Ac ac = Ac.get();
         long now = System.currentTimeMillis();
-        String name = p.getGameProfile().getName();
+        String name = p.getGameProfile().name();
         PlayerSession s = Ac.session(p);
         s.name = name;
         s.bedrock = Floodgate.isBedrock(p.getUuid());
@@ -167,7 +167,7 @@ public final class Joins {
             return;
         }
         long now = System.currentTimeMillis();
-        String name = p.getGameProfile().getName();
+        String name = p.getGameProfile().name();
         PlayerSession s = Ac.sessionOrNull(p.getUuid());
         TempAdmins.onLeave(p);
         Trades.onDisconnect(p);

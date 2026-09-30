@@ -39,14 +39,14 @@ public final class Jail {
 
     public static JailManager.Record jail(ServerPlayerEntity target, String reason, long duration, String by) {
         Trades.cancelFor(target, com.vylorq.anticheat.core.trade.SecureTrade.CancelReason.JAILED);
-        JailManager.Record r = Ac.get().jail.jail(target.getUuid(), target.getGameProfile().getName(), reason, by, duration,
+        JailManager.Record r = Ac.get().jail.jail(target.getUuid(), target.getGameProfile().name(), reason, by, duration,
                 Mc.location(target), false);
         Ac.markDirty("jail");
         toCell(target);
         if (Ac.config().jail.announce) {
-            Ac.server().getPlayerManager().broadcast(Text.literal(Msg.tr("jail.announce", target.getGameProfile().getName(), reason)), false);
+            Ac.server().getPlayerManager().broadcast(Text.literal(Msg.tr("jail.announce", target.getGameProfile().name(), reason)), false);
         }
-        Discord.send("jail", "Jailed: " + target.getGameProfile().getName(), reason + " (" + Durations.format(duration) + ")", 0x7F8C8D);
+        Discord.send("jail", "Jailed: " + target.getGameProfile().name(), reason + " (" + Durations.format(duration) + ")", 0x7F8C8D);
         return r;
     }
 
@@ -61,7 +61,7 @@ public final class Jail {
             if (r.returnTo != null && Mc.teleport(p, Ac.server(), r.returnTo)) {
                 // returned to where they were jailed
             } else {
-                var spawn = Ac.server().getOverworld().getSpawnPos();
+                var spawn = Mc.worldSpawn(Ac.server());
                 Mc.teleport(p, Ac.server().getOverworld(), spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, 0, 0);
             }
             String msg = Ac.config().jail.releaseMessage;
@@ -81,7 +81,7 @@ public final class Jail {
         if (cell == null) {
             return false;
         }
-        if (!cell.world().equals(Mc.worldId(p.getWorld())) || cell.vec().distance(to) > RADIUS) {
+        if (!cell.world().equals(Mc.worldId(p.getEntityWorld())) || cell.vec().distance(to) > RADIUS) {
             Mc.teleport(p, Ac.server(), cell);
             return true;
         }

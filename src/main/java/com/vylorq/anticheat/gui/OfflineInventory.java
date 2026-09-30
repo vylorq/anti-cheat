@@ -46,31 +46,40 @@ public final class OfflineInventory {
             Ac.LOG.error("Could not read player data for {}", id, e);
             return null;
         }
-        NbtList inv = o.root.getList("Inventory", NbtElement.COMPOUND_TYPE);
+        // Main inventory (slots 0-35). Since 1.21.5 armor and off-hand live in the "equipment" compound.
+        NbtList inv = o.root.getListOrEmpty("Inventory");
         for (int i = 0; i < inv.size(); i++) {
-            NbtCompound n = inv.getCompound(i);
-            int slot = n.getByte("Slot") & 255;
-            int idx = slot < 36 ? slot : switch (slot) {
-                case 100 -> 36;
-                case 101 -> 37;
-                case 102 -> 38;
-                case 103 -> 39;
-                case 150 -> 40; // -106 as unsigned
-                default -> -1;
-            };
-            if (idx >= 0) {
-                o.inventory.setStack(idx, ItemStack.fromNbt(ItemConv.registries(), n).orElse(ItemStack.EMPTY));
+            NbtCompound n = inv.getCompoundOrEmpty(i);
+            int slot = n.getByte("Slot", (byte) -1) & 255;
+            if (slot < 36) {
+                o.inventory.setStack(slot, ItemConv.fromNbt(withoutSlot(n)));
             }
         }
-        NbtList ec = o.root.getList("EnderItems", NbtElement.COMPOUND_TYPE);
+        NbtCompound eq = o.root.getCompoundOrEmpty("equipment");
+        for (int k = 0; k < EQUIPMENT.length; k++) {
+            NbtCompound n = eq.getCompoundOrEmpty(EQUIPMENT[k]);
+            if (!n.isEmpty()) {
+                o.inventory.setStack(36 + k, ItemConv.fromNbt(n));
+            }
+        }
+        NbtList ec = o.root.getListOrEmpty("EnderItems");
         for (int i = 0; i < ec.size(); i++) {
-            NbtCompound n = ec.getCompound(i);
-            int slot = n.getByte("Slot") & 255;
+            NbtCompound n = ec.getCompoundOrEmpty(i);
+            int slot = n.getByte("Slot", (byte) -1) & 255;
             if (slot < 27) {
-                o.ender.setStack(slot, ItemStack.fromNbt(ItemConv.registries(), n).orElse(ItemStack.EMPTY));
+                o.ender.setStack(slot, ItemConv.fromNbt(withoutSlot(n)));
             }
         }
         return o;
+    }
+
+    /** Equipment keys in inventory index order 36..40 (boots, leggings, chestplate, helmet, off-hand). */
+    private static final String[] EQUIPMENT = {"feet", "legs", "chest", "head", "offhand"};
+
+    private static NbtCompound withoutSlot(NbtCompound n) {
+        NbtCompound c = n.copy();
+        c.remove("Slot");
+        return c;
     }
 
     /** Writes back, unless the player came online meanwhile (their live data wins). */
@@ -79,31 +88,32 @@ public final class OfflineInventory {
             return false;
         }
         NbtList inv = new NbtList();
-        for (int i = 0; i < 41; i++) {
+        for (int i = 0; i < 36; i++) {
             ItemStack s = inventory.getStack(i);
-            if (s.isEmpty()) {
-                continue;
+            if (!s.isEmpty()) {
+                NbtCompound n = ItemConv.toNbt(s);
+                n.putByte("Slot", (byte) i);
+                inv.add(n);
             }
-            int slot = i < 36 ? i : switch (i) {
-                case 36 -> 100;
-                case 37 -> 101;
-                case 38 -> 102;
-                case 39 -> 103;
-                default -> -106;
-            };
-            NbtCompound prefix = new NbtCompound();
-            prefix.putByte("Slot", (byte) slot);
-            inv.add(s.toNbt(ItemConv.registries(), prefix));
         }
+        NbtCompound eq = root.getCompoundOrEmpty("equipment").copy();
+        for (int k = 0; k < EQUIPMENT.length; k++) {
+            ItemStack s = inventory.getStack(36 + k);
+            if (s.isEmpty()) {
+                eq.remove(EQUIPMENT[k]);
+            } else {
+                eq.put(EQUIPMENT[k], ItemConv.toNbt(s));
+            }
+        }
+        root.put("equipment", eq);
         NbtList ec = new NbtList();
         for (int i = 0; i < 27; i++) {
             ItemStack s = ender.getStack(i);
-            if (s.isEmpty()) {
-                continue;
+            if (!s.isEmpty()) {
+                NbtCompound n = ItemConv.toNbt(s);
+                n.putByte("Slot", (byte) i);
+                ec.add(n);
             }
-            NbtCompound prefix = new NbtCompound();
-            prefix.putByte("Slot", (byte) i);
-            ec.add(s.toNbt(ItemConv.registries(), prefix));
         }
         root.put("Inventory", inv);
         root.put("EnderItems", ec);

@@ -233,7 +233,7 @@ public final class Xray {
             PlayerSessionFlags.flag(p, CheckType.XRAY, score * 2, "mining pattern " + String.format("%.2f", score));
         }
         if (alert && cfg.oreAlerts) {
-            ac.oreAlerts.onMine(p.getUuid(), p.getGameProfile().getName(), state.getBlock().getName().getString(), System.currentTimeMillis());
+            ac.oreAlerts.onMine(p.getUuid(), p.getGameProfile().name(), state.getBlock().getName().getString(), System.currentTimeMillis());
         }
     }
 

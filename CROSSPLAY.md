@@ -9,17 +9,21 @@ Everything here is free. You don't need a paid host, a paid plugin or a Minecraf
 
 Both are free and open source: https://geysermc.org/download
 
+> **Easiest:** on a Linux server, `scripts/oracle-setup.sh` sets up everything below automatically: the newest
+> Geyser runs as its own program next to the server (so every Bedrock version can join), and ViaFabric lets
+> Java players on newer Minecraft versions join too.
+
 ## 1. Get the server files (all free)
 
 In one folder on your PC (for example `C:\mcserver`):
 
-1. **Fabric server launcher** for Minecraft **1.21.4**: https://fabricmc.net/use/server/
-   (pick Minecraft 1.21.4, download the `.jar`).
+1. **Fabric server launcher** for Minecraft **1.21.11**: https://fabricmc.net/use/server/
+   (pick Minecraft 1.21.11, download the `.jar`).
 2. In a `mods` folder next to it, put:
-   * **Fabric API** for 1.21.4: https://modrinth.com/mod/fabric-api (Versions tab, pick 1.21.4)
+   * **Fabric API** for 1.21.11: https://modrinth.com/mod/fabric-api (Versions tab, pick 1.21.11)
    * **Geyser (Fabric)** and **Floodgate (Fabric)**: https://geysermc.org/download
-     The download page gives builds for the newest Minecraft version. If it no longer offers 1.21.4, check
-     older builds on https://modrinth.com/mod/geyser and https://modrinth.com/mod/floodgate for 1.21.4.
+     The download page gives builds for the newest Minecraft version. If it no longer offers 1.21.11, check
+     older builds on https://modrinth.com/mod/geyser and https://modrinth.com/mod/floodgate for 1.21.11.
      If there are none, move this mod to the version Geyser supports (see "Changing Minecraft version" in
      `README.md`).
    * This mod: `anticheat-2.0.0.jar` (from `gradlew build`, in `build/libs/`).

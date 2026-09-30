@@ -57,7 +57,7 @@ public final class InspectMenu {
     private static String name(UUID id) {
         ServerPlayerEntity p = online(id);
         if (p != null) {
-            return p.getGameProfile().getName();
+            return p.getGameProfile().name();
         }
         String n = Ac.get().joins.name(id);
         return n == null ? id.toString() : n;
@@ -107,7 +107,7 @@ public final class InspectMenu {
             info.add("§7First join: §f" + date(ac.misc.firstJoin.getOrDefault(target, 0L)));
             menu.icon(4, Icons.head(target, name(target), color + name(target), info.toArray(new String[0])));
             if (p != null) {
-                ServerWorld w = p.getServerWorld();
+                ServerWorld w = p.getEntityWorld();
                 BlockPos bp = p.getBlockPos();
                 String biome = w.getBiome(bp).getKey().map(k -> k.getValue().toString()).orElse("?");
                 String looking = "-";
@@ -115,7 +115,7 @@ public final class InspectMenu {
                 if (hit instanceof BlockHitResult bh && hit.getType() == HitResult.Type.BLOCK) {
                     looking = Mc.blockId(w.getBlockState(bh.getBlockPos()).getBlock()).replace("minecraft:", "") + " at " + bh.getBlockPos().toShortString();
                 }
-                menu.icon(19, Icons.of(Items.COMPASS, "§ePosition", Mc.vec(p.getPos()).formatExact(),
+                menu.icon(19, Icons.of(Items.COMPASS, "§ePosition", Mc.vec(p.getEntityPos()).formatExact(),
                         "§7Dimension: §f" + Mc.worldId(w), "§7Biome: §f" + biome,
                         "§7Chunk: §f" + (bp.getX() >> 4) + ", " + (bp.getZ() >> 4),
                         "§7Facing: §f" + p.getHorizontalFacing().asString() + String.format(" (yaw %.1f, pitch %.1f)", p.getYaw(), p.getPitch()),
@@ -155,7 +155,7 @@ public final class InspectMenu {
                     }
                     boolean invisible = c.isRight() != invDefault;
                     a.closeHandledScreen();
-                    StaffTools.teleportTo(a, p.getServerWorld(), Mc.vec(p.getPos()), invisible, p.getGameProfile().getName());
+                    StaffTools.teleportTo(a, p.getEntityWorld(), Mc.vec(p.getEntityPos()), invisible, p.getGameProfile().name());
                 });
                 boolean frozen = ac.staff.isFrozen(target);
                 menu.set(30, Icons.of(Items.PACKED_ICE, frozen ? "§bUnfreeze" : "§bFreeze"), Perm.FREEZE, (a, c) -> {
@@ -175,10 +175,10 @@ public final class InspectMenu {
             });
             menu.set(32, Icons.of(Items.SPYGLASS, w != null ? "§dRemove from watchlist" : "§dAdd to watchlist"), Perm.WATCH, (a, c) -> {
                 if (w != null) {
-                    ac.watchlist.remove(target, a.getGameProfile().getName());
+                    ac.watchlist.remove(target, a.getGameProfile().name());
                     Staff.log(a, "watch-remove", target, name(target), "");
                 } else {
-                    ac.watchlist.add(target, name(target), "Added from /inspect", a.getGameProfile().getName(), Durations.PERMANENT, false);
+                    ac.watchlist.add(target, name(target), "Added from /inspect", a.getGameProfile().name(), Durations.PERMANENT, false);
                     Staff.log(a, "watch-add", target, name(target), "from /inspect");
                 }
                 Ac.markDirty("watchlist");
@@ -450,16 +450,17 @@ public final class InspectMenu {
                         });
             }
             if (p != null) {
-                BlockPos spawn = p.getSpawnPointPosition();
+                var respawn = p.getRespawn();
+                BlockPos spawn = respawn == null ? null : respawn.respawnData().getPos();
                 menu.icon(14, Icons.of(Items.RED_BED, "§eSpawn point", spawn == null ? "World spawn" : spawn.toShortString(),
-                        spawn == null ? "" : p.getSpawnPointDimension().getValue().toString()));
+                        spawn == null ? "" : respawn.respawnData().getDimension().getValue().toString()));
             }
             List<String> claims = new ArrayList<>();
             for (Claim c : ac.claims.claimsOf(target)) {
                 claims.add("§7" + c.name + ": §f" + c.roleOf(target, System.currentTimeMillis()));
             }
             if (p != null) {
-                Claim in = ac.claims.at(Mc.worldId(p.getWorld()), p.getX(), p.getZ());
+                Claim in = ac.claims.at(Mc.worldId(p.getEntityWorld()), p.getX(), p.getZ());
                 if (in != null) {
                     claims.add(0, "§aInside: " + in.name);
                 }

@@ -4,6 +4,7 @@ import com.vylorq.anticheat.Ac;
 import com.vylorq.anticheat.core.arena.PlayerSnapshot;
 import com.vylorq.anticheat.util.ItemConv;
 import com.vylorq.anticheat.util.Mc;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -37,8 +38,8 @@ public final class PlayerState {
         s.xpProgress = p.experienceProgress;
         s.totalXp = p.totalExperience;
         for (StatusEffectInstance e : p.getStatusEffects()) {
-            NbtElement n = e.writeNbt();
-            s.effects.add(n.asString());
+            StatusEffectInstance.CODEC.encodeStart(ItemConv.registries().getOps(NbtOps.INSTANCE), e).result()
+                    .ifPresent(n -> s.effects.add(n.toString()));
         }
         s.location = Mc.location(p);
         s.gameMode = p.interactionManager.getGameMode().asString();
@@ -61,8 +62,8 @@ public final class PlayerState {
         p.clearStatusEffects();
         for (String e : s.effects) {
             try {
-                NbtCompound n = StringNbtReader.parse(e);
-                StatusEffectInstance inst = StatusEffectInstance.fromNbt(n);
+                NbtCompound n = ItemConv.parseSnbt(e);
+                StatusEffectInstance inst = StatusEffectInstance.CODEC.parse(ItemConv.registries().getOps(NbtOps.INSTANCE), n).result().orElse(null);
                 if (inst != null) {
                     p.addStatusEffect(inst);
                 }
@@ -79,7 +80,7 @@ public final class PlayerState {
         p.setFireTicks(0);
         p.setAir(s.air);
         p.fallDistance = 0;
-        GameMode gm = GameMode.byName(s.gameMode, GameMode.SURVIVAL);
+        GameMode gm = GameMode.byId(s.gameMode, GameMode.SURVIVAL);
         p.changeGameMode(gm);
         if (teleport && s.location != null) {
             Mc.teleport(p, Ac.server(), s.location);

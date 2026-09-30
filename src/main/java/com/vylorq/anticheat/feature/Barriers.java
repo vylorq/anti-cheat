@@ -59,7 +59,7 @@ public final class Barriers {
             Ac.markDirty("barriers");
         }
         for (ServerPlayerEntity p : ac.server.getPlayerManager().getPlayerList()) {
-            for (Barrier b : ac.barriers.nearWall(Mc.worldId(p.getWorld()), Mc.vec(p.getPos()), 4)) {
+            for (Barrier b : ac.barriers.nearWall(Mc.worldId(p.getEntityWorld()), Mc.vec(p.getEntityPos()), 4)) {
                 showWall(p, b);
             }
         }
@@ -67,7 +67,7 @@ public final class Barriers {
 
     /** Respawn inside a barrier the player belongs to. */
     public static void afterRespawn(ServerPlayerEntity p) {
-        Vec3 inside = Ac.get().barriers.respawnInside(p.getUuid(), Mc.worldId(p.getWorld()));
+        Vec3 inside = Ac.get().barriers.respawnInside(p.getUuid(), Mc.worldId(p.getEntityWorld()));
         String world = Ac.get().barriers.worldOfInside(p.getUuid());
         if (inside != null && world != null) {
             var w = Mc.world(Ac.server(), world);

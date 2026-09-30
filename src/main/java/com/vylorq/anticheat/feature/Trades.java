@@ -86,7 +86,7 @@ public final class Trades {
     }
 
     private static String distanceProblem(ServerPlayerEntity a, ServerPlayerEntity b) {
-        if (a.getWorld() != b.getWorld()) {
+        if (a.getEntityWorld() != b.getEntityWorld()) {
             return "trade.too-far";
         }
         if (a.squaredDistanceTo(b) > Math.pow(Ac.config().playerTrade.maxDistance, 2)) {
@@ -113,16 +113,16 @@ public final class Trades {
             return;
         }
         REQUESTS.request(from.getUuid(), to.getUuid(), System.currentTimeMillis());
-        Msg.send(from, "trade.sent", to.getGameProfile().getName());
-        String n = Msg.q(from.getGameProfile().getName());
-        to.sendMessage(Msg.prefixed(Msg.tr("trade.received", from.getGameProfile().getName())).append(Text.literal(" "))
+        Msg.send(from, "trade.sent", to.getGameProfile().name());
+        String n = Msg.q(from.getGameProfile().name());
+        to.sendMessage(Msg.prefixed(Msg.tr("trade.received", from.getGameProfile().name())).append(Text.literal(" "))
                 .append(Msg.button("§a[Accept]", "/trade accept " + n, "Open the trade window")).append(Text.literal(" "))
                 .append(Msg.button("§c[Decline]", "/trade deny " + n, "Decline")));
     }
 
     public static void deny(ServerPlayerEntity to, ServerPlayerEntity from) {
         if (REQUESTS.take(to.getUuid(), from.getUuid(), System.currentTimeMillis(), Ac.config().playerTrade.requestSeconds * 1000L)) {
-            Msg.send(from, "trade.declined", to.getGameProfile().getName());
+            Msg.send(from, "trade.declined", to.getGameProfile().name());
         }
     }
 
@@ -165,8 +165,8 @@ public final class Trades {
 
     private static void open(ServerPlayerEntity a, ServerPlayerEntity b) {
         SecureTrade t = new SecureTrade(a.getUuid(), b.getUuid(), Ac.config().playerTrade.countdownSeconds * 1000L);
-        Menu ma = new Menu(Msg.tr("trade.title", b.getGameProfile().getName()), 6);
-        Menu mb = new Menu(Msg.tr("trade.title", a.getGameProfile().getName()), 6);
+        Menu ma = new Menu(Msg.tr("trade.title", b.getGameProfile().name()), 6);
+        Menu mb = new Menu(Msg.tr("trade.title", a.getGameProfile().name()), 6);
         Session s = new Session(t, ma, mb);
         ma.backedBy(s.items).allowPlayerInventory(true);
         mb.backedBy(s.items).allowPlayerInventory(true);
@@ -181,16 +181,16 @@ public final class Trades {
         BY_PLAYER.put(b.getUuid(), s);
         ma.open(a);
         mb.open(b);
-        Ac.get().logs.trade(System.currentTimeMillis(), "player-trade-open", a.getUuid(), a.getGameProfile().getName(),
-                b.getUuid(), b.getGameProfile().getName(), "");
+        Ac.get().logs.trade(System.currentTimeMillis(), "player-trade-open", a.getUuid(), a.getGameProfile().name(),
+                b.getUuid(), b.getGameProfile().name(), "");
     }
 
     private static void render(Session s, Menu m) {
         SecureTrade t = s.trade;
         ServerPlayerEntity a = Ac.server().getPlayerManager().getPlayer(t.a());
         ServerPlayerEntity b = Ac.server().getPlayerManager().getPlayer(t.b());
-        String an = a == null ? "?" : a.getGameProfile().getName();
-        String bn = b == null ? "?" : b.getGameProfile().getName();
+        String an = a == null ? "?" : a.getGameProfile().name();
+        String bn = b == null ? "?" : b.getGameProfile().name();
         for (int r = 0; r < 4; r++) {
             m.icon(r * 9 + 4, Icons.of(Items.IRON_BARS, "§7« " + an + " §8| §7" + bn + " »"));
         }
@@ -389,8 +389,8 @@ public final class Trades {
         BY_PLAYER.remove(a.getUuid());
         BY_PLAYER.remove(b.getUuid());
         String detail = describe(fromA) + " <-> " + describe(fromB);
-        Ac.get().logs.trade(System.currentTimeMillis(), "player-trade", a.getUuid(), a.getGameProfile().getName(),
-                b.getUuid(), b.getGameProfile().getName(), detail);
+        Ac.get().logs.trade(System.currentTimeMillis(), "player-trade", a.getUuid(), a.getGameProfile().name(),
+                b.getUuid(), b.getGameProfile().name(), detail);
         Ac.get().dupeWatch.legitGain(a.getUuid(), Dupes.value(fromB), System.currentTimeMillis());
         Ac.get().dupeWatch.legitGain(b.getUuid(), Dupes.value(fromA), System.currentTimeMillis());
         a.closeHandledScreen();

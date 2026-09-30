@@ -29,7 +29,7 @@ public final class LobbyFeature {
     }
 
     public static boolean in(ServerPlayerEntity p) {
-        return Ac.get().lobby.inLobby(Mc.worldId(p.getWorld()), p.getX(), p.getY(), p.getZ());
+        return Ac.get().lobby.inLobby(Mc.worldId(p.getEntityWorld()), p.getX(), p.getY(), p.getZ());
     }
 
     /** @return true when the action is allowed (always true outside the lobby). */
@@ -135,11 +135,11 @@ public final class LobbyFeature {
             return;
         }
         var area = lobby.data().area;
-        if (!area.world.equals(Mc.worldId(p.getWorld()))) {
+        if (!area.world.equals(Mc.worldId(p.getEntityWorld()))) {
             return;
         }
         boolean inColumn = p.getX() >= area.minX && p.getX() < area.maxX + 1 && p.getZ() >= area.minZ && p.getZ() < area.maxZ + 1;
-        if (inColumn && p.getY() < Math.min(area.minY, p.getWorld().getBottomY() + 1) - 2) {
+        if (inColumn && p.getY() < Math.min(area.minY, p.getEntityWorld().getBottomY() + 1) - 2) {
             teleport(p);
             p.fallDistance = 0;
             return;

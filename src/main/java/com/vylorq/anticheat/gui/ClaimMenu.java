@@ -111,7 +111,7 @@ public final class ClaimMenu {
                 }
                 ClaimRole r = c.roleOf(id, now);
                 boolean watched = Ac.get().watchlist.isWatched(id);
-                inside.add((watched ? "§d⚑ " : "§f") + o.getGameProfile().getName() + " §7(" + (r == null ? "no role" : r.name().toLowerCase()) + ")");
+                inside.add((watched ? "§d⚑ " : "§f") + o.getGameProfile().name() + " §7(" + (r == null ? "no role" : r.name().toLowerCase()) + ")");
             }
             menu.icon(16, Icons.of(Items.SPYGLASS, "§eInside now (" + inside.size() + ")", inside.isEmpty() ? List.of("§7Nobody") : inside));
             SimpleDateFormat f = new SimpleDateFormat("MM-dd HH:mm");

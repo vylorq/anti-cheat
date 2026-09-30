@@ -93,7 +93,7 @@ public final class Redstone {
                 nearest = p;
             }
         }
-        String near = nearest == null ? "nobody" : nearest.getGameProfile().getName() + String.format(" (%.0f blocks)", Math.sqrt(best));
+        String near = nearest == null ? "nobody" : nearest.getGameProfile().name() + String.format(" (%.0f blocks)", Math.sqrt(best));
         String where = Mc.worldId(w) + " " + pos.toShortString();
         Staff.broadcast(Msg.prefixed(Msg.tr("lag.alert", what, where, near)).append(Text.literal(" "))
                 .append(Msg.button("§b[TP]", "/ac tp " + Mc.worldId(w) + " " + pos.getX() + " " + pos.getY() + " " + pos.getZ(), "Teleport")));

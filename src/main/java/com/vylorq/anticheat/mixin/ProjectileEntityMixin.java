@@ -23,10 +23,10 @@ public abstract class ProjectileEntityMixin {
     @Inject(method = "tick", at = @At("TAIL"), require = 0)
     private void ac$tick(CallbackInfo ci) {
         ProjectileEntity self = (ProjectileEntity) (Object) this;
-        if (!Ac.running() || self.getWorld().isClient() || self.isRemoved()) {
+        if (!Ac.running() || self.getEntityWorld().isClient() || self.isRemoved()) {
             return;
         }
-        String w = Mc.worldId(self.getWorld());
+        String w = Mc.worldId(self.getEntityWorld());
         if (!Double.isNaN(ac$lastX)) {
             for (Barrier b : Ac.get().barriers.list()) {
                 if (b.blockProjectiles && b.contains(w, ac$lastX, ac$lastY, ac$lastZ) != b.contains(w, self.getX(), self.getY(), self.getZ())) {

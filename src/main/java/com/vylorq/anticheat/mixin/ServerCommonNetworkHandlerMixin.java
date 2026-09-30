@@ -2,7 +2,6 @@ package com.vylorq.anticheat.mixin;
 
 import com.vylorq.anticheat.Ac;
 import com.vylorq.anticheat.feature.Combat;
-import net.minecraft.network.PacketCallbacks;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.ExplosionS2CPacket;
@@ -21,15 +20,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ServerCommonNetworkHandler.class)
 public abstract class ServerCommonNetworkHandlerMixin {
     @Inject(method = "send", at = @At("HEAD"))
-    private void ac$onSend(Packet<?> packet, PacketCallbacks callbacks, CallbackInfo ci) {
+    private void ac$onSend(Packet<?> packet, io.netty.channel.ChannelFutureListener callbacks, CallbackInfo ci) {
         if (!Ac.running() || !((Object) this instanceof ServerPlayNetworkHandler handler) || handler.player == null) {
             return;
         }
         if (packet instanceof EntityVelocityUpdateS2CPacket v && v.getEntityId() == handler.player.getId()) {
-            double x = v.getVelocityX();
-            double y = v.getVelocityY();
-            double z = v.getVelocityZ();
-            Combat.onVelocity(handler.player, Math.sqrt(x * x + y * y + z * z));
+            Combat.onVelocity(handler.player, v.getVelocity().length());
         } else if (packet instanceof ExplosionS2CPacket e) {
             e.playerKnockback().ifPresent(k -> Combat.onVelocity(handler.player, k.length()));
         } else if (packet instanceof PlayerPositionLookS2CPacket) {

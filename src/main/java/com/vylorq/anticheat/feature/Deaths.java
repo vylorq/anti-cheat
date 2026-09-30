@@ -13,7 +13,7 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.rule.GameRules;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -49,11 +49,11 @@ public final class Deaths {
         PlayerSession s = Ac.session(p);
         DeathRecord r = new DeathRecord();
         r.player = p.getUuid();
-        r.playerName = p.getGameProfile().getName();
+        r.playerName = p.getGameProfile().name();
         r.at = System.currentTimeMillis();
-        r.world = Mc.worldId(p.getWorld());
-        r.pos = Mc.vec(p.getPos());
-        r.biome = p.getWorld().getBiome(p.getBlockPos()).getKey().map(k -> k.getValue().toString()).orElse("?");
+        r.world = Mc.worldId(p.getEntityWorld());
+        r.pos = Mc.vec(p.getEntityPos());
+        r.biome = p.getEntityWorld().getBiome(p.getBlockPos()).getKey().map(k -> k.getValue().toString()).orElse("?");
         r.cause = source.getName();
         Entity attacker = source.getAttacker();
         if (attacker != null) {
@@ -87,7 +87,7 @@ public final class Deaths {
         r.xpProgress = p.experienceProgress;
         r.totalXp = p.totalExperience;
         ac.deaths.add(r);
-        boolean keep = p.getServerWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY);
+        boolean keep = p.getEntityWorld().getGameRules().getValue(GameRules.KEEP_INVENTORY);
         if (!keep) {
             // Tag what will drop so we can see who picks it up.
             for (int i = 0; i < inv.size(); i++) {
@@ -119,7 +119,7 @@ public final class Deaths {
             return;
         }
         ItemConv.removeTag(stack, DROP_TAG);
-        Ac.get().deaths.recordPickup(tag, p.getUuid(), p.getGameProfile().getName(), ItemConv.info(stack).describe());
+        Ac.get().deaths.recordPickup(tag, p.getUuid(), p.getGameProfile().name(), ItemConv.info(stack).describe());
         Ac.markDirty("deaths");
     }
 
@@ -147,7 +147,7 @@ public final class Deaths {
             Msg.send(admin, "deaths.no-room", r.playerName, needed - free);
             return;
         }
-        DeathLog.RestoreResult res = ac.deaths.markRestored(deathId, admin.getGameProfile().getName());
+        DeathLog.RestoreResult res = ac.deaths.markRestored(deathId, admin.getGameProfile().name());
         switch (res) {
             case ALREADY_RESTORED -> {
                 Msg.send(admin, "deaths.already");

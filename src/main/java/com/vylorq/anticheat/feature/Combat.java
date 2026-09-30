@@ -29,7 +29,7 @@ public final class Combat {
     }
 
     private static void flag(ServerPlayerEntity p, CheckType c, double pts, String detail) {
-        Ac.get().engine.flag(p.getUuid(), p.getGameProfile().getName(), c, pts, detail, Ac.session(p).bedrock);
+        Ac.get().engine.flag(p.getUuid(), p.getGameProfile().name(), c, pts, detail, Ac.session(p).bedrock);
     }
 
     /**
@@ -83,7 +83,7 @@ public final class Combat {
         if (ts != null && !ts.history.isEmpty()) {
             reach = ReachCheck.compensatedDistance(eye, ts.history, now, p.networkHandler.getLatency());
         } else {
-            reach = com.vylorq.anticheat.core.util.Box.around(Mc.vec(target.getPos()), target.getWidth(), target.getHeight())
+            reach = com.vylorq.anticheat.core.util.Box.around(Mc.vec(target.getEntityPos()), target.getWidth(), target.getHeight())
                     .expand(0.1 + (target.getVelocity().horizontalLength() * 3)).distanceTo(eye);
         }
         double tol = s.bedrock ? cfg.combat.bedrockReachTolerance : cfg.combat.reachTolerance;
@@ -102,7 +102,7 @@ public final class Combat {
         }
 
         // Multi-target.
-        double spread = s.combat.onHitMultiTarget(now, target.getUuid(), eye, Mc.vec(target.getPos()), cfg.combat.multiTargetWindowMs);
+        double spread = s.combat.onHitMultiTarget(now, target.getUuid(), eye, Mc.vec(target.getEntityPos()), cfg.combat.multiTargetWindowMs);
         if (spread > cfg.combat.multiTargetAngle) {
             flag(p, CheckType.MULTI_TARGET, 1.5, String.format(Locale.ROOT, "targets %.0f° apart", spread));
         }
@@ -161,7 +161,7 @@ public final class Combat {
                 new Vec3d(b.minX, b.maxY, b.minZ), new Vec3d(b.maxX, b.maxY, b.maxZ),
         };
         for (Vec3d pt : points) {
-            BlockHitResult r = p.getWorld().raycast(new RaycastContext(eye, pt, RaycastContext.ShapeType.COLLIDER,
+            BlockHitResult r = p.getEntityWorld().raycast(new RaycastContext(eye, pt, RaycastContext.ShapeType.COLLIDER,
                     RaycastContext.FluidHandling.NONE, p));
             if (r.getType() == HitResult.Type.MISS) {
                 return true;

@@ -181,7 +181,7 @@ public final class Ac {
     }
 
     public static PlayerSession session(ServerPlayerEntity p) {
-        return instance.sessions.computeIfAbsent(p.getUuid(), k -> new PlayerSession(k, p.getGameProfile().getName()));
+        return instance.sessions.computeIfAbsent(p.getUuid(), k -> new PlayerSession(k, p.getGameProfile().name()));
     }
 
     public static PlayerSession sessionOrNull(UUID id) {

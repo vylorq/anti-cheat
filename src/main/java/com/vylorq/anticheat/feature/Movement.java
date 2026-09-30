@@ -62,9 +62,9 @@ public final class Movement {
         if (!changesPos) {
             return false;
         }
-        ServerWorld world = (ServerWorld) p.getWorld();
+        ServerWorld world = (ServerWorld) p.getEntityWorld();
         String w = Mc.worldId(world);
-        Vec3 from = Mc.vec(p.getPos());
+        Vec3 from = Mc.vec(p.getEntityPos());
         Vec3 to = new Vec3(x, y, z);
         boolean moved = from.distanceSq(to) > 1.0E-6;
 
@@ -113,7 +113,7 @@ public final class Movement {
                     return true;
                 }
             }
-            ClaimManager.Transition t = ac.claims.updatePresence(p.getUuid(), p.getGameProfile().getName(), w, x, z);
+            ClaimManager.Transition t = ac.claims.updatePresence(p.getUuid(), p.getGameProfile().name(), w, x, z);
             if (t != null) {
                 Claims.onTransition(p, t);
             }
@@ -130,7 +130,7 @@ public final class Movement {
         MoveInput in = input(p, s, world, from, to, onGround);
         MoveResult r = ac.predictor.process(in, s.move);
         for (MoveResult.Violation v : r.violations) {
-            ac.engine.flag(p.getUuid(), p.getGameProfile().getName(), v.check(), v.points(), v.detail(), s.bedrock);
+            ac.engine.flag(p.getUuid(), p.getGameProfile().name(), v.check(), v.points(), v.detail(), s.bedrock);
         }
         if (r.setbackTo != null && ac.exempt.setbacksApply(p.getUuid())) {
             Vec3 safe = SafeSpot.find(view(world), r.setbackTo, 6);
@@ -346,7 +346,7 @@ public final class Movement {
         }
         PlayerSession s = Ac.session(p);
         s.ticksSinceVehicle = 0;
-        Vec3 now = Mc.vec(v.getPos());
+        Vec3 now = Mc.vec(v.getEntityPos());
         Vec3 last = VehicleTrack.last(p.getUuid(), v, now);
         if (last == null || s.ticksSinceTeleport < 40 || s.ticksSinceVelocity < 40 || Tps.tps() < Ac.config().general.lagTpsThreshold) {
             VehicleTrack.set(p.getUuid(), v, now);
@@ -379,7 +379,7 @@ public final class Movement {
             problem = type + " rising in the air";
         }
         if (problem != null) {
-            ac.engine.flag(p.getUuid(), p.getGameProfile().getName(), CheckType.VEHICLE, 1.0, problem, s.bedrock);
+            ac.engine.flag(p.getUuid(), p.getGameProfile().name(), CheckType.VEHICLE, 1.0, problem, s.bedrock);
             if (s.move.vehicleAirUpTicks > maxAirUp * 3 || h > maxH * 2) {
                 p.stopRiding();
                 pullBack(p, last);

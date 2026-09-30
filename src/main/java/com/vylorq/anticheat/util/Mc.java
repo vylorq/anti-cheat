@@ -29,6 +29,30 @@ import java.lang.reflect.Method;
 
 /** Small Minecraft helpers. Version-sensitive calls are kept here so a port only touches one file. */
 public final class Mc {
+    /** Vanilla permission level check (op level 0-4) for a command source. */
+    public static boolean hasLevel(net.minecraft.server.command.ServerCommandSource src, int level) {
+        return src.getPermissions().hasPermission(new net.minecraft.command.permission.Permission.Level(
+                net.minecraft.command.permission.PermissionLevel.fromLevel(level)));
+    }
+
+    /** Vanilla permission level check (op level 0-4) for a player. */
+    public static boolean hasLevel(net.minecraft.entity.player.PlayerEntity p, int level) {
+        return p.getPermissions().hasPermission(new net.minecraft.command.permission.Permission.Level(
+                net.minecraft.command.permission.PermissionLevel.fromLevel(level)));
+    }
+
+    /** World spawn block position (1.21.9+ keeps it in the server's spawn point). */
+    public static BlockPos worldSpawn(MinecraftServer server) {
+        return server.getSpawnPoint().getPos();
+    }
+
+    /** Loads saved block entity NBT into an existing block entity (1.21.6+ reads through a ReadView). */
+    public static void loadBlockEntity(net.minecraft.block.entity.BlockEntity be, net.minecraft.nbt.NbtCompound nbt,
+                                       net.minecraft.registry.RegistryWrapper.WrapperLookup lookup) {
+        be.read(net.minecraft.storage.NbtReadView.create(net.minecraft.util.ErrorReporter.EMPTY, lookup, nbt));
+        be.markDirty();
+    }
+
     private Mc() {
     }
 
@@ -61,7 +85,7 @@ public final class Mc {
     }
 
     public static Location location(Entity e) {
-        return new Location(worldId(e.getWorld()), e.getX(), e.getY(), e.getZ(), e.getYaw(), e.getPitch());
+        return new Location(worldId(e.getEntityWorld()), e.getX(), e.getY(), e.getZ(), e.getYaw(), e.getPitch());
     }
 
     /** Teleports any entity (players included) across worlds. */
@@ -125,7 +149,7 @@ public final class Mc {
                     return;
                 }
             }
-            ServerWorld w = (ServerWorld) p.getWorld();
+            ServerWorld w = (ServerWorld) p.getEntityWorld();
             if (particleWithImportant) {
                 particleMethod.invoke(w, p, effect, true, false, x, y, z, 1, 0.0, 0.0, 0.0, 0.0);
             } else {
