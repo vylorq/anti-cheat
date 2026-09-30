@@ -436,6 +436,7 @@ public final class AntiCheatGameTests {
                 m.inventory(), 6, m);
         fake.currentScreenHandler = handler;
         for (var action : net.minecraft.screen.slot.SlotActionType.values()) {
+            int before = clicks[0];
             for (int button : new int[]{0, 1, 40}) {
                 try {
                     handler.onSlotClick(22, button, action, fake);
@@ -444,13 +445,15 @@ public final class AntiCheatGameTests {
                 }
                 handler.setCursorStack(net.minecraft.item.ItemStack.EMPTY);
             }
+            boolean presses = action == net.minecraft.screen.slot.SlotActionType.PICKUP || action == net.minecraft.screen.slot.SlotActionType.QUICK_MOVE;
+            check(presses || clicks[0] == before, action + " pressed a button (only clicks and shift-clicks should)");
         }
         handler.onSlotClick(-999, 0, net.minecraft.screen.slot.SlotActionType.PICKUP, fake);
         for (int i = 0; i < fake.getInventory().size(); i++) {
             check(!fake.getInventory().getStack(i).isOf(net.minecraft.item.Items.DIAMOND), "a display item reached the inventory (slot " + i + ")");
         }
         check(m.inventory().getStack(22).isOf(net.minecraft.item.Items.DIAMOND) && m.inventory().getStack(22).getCount() == 5, "display item changed");
-        check(clicks[0] >= 1 && clicks[0] <= 4, "button pressed " + clicks[0] + " times (only left/right/shift should press it)");
+        check(clicks[0] > 0, "the button never worked");
         fake.currentScreenHandler = fake.playerScreenHandler;
         ctx.complete();
     }

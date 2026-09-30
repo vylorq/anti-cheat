@@ -574,7 +574,7 @@ public final class SettingsMenu {
                 () -> onOff(rule(key) != inverted), () -> onOff(key.getDefaultValue() != inverted), null,
                 (p, ck) -> {
                     setRule(p, key, !rule(key));
-                    applied(p, null, id + "=" + onOff(rule(key) != inverted));
+                    applied(p, null, Msg.trFor(p, "set." + id) + ": " + onOff(rule(key) != inverted));
                 },
                 () -> setRule(null, key, key.getDefaultValue()));
         return c.icon(() -> rule(key) != inverted ? Items.LIME_DYE : Items.GRAY_DYE);
@@ -634,19 +634,19 @@ public final class SettingsMenu {
                     MinecraftServer s = Ac.server();
                     Difficulty next = Difficulty.byId((s.getSaveProperties().getDifficulty().getId() + (ck.isRight() ? 3 : 1)) % 4);
                     s.setDifficulty(next, true);
-                    applied(p, null, "difficulty=" + next.getName());
+                    applied(p, null, Msg.trFor(p, "set.difficulty") + ": " + next.getName());
                 }, () -> Ac.server().setDifficulty(Difficulty.NORMAL, true)));
         l.add(gameRule("mob-griefing", GameRules.DO_MOB_GRIEFING, false));
         l.add(new Custom("fire-spread", Page.WORLD, Items.FLINT_AND_STEEL, () -> onOff(fireSpreads()), () -> onOff(true), "ui.action.turn-on",
                 (p, ck) -> {
                     setFireSpread(!fireSpreads());
-                    applied(p, null, "fire-spread=" + onOff(fireSpreads()));
+                    applied(p, null, Msg.trFor(p, "set.fire-spread") + ": " + onOff(fireSpreads()));
                 }, () -> setFireSpread(true)).icon(() -> fireSpreads() ? Items.LIME_DYE : Items.GRAY_DYE));
         l.add(new Custom("explosions", Page.WORLD, Items.TNT, () -> onOff(Ac.get().misc.explosionsEnabled), () -> onOff(true), "ui.action.turn-on",
                 (p, ck) -> {
                     Ac.get().misc.explosionsEnabled = !Ac.get().misc.explosionsEnabled;
                     Ac.markDirty("misc");
-                    applied(p, null, "explosions=" + onOff(Ac.get().misc.explosionsEnabled));
+                    applied(p, null, Msg.trFor(p, "set.explosions") + ": " + onOff(Ac.get().misc.explosionsEnabled));
                 }, () -> {
             Ac.get().misc.explosionsEnabled = true;
             Ac.markDirty("misc");
@@ -775,52 +775,52 @@ public final class SettingsMenu {
     }
 
     private static Custom watcherEffect(WatcherEffect e) {
-        String id = e.id();
+        String effectId = e.id();
         Custom c = new Custom("watcher-effect", Page.WATCHER, Items.ENDER_EYE,
-                () -> onOff(!cfg().watcher.disabledEffects.contains(id)), () -> onOff(true), "ui.action.turn-off",
+                () -> onOff(!cfg().watcher.disabledEffects.contains(effectId)), () -> onOff(true), "ui.action.turn-off",
                 (p, ck) -> {
                     var w = cfg().watcher;
                     if (ck.isRight() && e.kind == WatcherEffect.Kind.POOLED) {
-                        int v = Math.max(0, Math.min(100, w.weights.getOrDefault(id, e.defaultWeight) + (ck.isShift() ? 10 : 1)));
-                        w.weights.put(id, v);
-                        applied(p, null, "watcher." + id + ".weight=" + v);
+                        int v = Math.max(0, Math.min(100, w.weights.getOrDefault(effectId, e.defaultWeight) + (ck.isShift() ? 10 : 1)));
+                        w.weights.put(effectId, v);
+                        applied(p, null, Msg.trFor(p, "watcher.effect." + effectId) + ": " + Msg.trFor(p, "settings.weight", v, e.defaultWeight));
                         return;
                     }
-                    if (!w.disabledEffects.remove(id)) {
-                        w.disabledEffects.add(id);
+                    if (!w.disabledEffects.remove(effectId)) {
+                        w.disabledEffects.add(effectId);
                     }
-                    applied(p, null, "watcher." + id + "=" + onOff(!w.disabledEffects.contains(id)));
+                    applied(p, null, Msg.trFor(p, "watcher.effect." + effectId) + ": " + onOff(!w.disabledEffects.contains(effectId)));
                 }, () -> {
-            cfg().watcher.disabledEffects.remove(id);
-            cfg().watcher.weights.remove(id);
+            cfg().watcher.disabledEffects.remove(effectId);
+            cfg().watcher.weights.remove(effectId);
         }) {
             @Override
             String name() {
-                return Msg.tr("watcher.effect." + id);
+                return Msg.tr("watcher.effect." + effectId);
             }
 
             @Override
             String desc() {
-                return Msg.tr("watcher.effect." + id + ".desc");
+                return Msg.tr("watcher.effect." + effectId + ".desc");
             }
 
             @Override
             boolean changed() {
-                return cfg().watcher.disabledEffects.contains(id) || cfg().watcher.weights.containsKey(id);
+                return cfg().watcher.disabledEffects.contains(effectId) || cfg().watcher.weights.containsKey(effectId);
             }
 
             @Override
             void hints(Btn b) {
                 if (e.kind == WatcherEffect.Kind.POOLED) {
-                    b.line(Msg.tr("settings.weight", cfg().watcher.weights.getOrDefault(id, e.defaultWeight), e.defaultWeight));
-                    b.left(Msg.tr(cfg().watcher.disabledEffects.contains(id) ? "ui.action.turn-on" : "ui.action.turn-off"))
+                    b.line(Msg.tr("settings.weight", cfg().watcher.weights.getOrDefault(effectId, e.defaultWeight), e.defaultWeight));
+                    b.left(Msg.tr(cfg().watcher.disabledEffects.contains(effectId) ? "ui.action.turn-on" : "ui.action.turn-off"))
                             .right(Msg.tr("settings.weight-up"));
                 } else {
-                    b.left(Msg.tr(cfg().watcher.disabledEffects.contains(id) ? "ui.action.turn-on" : "ui.action.turn-off"));
+                    b.left(Msg.tr(cfg().watcher.disabledEffects.contains(effectId) ? "ui.action.turn-on" : "ui.action.turn-off"));
                 }
             }
         };
-        return c.icon(() -> cfg().watcher.disabledEffects.contains(id) ? Items.GRAY_DYE : Items.ENDER_EYE);
+        return c.icon(() -> cfg().watcher.disabledEffects.contains(effectId) ? Items.GRAY_DYE : Items.ENDER_EYE);
     }
 
     private static List<S> all;
@@ -923,7 +923,7 @@ public final class SettingsMenu {
                         for (S s : list) {
                             s.reset();
                         }
-                        applied(p, null, "reset page " + pg.id());
+                        applied(p, null, Msg.trFor(p, "settings.reset-done", Msg.trFor(p, "settings.page." + pg.id())));
                         page(p, pg);
                     }));
             settingsList(admin, menu, list);
@@ -1025,7 +1025,7 @@ public final class SettingsMenu {
                         double next = LEVELS[Math.floorMod((i >= LEVELS.length ? 3 : i) + (c.isRight() ? -1 : 1), LEVELS.length)];
                         cfg.detection.disabledChecks.remove(t.id());
                         cfg.detection.sensitivity.put(t.id(), next);
-                        applied(p, null, "sensitivity." + t.id() + "=" + next);
+                        applied(p, null, t.displayName() + ": x" + Dbl.fmt(next));
                         menu.refresh();
                     },
                     CheckType::displayName, List.of(), "", "");

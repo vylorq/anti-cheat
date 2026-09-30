@@ -1316,5 +1316,6 @@
   "alert.tp-hover": "Click to teleport to {0} (your default: visible or invisible).",
   "general.unknown-player-suggest": "§cNo player named '{0}'. Did you mean {1}?",
   "general.not-online-suggest": "§c{0} is not online. Did you mean {1}?",
-  "event.drop-items-title": "Drop party items (close to save)"
+  "event.drop-items-title": "Drop party items (close to save)",
+  "settings.reset-done": "{0}: back to defaults"
 }
