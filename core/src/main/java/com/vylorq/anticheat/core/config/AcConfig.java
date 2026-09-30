@@ -40,6 +40,7 @@ public class AcConfig {
     public Discord discord = new Discord();
     public Fun fun = new Fun();
     public Restarts restarts = new Restarts();
+    public Watcher watcher = new Watcher();
 
     public static class General {
         /** Owner UUID. The owner has every power. Leave empty until set. */
@@ -364,6 +365,47 @@ public class AcConfig {
         public boolean caughtCounter = true;
     }
 
+    /** The Watcher (section 33): atmosphere only, never touches the real world or the anti-cheat. */
+    public static class Watcher {
+        public boolean enabled = true;
+        /** Each eligible player gets one event every this many minutes (random in between). */
+        public int minMinutes = 45;
+        public int maxMinutes = 120;
+        /** Pool weights by effect id (appear, doppelganger, message, footsteps, ...). Missing ones use defaults. */
+        public Map<String, Integer> weights = new LinkedHashMap<>();
+        /** Effect ids turned off (e.g. "storm", "gift", "sleep_well"). */
+        public List<String> disabledEffects = new ArrayList<>();
+        /** The Watcher runs at the player and vanishes just before reaching them. Off by default. */
+        public boolean rareRush = false;
+        public double rareChance = 0.03;
+        public double glitchChance = 0.1;
+        public double bedsideChance = 0.05;
+        public int messageCooldownMinMinutes = 60;
+        public int messageCooldownMaxMinutes = 180;
+        public boolean nightEnabled = true;
+        public int nightMinDays = 7;
+        public int nightMaxDays = 14;
+        public String watchingText = "Something is watching...";
+        public String glitchText = "ɪ ꜱᴇᴇ ʏᴏᴜ";
+        public List<String> signLines = new ArrayList<>(List.of("I SEE YOU", "", "", ""));
+        public String whisperFrom = "???";
+        public String whisperText = "behind you";
+        public String ownVoiceText = "look behind you";
+        public String sleepText = "Sleep well.";
+        public String chestNoteName = "I was here";
+        public String pocketGiftName = "You dropped this";
+        /** Server list (multiplayer menu) messages shown now and then instead of the normal description. */
+        public List<String> serverListMessages = new ArrayList<>(List.of("It's still here.", "Don't look behind you."));
+        /** Chance per hour that the server list message changes. */
+        public double serverListChancePerHour = 0.05;
+        public int serverListMinutes = 10;
+        /** Optional custom skin for the Watcher (signed textures from e.g. mineskin.org). Empty = dark outfit. */
+        public String skinValue = "";
+        public String skinSignature = "";
+        /** Players are only eligible this long after their last hit given or taken. */
+        public int combatSeconds = 15;
+    }
+
     public static class Restarts {
         public boolean enabled = false;
         /** Times of day, 24h "HH:mm", server local time. */
@@ -415,6 +457,11 @@ public class AcConfig {
         if (discord == null) discord = d.discord;
         if (fun == null) fun = d.fun;
         if (restarts == null) restarts = d.restarts;
+        if (watcher == null) watcher = d.watcher;
+        if (watcher.weights == null) watcher.weights = new LinkedHashMap<>();
+        if (watcher.disabledEffects == null) watcher.disabledEffects = new ArrayList<>();
+        if (watcher.signLines == null) watcher.signLines = d.watcher.signLines;
+        if (watcher.serverListMessages == null) watcher.serverListMessages = d.watcher.serverListMessages;
         return this;
     }
 
