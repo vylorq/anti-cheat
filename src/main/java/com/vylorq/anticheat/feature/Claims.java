@@ -66,10 +66,10 @@ public final class Claims {
         Msg.actionBar(p, Msg.tr(c.eventLocked ? "claim.locked" : "claim.denied", c.name));
         var cfg = Ac.config().claims;
         if (a.isChange() && Ac.get().claims.griefAttempt(p.getUuid(), c, cfg.griefAlertAttempts, cfg.griefAlertWindowSeconds * 1000L)) {
-            Staff.broadcast(Msg.prefixed(Msg.tr("claim.grief-alert", p.getGameProfile().getName(), c.name,
+            Staff.broadcast(Msg.prefixed(Msg.tr("claim.grief-alert", p.getGameProfile().name(), c.name,
                     pos.getX() + " " + pos.getY() + " " + pos.getZ())).append(Text.literal(" "))
-                    .append(Msg.button("§b[TP]", "/inspect " + Msg.q(p.getGameProfile().getName()) + " tp", "Teleport")));
-            Discord.send("grief", "Grief attempt in " + c.name, p.getGameProfile().getName() + " at " + pos.toShortString(), 0xC0392B);
+                    .append(Msg.button("§b[TP]", "/inspect " + Msg.q(p.getGameProfile().name()) + " tp", "Teleport")));
+            Discord.send("grief", "Grief attempt in " + c.name, p.getGameProfile().name() + " at " + pos.toShortString(), 0xC0392B);
             Ac.get().logs.activity(System.currentTimeMillis(), p.getUuid(), "grief-attempt", c.name + " " + pos.toShortString());
         }
         return false;
@@ -82,7 +82,7 @@ public final class Claims {
     public static void denyEntry(ServerPlayerEntity p, Claim c) {
         Msg.actionBar(p, Msg.tr("claim.private", c.name));
         if (c.settings.alerts) {
-            alertMembers(c, Msg.tr("claim.alert.tried", p.getGameProfile().getName(), c.name));
+            alertMembers(c, Msg.tr("claim.alert.tried", p.getGameProfile().name(), c.name));
         }
     }
 
@@ -107,7 +107,7 @@ public final class Claims {
             }
             boolean member = c.roleOf(p.getUuid(), System.currentTimeMillis()) != null;
             if (c.settings.alerts && !member && !Perms.isActiveStaff(p)) {
-                alertMembers(c, Msg.tr("claim.alert.entered", p.getGameProfile().getName(), c.name));
+                alertMembers(c, Msg.tr("claim.alert.entered", p.getGameProfile().name(), c.name));
             }
         } else if (t.left() != null) {
             s.lastClaimId = null;

@@ -49,7 +49,7 @@ public final class Deaths {
         PlayerSession s = Ac.session(p);
         DeathRecord r = new DeathRecord();
         r.player = p.getUuid();
-        r.playerName = p.getGameProfile().getName();
+        r.playerName = p.getGameProfile().name();
         r.at = System.currentTimeMillis();
         r.world = Mc.worldId(p.getWorld());
         r.pos = Mc.vec(p.getPos());
@@ -119,7 +119,7 @@ public final class Deaths {
             return;
         }
         ItemConv.removeTag(stack, DROP_TAG);
-        Ac.get().deaths.recordPickup(tag, p.getUuid(), p.getGameProfile().getName(), ItemConv.info(stack).describe());
+        Ac.get().deaths.recordPickup(tag, p.getUuid(), p.getGameProfile().name(), ItemConv.info(stack).describe());
         Ac.markDirty("deaths");
     }
 
@@ -147,7 +147,7 @@ public final class Deaths {
             Msg.send(admin, "deaths.no-room", r.playerName, needed - free);
             return;
         }
-        DeathLog.RestoreResult res = ac.deaths.markRestored(deathId, admin.getGameProfile().getName());
+        DeathLog.RestoreResult res = ac.deaths.markRestored(deathId, admin.getGameProfile().name());
         switch (res) {
             case ALREADY_RESTORED -> {
                 Msg.send(admin, "deaths.already");

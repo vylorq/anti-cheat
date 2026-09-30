@@ -150,7 +150,7 @@ public final class Commands {
                             ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
                             if (t == null) return 0;
                             if (!com.vylorq.anticheat.feature.TempAdmins.end(ctx.getSource().getPlayer(), t)) {
-                                Msg.err(ctx.getSource(), "tempadmin.not", t.getGameProfile().getName());
+                                Msg.err(ctx.getSource(), "tempadmin.not", t.getGameProfile().name());
                                 return 0;
                             }
                             return 1;
@@ -323,7 +323,7 @@ public final class Commands {
         if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
         ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
         if (t == null) return 0;
-        String name = t.getGameProfile().getName();
+        String name = t.getGameProfile().name();
         if (com.vylorq.anticheat.feature.TempAdmins.isTemp(t.getUuid())) {
             Msg.err(ctx.getSource(), "tempadmin.already", name);
             return 0;
@@ -400,7 +400,7 @@ public final class Commands {
             root = root.substring(colon + 1);
         }
         long now = System.currentTimeMillis();
-        ac.logs.chat(now, p.getUuid(), p.getGameProfile().getName(), "command", "/" + command);
+        ac.logs.chat(now, p.getUuid(), p.getGameProfile().name(), "command", "/" + command);
         ac.evidence.record(p.getUuid(), EvidenceEvent.Type.COMMAND, p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch(), "/" + command);
         if (WaitingRoomFeature.waiting(p) && !(root.equals("request") || root.equals("login"))) {
             Msg.send(p, "waiting.only-request");

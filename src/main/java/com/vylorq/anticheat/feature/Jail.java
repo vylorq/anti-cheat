@@ -39,14 +39,14 @@ public final class Jail {
 
     public static JailManager.Record jail(ServerPlayerEntity target, String reason, long duration, String by) {
         Trades.cancelFor(target, com.vylorq.anticheat.core.trade.SecureTrade.CancelReason.JAILED);
-        JailManager.Record r = Ac.get().jail.jail(target.getUuid(), target.getGameProfile().getName(), reason, by, duration,
+        JailManager.Record r = Ac.get().jail.jail(target.getUuid(), target.getGameProfile().name(), reason, by, duration,
                 Mc.location(target), false);
         Ac.markDirty("jail");
         toCell(target);
         if (Ac.config().jail.announce) {
-            Ac.server().getPlayerManager().broadcast(Text.literal(Msg.tr("jail.announce", target.getGameProfile().getName(), reason)), false);
+            Ac.server().getPlayerManager().broadcast(Text.literal(Msg.tr("jail.announce", target.getGameProfile().name(), reason)), false);
         }
-        Discord.send("jail", "Jailed: " + target.getGameProfile().getName(), reason + " (" + Durations.format(duration) + ")", 0x7F8C8D);
+        Discord.send("jail", "Jailed: " + target.getGameProfile().name(), reason + " (" + Durations.format(duration) + ")", 0x7F8C8D);
         return r;
     }
 

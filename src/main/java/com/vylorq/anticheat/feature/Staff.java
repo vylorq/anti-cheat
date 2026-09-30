@@ -43,7 +43,7 @@ public final class Staff {
     /** Staff action log (section 15): every admin action is recorded; the owner can view all of it. */
     public static void log(ServerPlayerEntity actor, String action, UUID target, String targetName, String detail) {
         Ac.get().logs.staff(System.currentTimeMillis(), actor == null ? null : actor.getUuid(),
-                actor == null ? "Console" : actor.getGameProfile().getName(), action, target, targetName, detail);
+                actor == null ? "Console" : actor.getGameProfile().name(), action, target, targetName, detail);
     }
 
     public static void log(String actorName, UUID actor, String action, UUID target, String targetName, String detail) {
@@ -51,6 +51,6 @@ public final class Staff {
     }
 
     public static String name(ServerPlayerEntity p) {
-        return p == null ? "Console" : p.getGameProfile().getName();
+        return p == null ? "Console" : p.getGameProfile().name();
     }
 }

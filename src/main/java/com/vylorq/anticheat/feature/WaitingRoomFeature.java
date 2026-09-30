@@ -104,7 +104,7 @@ public final class WaitingRoomFeature {
             Msg.send(p, "waiting.pending");
             return;
         }
-        WaitingRoom.Request r = ac.waitingRoom.start(p.getUuid(), p.getGameProfile().getName(), s.bedrock, s.ip);
+        WaitingRoom.Request r = ac.waitingRoom.start(p.getUuid(), p.getGameProfile().name(), s.bedrock, s.ip);
         Ac.markDirty("waiting");
         UUID id = p.getUuid();
         if (s.bedrock && Floodgate.askText(id, Msg.tr("waiting.form-title"), List.of(WaitingRoom.QUESTIONS),
@@ -235,7 +235,7 @@ public final class WaitingRoomFeature {
     /** Chat from a waiting player only reaches admins standing in the waiting room. */
     public static void chat(ServerPlayerEntity p, String message) {
         Location spawn = Ac.get().waitingRoom.data().spawn;
-        Text t = Text.literal("§8[Waiting] §7" + p.getGameProfile().getName() + ": §f" + message);
+        Text t = Text.literal("§8[Waiting] §7" + p.getGameProfile().name() + ": §f" + message);
         p.sendMessage(t);
         for (ServerPlayerEntity admin : Staff.online()) {
             if (spawn != null && spawn.world().equals(Mc.worldId(admin.getWorld())) && spawn.vec().distance(Mc.vec(admin.getPos())) <= 32) {

@@ -27,9 +27,9 @@ public final class Illegal {
     public static void handle(ServerPlayerEntity p, ItemStack s, String reason) {
         String desc = ItemConv.info(s).describe();
         Ac.get().logs.activity(System.currentTimeMillis(), p.getUuid(), "illegal-item", reason + ": " + desc);
-        Staff.log("System", null, "illegal-item", p.getUuid(), p.getGameProfile().getName(), reason + ": " + desc);
+        Staff.log("System", null, "illegal-item", p.getUuid(), p.getGameProfile().name(), reason + ": " + desc);
         PlayerSessionFlags.flag(p, CheckType.ILLEGAL_ITEM, 1.0, reason);
-        Staff.broadcast(Msg.prefixed(Msg.tr("illegal.alert", p.getGameProfile().getName(), desc, reason)));
+        Staff.broadcast(Msg.prefixed(Msg.tr("illegal.alert", p.getGameProfile().name(), desc, reason)));
     }
 
     /** Scans an inventory, removing illegal items. Creative players are skipped. @return number removed */

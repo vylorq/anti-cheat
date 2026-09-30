@@ -29,7 +29,7 @@ public final class Combat {
     }
 
     private static void flag(ServerPlayerEntity p, CheckType c, double pts, String detail) {
-        Ac.get().engine.flag(p.getUuid(), p.getGameProfile().getName(), c, pts, detail, Ac.session(p).bedrock);
+        Ac.get().engine.flag(p.getUuid(), p.getGameProfile().name(), c, pts, detail, Ac.session(p).bedrock);
     }
 
     /**

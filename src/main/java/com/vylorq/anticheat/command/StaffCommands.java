@@ -94,14 +94,14 @@ final class StaffCommands {
                     if (t == null) {
                         return 0;
                     }
-                    String n = Msg.q(t.getGameProfile().getName());
-                    MutableText msg = Msg.prefixed(Msg.tr("whereis.result", t.getGameProfile().getName(),
+                    String n = Msg.q(t.getGameProfile().name());
+                    MutableText msg = Msg.prefixed(Msg.tr("whereis.result", t.getGameProfile().name(),
                             Mc.vec(t.getPos()).formatExact(), Mc.worldId(t.getWorld())));
                     msg.append(Text.literal(" ")).append(Msg.button("§b[TP]", "/inspect " + n + " tp", "Teleport (your default)"))
                             .append(Text.literal(" ")).append(Msg.button("§7[visible]", "/inspect " + n + " tp visible", "Teleport visibly"))
                             .append(Text.literal(" ")).append(Msg.button("§8[invisible]", "/inspect " + n + " tp invisible", "Teleport in vanish"));
                     ctx.getSource().sendFeedback(() -> msg, false);
-                    Staff.log(ctx.getSource().getPlayer(), "whereis", t.getUuid(), t.getGameProfile().getName(), "");
+                    Staff.log(ctx.getSource().getPlayer(), "whereis", t.getUuid(), t.getGameProfile().name(), "");
                     return 1;
                 })));
 
@@ -169,7 +169,7 @@ final class StaffCommands {
                     if (t == null || !Punish.allowedOn(ctx.getSource().getPlayer(), t.getUuid())) return 0;
                     boolean on = !StaffTools.isFrozen(t);
                     StaffTools.setFrozen(ctx.getSource().getPlayer(), t, on);
-                    Msg.ok(ctx.getSource(), on ? "freeze.done" : "freeze.undone", t.getGameProfile().getName());
+                    Msg.ok(ctx.getSource(), on ? "freeze.done" : "freeze.undone", t.getGameProfile().name());
                     return 1;
                 })));
 
@@ -241,7 +241,7 @@ final class StaffCommands {
                     if (suspect == null) return 0;
                     Reports.Report r = new Reports.Report();
                     r.reporter = p.getUuid();
-                    r.reporterName = p.getGameProfile().getName();
+                    r.reporterName = p.getGameProfile().name();
                     r.suspect = suspect;
                     r.suspectName = Args.nameOf(suspect, "?");
                     r.reason = Args.str(ctx, "reason");
@@ -370,7 +370,7 @@ final class StaffCommands {
         } else if (sub.equals("tp") && Perms.check(ctx.getSource(), Perm.TELEPORT)) {
             boolean inv = invisible != null ? invisible
                     : Ac.get().staff.teleportInvisible(p.getUuid(), Ac.config().staff.teleportInvisibleByDefault);
-            StaffTools.teleportTo(p, t.getServerWorld(), Mc.vec(t.getPos()), inv, t.getGameProfile().getName());
+            StaffTools.teleportTo(p, t.getServerWorld(), Mc.vec(t.getPos()), inv, t.getGameProfile().name());
         }
         return 1;
     }

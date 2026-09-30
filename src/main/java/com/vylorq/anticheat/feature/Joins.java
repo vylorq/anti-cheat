@@ -40,10 +40,10 @@ public final class Joins {
      */
     public static Text checkLogin(SocketAddress address, GameProfile profile) {
         Ac ac = Ac.get();
-        if (ac == null || profile == null || profile.getId() == null) {
+        if (ac == null || profile == null || profile.id() == null) {
             return null;
         }
-        UUID id = profile.getId();
+        UUID id = profile.id();
         boolean staffish = Perms.isOwner(id) || ac.server.getPlayerManager().isOperator(profile);
         Punishment ban = ac.punishments.active(id, Punishment.Type.BAN);
         if (ban == null) {
@@ -69,7 +69,7 @@ public final class Joins {
     public static void onJoin(ServerPlayerEntity p) {
         Ac ac = Ac.get();
         long now = System.currentTimeMillis();
-        String name = p.getGameProfile().getName();
+        String name = p.getGameProfile().name();
         PlayerSession s = Ac.session(p);
         s.name = name;
         s.bedrock = Floodgate.isBedrock(p.getUuid());
@@ -167,7 +167,7 @@ public final class Joins {
             return;
         }
         long now = System.currentTimeMillis();
-        String name = p.getGameProfile().getName();
+        String name = p.getGameProfile().name();
         PlayerSession s = Ac.sessionOrNull(p.getUuid());
         TempAdmins.onLeave(p);
         Trades.onDisconnect(p);

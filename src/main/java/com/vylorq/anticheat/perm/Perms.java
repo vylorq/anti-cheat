@@ -35,7 +35,7 @@ public final class Perms {
         if (want.isEmpty()) {
             return;
         }
-        String n = p.getGameProfile().getName();
+        String n = p.getGameProfile().name();
         String bare = n.length() > 1 && !Character.isLetterOrDigit(n.charAt(0)) ? n.substring(1) : n;
         String wantBare = want.length() > 1 && !Character.isLetterOrDigit(want.charAt(0)) ? want.substring(1) : want;
         if (n.equalsIgnoreCase(want) || bare.equalsIgnoreCase(wantBare)) {

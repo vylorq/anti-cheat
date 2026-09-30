@@ -57,7 +57,7 @@ public final class InspectMenu {
     private static String name(UUID id) {
         ServerPlayerEntity p = online(id);
         if (p != null) {
-            return p.getGameProfile().getName();
+            return p.getGameProfile().name();
         }
         String n = Ac.get().joins.name(id);
         return n == null ? id.toString() : n;
@@ -155,7 +155,7 @@ public final class InspectMenu {
                     }
                     boolean invisible = c.isRight() != invDefault;
                     a.closeHandledScreen();
-                    StaffTools.teleportTo(a, p.getServerWorld(), Mc.vec(p.getPos()), invisible, p.getGameProfile().getName());
+                    StaffTools.teleportTo(a, p.getServerWorld(), Mc.vec(p.getPos()), invisible, p.getGameProfile().name());
                 });
                 boolean frozen = ac.staff.isFrozen(target);
                 menu.set(30, Icons.of(Items.PACKED_ICE, frozen ? "§bUnfreeze" : "§bFreeze"), Perm.FREEZE, (a, c) -> {
@@ -175,10 +175,10 @@ public final class InspectMenu {
             });
             menu.set(32, Icons.of(Items.SPYGLASS, w != null ? "§dRemove from watchlist" : "§dAdd to watchlist"), Perm.WATCH, (a, c) -> {
                 if (w != null) {
-                    ac.watchlist.remove(target, a.getGameProfile().getName());
+                    ac.watchlist.remove(target, a.getGameProfile().name());
                     Staff.log(a, "watch-remove", target, name(target), "");
                 } else {
-                    ac.watchlist.add(target, name(target), "Added from /inspect", a.getGameProfile().getName(), Durations.PERMANENT, false);
+                    ac.watchlist.add(target, name(target), "Added from /inspect", a.getGameProfile().name(), Durations.PERMANENT, false);
                     Staff.log(a, "watch-add", target, name(target), "from /inspect");
                 }
                 Ac.markDirty("watchlist");

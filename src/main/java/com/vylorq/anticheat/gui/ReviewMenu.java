@@ -159,7 +159,7 @@ public final class ReviewMenu {
             });
             menu.set(33, Icons.of(Items.ENDER_EYE, ac.watchlist.isWatched(c.player) ? "§dWatched" : "§dAdd to watchlist"), Perm.WATCH, (a, cl) -> {
                 if (!ac.watchlist.isWatched(c.player)) {
-                    ac.watchlist.add(c.player, c.playerName, "Review #" + c.id, a.getGameProfile().getName(), Durations.PERMANENT, false);
+                    ac.watchlist.add(c.player, c.playerName, "Review #" + c.id, a.getGameProfile().name(), Durations.PERMANENT, false);
                     Ac.markDirty("watchlist");
                     Staff.log(a, "watch-add", c.player, c.playerName, "review #" + c.id);
                 }
@@ -186,7 +186,7 @@ public final class ReviewMenu {
             }
             menu.set(42, Icons.of(Items.LIME_CONCRETE, "§aDismiss (false flag)", "Closes the case and resets points.",
                     "Counts toward this check's false-flag stats."), Perm.REVIEW, (a, cl) -> {
-                Ac.get().engine.decide(c.id, ReviewCase.Decision.DISMISS, a.getGameProfile().getName(), null);
+                Ac.get().engine.decide(c.id, ReviewCase.Decision.DISMISS, a.getGameProfile().name(), null);
                 Ac.markDirty("reviews");
                 Ac.markDirty("stats");
                 Staff.log(a, "review-dismiss", c.player, c.playerName, "case #" + c.id);
@@ -205,7 +205,7 @@ public final class ReviewMenu {
     }
 
     private static void decide(ServerPlayerEntity admin, ReviewCase c, ReviewCase.Decision d, String detail) {
-        Ac.get().engine.decide(c.id, d, admin.getGameProfile().getName(), detail);
+        Ac.get().engine.decide(c.id, d, admin.getGameProfile().name(), detail);
         Ac.markDirty("reviews");
         Ac.markDirty("stats");
         Staff.log(admin, "review-" + d.name().toLowerCase(), c.player, c.playerName, "case #" + c.id + (detail == null ? "" : " " + detail));

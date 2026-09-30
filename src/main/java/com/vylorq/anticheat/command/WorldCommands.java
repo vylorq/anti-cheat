@@ -242,7 +242,7 @@ final class WorldCommands {
         Barrier b = new Barrier();
         b.name = Args.str(ctx, "name");
         b.world = Mc.worldId(p.getWorld());
-        b.createdBy = p.getGameProfile().getName();
+        b.createdBy = p.getGameProfile().name();
         if (time != null) {
             OptionalLong t = Args.duration(ctx.getSource(), time);
             if (t.isEmpty()) return 0;
@@ -395,9 +395,9 @@ final class WorldCommands {
                         return 0;
                     }
                     Jail.jail(t, Args.str(ctx, "reason"), d2.getAsLong(), Staff.name(ctx.getSource().getPlayer()));
-                    Staff.log(ctx.getSource().getPlayer(), "jail", t.getUuid(), t.getGameProfile().getName(),
+                    Staff.log(ctx.getSource().getPlayer(), "jail", t.getUuid(), t.getGameProfile().name(),
                             Durations.format(d2.getAsLong()) + " " + Args.str(ctx, "reason"));
-                    Ac.get().punishments.add(com.vylorq.anticheat.core.staff.Punishment.Type.JAIL, t.getUuid(), t.getGameProfile().getName(),
+                    Ac.get().punishments.add(com.vylorq.anticheat.core.staff.Punishment.Type.JAIL, t.getUuid(), t.getGameProfile().name(),
                             Args.str(ctx, "reason"), Staff.name(ctx.getSource().getPlayer()), d2.getAsLong());
                     Ac.markDirty("punishments");
                     return 1;
@@ -465,7 +465,7 @@ final class WorldCommands {
                     ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
                     if (t == null) return 0;
                     boolean inv = Ac.get().staff.teleportInvisible(p.getUuid(), Ac.config().staff.teleportInvisibleByDefault);
-                    StaffTools.teleportTo(p, t.getServerWorld(), Mc.vec(t.getPos()), inv, t.getGameProfile().getName());
+                    StaffTools.teleportTo(p, t.getServerWorld(), Mc.vec(t.getPos()), inv, t.getGameProfile().name());
                     return 1;
                 }))));
         d.register(literal("waitingroom").requires(s -> Perms.visible(s, Perm.WAITING_ROOM))
@@ -560,7 +560,7 @@ final class WorldCommands {
                     for (var e : p.getStatusEffects()) {
                         e.getEffectType().getKey().ifPresent(key -> k.effects.put(key.getValue().toString(), e.getAmplifier()));
                     }
-                    k.description = java.util.List.of("Custom kit by " + p.getGameProfile().getName());
+                    k.description = java.util.List.of("Custom kit by " + p.getGameProfile().name());
                     Kit old = Ac.get().arenas.kit(k.name);
                     if (old != null) {
                         k.naturalRegen = old.naturalRegen;

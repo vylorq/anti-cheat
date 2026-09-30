@@ -48,7 +48,7 @@ public final class BlockLog {
         BlockChange c = new BlockChange();
         c.time = System.currentTimeMillis();
         c.actor = actor == null ? null : actor.getUuid();
-        c.actorName = actor == null ? actorName : actor.getGameProfile().getName();
+        c.actorName = actor == null ? actorName : actor.getGameProfile().name();
         c.world = Mc.worldId(w);
         c.x = pos.getX();
         c.y = pos.getY();
@@ -66,7 +66,7 @@ public final class BlockLog {
         BlockChange c = new BlockChange();
         c.time = System.currentTimeMillis();
         c.actor = actor.getUuid();
-        c.actorName = actor.getGameProfile().getName();
+        c.actorName = actor.getGameProfile().name();
         c.world = Mc.worldId(w);
         c.x = pos.getX();
         c.y = pos.getY();

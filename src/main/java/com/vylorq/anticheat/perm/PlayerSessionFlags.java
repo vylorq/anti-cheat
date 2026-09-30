@@ -14,6 +14,6 @@ public final class PlayerSessionFlags {
         if (ac == null) {
             return;
         }
-        ac.engine.flag(p.getUuid(), p.getGameProfile().getName(), check, points, detail, Ac.session(p).bedrock);
+        ac.engine.flag(p.getUuid(), p.getGameProfile().name(), check, points, detail, Ac.session(p).bedrock);
     }
 }

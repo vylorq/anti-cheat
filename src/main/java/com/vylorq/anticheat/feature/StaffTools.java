@@ -161,7 +161,7 @@ public final class StaffTools {
     public static void setFrozen(ServerPlayerEntity admin, ServerPlayerEntity target, boolean on) {
         Ac.get().staff.setFrozen(target.getUuid(), on);
         Ac.markDirty("staff");
-        Staff.log(admin, on ? "freeze" : "unfreeze", target.getUuid(), target.getGameProfile().getName(), "");
+        Staff.log(admin, on ? "freeze" : "unfreeze", target.getUuid(), target.getGameProfile().name(), "");
         if (on) {
             Trades.cancelFor(target, com.vylorq.anticheat.core.trade.SecureTrade.CancelReason.FROZEN);
             Mc.title(target, Msg.tr("freeze.title"), Msg.tr("freeze.subtitle"), 5, 100, 20);
@@ -205,8 +205,8 @@ public final class StaffTools {
         admin.changeGameMode(GameMode.SPECTATOR);
         Mc.teleport(admin, (ServerWorld) target.getWorld(), target.getX(), target.getY(), target.getZ(), target.getYaw(), target.getPitch());
         admin.setCameraEntity(target);
-        Staff.log(admin, "spectate", target.getUuid(), target.getGameProfile().getName(), "");
-        Msg.send(admin, "spectate.started", target.getGameProfile().getName());
+        Staff.log(admin, "spectate", target.getUuid(), target.getGameProfile().name(), "");
+        Msg.send(admin, "spectate.started", target.getGameProfile().name());
     }
 
     public static boolean leaveSpectate(ServerPlayerEntity admin) {
@@ -241,7 +241,7 @@ public final class StaffTools {
     // ---- Staff chat ----
 
     public static void staffChat(ServerPlayerEntity from, String message) {
-        String name = from == null ? "Console" : from.getGameProfile().getName();
+        String name = from == null ? "Console" : from.getGameProfile().name();
         Text t = Text.literal(Msg.tr("staffchat.format", name, message));
         for (ServerPlayerEntity p : Staff.online()) {
             p.sendMessage(t);
@@ -265,7 +265,7 @@ public final class StaffTools {
             case WRONG -> Msg.send(p, "staff.pin.wrong", Ac.config().staff.maxPinAttempts - ac.pins.failedAttempts(p.getUuid()));
             case LOCKED -> {
                 Msg.send(p, "staff.pin.locked", Ac.config().staff.pinLockMinutes);
-                Staff.broadcastOwner(Msg.prefixed(Msg.tr("staff.pin.owner-alert", p.getGameProfile().getName(), Mc.worldId(p.getWorld()))));
+                Staff.broadcastOwner(Msg.prefixed(Msg.tr("staff.pin.owner-alert", p.getGameProfile().name(), Mc.worldId(p.getWorld()))));
                 Staff.log(p, "pin-locked", null, null, "too many wrong attempts");
             }
             case NO_PIN_SET -> Msg.send(p, "staff.pin.set-first");

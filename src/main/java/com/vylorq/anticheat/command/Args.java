@@ -24,7 +24,7 @@ public final class Args {
 
     public static final SuggestionProvider<ServerCommandSource> ONLINE = (ctx, b) -> {
         for (ServerPlayerEntity p : ctx.getSource().getServer().getPlayerManager().getPlayerList()) {
-            b.suggest(Msg.q(p.getGameProfile().getName()));
+            b.suggest(Msg.q(p.getGameProfile().name()));
         }
         return b.buildFuture();
     };
@@ -61,7 +61,7 @@ public final class Args {
             return p;
         }
         for (ServerPlayerEntity o : pm.getPlayerList()) {
-            String n = o.getGameProfile().getName();
+            String n = o.getGameProfile().name();
             if (n.equalsIgnoreCase(name) || (n.length() > 1 && !Character.isLetterOrDigit(n.charAt(0)) && n.substring(1).equalsIgnoreCase(name))) {
                 return o;
             }
@@ -93,7 +93,7 @@ public final class Args {
     public static String nameOf(UUID id, String fallback) {
         ServerPlayerEntity p = Ac.server().getPlayerManager().getPlayer(id);
         if (p != null) {
-            return p.getGameProfile().getName();
+            return p.getGameProfile().name();
         }
         String n = Ac.get().joins.name(id);
         return n == null ? fallback : n;
