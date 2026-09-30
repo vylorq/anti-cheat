@@ -61,6 +61,11 @@ public final class Floodgate {
      * @return false when forms aren't available (caller falls back to chat)
      */
     public static boolean askText(UUID player, String title, List<String> labels, Consumer<String[]> onResult) {
+        return askText(player, title, labels, null, onResult);
+    }
+
+    /** Same, with text already filled into the boxes (e.g. the current value). */
+    public static boolean askText(UUID player, String title, List<String> labels, List<String> defaults, Consumer<String[]> onResult) {
         Object a = api();
         if (a == null) {
             return false;
@@ -70,8 +75,14 @@ public final class Floodgate {
             Object builder = customForm.getMethod("builder").invoke(null);
             Class<?> bc = builder.getClass();
             builder = find(bc, "title", String.class).invoke(builder, title);
-            for (String l : labels) {
-                builder = find(builder.getClass(), "input", String.class, String.class).invoke(builder, l, "");
+            for (int i = 0; i < labels.size(); i++) {
+                String def = defaults != null && i < defaults.size() && defaults.get(i) != null ? defaults.get(i) : "";
+                if (def.isEmpty()) {
+                    builder = find(builder.getClass(), "input", String.class, String.class).invoke(builder, labels.get(i), "");
+                } else {
+                    builder = find(builder.getClass(), "input", String.class, String.class, String.class)
+                            .invoke(builder, labels.get(i), "", def);
+                }
             }
             Class<?> responseType = Class.forName("org.geysermc.cumulus.response.CustomFormResponse");
             Object handler = Proxy.newProxyInstance(Floodgate.class.getClassLoader(), new Class<?>[]{Consumer.class},
@@ -103,6 +114,96 @@ public final class Floodgate {
             Ac.LOG.warn("Could not show a Bedrock form: {}", t.toString());
             return false;
         }
+    }
+
+    /**
+     * A native yes/no form (34.12). {@code onResult} gets true for the first button, false for the second or when
+     * closed; it runs on Floodgate's thread.
+     *
+     * @return false when forms aren't available (caller falls back to the chest screen)
+     */
+    public static boolean askConfirm(UUID player, String title, String content, String yes, String no, Consumer<Boolean> onResult) {
+        Object a = api();
+        if (a == null) {
+            return false;
+        }
+        try {
+            Class<?> modal = Class.forName("org.geysermc.cumulus.form.ModalForm");
+            Object builder = modal.getMethod("builder").invoke(null);
+            builder = find(builder.getClass(), "title", String.class).invoke(builder, title);
+            builder = find(builder.getClass(), "content", String.class).invoke(builder, content);
+            builder = find(builder.getClass(), "button1", String.class).invoke(builder, yes);
+            builder = find(builder.getClass(), "button2", String.class).invoke(builder, no);
+            Class<?> responseType = Class.forName("org.geysermc.cumulus.response.ModalFormResponse");
+            Object handler = consumer(resp -> {
+                try {
+                    onResult.accept((boolean) responseType.getMethod("clickedFirst").invoke(resp));
+                } catch (ReflectiveOperationException e) {
+                    onResult.accept(false);
+                }
+            });
+            builder = find(builder.getClass(), "validResultHandler", Consumer.class).invoke(builder, handler);
+            Object form = find(builder.getClass(), "build").invoke(builder);
+            Class<?> formClass = Class.forName("org.geysermc.cumulus.form.Form");
+            Object ok = a.getClass().getMethod("sendForm", UUID.class, formClass).invoke(a, player, form);
+            return !(ok instanceof Boolean b) || b;
+        } catch (Throwable t) {
+            Ac.LOG.warn("Could not show a Bedrock form: {}", t.toString());
+            return false;
+        }
+    }
+
+    /**
+     * A native list of buttons (34.12), for long lists on phones. {@code onResult} gets the index clicked (on
+     * Floodgate's thread).
+     */
+    public static boolean askChoice(UUID player, String title, String content, List<String> buttons, Consumer<Integer> onResult) {
+        Object a = api();
+        if (a == null) {
+            return false;
+        }
+        try {
+            Class<?> simple = Class.forName("org.geysermc.cumulus.form.SimpleForm");
+            Object builder = simple.getMethod("builder").invoke(null);
+            builder = find(builder.getClass(), "title", String.class).invoke(builder, title);
+            builder = find(builder.getClass(), "content", String.class).invoke(builder, content);
+            for (String b : buttons) {
+                builder = find(builder.getClass(), "button", String.class).invoke(builder, b);
+            }
+            Class<?> responseType = Class.forName("org.geysermc.cumulus.response.SimpleFormResponse");
+            Object handler = consumer(resp -> {
+                try {
+                    onResult.accept((int) responseType.getMethod("clickedButtonId").invoke(resp));
+                } catch (ReflectiveOperationException e) {
+                    // ignore
+                }
+            });
+            builder = find(builder.getClass(), "validResultHandler", Consumer.class).invoke(builder, handler);
+            Object form = find(builder.getClass(), "build").invoke(builder);
+            Class<?> formClass = Class.forName("org.geysermc.cumulus.form.Form");
+            Object ok = a.getClass().getMethod("sendForm", UUID.class, formClass).invoke(a, player, form);
+            return !(ok instanceof Boolean b) || b;
+        } catch (Throwable t) {
+            Ac.LOG.warn("Could not show a Bedrock form: {}", t.toString());
+            return false;
+        }
+    }
+
+    private static Object consumer(Consumer<Object> body) {
+        return Proxy.newProxyInstance(Floodgate.class.getClassLoader(), new Class<?>[]{Consumer.class},
+                (InvocationHandler) (proxy, method, args) -> {
+                    if (method.getName().equals("accept") && args != null && args.length == 1) {
+                        body.accept(args[0]);
+                        return null;
+                    }
+                    if (method.getName().equals("hashCode")) {
+                        return System.identityHashCode(proxy);
+                    }
+                    if (method.getName().equals("equals")) {
+                        return proxy == args[0];
+                    }
+                    return null;
+                });
     }
 
     private static Method find(Class<?> c, String name, Class<?>... params) throws NoSuchMethodException {

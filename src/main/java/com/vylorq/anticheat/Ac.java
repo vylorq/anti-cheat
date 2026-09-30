@@ -88,6 +88,10 @@ public final class Ac {
         public boolean explosionsEnabled = true;
         /** Temporary admins and the state to put back when their visit ends. */
         public Map<UUID, com.vylorq.anticheat.feature.TempAdmins.Grant> tempAdmins = new LinkedHashMap<>();
+        /** Language each player chose with /language ("auto" when missing). */
+        public Map<UUID, String> languages = new LinkedHashMap<>();
+        /** Admins who turned menu and message sounds off for themselves. */
+        public Set<UUID> quietUi = new java.util.HashSet<>();
     }
 
     /** Items held by the mod on a player's behalf (trade windows, trader offers). Returned after a crash. */

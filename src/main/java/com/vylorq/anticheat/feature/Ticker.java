@@ -55,6 +55,7 @@ public final class Ticker {
     }
 
     private static void everySecond(Ac ac) {
+        com.vylorq.anticheat.ui.BossBars.tick();
         MenuHandler.tickLive();
         Jail.tick();
         Claims.tick();

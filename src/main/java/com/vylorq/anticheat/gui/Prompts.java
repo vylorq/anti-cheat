@@ -17,21 +17,9 @@ public final class Prompts {
     private Prompts() {
     }
 
+    /** Asks for text: anvil on Java, form on Bedrock, or typed in chat (see {@link Input}). */
     public static void ask(ServerPlayerEntity p, String question, Consumer<String> answer) {
-        PlayerSession s = Ac.session(p);
-        UUID id = p.getUuid();
-        if (s.bedrock && Floodgate.askText(id, "Input", List.of(question), res -> Ac.server().execute(() -> {
-            ServerPlayerEntity online = Ac.server().getPlayerManager().getPlayer(id);
-            if (online != null && res != null && res.length > 0) {
-                answer.accept(res[0]);
-            }
-        }))) {
-            p.closeHandledScreen();
-            return;
-        }
-        p.closeHandledScreen();
-        s.chatPrompt = answer;
-        Msg.send(p, "prompt.type", question);
+        Input.text(p, question, "", answer);
     }
 
     /** Handles chat typed while a prompt is open. @return true if the message was consumed. */

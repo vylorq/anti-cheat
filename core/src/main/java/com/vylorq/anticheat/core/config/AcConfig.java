@@ -50,10 +50,16 @@ public class AcConfig {
          * The first player with this name to join becomes the owner and ownerUuid is filled in.
          */
         public String ownerName = "";
-        /** Language file: en_us or ar_sa. */
+        /** Default language: en_us or ar_sa. Each player sees their own game language when it's available. */
         public String language = "en_us";
-        /** Prefix used in chat messages. */
-        public String prefix = "§8[§cAC§8]§r ";
+        /** Server name shown in the ban screen, the waiting room and welcome messages. */
+        public String serverName = "our server";
+        /** "Vigil »" in front of mod messages. */
+        public boolean showPrefix = true;
+        /** Menu and message sounds (each admin can also turn them off for themselves). */
+        public boolean sounds = true;
+        /** Boss bars for jail time, claim entry, restarts and maintenance. */
+        public boolean bossBars = true;
         /** Checks pause/loosen when server TPS drops below this. */
         public double lagTpsThreshold = 18.0;
         public boolean debug = false;
