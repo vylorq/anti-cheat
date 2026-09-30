@@ -404,6 +404,8 @@ public class AcConfig {
         public String skinSignature = "";
         /** Players are only eligible this long after their last hit given or taken. */
         public int combatSeconds = 15;
+        /** The Watcher appears where a cheater stood just before the ban lightning (needs fun.banEffects). */
+        public boolean banAppearance = true;
     }
 
     public static class Restarts {

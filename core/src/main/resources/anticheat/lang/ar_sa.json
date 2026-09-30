@@ -277,5 +277,21 @@
   "tempadmin.not": "§c{0} ليس إدارياً مؤقتاً.",
   "tempadmin.you-are": "§aلديك صلاحيات إدارية مؤقتة. تنتهي عند خروجك ويعود كل ما غيّرته كما كان.",
   "tempadmin.ended": "§eانتهت الصلاحيات المؤقتة لـ {0} وأُعيد كل شيء كما كان.",
-  "ac.help": "§6AntiCheat §7- أوامر الإدارة\n§f/review §7فتح طابور المراجعة\n§f/inspect <لاعب> §7فحص / مشاهدة / انتقال\n§f/whereis <لاعب>\n§f/watch add|remove|list|history\n§f/exempt add|remove|list §7(للمالك)\n§f/freeze, /warn, /mute, /kick, /tempban, /ban, /unban, /unmute\n§f/report list, /vanish, /sc, /login <الرمز>, /maintenance on|off\n§f/rollback|restore <لاعب> <مدة> [نصف قطر]\n§f/deaths <لاعب>, /lag, /settings\n§f/claim wand|create|menu|who|near|spawn\n§f/barrier create|remove|list\n§f/lobby set|setspawn|edit|chest, /jail ..., /unjail\n§f/arena create|menu|join|spectate|kit save|stats, /duel\n§f/trader stick|create|list|edit|remove\n§f/requests, /waitingroom set\n§f/ac reload|alerts|stats|log|pin|admin|tempadmin|tp|export|farm|event|restart|backup|inspector"
+  "ac.help": "§6AntiCheat §7- أوامر الإدارة\n§f/review §7فتح طابور المراجعة\n§f/inspect <لاعب> §7فحص / مشاهدة / انتقال\n§f/whereis <لاعب>\n§f/watch add|remove|list|history\n§f/exempt add|remove|list §7(للمالك)\n§f/freeze, /warn, /mute, /kick, /tempban, /ban, /unban, /unmute\n§f/report list, /vanish, /sc, /login <الرمز>, /maintenance on|off\n§f/rollback|restore <لاعب> <مدة> [نصف قطر]\n§f/deaths <لاعب>, /lag, /settings\n§f/claim wand|create|menu|who|near|spawn\n§f/barrier create|remove|list\n§f/lobby set|setspawn|edit|chest, /jail ..., /unjail\n§f/arena create|menu|join|spectate|kit save|stats, /duel\n§f/trader stick|create|list|edit|remove\n§f/requests, /waitingroom set\n§f/ac reload|alerts|stats|log|pin|admin|tempadmin|tp|export|farm|event|restart|backup|inspector",
+  "watcher.on": "§8المراقب مستيقظ.",
+  "watcher.off": "§7المراقب نائم. تم إيقاف كل التأثيرات الجارية.",
+  "watcher.status": "§8المراقب: {0}§8. حدث كل {1}-{2} دقيقة. اللاعبون المستثنون: {3}.",
+  "watcher.summoned": "§8المراقب يزور {0}: {1}.",
+  "watcher.summon-failed": "§cلا يمكن إظهار {1} لـ {0} الآن (لا يوجد مكان مناسب، أو اللاعب في وضع الإبداع للهدايا).",
+  "watcher.busy": "§c{0} يرى شيئاً بالفعل. انتظر قليلاً.",
+  "watcher.excluded-player": "§c{0} في قائمة استثناء المراقب.",
+  "watcher.unknown-effect": "§cتأثير غير معروف: {0}",
+  "watcher.night": "§8ليلة المراقب: رآها {0} لاعب.",
+  "watcher.exclude-added": "§aلن يرى {0} المراقب أبداً.",
+  "watcher.exclude-removed": "§aيمكن لـ {0} رؤية المراقب مرة أخرى.",
+  "watcher.exclude-none": "§7لا يوجد أحد مستثنى.",
+  "watcher.exclude-list": "§8المستثنون: §f{0}",
+  "watcher.log-empty": "§7لم يرَ أحد شيئاً بعد.",
+  "watcher.log-header": "§8من رأى ماذا (الأحدث في الأسفل):",
+  "watcher.help": "§8/watcher on|off §7- تشغيل أو إيقاف\n§8/watcher summon <player> [effect]\n§8/watcher night\n§8/watcher log\n§8/watcher exclude add|remove|list <player>"
 }

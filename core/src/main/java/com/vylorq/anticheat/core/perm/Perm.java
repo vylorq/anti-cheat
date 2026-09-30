@@ -39,6 +39,8 @@ public enum Perm {
     MANAGE_ADMINS(Role.OWNER),
     EVENTS(Role.ADMIN),
     RESTART(Role.ADMIN),
+    /** The Watcher (section 33): owner only. */
+    WATCHER(Role.OWNER),
     // World
     CLAIM(Role.ADMIN),
     BARRIER(Role.ADMIN),

@@ -49,6 +49,7 @@ public final class Commands {
     public static void register(CommandDispatcher<ServerCommandSource> d) {
         StaffCommands.register(d);
         WorldCommands.register(d);
+        WatcherCommands.register(d);
         registerAc(d);
         // Public "caught" counter (section 28).
         d.register(literal("caught").executes(ctx -> {

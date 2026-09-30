@@ -21,6 +21,7 @@ public final class AntiCheatMod implements ModInitializer {
     @Override
     public void onInitialize() {
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            com.vylorq.anticheat.feature.Watcher.reset();
             Ac.start(server);
             Ac.get().engine.setListener(new DetectionListener());
             Xray.reloadLists();
@@ -46,6 +47,7 @@ public final class AntiCheatMod implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(Ticker::tick);
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> Commands.register(dispatcher));
         Protection.register();
+        com.vylorq.anticheat.feature.Watcher.register();
         Ac.LOG.info("AntiCheat loaded.");
     }
 }
