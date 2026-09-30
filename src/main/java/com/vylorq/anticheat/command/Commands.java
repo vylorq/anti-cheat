@@ -143,24 +143,10 @@ public final class Commands {
                         .then(literal("remove").then(Args.player("player").executes(ctx -> admin(ctx, false)))))
                 .then(literal("tempadmin")
                         .then(literal("add").then(Args.player("player")
-                                .executes(ctx -> tempRole(ctx, false, false))
-                                .then(literal("keepbuilds").executes(ctx -> tempRole(ctx, true, false)))))
+                                .executes(ctx -> tempAdmin(ctx, false))
+                                .then(literal("keepbuilds").executes(ctx -> tempAdmin(ctx, true)))))
                         .then(literal("remove").then(Args.player("player").executes(ctx -> {
-                            if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS) || tempBlocked(ctx)) return 0;
-                            ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
-                            if (t == null) return 0;
-                            if (!com.vylorq.anticheat.feature.TempAdmins.end(ctx.getSource().getPlayer(), t)) {
-                                Msg.err(ctx.getSource(), "tempadmin.not", t.getGameProfile().name());
-                                return 0;
-                            }
-                            return 1;
-                        }))))
-                .then(literal("tempowner")
-                        .then(literal("add").then(Args.player("player")
-                                .executes(ctx -> tempRole(ctx, false, true))
-                                .then(literal("keepbuilds").executes(ctx -> tempRole(ctx, true, true)))))
-                        .then(literal("remove").then(Args.player("player").executes(ctx -> {
-                            if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS) || tempBlocked(ctx)) return 0;
+                            if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
                             ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
                             if (t == null) return 0;
                             if (!com.vylorq.anticheat.feature.TempAdmins.end(ctx.getSource().getPlayer(), t)) {
@@ -333,18 +319,8 @@ public final class Commands {
         return 1;
     }
 
-    /** Temporary owners can't hand out roles, so nothing they do outlives their visit. */
-    private static boolean tempBlocked(CommandContext<ServerCommandSource> ctx) {
-        ServerPlayerEntity p = ctx.getSource().getPlayer();
-        if (p != null && com.vylorq.anticheat.feature.TempAdmins.isTemp(p.getUuid())) {
-            Msg.err(ctx.getSource(), "tempowner.no-roles");
-            return true;
-        }
-        return false;
-    }
-
-    private static int tempRole(CommandContext<ServerCommandSource> ctx, boolean keepBuilds, boolean owner) {
-        if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS) || tempBlocked(ctx)) return 0;
+    private static int tempAdmin(CommandContext<ServerCommandSource> ctx, boolean keepBuilds) {
+        if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
         ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
         if (t == null) return 0;
         String name = t.getGameProfile().name();
@@ -352,14 +328,13 @@ public final class Commands {
             Msg.err(ctx.getSource(), "tempadmin.already", name);
             return 0;
         }
-        com.vylorq.anticheat.feature.TempAdmins.grant(ctx.getSource().getPlayer(), t, keepBuilds, owner);
-        String key = owner ? "tempowner.added" : "tempadmin.added";
-        Msg.ok(ctx.getSource(), keepBuilds ? key + "-keep" : key, name);
+        com.vylorq.anticheat.feature.TempAdmins.grant(ctx.getSource().getPlayer(), t, keepBuilds);
+        Msg.ok(ctx.getSource(), keepBuilds ? "tempadmin.added-keep" : "tempadmin.added", name);
         return 1;
     }
 
     private static int admin(CommandContext<ServerCommandSource> ctx, boolean add) {
-        if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS) || tempBlocked(ctx)) return 0;
+        if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
         String name = Args.str(ctx, "player");
         var server = Ac.server();
         UUID id = Args.known(ctx.getSource(), name);

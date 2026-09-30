@@ -23,10 +23,7 @@ public final class Perms {
 
     public static boolean isOwner(UUID id) {
         String owner = Ac.config().general.ownerUuid;
-        if (owner != null && !owner.isBlank() && owner.equalsIgnoreCase(id.toString())) {
-            return true;
-        }
-        return com.vylorq.anticheat.feature.TempAdmins.isTempOwner(id);
+        return owner != null && !owner.isBlank() && owner.equalsIgnoreCase(id.toString());
     }
 
     /** Turns general.ownerName into ownerUuid the first time that player is seen. Bedrock's name prefix is optional. */
