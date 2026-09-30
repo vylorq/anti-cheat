@@ -137,6 +137,10 @@ public final class Extras {
     public static void restartNow(boolean backup) {
         var server = Ac.server();
         server.getPlayerManager().broadcast(Text.literal(Msg.tr("restart.now")), false);
+        // Kick first so nobody sits in a frozen game while the backup is written.
+        for (ServerPlayerEntity p : new ArrayList<>(server.getPlayerManager().getPlayerList())) {
+            p.networkHandler.disconnect(Text.literal(Msg.tr("restart.kick")));
+        }
         server.saveAll(true, true, true);
         if (backup) {
             try {
@@ -145,10 +149,58 @@ public final class Extras {
                 Ac.LOG.error("World backup failed", e);
             }
         }
-        for (ServerPlayerEntity p : new ArrayList<>(server.getPlayerManager().getPlayerList())) {
-            p.networkHandler.disconnect(Text.literal(Msg.tr("restart.kick")));
-        }
         server.stop(false);
+    }
+
+    private static volatile boolean backupRunning;
+
+    /**
+     * Saves, then zips the world and database on a background thread so the game keeps running. World saving is
+     * paused meanwhile (like /save-off) so region files aren't copied half-written. Callbacks run on the server
+     * thread and receive the backup file names.
+     */
+    public static void backupAsync(java.util.function.Consumer<String> done, java.util.function.Consumer<Exception> failed) {
+        var server = Ac.server();
+        if (backupRunning) {
+            failed.accept(new IllegalStateException("a backup is already running"));
+            return;
+        }
+        backupRunning = true;
+        server.saveAll(true, true, true);
+        List<net.minecraft.server.world.ServerWorld> paused = new ArrayList<>();
+        for (var w : server.getWorlds()) {
+            if (!w.savingDisabled) {
+                w.savingDisabled = true;
+                paused.add(w);
+            }
+        }
+        Thread t = new Thread(() -> {
+            String names = null;
+            Exception error = null;
+            try {
+                var f = Ac.get().db.backup(Ac.get().dir.resolve("backups"), Ac.config().storage.backupsToKeep);
+                var w = backupWorld();
+                names = w.getFileName() + (f == null ? "" : ", " + f.getFileName());
+            } catch (Exception e) {
+                Ac.LOG.error("Backup failed", e);
+                error = e;
+            }
+            String n = names;
+            Exception err = error;
+            server.execute(() -> {
+                for (var w : paused) {
+                    w.savingDisabled = false;
+                }
+                backupRunning = false;
+                if (err == null) {
+                    done.accept(n);
+                } else {
+                    failed.accept(err);
+                }
+            });
+        }, "AntiCheat-Backup");
+        t.setDaemon(true);
+        t.start();
     }
 
     public static Path backupWorld() throws Exception {
