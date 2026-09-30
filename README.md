@@ -1,4 +1,4 @@
-# Anti-Cheat & Server Management (Fabric, Minecraft 1.21.4)
+# Anti-Cheat & Server Management (Fabric, Minecraft 1.21.11)
 
 A server-side Fabric mod: anti-cheat with admin review, staff tools, claims, barriers, lobby, jail, PvP arenas,
 traders, secure player trading and new-player verification. Java and Bedrock (Geyser + Floodgate) players.
@@ -17,7 +17,7 @@ This was written in a cloud environment that **could not download Minecraft or F
   analysis with legit jitter and butterfly clicking, claims, barriers, traders (including two players buying the last
   item at once), secure trading, death restores, SQLite storage, and the language files.
 * **The Fabric layer (`src/`) has not been compiled yet.** A javac pass without Minecraft found no syntax errors, and
-  every call between the mod's own classes resolves. Calls into Minecraft use Yarn 1.21.4 names from memory, so
+  every call between the mod's own classes resolves. Calls into Minecraft use Yarn 1.21.11 names from memory, so
   **expect a handful of compile errors on the first build**. These are usually a renamed method or a changed
   constructor, fixed in a line or two each. Version-sensitive calls are grouped in `util/Mc.java`, `util/ItemConv.java`
   and the `mixin/` package.
@@ -31,7 +31,7 @@ This was written in a cloud environment that **could not download Minecraft or F
 ### Things from the spec I could not do without your existing code
 
 * **Section 2 and 3 (read the existing mod, fix command typos and duplicates):** your current mod is on your PC, not
-  in this repository, so I couldn't audit it. I picked **Minecraft 1.21.4** (you mentioned it) and wrote everything
+  in this repository, so I couldn't audit it. I picked **Minecraft 1.21.11** (you mentioned it) and wrote everything
   with **mod id `anticheat`** and **package `com.vylorq.anticheat`**. See "Merging with your existing mod" below.
 * **The existing x-ray detector:** rebuilt from scratch (ore hiding, fake-vein trap, mining-ratio analysis, grouped ore
   alerts). If yours has a detail worth keeping, it can go into `feature/Xray.java`.

@@ -21,7 +21,6 @@ loom {
             server()
             name 'Game Test'
             vmArg '-Dfabric-api.gametest'
-            vmArg '-Dmixin.ignoreRequired=true' // TEMP: list every broken injection in one run
             vmArg "-Dfabric-api.gametest.report-file=${project.layout.buildDirectory.get()}/gametest/junit.xml"
             runDir 'build/gametest'
         }
