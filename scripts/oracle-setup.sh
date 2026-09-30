@@ -8,7 +8,7 @@
 # Run it again any time to update the mod (the world and settings are kept).
 set -euo pipefail
 
-MC_VERSION="${MC_VERSION:-1.21.4}"
+MC_VERSION="${MC_VERSION:-1.21.11}"
 REPO="${REPO:-https://github.com/vylorq/anti-cheat.git}"
 BRANCH="${BRANCH:-main}"
 SERVER_DIR="$HOME/mc"
