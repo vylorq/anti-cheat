@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run a Minecraft server console command from the terminal, e.g.:  mc list   or   mc ac tempadmin add Steve
+"""Run a Minecraft server console command from the terminal, e.g.:  mc list   or   mc vigil tempadmin add Steve
 
 Talks to the server's RCON (only reachable from the server itself; the firewall keeps the port closed).
 """
@@ -47,7 +47,7 @@ def read_packet(sock):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: mc <command>      examples:  mc list     mc ac tempadmin add Steve")
+        print("Usage: mc <command>      examples:  mc list     mc vigil tempadmin add Steve")
         return 1
     command = " ".join(sys.argv[1:]).lstrip("/")
     password = prop("rcon.password")

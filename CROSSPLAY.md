@@ -26,7 +26,7 @@ In one folder on your PC (for example `C:\mcserver`):
      older builds on https://modrinth.com/mod/geyser and https://modrinth.com/mod/floodgate for 1.21.11.
      If there are none, move this mod to the version Geyser supports (see "Changing Minecraft version" in
      `README.md`).
-   * This mod: `anticheat-2.0.0.jar` (from `gradlew build`, in `build/libs/`).
+   * This mod: `vigil-2.0.0.jar` (from `gradlew build`, in `build/libs/`).
 3. You need **Java 21** installed (free: https://adoptium.net).
 
 Start it once with:
@@ -79,7 +79,7 @@ Consoles can't type in a server address. Two free ways around that:
 * Free performance mods for Fabric (optional, drop into `mods/`): **Lithium** (game logic),
   **FerriteCore** (memory), **ServerCore** or **Krypton** (networking). All free on Modrinth. Make sure each matches
   your Minecraft version.
-* This mod's own heavy parts can be tuned in `config/anticheat/config.json`: turn `xray.oreHiding` off if chunk
+* This mod's own heavy parts can be tuned in `config/vigil/config.json`: turn `xray.oreHiding` off if chunk
   loading feels slow, and raise `general.lagTpsThreshold` so checks relax sooner under lag.
 * Bedrock players get more lenient anti-cheat limits automatically (`movement.bedrockLeniency`,
   `combat.bedrockReachTolerance`, `combat.bedrockMaxCps`), so touch and controller players aren't flagged for

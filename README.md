@@ -1,40 +1,40 @@
-# Anti-Cheat & Server Management (Fabric, Minecraft 1.21.11)
+<p align="center"><img src="branding/vigil_logo.png" alt="Vigil" width="480"></p>
 
-A server-side Fabric mod: anti-cheat with admin review, staff tools, claims, barriers, lobby, jail, PvP arenas,
-traders, secure player trading and new-player verification. Java and Bedrock (Geyser + Floodgate) players.
-It is built from `ANTICHEAT_SPEC.md`.
+# Vigil: Server Guard (Fabric, Minecraft 1.21.11)
 
-> **Read "Status and what to check first" before using this on a real server.**
-> **Java + Bedrock crossplay setup (all free): see [CROSSPLAY.md](CROSSPLAY.md). Free hosting on Oracle Cloud: [ORACLE_HOSTING.md](ORACLE_HOSTING.md).**
+Anti-cheat and server protection that keeps watch through the night. A server-side Fabric mod: anti-cheat with admin
+review, staff tools, claims, barriers, lobby, jail, PvP arenas, traders, secure player trading, new-player
+verification and the Watcher. Java and Bedrock (Geyser + Floodgate) players. Built from `ANTICHEAT_SPEC.md`,
+`WATCHER_UPDATE.md` and `UI_UPDATE.md`.
 
-## Status and what to check first
+> **Java + Bedrock crossplay setup (all free): see [CROSSPLAY.md](CROSSPLAY.md). Free hosting on Oracle Cloud:
+> [ORACLE_HOSTING.md](ORACLE_HOSTING.md).**
 
-This was written in a cloud environment that **could not download Minecraft or Fabric**
-(`maven.fabricmc.net` and Mojang's servers are blocked there). So:
+## Status
 
-* **`core/`** (all the logic, about half the code) **was compiled and tested**: 101 unit tests pass
-  (`gradlew :core:test`). That includes movement prediction against a vanilla-physics simulator, autoclicker
-  analysis with legit jitter and butterfly clicking, claims, barriers, traders (including two players buying the last
-  item at once), secure trading, death restores, SQLite storage, and the language files.
-* **The Fabric layer (`src/`) has not been compiled yet.** A javac pass without Minecraft found no syntax errors, and
-  every call between the mod's own classes resolves. Calls into Minecraft use Yarn 1.21.11 names from memory, so
-  **expect a handful of compile errors on the first build**. These are usually a renamed method or a changed
-  constructor, fixed in a line or two each. Version-sensitive calls are grouped in `util/Mc.java`, `util/ItemConv.java`
-  and the `mixin/` package.
-* Some mixins are marked `require = 0`. If their target method was renamed, they silently do nothing instead of
-  crashing the server, and those features are then off. They are: fluid flow, fire spread, dispensers, hoppers,
-  explosion filtering, TNT limits, redstone clock detection, trampling, endermen, withers, vanish entity
-  tracking, silent vanish join/leave messages, UHC no-regen, trader lightning/pushing, projectiles vs barriers,
-  and "obtained naturally" from crafting. After the first successful start, run the game tests
-  (below) and check the log for mixin warnings.
+* Every push is built and tested on GitHub: `core` unit tests, the in-game tests (`runGametest` on a headless
+  1.21.11 server) and a crossplay test where a Bedrock client joins through the newest Geyser, sees the Watcher and
+  opens the Vigil menus.
+* The mod id is **`vigil`** (it used to be `anticheat`). On first start Vigil moves `config/anticheat/` to
+  `config/vigil/` and renames the database, so nothing is lost. Permission nodes are `vigil.*`; old `anticheat.*`
+  nodes still work.
+* Logo files: `branding/` (`icon.png`, `vigil_icon.png/.svg`, `vigil_logo.png/.svg`). The mod icon is
+  `src/main/resources/assets/vigil/icon.png`.
 
-### Things from the spec I could not do without your existing code
+## Using it
 
-* **Section 2 and 3 (read the existing mod, fix command typos and duplicates):** your current mod is on your PC, not
-  in this repository, so I couldn't audit it. I picked **Minecraft 1.21.11** (you mentioned it) and wrote everything
-  with **mod id `anticheat`** and **package `com.vylorq.anticheat`**. See "Merging with your existing mod" below.
-* **The existing x-ray detector:** rebuilt from scratch (ore hiding, fake-vein trap, mining-ratio analysis, grouped ore
-  alerts). If yours has a detail worth keeping, it can go into `feature/Xray.java`.
+* **`/vigil`** (or `/vg`, or the old `/ac`) opens the **Vigil Panel**: every feature is a click away. People on the
+  second row, places on the third, tools on the fourth. Numbers in a button's name mean something is waiting.
+* **`/vigil help`** lists every command you may use, grouped and clickable. A mistyped subcommand or player name gets
+  a "Did you mean ...?".
+* **`/settings`** has pages (General, PvP & World, Anti-Cheat, Protection, Lobby & Jail, Waiting Room, Arenas,
+  Traders, Watcher, Messages & Style). Every setting shows its current and default value; shift + right-click resets
+  it; a gold dot marks changed ones; Search finds any setting.
+* **`/language`**: each player sees their game's language (English or Arabic) automatically, or picks one here.
+  Bedrock players get English unless they pick Arabic, because Bedrock can't join Arabic letters in menus.
+* Menus look the same everywhere: coloured frame, info at the top, Back / Prev / Search / Next / Filter / Close at
+  the bottom. Anything destructive asks first. Bans and jails ask for the time and reason, then confirm with the
+  player's head. Bedrock players get native forms for typing and for yes/no questions.
 
 ## Building (Windows + VS Code)
 
@@ -43,7 +43,7 @@ This was written in a cloud environment that **could not download Minecraft or F
    ```
    gradlew build            (Windows: .\gradlew.bat build)
    ```
-   The mod jar is `build/libs/anticheat-2.0.0.jar`. SQLite and the core module are bundled inside it.
+   The mod jar is `build/libs/vigil-2.0.0.jar`. SQLite and the core module are bundled inside it.
 3. Other useful tasks:
    ```
    gradlew :core:test       run the unit tests (no Minecraft needed)
@@ -59,23 +59,12 @@ values from https://fabricmc.net/develop). 1.21.5+ changed several APIs (NBT get
 became records, and so on), so expect more fixes there. Check that Geyser-Fabric and Floodgate support the exact
 version.
 
-## Merging with your existing mod
-
-The spec says to keep your mod id, name and package. To switch this code over to them:
-
-1. Rename the package folders `com/vylorq/anticheat` (in both `src/` and `core/src/`) and replace
-   `com.vylorq.anticheat` everywhere.
-2. In `src/main/resources/fabric.mod.json`, change `"id"` and `"name"`. In `Ac.java`, change `MOD_ID`.
-   Rename `anticheat.mixins.json` if you like, and update the reference in `fabric.mod.json`.
-3. Go through your old command list (spec section 3) and compare it with the table below. Keep any old
-   misspelled names as hidden aliases for one release.
-
 ## First-time setup on a server
 
 1. Put the jar in `mods/` together with **Fabric API**. Optional: **Geyser-Fabric + Floodgate** (Bedrock players),
-   **LuckPerms / fabric-permissions-api** (permission nodes `anticheat.*`; otherwise op level 3 = admin).
+   **LuckPerms / fabric-permissions-api** (permission nodes `vigil.*`, old `anticheat.*` also work; otherwise op level 3 = admin).
 2. Start the server once, then in the **server console**: `ac setowner <YourName>`.
-3. In game, each admin sets a PIN: `/ac pin set 1234`, then uses `/login 1234` each time they join (section 15).
+3. In game, each admin sets a PIN: `/vigil pin set 1234`, then uses `/login 1234` each time they join (section 15).
 4. Build what you need:
    * Lobby: `/claim wand`, select two corners, `/lobby set`, stand at the spawn, `/lobby setspawn`.
    * Waiting room: build it, optionally select it with the Claim Stick, stand inside, `/waitingroom set`.
@@ -84,11 +73,11 @@ The spec says to keep your mod id, name and package. To switch this code over to
    * Spawn protection: select it, `/claim spawn`.
    * Arenas: select the area, `/arena create <name>`, then use the menu to set spawns and save blocks.
    * Traders: `/trader stick`, right-click a block.
-5. Settings: `config/anticheat/config.json` (every threshold and toggle), `/settings` in game, `/ac reload`.
-   Messages: `config/anticheat/lang/en_us.json` or `ar_sa.json` override the bundled files; set
+5. Settings: `config/vigil/config.json` (every threshold and toggle), `/settings` in game, `/vigil reload`.
+   Messages: `config/vigil/lang/en_us.json` or `ar_sa.json` override the bundled files; set
    `general.language` to `ar_sa` for Arabic.
 
-Data lives in `config/anticheat/`: `anticheat.db` (SQLite: state and logs), `evidence/` (clip files, also the export
+Data lives in `config/vigil/`: `vigil.db` (SQLite: state and logs), `evidence/` (clip files, also the export
 format), `snapshots/` (arena and claim block snapshots), `backups/` (daily database copies and world zips).
 
 ## How the detection works (short version)
@@ -138,7 +127,12 @@ format), `snapshots/` (arena and claim block snapshots), `backups/` (daily datab
 | `/trade <player>`, `/trade accept\|deny <player>` | all | Secure trading |
 | `/request join`, `/requests [accept\|deny\|tp <player>]`, `/waitingroom set` | new players / admin | Verification |
 | `/caught` | all | Public "cheaters caught" counter (toggle) |
-| `/ac reload\|alerts\|stats\|log [player]\|pin set\|pin clear\|admin add\|remove\|tp\|export <clip>\|farm add\|remove\|list\|event title\|countdown\|dropparty\|restart\|backup\|inspector` | admin/owner | Admin root |
+| `/vigil` (aliases `/vg`, `/ac`) | admin | The Vigil Panel |
+| `/vigil help [page\|command]` | admin | Clickable help |
+| `/vigil reload\|alerts\|stats\|log [player]\|pin set\|pin clear\|admin add\|remove\|tempadmin\|tp\|export <clip>\|farm\|event\|restart\|backup\|inspector` | admin/owner | Admin root |
+| `/vigil <command>` | admin | Every admin command also works under `/vigil` (e.g. `/vigil jail ...`) |
+| `/vigil watcher on\|off\|summon\|night\|log\|exclude` | owner | The Watcher |
+| `/language [auto\|english\|arabic]` | all | Your language |
 
 Bedrock names with a prefix or spaces work everywhere. Put them in quotes: `/inspect ".Steve Two"`.
 
@@ -151,10 +145,11 @@ core/                     Minecraft-independent logic + unit tests (gradlew :cor
   evidence/ review/       evidence recorder and clips; review cases
   claims/ barrier/ redstone/ blocklog/ xray/ items/ chat/ joins/
   staff/ deaths/ lobby/ jail/ waiting/ arena/ trader/ trade/ extras/ storage/ lang/ config/ perm/
-src/main/java/.../anticheat
+src/main/java/.../anticheat   (package name kept; the mod id is vigil)
   Ac.java                 all services for the running server, saving
   feature/                gameplay wiring (movement, combat, claims, traders, arenas, ...)
-  gui/                    chest menus (work on Bedrock through Geyser)
+  ui/                     Vigil look: colours, symbols, buttons, sounds, boss bars, per-player language
+  gui/                    chest menus (standard layout, work on Bedrock through Geyser; forms for Bedrock)
   command/                commands
   mixin/                  hooks into Minecraft
   platform/               optional Floodgate / permissions-api bridges (reflection, no hard dependency)
