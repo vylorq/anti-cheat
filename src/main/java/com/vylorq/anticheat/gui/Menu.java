@@ -142,6 +142,27 @@ public class Menu {
         return this;
     }
 
+    public Menu titleText(Text t) {
+        this.titleText = t;
+        return this;
+    }
+
+    /**
+     * Changes the window title while it's open (Java only: the same window is re-sent with the new name). Bedrock
+     * clients would close and reopen the window, so they keep the old title.
+     */
+    public void retitle(ServerPlayerEntity p, Text t) {
+        if (t.equals(titleText)) {
+            return;
+        }
+        titleText = t;
+        if (handler == null || p.currentScreenHandler != handler || Viewer.isBedrock(p)) {
+            return;
+        }
+        p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.OpenScreenS2CPacket(handler.syncId, handler.getType(), t));
+        handler.syncState();
+    }
+
     public Menu live() {
         this.live = true;
         return this;
