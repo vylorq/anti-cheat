@@ -1317,5 +1317,7 @@
   "general.unknown-player-suggest": "§cNo player named '{0}'. Did you mean {1}?",
   "general.not-online-suggest": "§c{0} is not online. Did you mean {1}?",
   "event.drop-items-title": "Drop party items (close to save)",
-  "settings.reset-done": "{0}: back to defaults"
+  "settings.reset-done": "{0}: back to defaults",
+  "set.fancy-boss-bars": "Fancy boss bars",
+  "set.fancy-boss-bars.desc": "Ornate Ender Dragon, Wither and Raid bars. Java players who accept the server pack and all Bedrock players see them."
 }

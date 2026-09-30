@@ -46,6 +46,7 @@ jobs:
           mkdir geyser && cd geyser
           curl -fsSL -o Geyser.jar https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/standalone
           cp ../srv/config/floodgate/key.pem key.pem
+          mkdir -p packs && cp ../resourcepack/vigil-bossbars.mcpack packs/
           nohup java -Xmx1G -jar Geyser.jar --nogui > geyser.log 2>&1 < /dev/null &
           for i in $(seq 1 60); do [ -f config.yml ] && break; sleep 2; done
           pkill -f Geyser.jar || true; sleep 3
@@ -67,11 +68,13 @@ jobs:
           const sleep = (ms) => new Promise(r => setTimeout(r, ms))
           const mc = (c) => { try { console.log('RCON', c, '->', execSync('python3 ../scripts/mc ' + c).toString().trim()) } catch (e) { console.log('RCON failed', c, e.message) } }
           const client = bedrock.createClient({ host: '127.0.0.1', port: 19132, username: 'BedrockBot', offline: true, skipPing: false })
-          let figures = 0, removed = 0, containers = 0, items = 0, forms = 0, menus = 0
+          let figures = 0, removed = 0, containers = 0, items = 0, forms = 0, menus = 0, packOffered = false, bossArt = false
           const run = (cmd) => client.queue('command_request', { command: cmd, origin: { type: 'player', uuid: '00000000-0000-0000-0000-000000000000', request_id: '', player_entity_id: 0n }, internal: false, version: '1' })
           client.on('container_open', (p) => { containers++; console.log('BEDROCK container_open:', p.window_type || p.type || JSON.stringify(p).slice(0, 80)) })
           client.on('inventory_content', (p) => { const n = (p.input || []).filter(i => i && i.network_id).length; if (n > 0) { items += n; menus++; console.log('BEDROCK menu items:', n) } })
           client.on('modal_form_request', (p) => { forms++; console.log('BEDROCK form:', String(p.data).slice(0, 120)) })
+          client.on('resource_packs_info', (p) => { packOffered = JSON.stringify(p, (k, v) => typeof v === 'bigint' ? String(v) : v).includes('8f3c2a1e'); console.log('BEDROCK packs offered, boss bar pack:', packOffered) })
+          client.on('boss_event', (p) => { if (p.title) { const t = String(p.title); console.log('BEDROCK boss bar:', JSON.stringify(t)); if (t.includes('\uE202') && t.includes('\uE203')) bossArt = true } })
           client.on('join', () => console.log('BEDROCK: join packet'))
           client.on('add_player', (p) => { figures++; console.log('BEDROCK add_player:', p.username, 'runtime id', String(p.runtime_id)) })
           client.on('remove_entity', () => removed++)
@@ -97,9 +100,15 @@ jobs:
               run(cmd)
               await sleep(3000)
             }
+            // A Wither's bar gets the Bedrock ornaments (from the pack Geyser sent).
+            mc('execute at BedrockBot run summon minecraft:wither ~ ~6 ~ {NoAI:1b,Silent:1b}')
+            await sleep(4000)
+            mc('kill @e[type=minecraft:wither]')
+            await sleep(1000)
+            console.log('BEDROCK: boss bar pack offered', packOffered, 'fancy wither bar', bossArt)
             console.log('BEDROCK: fake figures seen', figures, 'entities removed', removed, 'windows', containers, 'menus shown', menus, 'menu items', items)
             // Geyser reuses the open window for the next menu, so count the menus whose contents arrived.
-            process.exit(figures > 0 && containers >= 1 && menus >= 3 ? 0 : 5)
+            process.exit(figures > 0 && containers >= 1 && menus >= 3 && packOffered && bossArt ? 0 : 5)
           })
           client.on('disconnect', (p) => { console.log('BEDROCK disconnected:', JSON.stringify(p)); process.exit(2) })
           client.on('kick', (p) => { console.log('BEDROCK kicked:', JSON.stringify(p)); process.exit(2) })

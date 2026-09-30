@@ -457,4 +457,79 @@ public final class AntiCheatGameTests {
         fake.currentScreenHandler = fake.playerScreenHandler;
         ctx.complete();
     }
+
+    /** The title a boss bar packet carries (from its add or name-update part). */
+    private static String bossTitle(net.minecraft.network.packet.Packet<?> packet) {
+        String[] out = {null};
+        ((net.minecraft.network.packet.s2c.play.BossBarS2CPacket) packet).accept(new net.minecraft.network.packet.s2c.play.BossBarS2CPacket.Consumer() {
+            @Override
+            public void add(java.util.UUID uuid, net.minecraft.text.Text name, float percent, net.minecraft.entity.boss.BossBar.Color color,
+                            net.minecraft.entity.boss.BossBar.Style style, boolean darkenSky, boolean dragonMusic, boolean thickenFog) {
+                out[0] = name.getString();
+            }
+
+            @Override
+            public void updateName(java.util.UUID uuid, net.minecraft.text.Text name) {
+                out[0] = name.getString();
+            }
+        });
+        return out[0];
+    }
+
+    @GameTest
+    public void fancyBossBarsForJavaAndBedrock(TestContext ctx) {
+        var wither = new net.minecraft.entity.boss.ServerBossBar(net.minecraft.text.Text.translatable("entity.minecraft.wither"),
+                net.minecraft.entity.boss.BossBar.Color.PURPLE, net.minecraft.entity.boss.BossBar.Style.PROGRESS);
+        wither.setDarkenSky(true);
+        var add = net.minecraft.network.packet.s2c.play.BossBarS2CPacket.add(wither);
+        String java = bossTitle(com.vylorq.anticheat.feature.BossBarArt.rewrite(add, false, true));
+        check(java.contains("\uE001") && java.contains("Wither"), "Java with the pack should get the wither art: " + java);
+        String bedrock = bossTitle(com.vylorq.anticheat.feature.BossBarArt.rewrite(add, true, false));
+        check(bedrock.contains("\uE202") && bedrock.contains("\uE203") && bedrock.contains("Wither"), "Bedrock should get the ornaments: " + bedrock);
+        check(com.vylorq.anticheat.feature.BossBarArt.rewrite(add, false, false) == add, "Java without the pack should get the plain bar");
+        // Later name updates keep the art (the bar is remembered from its first packet).
+        wither.setName(net.minecraft.text.Text.literal("Wither"));
+        String renamed = bossTitle(com.vylorq.anticheat.feature.BossBarArt.rewrite(
+                net.minecraft.network.packet.s2c.play.BossBarS2CPacket.updateName(wither), false, true));
+        check(renamed.contains("\uE001"), "renamed bar lost its art: " + renamed);
+        var raid = new net.minecraft.entity.boss.ServerBossBar(net.minecraft.text.Text.translatable("event.minecraft.raid"),
+                net.minecraft.entity.boss.BossBar.Color.RED, net.minecraft.entity.boss.BossBar.Style.NOTCHED_10);
+        check(bossTitle(com.vylorq.anticheat.feature.BossBarArt.rewrite(net.minecraft.network.packet.s2c.play.BossBarS2CPacket.add(raid), false, true))
+                .contains("\uE002"), "raid bar has no art");
+        var other = new net.minecraft.entity.boss.ServerBossBar(net.minecraft.text.Text.literal("Event"),
+                net.minecraft.entity.boss.BossBar.Color.PURPLE, net.minecraft.entity.boss.BossBar.Style.PROGRESS);
+        var otherAdd = net.minecraft.network.packet.s2c.play.BossBarS2CPacket.add(other);
+        check(com.vylorq.anticheat.feature.BossBarArt.rewrite(otherAdd, true, true) == otherAdd, "other bars must stay untouched");
+        ctx.complete();
+    }
+
+    /** The Java pack must be accepted by this Minecraft version without the "made for another version" warning. */
+    @GameTest
+    public void bossBarPackMatchesThisVersion(TestContext ctx) throws Exception {
+        java.nio.file.Path zip = null;
+        for (java.nio.file.Path dir = java.nio.file.Path.of("").toAbsolutePath(); dir != null; dir = dir.getParent()) {
+            java.nio.file.Path p = dir.resolve("resourcepack/vigil-bossbars.zip");
+            if (java.nio.file.Files.exists(p)) {
+                zip = p;
+                break;
+            }
+        }
+        check(zip != null, "resourcepack/vigil-bossbars.zip not found");
+        com.google.gson.JsonObject version;
+        try (var in = net.minecraft.server.MinecraftServer.class.getResourceAsStream("/version.json")) {
+            check(in != null, "version.json missing");
+            version = com.google.gson.JsonParser.parseReader(new java.io.InputStreamReader(in)).getAsJsonObject();
+        }
+        var pv = version.getAsJsonObject("pack_version");
+        int current = (pv.has("resource_major") ? pv.get("resource_major") : pv.get("resource")).getAsInt();
+        com.google.gson.JsonObject meta;
+        try (var fs = java.nio.file.FileSystems.newFileSystem(zip)) {
+            meta = com.google.gson.JsonParser.parseString(java.nio.file.Files.readString(fs.getPath("pack.mcmeta"))).getAsJsonObject()
+                    .getAsJsonObject("pack");
+        }
+        int min = meta.get("min_format").getAsInt();
+        int max = meta.get("max_format").getAsInt();
+        check(min <= current && current <= max, "pack formats " + min + ".." + max + " don't include this version's " + current);
+        ctx.complete();
+    }
 }

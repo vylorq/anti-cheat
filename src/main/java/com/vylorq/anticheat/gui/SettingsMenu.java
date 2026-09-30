@@ -655,6 +655,7 @@ public final class SettingsMenu {
         l.add(gameRule("weather-lock", GameRules.ADVANCE_WEATHER, true));
         l.add(new Toggle("ban-effects", Page.WORLD, c -> c.fun.banEffects, (c, v) -> c.fun.banEffects = v));
         l.add(new Toggle("caught-counter", Page.WORLD, c -> c.fun.caughtCounter, (c, v) -> c.fun.caughtCounter = v));
+        l.add(new Toggle("fancy-boss-bars", Page.WORLD, c -> c.fun.fancyBossBars, (c, v) -> c.fun.fancyBossBars = v));
         // Anti-cheat
         l.add(new Custom("sensitivity", Page.ANTICHEAT, Items.COMPARATOR, () -> Msg.tr("settings.checks", CheckType.values().length), null,
                 "ui.action.open", (p, ck) -> sensitivity(p), null));

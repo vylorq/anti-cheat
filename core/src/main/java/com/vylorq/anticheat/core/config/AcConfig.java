@@ -369,6 +369,8 @@ public class AcConfig {
     public static class Fun {
         public boolean banEffects = true;
         public boolean caughtCounter = true;
+        /** Ornate Ender Dragon, Wither and Raid bars (needs the optional server resource pack on Java). */
+        public boolean fancyBossBars = true;
     }
 
     /** The Watcher (section 33): atmosphere only, never touches the real world or the anti-cheat. */

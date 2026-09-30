@@ -143,6 +143,14 @@ set_prop enable-rcon true
 set_prop rcon.port 25575
 set_prop rcon.password "$RCON_PASS"
 set_prop broadcast-rcon-to-ops false
+# Optional Java resource pack for the fancy Dragon, Wither and Raid boss bars (players can say no).
+BOSSBAR_PACK="$SRC_DIR/resourcepack/vigil-bossbars.zip"
+if [ -f "$BOSSBAR_PACK" ]; then
+  set_prop resource-pack "https://raw.githubusercontent.com/vylorq/anti-cheat/main/resourcepack/vigil-bossbars.zip"
+  set_prop resource-pack-sha1 "$(sha1sum "$BOSSBAR_PACK" | cut -d' ' -f1)"
+  set_prop require-resource-pack false
+  set_prop resource-pack-prompt '{"text":"Optional: fancy Dragon, Wither and Raid boss bars (small download)"}'
+fi
 chmod +x "$SRC_DIR/scripts/mc"
 sudo ln -sf "$SRC_DIR/scripts/mc" /usr/local/bin/mc
 
@@ -178,6 +186,9 @@ echo "  Waiting for the server to create Floodgate's key (up to 5 minutes)"
 for _ in $(seq 1 60); do [ -f "$FLOODGATE_KEY" ] && break; sleep 5; done
 [ -f "$FLOODGATE_KEY" ] || fail "Floodgate's key was not created. Check the server log: journalctl -u minecraft -n 50"
 cp "$FLOODGATE_KEY" "$GEYSER_DIR/key.pem"
+# Bedrock version of the fancy boss bars; Geyser sends it to Bedrock players when they join.
+mkdir -p "$GEYSER_DIR/packs"
+[ -f "$SRC_DIR/resourcepack/vigil-bossbars.mcpack" ] && cp "$SRC_DIR/resourcepack/vigil-bossbars.mcpack" "$GEYSER_DIR/packs/"
 sudo tee /etc/systemd/system/geyser.service > /dev/null <<EOF
 [Unit]
 Description=Geyser (Bedrock players)

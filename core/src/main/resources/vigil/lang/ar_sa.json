@@ -1317,5 +1317,7 @@
   "general.unknown-player-suggest": "§cلا يوجد لاعب باسم '{0}'. هل تقصد {1}؟",
   "general.not-online-suggest": "§c{0} غير متصل. هل تقصد {1}؟",
   "event.drop-items-title": "أغراض حفلة الإسقاط (أغلق للحفظ)",
-  "settings.reset-done": "{0}: عادت للافتراضي"
+  "settings.reset-done": "{0}: عادت للافتراضي",
+  "set.fancy-boss-bars": "أشرطة زعماء مزخرفة",
+  "set.fancy-boss-bars.desc": "أشرطة مزخرفة للتنين والويذر والغارات. يراها لاعبو جافا الذين يقبلون حزمة السيرفر وكل لاعبي بيدروك."
 }
