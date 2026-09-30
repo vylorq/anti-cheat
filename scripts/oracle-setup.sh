@@ -92,6 +92,24 @@ enforce-secure-profile=false
 EOF
 fi
 
+# Console access from the terminal ("mc <command>") through RCON. The port stays closed in both firewalls,
+# so only this machine can use it.
+set_prop() {
+  if grep -q "^$1=" server.properties; then
+    sed -i "s|^$1=.*|$1=$2|" server.properties
+  else
+    echo "$1=$2" >> server.properties
+  fi
+}
+RCON_PASS=$(grep -oP '^rcon.password=\K.+' server.properties || true)
+[ -n "$RCON_PASS" ] || RCON_PASS=$(head -c 24 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 24)
+set_prop enable-rcon true
+set_prop rcon.port 25575
+set_prop rcon.password "$RCON_PASS"
+set_prop broadcast-rcon-to-ops false
+chmod +x "$SRC_DIR/scripts/mc"
+sudo ln -sf "$SRC_DIR/scripts/mc" /usr/local/bin/mc
+
 say "Creating the background service (starts on boot, restarts on crash)"
 sudo tee /etc/systemd/system/minecraft.service > /dev/null <<EOF
 [Unit]
@@ -144,6 +162,7 @@ cat <<EOF
   Java players:     $IP
   Bedrock players:  $IP   port 19132
 
+  Run a server command:  mc <command>     e.g.  mc list    mc ac tempadmin add Steve
   Server log:        journalctl -u minecraft -f      (Ctrl+C to leave)
   Stop/start:        sudo systemctl stop minecraft   /   sudo systemctl start minecraft
   Update the mod:    run the same setup command again

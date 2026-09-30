@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+"""Run a Minecraft server console command from the terminal, e.g.:  mc list   or   mc ac tempadmin add Steve
+
+Talks to the server's RCON (only reachable from the server itself; the firewall keeps the port closed).
+"""
+import re
+import socket
+import struct
+import sys
+from pathlib import Path
+
+PROPS = Path.home() / "mc" / "server.properties"
+
+
+def prop(name, default=""):
+    try:
+        for line in PROPS.read_text().splitlines():
+            if line.startswith(name + "="):
+                return line.split("=", 1)[1].strip()
+    except OSError:
+        pass
+    return default
+
+
+def packet(req_id, kind, body):
+    data = struct.pack("<ii", req_id, kind) + body.encode("utf-8") + b"\x00\x00"
+    return struct.pack("<i", len(data)) + data
+
+
+def read_packet(sock):
+    raw = b""
+    while len(raw) < 4:
+        chunk = sock.recv(4 - len(raw))
+        if not chunk:
+            raise ConnectionError("server closed the connection")
+        raw += chunk
+    (length,) = struct.unpack("<i", raw)
+    data = b""
+    while len(data) < length:
+        chunk = sock.recv(length - len(data))
+        if not chunk:
+            raise ConnectionError("server closed the connection")
+        data += chunk
+    req_id, _kind = struct.unpack("<ii", data[:8])
+    return req_id, data[8:-2].decode("utf-8", "replace")
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: mc <command>      examples:  mc list     mc ac tempadmin add Steve")
+        return 1
+    command = " ".join(sys.argv[1:]).lstrip("/")
+    password = prop("rcon.password")
+    port = int(prop("rcon.port", "25575") or 25575)
+    if prop("enable-rcon") != "true" or not password:
+        print("RCON is off. Run the setup script again to turn it on.")
+        return 1
+    try:
+        with socket.create_connection(("127.0.0.1", port), timeout=10) as s:
+            s.sendall(packet(1, 3, password))
+            req_id, _ = read_packet(s)
+            if req_id == -1:
+                print("Wrong RCON password in server.properties.")
+                return 1
+            s.sendall(packet(2, 2, command))
+            _, reply = read_packet(s)
+    except (OSError, ConnectionError) as e:
+        print(f"Could not reach the server ({e}). Is it running?  sudo systemctl status minecraft")
+        return 1
+    reply = re.sub("§.", "", reply).strip()
+    print(reply if reply else "(done)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
