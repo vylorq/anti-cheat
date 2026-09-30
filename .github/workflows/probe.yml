@@ -8,19 +8,21 @@ jobs:
     steps:
       - name: Versions
         run: |
-          echo "== Minecraft releases (newest first)"
-          curl -s https://meta.fabricmc.net/v2/versions/game | jq -r '[.[] | select(.stable)][0:8][] .version'
-          echo "== Yarn builds for newest releases"
-          for v in $(curl -s https://meta.fabricmc.net/v2/versions/game | jq -r '[.[] | select(.stable)][0:6][] .version'); do
-            echo "$v: $(curl -s https://meta.fabricmc.net/v2/versions/yarn/$v | jq -r '.[0].version // "none"')"
+          echo "== yarn 1.21.11"; curl -s https://meta.fabricmc.net/v2/versions/yarn/1.21.11 | jq -r '.[0:3][] .version'
+          echo "== loader for 1.21.11"; curl -s https://meta.fabricmc.net/v2/versions/loader/1.21.11 | jq -r '[.[] | select(.loader.stable)][0].loader.version'
+          for p in fabric-api floodgate geyser viafabric; do
+            echo "== $p for 1.21.11"
+            curl -s -G "https://api.modrinth.com/v2/project/$p/version" --data-urlencode 'loaders=["fabric"]' --data-urlencode 'game_versions=["1.21.11"]' \
+              | jq -r '.[0:3][] | "\(.version_number)  \(.date_published[0:10])  \(.files[] | select(.primary) | .url)"'
           done
-          echo "== Loader"; curl -s https://meta.fabricmc.net/v2/versions/loader | jq -r '[.[] | select(.stable)][0].version'
-          for p in geyser floodgate fabric-api viafabric; do
-            echo "== $p (fabric)"
-            curl -s -G "https://api.modrinth.com/v2/project/$p/version" --data-urlencode 'loaders=["fabric"]' \
-              | jq -r '.[0:6][] | "\(.version_number)  mc=\(.game_versions|join(","))  \(.date_published[0:10])"'
-          done
-          echo "== Geyser download API"
+          echo "== floodgate for 1.21.4"
+          curl -s -G "https://api.modrinth.com/v2/project/floodgate/version" --data-urlencode 'loaders=["fabric"]' --data-urlencode 'game_versions=["1.21.4"]' | jq -r '.[0:2][] | .version_number'
+          echo "== loom versions"
+          curl -s https://maven.fabricmc.net/net/fabricmc/fabric-loom/maven-metadata.xml | grep -oE '<version>1\.1[0-9]\.[0-9]+(-SNAPSHOT)?</version>' | tail -8
+          echo "== loom snapshots"
+          curl -s https://maven.fabricmc.net/fabric-loom/fabric-loom.gradle.plugin/maven-metadata.xml | grep -oE '<version>[^<]+</version>' | tail -8
+          echo "== gradle current"; curl -s https://services.gradle.org/versions/current | jq -r .version
+          echo "== geyser standalone"
           curl -s https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest | jq -c '{version, build, downloads: (.downloads|keys)}'
-          echo "== Geyser supported bedrock (README)"
-          curl -s https://raw.githubusercontent.com/GeyserMC/Geyser/master/README.md | grep -i -E "bedrock|java edition" | head -8
+          curl -s https://download.geysermc.org/v2/projects/geyser | jq -c '.versions[-3:]'
+          echo "== mixinextras in loader"; curl -s https://maven.fabricmc.net/io/github/llamalad7/mixinextras-fabric/maven-metadata.xml | grep -oE '<version>[^<]+</version>' | tail -3
