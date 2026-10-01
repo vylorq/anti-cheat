@@ -55,7 +55,10 @@ public final class BuilderMode {
             Blocks.BUDDING_AMETHYST, Blocks.SPAWNER, Blocks.INFESTED_STONE,
             // Workstations: they open menus that make items.
             Blocks.CRAFTING_TABLE, Blocks.ANVIL, Blocks.CHIPPED_ANVIL, Blocks.DAMAGED_ANVIL, Blocks.GRINDSTONE, Blocks.LOOM,
-            Blocks.CARTOGRAPHY_TABLE, Blocks.STONECUTTER, Blocks.SMITHING_TABLE);
+            Blocks.CARTOGRAPHY_TABLE, Blocks.STONECUTTER, Blocks.SMITHING_TABLE,
+            // Only in build files and tools, never good in a lobby.
+            Blocks.LAVA, Blocks.FIRE, Blocks.SOUL_FIRE, Blocks.NETHER_PORTAL, Blocks.END_PORTAL, Blocks.END_GATEWAY,
+            Blocks.COMMAND_BLOCK, Blocks.CHAIN_COMMAND_BLOCK, Blocks.REPEATING_COMMAND_BLOCK, Blocks.STRUCTURE_BLOCK, Blocks.JIGSAW);
 
     private static Map<UUID, Builder> builders() {
         return Ac.get().misc.builders;
@@ -69,21 +72,29 @@ public final class BuilderMode {
         return builders().get(id);
     }
 
-    /** Whether a builder may have this item: plain building blocks only. */
+    /** Whether a builder may have this item: plain building blocks and the builder tools only. */
     public static boolean allowed(ItemStack stack) {
         if (stack.isEmpty()) {
+            return true;
+        }
+        String tool = Tools.toolOf(stack);
+        if (Tools.BUILDER_WAND.equals(tool) || Tools.BUILDER_MENU.equals(tool)) {
             return true;
         }
         if (!(stack.getItem() instanceof BlockItem bi)) {
             return false;
         }
-        Block b = bi.getBlock();
-        if (DENIED.contains(b)) {
-            return false;
-        }
         // Copies of placed blocks with their contents (Ctrl + pick block) are out.
         if (stack.contains(DataComponentTypes.BLOCK_ENTITY_DATA) || stack.contains(DataComponentTypes.CONTAINER)
                 || stack.contains(DataComponentTypes.BUNDLE_CONTENTS)) {
+            return false;
+        }
+        return allowedBlock(bi.getBlock());
+    }
+
+    /** Whether a builder may place this block (by hand or with the builder tools). */
+    public static boolean allowedBlock(Block b) {
+        if (DENIED.contains(b)) {
             return false;
         }
         if (b instanceof BlockEntityProvider) {
@@ -129,7 +140,9 @@ public final class BuilderMode {
         Ac.saveNow("misc");
         p.getInventory().clear();
         p.changeGameMode(GameMode.CREATIVE);
+        giveTools(p);
         p.currentScreenHandler.sendContentUpdates();
+        Ac.server().getCommandManager().sendCommandTree(p);
         Staff.log(by, "builder-add", p.getUuid(), b.name, (anywhere ? "anywhere" : "lobby")
                 + (durationMs > 0 ? " for " + com.vylorq.anticheat.core.util.Durations.format(durationMs) : ""));
         Msg.send(p, "builder.you-are");
@@ -141,6 +154,7 @@ public final class BuilderMode {
         if (b == null) {
             return false;
         }
+        BuilderTools.forget(p.getUuid());
         Ac.saveNow("misc");
         p.closeHandledScreen();
         if (b.snapshot != null) {
@@ -149,6 +163,7 @@ public final class BuilderMode {
             p.getInventory().clear();
             p.changeGameMode(GameMode.SURVIVAL);
         }
+        Ac.server().getCommandManager().sendCommandTree(p);
         Staff.log(by, "builder-end", p.getUuid(), b.name, "");
         Msg.send(p, "builder.ended");
         Staff.broadcast(Msg.prefixed(Msg.tr("builder.ended-staff", b.name)));
@@ -186,6 +201,24 @@ public final class BuilderMode {
         }
         p.changeGameMode(GameMode.CREATIVE);
         sanitize(p);
+        giveTools(p);
+    }
+
+    /** The builder wand and builder menu, unless they already have them. */
+    public static void giveTools(ServerPlayerEntity p) {
+        var inv = p.getInventory();
+        boolean wand = false;
+        boolean menu = false;
+        for (int i = 0; i < inv.size(); i++) {
+            wand |= Tools.is(inv.getStack(i), Tools.BUILDER_WAND);
+            menu |= Tools.is(inv.getStack(i), Tools.BUILDER_MENU);
+        }
+        if (!wand) {
+            inv.insertStack(Tools.builderWand());
+        }
+        if (!menu) {
+            inv.insertStack(Tools.builderMenu());
+        }
     }
 
     /** Every second: ends timed builder modes, keeps builders in creative with building blocks only. */

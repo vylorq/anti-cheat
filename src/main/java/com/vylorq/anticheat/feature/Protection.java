@@ -122,6 +122,10 @@ public final class Protection {
             if (!Ac.running() || !(player instanceof ServerPlayerEntity p) || !(world instanceof ServerWorld w)) {
                 return ActionResult.PASS;
             }
+            if (Tools.is(p.getMainHandStack(), Tools.BUILDER_WAND)) {
+                BuilderTools.corner(p, w, pos, true);
+                return ActionResult.FAIL;
+            }
             if (Tools.is(p.getMainHandStack(), Tools.INSPECTOR)) {
                 if (Perms.require(p, Perm.INSPECTOR_TOOL)) {
                     BlockLog.inspect(p, w, pos);
@@ -176,6 +180,10 @@ public final class Protection {
             }
             if (!(entity instanceof ServerPlayerEntity p)) {
                 return true;
+            }
+            if (BuilderMode.is(p)) {
+                // Builders can't die (dying would drop their items).
+                return false;
             }
             Ac ac = Ac.get();
             if (WaitingRoomFeature.waiting(p) || Arenas.isCountdownFrozen(p)) {
@@ -314,7 +322,7 @@ public final class Protection {
         Ac ac = Ac.get();
         BlockPos pos = hit.getBlockPos();
         ItemStack stack = p.getStackInHand(hand);
-        if (BuilderMode.is(p) && (!BuilderMode.allowed(stack)
+        if (BuilderMode.is(p) && Tools.toolOf(stack) == null && (!BuilderMode.allowed(stack)
                 || (!BuilderMode.mayUse(w, pos) && !(p.isSneaking() && !stack.isEmpty())))) {
             // Builders place blocks; they don't open containers or menus (sneaking places against them instead).
             BuilderMode.denied(p);
@@ -338,6 +346,16 @@ public final class Protection {
                 }
                 case Tools.TRADER_STICK -> {
                     Traders.stickOnBlock(p, w, pos);
+                    return ActionResult.FAIL;
+                }
+                case Tools.BUILDER_WAND -> {
+                    BuilderTools.corner(p, w, pos, false);
+                    return ActionResult.FAIL;
+                }
+                case Tools.BUILDER_MENU -> {
+                    if (BuilderTools.canUse(p)) {
+                        com.vylorq.anticheat.gui.BuilderMenu.open(p);
+                    }
                     return ActionResult.FAIL;
                 }
                 case Tools.INSPECTOR -> {
@@ -439,6 +457,12 @@ public final class Protection {
             return ActionResult.FAIL;
         }
         ItemStack stack = p.getStackInHand(hand);
+        if (Tools.is(stack, Tools.BUILDER_MENU) || Tools.is(stack, Tools.BUILDER_WAND)) {
+            if (Tools.is(stack, Tools.BUILDER_MENU) && BuilderTools.canUse(p)) {
+                com.vylorq.anticheat.gui.BuilderMenu.open(p);
+            }
+            return ActionResult.FAIL;
+        }
         if (BuilderMode.is(p) && !BuilderMode.allowed(stack)) {
             BuilderMode.denied(p);
             p.playerScreenHandler.syncState();

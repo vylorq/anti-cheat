@@ -12,6 +12,9 @@ import com.vylorq.anticheat.feature.StaffTools;
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
 import net.minecraft.network.packet.c2s.play.CreativeInventoryActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.network.packet.c2s.play.VehicleMoveC2SPacket;
 import net.minecraft.server.PlayerManager;
@@ -78,6 +81,32 @@ public abstract class ServerPlayNetworkHandlerMixin {
         if (Ac.running()) {
             Ac.get().evidence.record(player.getUuid(), EvidenceEvent.Type.INVENTORY, player.getX(), player.getY(), player.getZ(),
                     player.getYaw(), player.getPitch(), "inventory click slot " + packet.slot() + " " + packet.actionType());
+        }
+    }
+
+    /** Builders can't drop anything (Q, Ctrl+Q). */
+    @Inject(method = "onPlayerAction", cancellable = true, at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
+            shift = At.Shift.AFTER))
+    private void ac$builderDrop(PlayerActionC2SPacket packet, CallbackInfo ci) {
+        if (Ac.running() && BuilderMode.is(player) && (packet.getAction() == PlayerActionC2SPacket.Action.DROP_ITEM
+                || packet.getAction() == PlayerActionC2SPacket.Action.DROP_ALL_ITEMS)) {
+            ci.cancel();
+            BuilderMode.denied(player);
+            player.playerScreenHandler.syncState();
+        }
+    }
+
+    /** ...or throw items out of their inventory (dropping outside the window, or Q on a slot). */
+    @Inject(method = "onClickSlot", cancellable = true, at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
+            shift = At.Shift.AFTER))
+    private void ac$builderThrow(ClickSlotC2SPacket packet, CallbackInfo ci) {
+        if (Ac.running() && BuilderMode.is(player)
+                && (packet.actionType() == SlotActionType.THROW || packet.slot() == ScreenHandler.EMPTY_SPACE_SLOT_INDEX)) {
+            ci.cancel();
+            BuilderMode.denied(player);
+            player.currentScreenHandler.syncState();
         }
     }
 

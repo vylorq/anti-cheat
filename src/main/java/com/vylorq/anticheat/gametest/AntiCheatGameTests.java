@@ -558,4 +558,126 @@ public final class AntiCheatGameTests {
                 "inventory or game mode didn't come back");
         ctx.complete();
     }
+
+    @GameTest
+    public void buildFilesReadAndWrite(TestContext ctx) throws Exception {
+        var stairs = Blocks.OAK_STAIRS.getDefaultState().with(net.minecraft.block.StairsBlock.FACING, Direction.EAST)
+                .with(net.minecraft.block.StairsBlock.HALF, net.minecraft.block.enums.BlockHalf.TOP);
+        check(com.vylorq.anticheat.feature.BuildFiles.parseState(com.vylorq.anticheat.feature.BuildFiles.stateString(stairs)).equals(stairs),
+                "block state text doesn't round-trip: " + com.vylorq.anticheat.feature.BuildFiles.stateString(stairs));
+
+        // .schem: write, read back
+        var c = new com.vylorq.anticheat.feature.BuildFiles.Clip(3, 2, 2);
+        c.set(0, 0, 0, Blocks.STONE.getDefaultState());
+        c.set(2, 1, 1, stairs);
+        c.set(1, 0, 1, Blocks.GLASS.getDefaultState());
+        java.nio.file.Path tmp = java.nio.file.Files.createTempFile("vigil", ".schem");
+        com.vylorq.anticheat.feature.BuildFiles.write(c, tmp);
+        var back = com.vylorq.anticheat.feature.BuildFiles.read(tmp);
+        java.nio.file.Files.deleteIfExists(tmp);
+        check(back.sx == 3 && back.sy == 2 && back.sz == 2 && java.util.Arrays.equals(back.states, c.states), "schematic changed after saving");
+
+        // .litematic: 2 x 1 x 2, palette air/stone/dirt, 2 bits per block, negative size
+        var root = new net.minecraft.nbt.NbtCompound();
+        var regions = new net.minecraft.nbt.NbtCompound();
+        var r = new net.minecraft.nbt.NbtCompound();
+        var pos = new net.minecraft.nbt.NbtCompound();
+        pos.putInt("x", 1);
+        pos.putInt("y", 0);
+        pos.putInt("z", 1);
+        var size = new net.minecraft.nbt.NbtCompound();
+        size.putInt("x", -2);
+        size.putInt("y", 1);
+        size.putInt("z", -2);
+        r.put("Position", pos);
+        r.put("Size", size);
+        var pal = new net.minecraft.nbt.NbtList();
+        for (var b : new net.minecraft.block.Block[]{Blocks.AIR, Blocks.STONE, Blocks.DIRT}) {
+            pal.add(net.minecraft.nbt.NbtHelper.fromBlockState(b.getDefaultState()));
+        }
+        r.put("BlockStatePalette", pal);
+        r.putLongArray("BlockStates", new long[]{1L | (2L << 2) | (2L << 4)});
+        regions.put("main", r);
+        root.put("Regions", regions);
+        var out = new java.io.ByteArrayOutputStream();
+        net.minecraft.nbt.NbtIo.writeCompressed(root, out);
+        var lit = com.vylorq.anticheat.feature.BuildFiles.read(out.toByteArray());
+        check(lit.sx == 2 && lit.sy == 1 && lit.sz == 2 && lit.get(0, 0, 0).isOf(Blocks.STONE) && lit.get(1, 0, 0).isOf(Blocks.DIRT)
+                && lit.get(0, 0, 1).isOf(Blocks.DIRT) && lit.get(1, 0, 1).isAir(), "litematic read wrong");
+
+        // .nbt (structure block file)
+        var st = new net.minecraft.nbt.NbtCompound();
+        var sz = new net.minecraft.nbt.NbtList();
+        for (int v : new int[]{2, 1, 1}) {
+            sz.add(net.minecraft.nbt.NbtInt.of(v));
+        }
+        st.put("size", sz);
+        var spal = new net.minecraft.nbt.NbtList();
+        spal.add(net.minecraft.nbt.NbtHelper.fromBlockState(Blocks.BRICKS.getDefaultState()));
+        st.put("palette", spal);
+        var blocks = new net.minecraft.nbt.NbtList();
+        var blk = new net.minecraft.nbt.NbtCompound();
+        var bp = new net.minecraft.nbt.NbtList();
+        for (int v : new int[]{1, 0, 0}) {
+            bp.add(net.minecraft.nbt.NbtInt.of(v));
+        }
+        blk.put("pos", bp);
+        blk.putInt("state", 0);
+        blocks.add(blk);
+        st.put("blocks", blocks);
+        var out2 = new java.io.ByteArrayOutputStream();
+        net.minecraft.nbt.NbtIo.writeCompressed(st, out2);
+        var nbt = com.vylorq.anticheat.feature.BuildFiles.read(out2.toByteArray());
+        check(nbt.get(1, 0, 0).isOf(Blocks.BRICKS) && nbt.get(0, 0, 0).isAir(), "structure file read wrong");
+        ctx.complete();
+    }
+
+    private static void runBuildJobs() {
+        for (int i = 0; i < 50; i++) {
+            com.vylorq.anticheat.feature.BuilderTools.tick();
+        }
+    }
+
+    @GameTest
+    public void builderToolsEditUndoCopyPaste(TestContext ctx) {
+        var w = ctx.getWorld();
+        var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ToolTester"));
+        BlockPos a = ctx.getAbsolutePos(new BlockPos(0, 1, 0));
+        BlockPos b = ctx.getAbsolutePos(new BlockPos(1, 2, 1));
+        BlockPos chest = ctx.getAbsolutePos(new BlockPos(1, 1, 1));
+        try {
+            com.vylorq.anticheat.feature.BuilderMode.start(null, fake, 0, true);
+            check(java.util.stream.IntStream.range(0, fake.getInventory().size()).anyMatch(i ->
+                    com.vylorq.anticheat.feature.Tools.is(fake.getInventory().getStack(i), com.vylorq.anticheat.feature.Tools.BUILDER_WAND)),
+                    "builder didn't get the wand");
+            w.setBlockState(chest, Blocks.CHEST.getDefaultState());
+            com.vylorq.anticheat.feature.BuilderTools.corner(fake, w, a, true);
+            com.vylorq.anticheat.feature.BuilderTools.corner(fake, w, b, false);
+            com.vylorq.anticheat.feature.BuilderTools.set(fake, Blocks.SPRUCE_PLANKS.getDefaultState());
+            runBuildJobs();
+            check(w.getBlockState(a).isOf(Blocks.SPRUCE_PLANKS) && w.getBlockState(b).isOf(Blocks.SPRUCE_PLANKS), "fill didn't work");
+            check(w.getBlockState(chest).isOf(Blocks.CHEST), "the fill replaced a chest");
+            com.vylorq.anticheat.feature.BuilderTools.set(fake, Blocks.TNT.getDefaultState());
+            runBuildJobs();
+            check(!w.getBlockState(a).isOf(Blocks.TNT), "a builder filled with TNT");
+
+            fake.setPosition(net.minecraft.util.math.Vec3d.ofBottomCenter(a));
+            com.vylorq.anticheat.feature.BuilderTools.copy(fake);
+            fake.setPosition(net.minecraft.util.math.Vec3d.ofBottomCenter(a.up(10)));
+            com.vylorq.anticheat.feature.BuilderTools.paste(fake, true);
+            runBuildJobs();
+            check(w.getBlockState(a.up(10)).isOf(Blocks.SPRUCE_PLANKS) && w.getBlockState(chest.up(10)).isAir(),
+                    "paste wrong (containers must not be copied)");
+            com.vylorq.anticheat.feature.BuilderTools.undo(fake);
+            runBuildJobs();
+            check(w.getBlockState(a.up(10)).isAir(), "undo didn't remove the paste");
+            com.vylorq.anticheat.feature.BuilderTools.undo(fake);
+            runBuildJobs();
+            check(w.getBlockState(a).isAir(), "undo didn't remove the fill");
+        } finally {
+            com.vylorq.anticheat.feature.BuilderMode.end(null, fake);
+            w.setBlockState(chest, Blocks.AIR.getDefaultState());
+        }
+        ctx.complete();
+    }
 }
