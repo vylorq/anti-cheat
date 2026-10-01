@@ -52,6 +52,7 @@ public final class AntiCheatMod implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> Commands.register(dispatcher));
         Protection.register();
         com.vylorq.anticheat.feature.BuilderLog.register();
+        com.vylorq.anticheat.feature.WorldEvents.register();
         com.vylorq.anticheat.feature.Watcher.register();
         net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register(
                 (handler, server) -> com.vylorq.anticheat.ui.BossBars.forget(handler.player.getUuid()));

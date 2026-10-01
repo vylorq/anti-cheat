@@ -30,7 +30,7 @@ MEM_MB=$(( TOTAL_MB * 2 / 3 ))
 
 say "Installing Java 21, git and tools"
 sudo apt-get update -y
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-21-jdk-headless git curl jq iptables-persistent
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-21-jdk-headless git curl jq unzip iptables-persistent
 
 say "Opening ports 25565/tcp (Java) and 19132/udp (Bedrock) in the server firewall"
 sudo iptables -C INPUT -p tcp --dport 25565 -j ACCEPT 2>/dev/null || sudo iptables -I INPUT 5 -p tcp --dport 25565 -j ACCEPT

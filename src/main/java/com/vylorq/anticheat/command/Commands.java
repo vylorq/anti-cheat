@@ -274,7 +274,12 @@ public final class Commands {
                     var src = ctx.getSource();
                     Extras.backupAsync(names -> Msg.ok(src, "backup.done", names), e -> Msg.err(src, "backup.failed", e.getMessage()));
                     return 1;
-                }))
+                }).then(literal("list").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.RESTART)) return 0;
+                    var list = Extras.worldBackups();
+                    Msg.ok(ctx.getSource(), list.isEmpty() ? "worldbackup.none" : "worldbackup.list", String.join(", ", list));
+                    return 1;
+                })))
                 .then(literal("setowner").requires(s -> s.getPlayer() == null && Mc.hasLevel(s, 4))
                         .then(Args.player("player").executes(ctx -> {
                             UUID id = Args.known(ctx.getSource(), Args.str(ctx, "player"));

@@ -62,6 +62,8 @@ public final class Ticker {
         EndLock.tick(ac.server);
         BuilderMode.tick();
         ScareWarning.tick();
+        WorldEvents.tick(ac.server);
+        Extras.nightlyWorldBackup();
         Claims.tick();
         Barriers.tick();
         Arenas.tick();
