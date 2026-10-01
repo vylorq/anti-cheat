@@ -876,4 +876,54 @@ public final class AntiCheatGameTests {
         }
         ctx.complete();
     }
+
+    @GameTest
+    public void teamAlliesSafeLandAndVault(TestContext ctx) {
+        var w = ctx.getWorld();
+        var tm = com.vylorq.anticheat.feature.Teams.tm();
+        var lim = com.vylorq.anticheat.feature.Teams.limits();
+        var R = com.vylorq.anticheat.core.team.TeamManager.Result.OK;
+        var a = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "AllyA"));
+        var b = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "AllyB"));
+        var outsider = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Stranger"));
+        String na = String.format("A%05d", System.nanoTime() % 100000);
+        String nb = String.format("B%05d", System.nanoTime() % 100000);
+        BlockPos pos = ctx.getAbsolutePos(new BlockPos(1, 1, 1));
+        try {
+            check(tm.create(na, null, a.getUuid()) == R && tm.create(nb, null, b.getUuid()) == R, "teams not created");
+            check(!com.vylorq.anticheat.feature.Teams.damageBlocked(a, b), "strangers were protected");
+            check(tm.ally(a.getUuid(), nb, 3) == com.vylorq.anticheat.core.team.TeamManager.Result.ALLY_REQUESTED, "no ally request");
+            check(!tm.allied(a.getUuid(), b.getUuid()), "allied before accepting");
+            check(tm.ally(b.getUuid(), na, 3) == R, "ally not accepted");
+            check(com.vylorq.anticheat.feature.Teams.damageBlocked(a, b), "allies could hurt each other");
+            var ta = tm.get(na);
+            var r = tm.claim(a.getUuid(), com.vylorq.anticheat.util.Mc.worldId(w), pos.getX() >> 4, pos.getZ() >> 4, lim);
+            if (r == R) {
+                var door = com.vylorq.anticheat.core.claims.ClaimAction.DOOR;
+                check(com.vylorq.anticheat.feature.Teams.allowed(b, w, pos, door), "an ally couldn't use doors");
+                check(!com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, door), "a stranger could use doors");
+                ta.outsiderDoors = true;
+                check(com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, door), "outsider doors setting ignored");
+                check(!com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, com.vylorq.anticheat.core.claims.ClaimAction.BREAK), "doors setting let them break");
+                a.setPosition(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+                check(!com.vylorq.anticheat.feature.Teams.damageBlocked(outsider, a), "safe land on by default");
+                ta.safeLand = true;
+                check(com.vylorq.anticheat.feature.Teams.damageBlocked(outsider, a), "safe land didn't protect");
+            }
+            var inv = com.vylorq.anticheat.feature.Teams.vault(ta);
+            inv.setStack(3, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 5));
+            check(ta.vault.size() == 1, "vault not saved");
+            com.vylorq.anticheat.feature.Teams.forgetVault(ta, null);
+            check(ta.vault.isEmpty(), "forgotten vault kept items");
+            check(tm.unally(a.getUuid(), nb) == R && !tm.allied(a.getUuid(), b.getUuid()), "unally failed");
+        } finally {
+            for (String n : new String[]{na, nb}) {
+                var t = tm.get(n);
+                if (t != null) {
+                    tm.removeTeam(t);
+                }
+            }
+        }
+        ctx.complete();
+    }
 }

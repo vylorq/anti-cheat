@@ -28,7 +28,8 @@ public final class TeamManager {
 
     public enum Result {
         OK, BAD_NAME, NAME_TAKEN, TAG_TAKEN, ALREADY_IN_TEAM, NOT_IN_TEAM, NO_SUCH_TEAM, NOT_ALLOWED, NOT_INVITED, FULL,
-        NOT_A_MEMBER, LEADER_MUST_HAND_OVER, CHUNK_TAKEN, CHUNK_NOT_YOURS, CHUNK_LIMIT, NOT_CONNECTED, SELF
+        NOT_A_MEMBER, LEADER_MUST_HAND_OVER, CHUNK_TAKEN, CHUNK_NOT_YOURS, CHUNK_LIMIT, NOT_CONNECTED, SELF,
+        ALREADY_ALLIES, ALLY_REQUESTED, NOT_ALLIES, TOO_MANY
     }
 
     /** Limits (from the config). */
@@ -266,8 +267,77 @@ public final class TeamManager {
         return Result.OK;
     }
 
+    // ---------------------------------------------------------------- allies
+
+    /** Whether two players' teams are allies. */
+    public synchronized boolean allied(UUID a, UUID b) {
+        Team ta = teamOf(a);
+        Team tb = teamOf(b);
+        return ta != null && tb != null && ta != tb && ta.allies.contains(tb.id);
+    }
+
+    /**
+     * Asks another team to be allies, or accepts if they already asked. Leader or officers only.
+     *
+     * @return OK when they're now allies, ALLY_REQUESTED when it's waiting for the other team
+     */
+    public synchronized Result ally(UUID by, String otherName, int maxAllies) {
+        Team t = teamOf(by);
+        if (t == null) {
+            return Result.NOT_IN_TEAM;
+        }
+        if (!t.role(by).atLeast(Team.Role.OFFICER)) {
+            return Result.NOT_ALLOWED;
+        }
+        Team o = get(otherName);
+        if (o == null) {
+            return Result.NO_SUCH_TEAM;
+        }
+        if (o == t) {
+            return Result.SELF;
+        }
+        if (t.allies.contains(o.id)) {
+            return Result.ALREADY_ALLIES;
+        }
+        if (t.allies.size() >= maxAllies || (t.allyRequests.contains(o.id) && o.allies.size() >= maxAllies)) {
+            return Result.TOO_MANY;
+        }
+        if (t.allyRequests.remove(o.id)) {
+            t.allies.add(o.id);
+            o.allies.add(t.id);
+            o.allyRequests.remove(t.id);
+            return Result.OK;
+        }
+        o.allyRequests.add(t.id);
+        return Result.ALLY_REQUESTED;
+    }
+
+    public synchronized Result unally(UUID by, String otherName) {
+        Team t = teamOf(by);
+        if (t == null) {
+            return Result.NOT_IN_TEAM;
+        }
+        if (!t.role(by).atLeast(Team.Role.OFFICER)) {
+            return Result.NOT_ALLOWED;
+        }
+        Team o = get(otherName);
+        if (o == null) {
+            return Result.NO_SUCH_TEAM;
+        }
+        if (!t.allies.remove(o.id)) {
+            t.allyRequests.remove(o.id);
+            return Result.NOT_ALLIES;
+        }
+        o.allies.remove(t.id);
+        return Result.OK;
+    }
+
     /** Removes a team completely (admins, or the last member leaving). */
     public synchronized void removeTeam(Team t) {
+        for (Team o : data.teams.values()) {
+            o.allies.remove(t.id);
+            o.allyRequests.remove(t.id);
+        }
         data.teams.remove(t.id);
         for (UUID m : t.members) {
             data.playerTeam.remove(m);

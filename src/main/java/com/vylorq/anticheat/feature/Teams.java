@@ -85,8 +85,39 @@ public final class Teams {
         if (t == null || t.members.contains(p.getUuid()) || Perms.isActiveStaff(p) || BuilderMode.is(p)) {
             return true;
         }
+        boolean doorish = a == ClaimAction.DOOR || a == ClaimAction.REDSTONE;
+        Team mine = tm().teamOf(p.getUuid());
+        if (doorish && (t.outsiderDoors || (mine != null && t.allies.contains(mine.id)))) {
+            return true;
+        }
         Msg.actionBar(p, Msg.trFor(p, "team.protected", tagText(t) + " §f" + t.name));
+        if (a.isChange() || a == ClaimAction.CONTAINER) {
+            raidAlert(t, p, pos);
+        }
         return false;
+    }
+
+    private static final Map<String, Long> ALERTED = new HashMap<>();
+
+    /** Tells the team's online members someone is trying to get into their land (not too often). */
+    static void raidAlert(Team t, ServerPlayerEntity intruder, BlockPos pos) {
+        String k = t.id + "|" + intruder.getUuid();
+        long now = System.currentTimeMillis();
+        Long last = ALERTED.get(k);
+        if (last != null && now - last < cfg().raidAlertSeconds * 1000L) {
+            return;
+        }
+        ALERTED.put(k, now);
+        for (UUID m : t.members) {
+            ServerPlayerEntity o = Ac.server().getPlayerManager().getPlayer(m);
+            if (o != null) {
+                o.sendMessage(Msg.prefixed(Msg.trFor(o, "team.raid", intruder.getGameProfile().name(),
+                        pos.getX() + " " + pos.getY() + " " + pos.getZ())));
+                o.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket(
+                        net.minecraft.sound.SoundEvents.BLOCK_BELL_USE, net.minecraft.sound.SoundCategory.MASTER,
+                        o.getX(), o.getY(), o.getZ(), 1f, 0.8f, o.getRandom().nextLong()));
+            }
+        }
     }
 
     /** No hurting your own team (unless the team turned friendly fire on). */
@@ -96,6 +127,152 @@ public final class Teams {
         }
         Team t = tm().teamOf(attacker.getUuid());
         return t != null && !t.friendlyFire && t.members.contains(victim.getUuid());
+    }
+
+    /** Whether a player may not hurt another: teammates, allies, or a member standing in their own safe land. */
+    public static boolean damageBlocked(ServerPlayerEntity attacker, ServerPlayerEntity victim) {
+        if (!enabled()) {
+            return false;
+        }
+        if (friendlyFireBlocked(attacker, victim) || tm().allied(attacker.getUuid(), victim.getUuid())) {
+            return true;
+        }
+        Team land = at(victim.getEntityWorld(), victim.getBlockPos());
+        if (land != null && land.safeLand && land.members.contains(victim.getUuid()) && !land.members.contains(attacker.getUuid())) {
+            Msg.actionBar(attacker, Msg.trFor(attacker, "team.safe-land", tagText(land) + " §f" + land.name));
+            return true;
+        }
+        return false;
+    }
+
+    // ---------------------------------------------------------------- vault
+
+    private static final Map<String, net.minecraft.inventory.SimpleInventory> VAULTS = new HashMap<>();
+
+    /** The team's shared chest (27 slots), saved whenever it changes. */
+    public static net.minecraft.inventory.SimpleInventory vault(Team t) {
+        return VAULTS.computeIfAbsent(t.id, k -> {
+            net.minecraft.inventory.SimpleInventory inv = new net.minecraft.inventory.SimpleInventory(27);
+            for (String e : t.vault) {
+                int slot = com.vylorq.anticheat.util.ItemConv.slotOf(e);
+                if (slot >= 0 && slot < 27) {
+                    inv.setStack(slot, com.vylorq.anticheat.util.ItemConv.decodeSlot(e));
+                }
+            }
+            inv.addListener(changed -> {
+                Team now = tm().get(k);
+                if (now == null) {
+                    return;
+                }
+                now.vault.clear();
+                for (int i = 0; i < changed.size(); i++) {
+                    if (!changed.getStack(i).isEmpty()) {
+                        now.vault.add(com.vylorq.anticheat.util.ItemConv.encodeSlot(i, changed.getStack(i)));
+                    }
+                }
+                Ac.markDirty("teams");
+            });
+            return inv;
+        });
+    }
+
+    public static void openVault(ServerPlayerEntity p) {
+        Team t = tm().teamOf(p.getUuid());
+        if (t == null) {
+            Msg.send(p, "team.r.not_in_team");
+            return;
+        }
+        var inv = vault(t);
+        p.openHandledScreen(new net.minecraft.screen.SimpleNamedScreenHandlerFactory(
+                (syncId, playerInv, pl) -> net.minecraft.screen.GenericContainerScreenHandler.createGeneric9x3(syncId, playerInv, inv),
+                Text.literal(tagText(t) + " §8" + Msg.trFor(p, "team.vault"))));
+    }
+
+    /** When a team is gone its vault items drop at the leader's feet if online, else are kept in the log. */
+    /** Drops the cached vault; its items go to {@code to} (if given) so nothing is lost on disband. */
+    public static void forgetVault(Team t, ServerPlayerEntity to) {
+        net.minecraft.inventory.SimpleInventory inv = vault(t);
+        VAULTS.remove(t.id);
+        for (ServerPlayerEntity o : Ac.server().getPlayerManager().getPlayerList()) {
+            if (o.currentScreenHandler instanceof net.minecraft.screen.GenericContainerScreenHandler h && h.getInventory() == inv) {
+                o.closeHandledScreen();
+            }
+        }
+        if (to != null) {
+            for (int i = 0; i < inv.size(); i++) {
+                net.minecraft.item.ItemStack st = inv.getStack(i);
+                if (!st.isEmpty()) {
+                    to.getInventory().offerOrDrop(st.copy());
+                }
+            }
+        }
+        t.vault.clear();
+    }
+
+    public static int cfgAllies() {
+        return cfg().maxAllies;
+    }
+
+    // ---------------------------------------------------------------- join, respawn, border
+
+    public static void onJoin(ServerPlayerEntity p) {
+        if (!enabled()) {
+            return;
+        }
+        remember(p);
+        Team t = tm().teamOf(p.getUuid());
+        if (t != null && t.motd != null && !t.motd.isBlank()) {
+            p.sendMessage(Text.literal(tagText(t) + " §6" + Msg.trFor(p, "team.motd-head") + " §f" + t.motd.replace('&', '§')));
+        }
+        if (t != null && !t.allyRequests.isEmpty() && t.role(p.getUuid()).atLeast(Team.Role.OFFICER)) {
+            Msg.send(p, "team.ally-requests", String.join(", ", t.allyRequests));
+        }
+    }
+
+    private static final Map<UUID, Long> BORDER = new HashMap<>();
+
+    /** Shows the edges of team land around the player for 30 seconds. @return whether it's now on */
+    public static boolean toggleBorder(ServerPlayerEntity p) {
+        if (BORDER.remove(p.getUuid()) != null) {
+            return false;
+        }
+        BORDER.put(p.getUuid(), System.currentTimeMillis() + 30_000);
+        return true;
+    }
+
+    private static void drawBorders(ServerPlayerEntity p) {
+        String w = Mc.worldId(p.getEntityWorld());
+        ChunkPos c = p.getChunkPos();
+        double y = p.getY() + 0.5;
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                int cx = c.x + dx;
+                int cz = c.z + dz;
+                Team t = tm().at(w, cx, cz);
+                if (t == null) {
+                    continue;
+                }
+                var effect = t.members.contains(p.getUuid()) ? net.minecraft.particle.ParticleTypes.HAPPY_VILLAGER
+                        : net.minecraft.particle.ParticleTypes.FLAME;
+                int x0 = cx << 4;
+                int z0 = cz << 4;
+                // Only the edges that touch land that isn't this team's.
+                for (int i = 0; i <= 16; i += 2) {
+                    if (tm().at(w, cx, cz - 1) != t) {
+                        Mc.particle(p, effect, x0 + i, y, z0);
+                    }
+                    if (tm().at(w, cx, cz + 1) != t) {
+                        Mc.particle(p, effect, x0 + i, y, z0 + 16);
+                    }
+                    if (tm().at(w, cx - 1, cz) != t) {
+                        Mc.particle(p, effect, x0, y, z0 + i);
+                    }
+                    if (tm().at(w, cx + 1, cz) != t) {
+                        Mc.particle(p, effect, x0 + 16, y, z0 + i);
+                    }
+                }
+            }
+        }
     }
 
     // ---------------------------------------------------------------- chat
@@ -125,6 +302,95 @@ public final class Teams {
         return true;
     }
 
+    /** Sends a message to the team and all its allies. @return false if they aren't in a team */
+    public static boolean allyChat(ServerPlayerEntity p, String message) {
+        Team t = tm().teamOf(p.getUuid());
+        if (t == null) {
+            return false;
+        }
+        Text line = Text.literal("§3[" + Msg.tr("team.ally") + "] " + tagText(t) + " §7" + p.getGameProfile().name() + " §8» §b" + message);
+        Set<UUID> to = new HashSet<>(t.members);
+        for (String a : t.allies) {
+            Team o = tm().get(a);
+            if (o != null) {
+                to.addAll(o.members);
+            }
+        }
+        for (UUID m : to) {
+            ServerPlayerEntity o = Ac.server().getPlayerManager().getPlayer(m);
+            if (o != null) {
+                o.sendMessage(line);
+            }
+        }
+        Ac.LOG.info("[Allies {}] {}: {}", t.name, p.getGameProfile().name(), message);
+        return true;
+    }
+
+    // ---------------------------------------------------------------- map and ping
+
+    /** A small map of team land around the player, in chat. */
+    public static void showMap(ServerPlayerEntity p) {
+        String w = Mc.worldId(p.getEntityWorld());
+        ChunkPos c = p.getChunkPos();
+        Team mine = tm().teamOf(p.getUuid());
+        p.sendMessage(Text.literal("§8§m          §r §6" + Msg.trFor(p, "team.map-head") + " §8§m          "));
+        for (int dz = -4; dz <= 4; dz++) {
+            StringBuilder row = new StringBuilder();
+            for (int dx = -8; dx <= 8; dx++) {
+                if (dx == 0 && dz == 0) {
+                    row.append("§f✚");
+                    continue;
+                }
+                Team t = tm().at(w, c.x + dx, c.z + dz);
+                if (t == null) {
+                    row.append("§7▪");
+                } else if (t == mine) {
+                    row.append("§a■");
+                } else if (mine != null && mine.allies.contains(t.id)) {
+                    row.append("§b■");
+                } else {
+                    row.append("§c■");
+                }
+            }
+            p.sendMessage(Text.literal(row.toString()));
+        }
+        p.sendMessage(Text.literal(Msg.trFor(p, "team.map-key")));
+    }
+
+    private static final Map<UUID, Long> PINGED = new HashMap<>();
+
+    /** Tells teammates where the player is standing. @return false if they aren't in a team */
+    public static boolean ping(ServerPlayerEntity p, String note) {
+        Team t = tm().teamOf(p.getUuid());
+        if (t == null) {
+            return false;
+        }
+        long now = System.currentTimeMillis();
+        Long last = PINGED.get(p.getUuid());
+        if (last != null && now - last < 5000) {
+            Msg.send(p, "team.ping-wait");
+            return true;
+        }
+        PINGED.put(p.getUuid(), now);
+        BlockPos pos = p.getBlockPos();
+        String where = pos.getX() + " " + pos.getY() + " " + pos.getZ();
+        for (UUID m : t.members) {
+            ServerPlayerEntity o = Ac.server().getPlayerManager().getPlayer(m);
+            if (o == null) {
+                continue;
+            }
+            String dist = o.getEntityWorld() == p.getEntityWorld()
+                    ? String.valueOf((int) Math.sqrt(o.squaredDistanceTo(p.getX(), p.getY(), p.getZ()))) + "m"
+                    : Mc.worldId(p.getEntityWorld());
+            o.sendMessage(Text.literal(tagText(t) + " §e" + Msg.trFor(o, "team.ping", p.getGameProfile().name(), where, dist)
+                    + (note == null || note.isBlank() ? "" : " §7- §f" + note)));
+            o.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket(
+                    net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_BELL, net.minecraft.sound.SoundCategory.MASTER,
+                    o.getX(), o.getY(), o.getZ(), 1f, 1.5f, o.getRandom().nextLong()));
+        }
+        return true;
+    }
+
     /** Chat hook: players with team chat on talk to their team only. @return true when handled */
     public static boolean onChat(ServerPlayerEntity p, String message) {
         if (!enabled() || !CHAT.contains(p.getUuid())) {
@@ -143,8 +409,13 @@ public final class Teams {
         if (!enabled()) {
             return;
         }
+        long now = System.currentTimeMillis();
+        BORDER.values().removeIf(until -> now > until);
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
             remember(p);
+            if (BORDER.containsKey(p.getUuid())) {
+                drawBorders(p);
+            }
             ChunkPos c = p.getChunkPos();
             Team t = tm().at(Mc.worldId(p.getEntityWorld()), c.x, c.z);
             String area = t == null ? "" : t.id;

@@ -108,6 +108,7 @@ public final class Joins {
         }
         TempAdmins.onJoin(p);
         BuilderMode.onJoin(p);
+        Teams.onJoin(p);
         Arenas.onJoin(p);
         Jail.onJoin(p);
         WaitingRoomFeature.onJoin(p);

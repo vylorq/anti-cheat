@@ -27,6 +27,18 @@ public final class Team {
     public float homeYaw;
     /** Claimed chunks as "world|x|z". */
     public Set<String> chunks = new LinkedHashSet<>();
+    /** Allied team ids (both sides list each other). */
+    public Set<String> allies = new LinkedHashSet<>();
+    /** Teams that asked to be allies with this one. */
+    public Set<String> allyRequests = new LinkedHashSet<>();
+    /** Shared vault, as encoded "slot:item" strings. */
+    public java.util.List<String> vault = new java.util.ArrayList<>();
+    /** Message shown to members when they join. */
+    public String motd = "";
+    /** Anyone may use doors, gates, buttons and levers in the team's land. */
+    public boolean outsiderDoors;
+    /** Outsiders can't hurt members inside the team's land. */
+    public boolean safeLand;
 
     public Role role(UUID player) {
         if (player == null || !members.contains(player)) {
