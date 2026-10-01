@@ -95,6 +95,7 @@ final class WorldCommands {
         registerTraders(d);
         registerEnd(d);
         registerBuilder(d);
+        registerBuild(d);
     }
 
     // ---- Builder mode ----
@@ -130,6 +131,85 @@ final class WorldCommands {
                     }
                     return 1;
                 })));
+    }
+
+    private static ServerPlayerEntity builderSelf(CommandContext<ServerCommandSource> ctx) {
+        ServerPlayerEntity p = self(ctx);
+        if (p != null && !com.vylorq.anticheat.feature.BuilderTools.canUse(p)) {
+            Msg.err(ctx.getSource(), "general.no-permission");
+            return null;
+        }
+        return p;
+    }
+
+    private static int withBlock(CommandContext<ServerCommandSource> ctx, String arg,
+                                 java.util.function.BiConsumer<ServerPlayerEntity, net.minecraft.block.BlockState> then) {
+        ServerPlayerEntity p = builderSelf(ctx);
+        if (p == null) {
+            return 0;
+        }
+        var state = com.vylorq.anticheat.feature.BuilderTools.block(Args.str(ctx, arg));
+        if (state == null) {
+            Msg.err(ctx.getSource(), "build.unknown-block", Args.str(ctx, arg));
+            return 0;
+        }
+        then.accept(p, state);
+        return 1;
+    }
+
+    private static int builderRun(CommandContext<ServerCommandSource> ctx, java.util.function.Consumer<ServerPlayerEntity> then) {
+        ServerPlayerEntity p = builderSelf(ctx);
+        if (p == null) {
+            return 0;
+        }
+        then.accept(p);
+        return 1;
+    }
+
+    /** /build: the builder tools (for builders and the owner). */
+    private static void registerBuild(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("build").requires(s -> s.getPlayer() == null ? Mc.hasLevel(s, 3)
+                        : com.vylorq.anticheat.feature.BuilderTools.canUse(s.getPlayer()))
+                .executes(ctx -> builderRun(ctx, com.vylorq.anticheat.gui.BuilderMenu::open))
+                .then(literal("menu").executes(ctx -> builderRun(ctx, com.vylorq.anticheat.gui.BuilderMenu::open)))
+                .then(literal("wand").executes(ctx -> builderRun(ctx, p -> {
+                    p.getInventory().insertStack(Tools.builderWand());
+                    p.getInventory().insertStack(Tools.builderMenu());
+                })))
+                .then(literal("pos1").executes(ctx -> builderRun(ctx, p ->
+                        com.vylorq.anticheat.feature.BuilderTools.corner(p, (ServerWorld) p.getEntityWorld(), p.getBlockPos(), true))))
+                .then(literal("pos2").executes(ctx -> builderRun(ctx, p ->
+                        com.vylorq.anticheat.feature.BuilderTools.corner(p, (ServerWorld) p.getEntityWorld(), p.getBlockPos(), false))))
+                .then(literal("clear").executes(ctx -> builderRun(ctx, com.vylorq.anticheat.feature.BuilderTools::clear)))
+                .then(literal("set").then(Args.word("block").executes(ctx -> withBlock(ctx, "block",
+                        com.vylorq.anticheat.feature.BuilderTools::set))))
+                .then(literal("walls").then(Args.word("block").executes(ctx -> withBlock(ctx, "block",
+                        com.vylorq.anticheat.feature.BuilderTools::walls))))
+                .then(literal("replace").then(Args.word("from").then(Args.word("to").executes(ctx -> {
+                    var from = com.vylorq.anticheat.feature.BuilderTools.block(Args.str(ctx, "from"));
+                    if (from == null) {
+                        Msg.err(ctx.getSource(), "build.unknown-block", Args.str(ctx, "from"));
+                        return 0;
+                    }
+                    return withBlock(ctx, "to", (p, to) -> com.vylorq.anticheat.feature.BuilderTools.replace(p, from.getBlock(), to));
+                }))))
+                .then(literal("copy").executes(ctx -> builderRun(ctx, com.vylorq.anticheat.feature.BuilderTools::copy)))
+                .then(literal("paste").executes(ctx -> builderRun(ctx, p -> com.vylorq.anticheat.feature.BuilderTools.paste(p, true)))
+                        .then(literal("noair").executes(ctx -> builderRun(ctx, p -> com.vylorq.anticheat.feature.BuilderTools.paste(p, false)))))
+                .then(literal("rotate").executes(ctx -> builderRun(ctx, com.vylorq.anticheat.feature.BuilderTools::rotate)))
+                .then(literal("undo").executes(ctx -> builderRun(ctx, com.vylorq.anticheat.feature.BuilderTools::undo)))
+                .then(literal("builds").executes(ctx -> builderRun(ctx, p -> {
+                    var files = com.vylorq.anticheat.feature.BuildFiles.list();
+                    Msg.ok(ctx.getSource(), files.isEmpty() ? "build.menu.no-builds" : "build.list", String.join(", ", files.keySet()));
+                })))
+                .then(literal("load").then(Args.word("name").executes(ctx -> builderRun(ctx, p ->
+                        com.vylorq.anticheat.feature.BuilderTools.load(p, Args.str(ctx, "name"))))))
+                .then(literal("save").then(Args.word("name").executes(ctx -> builderRun(ctx, p ->
+                        com.vylorq.anticheat.feature.BuilderTools.save(p, Args.str(ctx, "name"))))))
+                .then(literal("import").then(Args.word("name").then(CommandManager.argument("link",
+                        com.mojang.brigadier.arguments.StringArgumentType.greedyString()).executes(ctx -> builderRun(ctx, p ->
+                        com.vylorq.anticheat.feature.BuilderTools.importUrl(p,
+                                com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "link"), Args.str(ctx, "name"))))))));
     }
 
     private static int addBuilder(CommandContext<ServerCommandSource> ctx, String time, boolean anywhere) {

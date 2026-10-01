@@ -82,6 +82,7 @@ public final class VigilCommands {
             new Help(Group.TOOLS, "inspector", "/vigil inspector", "help.inspector", Perm.INSPECTOR_TOOL),
             new Help(Group.TOOLS, "tp", "/vigil tp <world> <x> <y> <z>", "help.tp", Perm.TELEPORT),
             new Help(Group.TOOLS, "builder", "/vigil builder add|remove|list <player> [time] [anywhere]", "help.builder", Perm.MANAGE_ADMINS),
+            new Help(Group.TOOLS, "build", "/build set|replace|walls|copy|paste|rotate|undo|load|save|import", "help.build", Perm.MANAGE_ADMINS),
             new Help(Group.TOOLS, "tempadmin", "/vigil tempadmin add|remove <player>", "help.tempadmin", Perm.MANAGE_ADMINS),
             new Help(Group.TOOLS, "event", "/vigil event ...", "help.event", Perm.EVENTS),
             new Help(Group.TOOLS, "restart", "/vigil restart", "help.restart", Perm.RESTART),

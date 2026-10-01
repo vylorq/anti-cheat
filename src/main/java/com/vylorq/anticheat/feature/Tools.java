@@ -13,6 +13,8 @@ public final class Tools {
     public static final String CLAIM_STICK = "claim_stick";
     public static final String TRADER_STICK = "trader_stick";
     public static final String INSPECTOR = "inspector";
+    public static final String BUILDER_WAND = "builder_wand";
+    public static final String BUILDER_MENU = "builder_menu";
 
     private Tools() {
     }
@@ -37,6 +39,21 @@ public final class Tools {
         ItemStack s = Icons.glint(Icons.of(Items.SPYGLASS, "§bBlock Inspector",
                 "Right-click or left-click a block", "to see who placed or broke it"));
         ItemConv.setTag(s, KEY, INSPECTOR);
+        return s;
+    }
+
+    public static ItemStack builderWand() {
+        ItemStack s = Icons.glint(Icons.of(Items.GOLDEN_AXE, "§6Builder Wand",
+                "Left-click a block: first corner", "Right-click a block: second corner",
+                "Then use the Builder Menu or /build"));
+        ItemConv.setTag(s, KEY, BUILDER_WAND);
+        return s;
+    }
+
+    public static ItemStack builderMenu() {
+        ItemStack s = Icons.glint(Icons.of(Items.NETHER_STAR, "§bBuilder Menu",
+                "Right-click: set, replace, walls, copy, paste,", "rotate, undo and saved builds"));
+        ItemConv.setTag(s, KEY, BUILDER_MENU);
         return s;
     }
 

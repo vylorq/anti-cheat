@@ -31,6 +31,7 @@ public final class Ticker {
             s.tick();
         }
         Trades.tick();
+        BuilderTools.tick();
         Extras.tick();
         Watcher.tick(server);
         if (ticks % 20 == 0) {
