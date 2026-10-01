@@ -129,20 +129,12 @@ public final class Teams {
         return t != null && !t.friendlyFire && t.members.contains(victim.getUuid());
     }
 
-    /** Whether a player may not hurt another: teammates, allies, or a member standing in their own safe land. */
+    /** Whether a player may not hurt another: teammates or allies. */
     public static boolean damageBlocked(ServerPlayerEntity attacker, ServerPlayerEntity victim) {
         if (!enabled()) {
             return false;
         }
-        if (friendlyFireBlocked(attacker, victim) || tm().allied(attacker.getUuid(), victim.getUuid())) {
-            return true;
-        }
-        Team land = at(victim.getEntityWorld(), victim.getBlockPos());
-        if (land != null && land.safeLand && land.members.contains(victim.getUuid()) && !land.members.contains(attacker.getUuid())) {
-            Msg.actionBar(attacker, Msg.trFor(attacker, "team.safe-land", tagText(land) + " §f" + land.name));
-            return true;
-        }
-        return false;
+        return friendlyFireBlocked(attacker, victim) || tm().allied(attacker.getUuid(), victim.getUuid());
     }
 
     // ---------------------------------------------------------------- vault
@@ -326,36 +318,7 @@ public final class Teams {
         return true;
     }
 
-    // ---------------------------------------------------------------- map and ping
-
-    /** A small map of team land around the player, in chat. */
-    public static void showMap(ServerPlayerEntity p) {
-        String w = Mc.worldId(p.getEntityWorld());
-        ChunkPos c = p.getChunkPos();
-        Team mine = tm().teamOf(p.getUuid());
-        p.sendMessage(Text.literal("§8§m          §r §6" + Msg.trFor(p, "team.map-head") + " §8§m          "));
-        for (int dz = -4; dz <= 4; dz++) {
-            StringBuilder row = new StringBuilder();
-            for (int dx = -8; dx <= 8; dx++) {
-                if (dx == 0 && dz == 0) {
-                    row.append("§f✚");
-                    continue;
-                }
-                Team t = tm().at(w, c.x + dx, c.z + dz);
-                if (t == null) {
-                    row.append("§7▪");
-                } else if (t == mine) {
-                    row.append("§a■");
-                } else if (mine != null && mine.allies.contains(t.id)) {
-                    row.append("§b■");
-                } else {
-                    row.append("§c■");
-                }
-            }
-            p.sendMessage(Text.literal(row.toString()));
-        }
-        p.sendMessage(Text.literal(Msg.trFor(p, "team.map-key")));
-    }
+    // ---------------------------------------------------------------- ping
 
     private static final Map<UUID, Long> PINGED = new HashMap<>();
 

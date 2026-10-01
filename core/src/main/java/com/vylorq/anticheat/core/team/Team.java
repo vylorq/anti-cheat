@@ -37,8 +37,6 @@ public final class Team {
     public String motd = "";
     /** Anyone may use doors, gates, buttons and levers in the team's land. */
     public boolean outsiderDoors;
-    /** Outsiders can't hurt members inside the team's land. */
-    public boolean safeLand;
 
     public Role role(UUID player) {
         if (player == null || !members.contains(player)) {

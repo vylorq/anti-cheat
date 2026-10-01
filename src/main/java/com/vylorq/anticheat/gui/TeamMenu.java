@@ -208,7 +208,7 @@ public final class TeamMenu {
         m.open(p);
     }
 
-    /** Vault, allies, map, where, ping, border, top, message of the day and land settings. */
+    /** Vault, allies, where, ping, border, top, message of the day and land settings. */
     static void more(ServerPlayerEntity p, Menu parent) {
         Menu m = Menu.std(Theme.Category.PLAYER, 5, Msg.trFor(p, "team.menu.title"), Msg.trFor(p, "team.menu.more"));
         m.parent(parent);
@@ -223,23 +223,19 @@ public final class TeamMenu {
                     (pl, c) -> Teams.openVault(pl));
             menu.set(11, Btn.of(Items.CYAN_BANNER).name(Msg.tr("team.menu.allies")).desc(Msg.tr("team.menu.allies-desc"))
                     .count(t.allies.size()).glint(!t.allyRequests.isEmpty()).build(), null, (pl, c) -> allies(pl, menu));
-            menu.set(12, Btn.of(Items.FILLED_MAP).name(Msg.tr("team.menu.map")).desc(Msg.tr("team.menu.map-desc")).build(), null, (pl, c) -> {
-                pl.closeHandledScreen();
-                Teams.showMap(pl);
-            });
-            menu.set(13, Btn.of(Items.RECOVERY_COMPASS).name(Msg.tr("team.menu.where")).desc(Msg.tr("team.menu.where-desc")).build(), null, (pl, c) -> {
+            menu.set(12, Btn.of(Items.RECOVERY_COMPASS).name(Msg.tr("team.menu.where")).desc(Msg.tr("team.menu.where-desc")).build(), null, (pl, c) -> {
                 pl.closeHandledScreen();
                 TeamCommands.where(pl);
             });
-            menu.set(14, Btn.of(Items.BELL).name(Msg.tr("team.menu.ping")).desc(Msg.tr("team.menu.ping-desc")).build(), null, (pl, c) -> {
+            menu.set(13, Btn.of(Items.BELL).name(Msg.tr("team.menu.ping")).desc(Msg.tr("team.menu.ping-desc")).build(), null, (pl, c) -> {
                 pl.closeHandledScreen();
                 Teams.ping(pl, null);
             });
-            menu.set(15, Btn.of(Items.BLAZE_POWDER).name(Msg.tr("team.menu.border")).desc(Msg.tr("team.menu.border-desc")).build(), null, (pl, c) -> {
+            menu.set(14, Btn.of(Items.BLAZE_POWDER).name(Msg.tr("team.menu.border")).desc(Msg.tr("team.menu.border-desc")).build(), null, (pl, c) -> {
                 pl.closeHandledScreen();
                 Msg.send(pl, Teams.toggleBorder(pl) ? "team.border-on" : "team.border-off");
             });
-            menu.set(16, Btn.of(Items.GOLD_INGOT).name(Msg.tr("team.menu.top")).desc(Msg.tr("team.menu.top-desc"))
+            menu.set(15, Btn.of(Items.GOLD_INGOT).name(Msg.tr("team.menu.top")).desc(Msg.tr("team.menu.top-desc"))
                     .left(Msg.tr("team.top.land")).right(Msg.tr("team.top.members")).shift(Msg.tr("team.top.kills")).build(), null, (pl, c) -> {
                 pl.closeHandledScreen();
                 TeamCommands.top(pl.getCommandSource(), c.isShift() ? "kills" : c.isRight() ? "members" : "land");
@@ -260,12 +256,6 @@ public final class TeamMenu {
                         .onOff(t.outsiderDoors).build(), null, (pl, c) -> {
                     t.outsiderDoors = !t.outsiderDoors;
                     say(pl, Result.OK, t.outsiderDoors ? "team.set.doors-on" : "team.set.doors-off");
-                    menu.refresh();
-                });
-                menu.set(33, Btn.of(Items.SHIELD).name(Msg.tr("team.menu.safeland")).desc(Msg.tr("team.menu.safeland-desc"))
-                        .onOff(t.safeLand).build(), null, (pl, c) -> {
-                    t.safeLand = !t.safeLand;
-                    say(pl, Result.OK, t.safeLand ? "team.set.safeland-on" : "team.set.safeland-off");
                     menu.refresh();
                 });
             }
