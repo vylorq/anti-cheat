@@ -431,7 +431,7 @@ public class AcConfig {
         public boolean banAppearance = true;
     }
 
-    /** Server-wide events (Blood Moon, Lockdown, The Hunt, Whispers, Golden Hour, Gift Rain, Treasure Hunt). */
+    /** Server-wide events (Blood Moon, Lockdown, Golden Hour). */
     public static class Events {
         public boolean enabled = true;
         /** The Blood Moon rises at nightfall every this many days. */
@@ -442,7 +442,7 @@ public class AcConfig {
         public int randomMaxMinutes = 240;
         public int minPlayers = 2;
         /** Which events can happen by themselves. */
-        public List<String> randomEvents = new ArrayList<>(List.of("whispers", "the_hunt", "golden_hour", "gift_rain", "treasure_hunt"));
+        public List<String> randomEvents = new ArrayList<>(List.of("golden_hour"));
     }
 
     public static class Restarts {
