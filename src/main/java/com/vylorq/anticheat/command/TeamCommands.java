@@ -205,6 +205,7 @@ public final class TeamCommands {
                     Team t = tm().teamOf(p.getUuid());
                     Result r = tm().disband(p.getUuid());
                     if (r == Result.OK) {
+                        Teams.forgetVault(t, p);
                         tellTeam(t, "team.disbanded", t.name);
                     }
                     return result(ctx.getSource(), r, null);
@@ -309,6 +310,59 @@ public final class TeamCommands {
                     Msg.ok(ctx.getSource(), t.friendlyFire ? "team.ff-on" : "team.ff-off");
                     return true;
                 })))
+                .then(literal("vault").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null || mine(ctx, p, null) == null) return 0;
+                    Teams.openVault(p);
+                    return 1;
+                }))
+                .then(literal("ally").then(Args.word("team").executes(ctx -> ally(ctx, true))))
+                .then(literal("unally").then(Args.word("team").executes(ctx -> ally(ctx, false))))
+                .then(literal("allies").executes(TeamCommands::allies))
+                .then(literal("where").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    where(p);
+                    return 1;
+                }))
+                .then(literal("map").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    Teams.showMap(p);
+                    return 1;
+                }))
+                .then(literal("ping").executes(ctx -> ping(ctx, null))
+                        .then(CommandManager.argument("note", StringArgumentType.greedyString())
+                                .executes(ctx -> ping(ctx, StringArgumentType.getString(ctx, "note")))))
+                .then(literal("border").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    Msg.ok(ctx.getSource(), Teams.toggleBorder(p) ? "team.border-on" : "team.border-off");
+                    return 1;
+                }))
+                .then(literal("motd").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    Team t = mine(ctx, p, null);
+                    if (t == null) return 0;
+                    Msg.ok(ctx.getSource(), t.motd.isEmpty() ? "team.motd-none" : "team.motd-is", t.motd.replace('&', '§'));
+                    return 1;
+                }).then(literal("clear").executes(ctx -> setMotd(ctx, "")))
+                        .then(CommandManager.argument("text", StringArgumentType.greedyString())
+                                .executes(ctx -> setMotd(ctx, StringArgumentType.getString(ctx, "text")))))
+                .then(literal("top").executes(ctx -> {
+                    top(ctx.getSource(), "land");
+                    return 1;
+                }).then(Args.word("by").suggests((c, b) -> {
+                    List.of("land", "members", "kills").forEach(b::suggest);
+                    return b.buildFuture();
+                }).executes(ctx -> {
+                    String by = Args.str(ctx, "by").toLowerCase(Locale.ROOT);
+                    top(ctx.getSource(), List.of("members", "kills").contains(by) ? by : "land");
+                    return 1;
+                })))
+                .then(literal("doors").executes(ctx -> toggle(ctx, "doors")))
+                .then(literal("safeland").executes(ctx -> toggle(ctx, "safeland")))
                 .then(literal("admin").requires(s -> Perms.visible(s, Perm.MANAGE_ADMINS))
                         .then(literal("disband").then(Args.word("team").executes(ctx -> {
                             if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
@@ -318,6 +372,7 @@ public final class TeamCommands {
                             }
                             tellTeam(t, "team.disbanded", t.name);
                             tm().removeTeam(t);
+                            Teams.forgetVault(t, ctx.getSource().getPlayer());
                             Staff.log(ctx.getSource().getPlayer(), "team-admin-disband", null, t.name, "");
                             return result(ctx.getSource(), Result.OK, "team.admin-disbanded", t.name);
                         })))
@@ -338,6 +393,15 @@ public final class TeamCommands {
             ServerPlayerEntity p = self(ctx);
             if (p == null) return 0;
             if (!Teams.teamChat(p, StringArgumentType.getString(ctx, "message"))) {
+                return result(ctx.getSource(), Result.NOT_IN_TEAM, null);
+            }
+            return 1;
+        })));
+
+        d.register(literal("tca").then(CommandManager.argument("message", StringArgumentType.greedyString()).executes(ctx -> {
+            ServerPlayerEntity p = self(ctx);
+            if (p == null) return 0;
+            if (!Teams.allyChat(p, StringArgumentType.getString(ctx, "message"))) {
                 return result(ctx.getSource(), Result.NOT_IN_TEAM, null);
             }
             return 1;
@@ -388,6 +452,27 @@ public final class TeamCommands {
             p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_PLING,
                     SoundCategory.MASTER, p.getX(), p.getY(), p.getZ(), 1f, 1.2f, p.getRandom().nextLong()));
         }
+    }
+
+    private static int ping(CommandContext<ServerCommandSource> ctx, String note) {
+        ServerPlayerEntity p = self(ctx);
+        if (p == null) return 0;
+        if (!Teams.ping(p, note)) {
+            return result(ctx.getSource(), Result.NOT_IN_TEAM, null);
+        }
+        return 1;
+    }
+
+    private static int setMotd(CommandContext<ServerCommandSource> ctx, String text) {
+        ServerPlayerEntity p = self(ctx);
+        if (p == null) return 0;
+        Team t = mine(ctx, p, Team.Role.OFFICER);
+        if (t == null) return 0;
+        t.motd = text.length() > 200 ? text.substring(0, 200) : text;
+        if (!t.motd.isEmpty()) {
+            tellTeam(t, "team.motd-changed", p.getGameProfile().name());
+        }
+        return result(ctx.getSource(), Result.OK, t.motd.isEmpty() ? "team.motd-cleared" : "team.motd-set");
     }
 
     private static int create(CommandContext<ServerCommandSource> ctx, String tag) {
@@ -459,19 +544,157 @@ public final class TeamCommands {
         return result(ctx.getSource(), Result.OK, "team.updated");
     }
 
+    /** Where the team home is (no teleport: you walk there). */
     public static boolean home(ServerPlayerEntity p) {
         Team t = tm().teamOf(p.getUuid());
         if (t == null || !t.hasHome()) {
             Msg.send(p, t == null ? "team.r.not_in_team" : "team.no-home");
             return false;
         }
-        ServerWorld w = Mc.world(Ac.server(), t.homeWorld);
-        if (w == null) {
-            Msg.send(p, "team.no-home");
-            return false;
+        String where = (int) Math.floor(t.homeX) + " " + (int) Math.floor(t.homeY) + " " + (int) Math.floor(t.homeZ);
+        if (Mc.worldId(p.getEntityWorld()).equals(t.homeWorld)) {
+            int dist = (int) Math.sqrt(p.squaredDistanceTo(t.homeX, t.homeY, t.homeZ));
+            Msg.send(p, "team.home-at", where, dist + "m");
+        } else {
+            Msg.send(p, "team.home-at", where, t.homeWorld);
         }
-        Mc.teleport(p, w, t.homeX, t.homeY, t.homeZ, t.homeYaw, 0);
-        Msg.send(p, "team.home-tp");
         return true;
+    }
+
+    private static Team mine(CommandContext<ServerCommandSource> ctx, ServerPlayerEntity p, Team.Role need) {
+        Team t = tm().teamOf(p.getUuid());
+        if (t == null) {
+            result(ctx.getSource(), Result.NOT_IN_TEAM, null);
+            return null;
+        }
+        if (need != null && !t.role(p.getUuid()).atLeast(need)) {
+            result(ctx.getSource(), Result.NOT_ALLOWED, null);
+            return null;
+        }
+        return t;
+    }
+
+    private static int ally(CommandContext<ServerCommandSource> ctx, boolean add) {
+        ServerPlayerEntity p = self(ctx);
+        if (p == null) {
+            return 0;
+        }
+        String other = Args.str(ctx, "team");
+        Team t = tm().teamOf(p.getUuid());
+        Team o = tm().get(other);
+        Result r = add ? tm().ally(p.getUuid(), other, Teams.cfgAllies()) : tm().unally(p.getUuid(), other);
+        if (o != null && t != null) {
+            if (r == Result.OK) {
+                String key = add ? "team.allied" : "team.unallied";
+                tellTeam(t, key, o.name);
+                tellTeam(o, key, t.name);
+                return result(ctx.getSource(), r, null);
+            }
+            if (r == Result.ALLY_REQUESTED) {
+                for (UUID m : o.members) {
+                    ServerPlayerEntity x = Ac.server().getPlayerManager().getPlayer(m);
+                    if (x != null && o.role(m).atLeast(Team.Role.OFFICER)) {
+                        MutableText msg = Msg.prefixed(Msg.trFor(x, "team.ally-asked", Teams.tagText(t) + " §f" + t.name));
+                        msg.append(" ").append(Msg.button("§a[" + Msg.trFor(x, "team.accept") + "]", "/team ally " + t.name, ""));
+                        x.sendMessage(msg);
+                    }
+                }
+                Msg.ok(ctx.getSource(), "team.ally-sent", o.name);
+                Ac.markDirty("teams");
+                return 1;
+            }
+        }
+        return result(ctx.getSource(), r, null, other);
+    }
+
+    private static int allies(CommandContext<ServerCommandSource> ctx) {
+        ServerPlayerEntity p = self(ctx);
+        if (p == null) return 0;
+        Team t = mine(ctx, p, null);
+        if (t == null) return 0;
+        Msg.ok(ctx.getSource(), "team.allies-list", t.allies.isEmpty() ? "-" : names(t.allies));
+        if (!t.allyRequests.isEmpty()) {
+            Msg.ok(ctx.getSource(), "team.ally-requests", names(t.allyRequests));
+        }
+        return 1;
+    }
+
+    static String names(java.util.Set<String> ids) {
+        StringBuilder b = new StringBuilder();
+        for (String id : ids) {
+            Team o = tm().get(id);
+            if (o != null) {
+                b.append(b.length() == 0 ? "" : "§7, ").append(Teams.tagText(o)).append(" §f").append(o.name);
+            }
+        }
+        return b.length() == 0 ? "-" : b.toString();
+    }
+
+    /** Teammates' places and health. */
+    public static void where(ServerPlayerEntity p) {
+        Team t = tm().teamOf(p.getUuid());
+        if (t == null) {
+            Msg.send(p, "team.r.not_in_team");
+            return;
+        }
+        int n = 0;
+        for (UUID m : t.members) {
+            ServerPlayerEntity o = Ac.server().getPlayerManager().getPlayer(m);
+            if (o == null || o == p) {
+                continue;
+            }
+            n++;
+            var b = o.getBlockPos();
+            String place = o.getEntityWorld() == p.getEntityWorld()
+                    ? b.getX() + " " + b.getY() + " " + b.getZ() + " §7(" + (int) Math.sqrt(o.squaredDistanceTo(p)) + "m)"
+                    : Mc.worldId(o.getEntityWorld());
+            p.sendMessage(Text.literal("§f" + o.getGameProfile().name() + " §c❤" + (int) Math.ceil(o.getHealth()) + " §7» §e" + place));
+        }
+        if (n == 0) {
+            Msg.send(p, "team.where-none");
+        }
+    }
+
+    /** Teams ranked by land, members or kills. */
+    public static void top(ServerCommandSource src, String what) {
+        java.util.List<Team> all = new java.util.ArrayList<>(tm().list());
+        java.util.Map<String, Long> score = new java.util.HashMap<>();
+        for (Team t : all) {
+            long v = switch (what) {
+                case "members" -> t.members.size();
+                case "kills" -> {
+                    long k = 0;
+                    for (UUID m : t.members) {
+                        var row = com.vylorq.anticheat.feature.PlayerStats.of(m);
+                        k += row == null ? 0 : row.playerKills();
+                    }
+                    yield k;
+                }
+                default -> t.chunks.size();
+            };
+            score.put(t.id, v);
+        }
+        all.sort((a, b) -> Long.compare(score.get(b.id), score.get(a.id)));
+        Msg.ok(src, "team.top-head", Msg.tr("team.top." + what));
+        if (all.isEmpty()) {
+            Msg.ok(src, "team.none-yet");
+        }
+        for (int i = 0; i < Math.min(10, all.size()); i++) {
+            Team t = all.get(i);
+            String line = "§6#" + (i + 1) + " " + Teams.tagText(t) + " §f" + t.name + " §7- §e" + score.get(t.id);
+            src.sendFeedback(() -> Text.literal(line), false);
+        }
+    }
+
+    /** Leader toggles. */
+    private static int toggle(CommandContext<ServerCommandSource> ctx, String what) {
+        return leaderSet(ctx, t -> {
+            boolean on = switch (what) {
+                case "doors" -> t.outsiderDoors = !t.outsiderDoors;
+                default -> t.safeLand = !t.safeLand;
+            };
+            Msg.ok(ctx.getSource(), "team.set." + what + (on ? "-on" : "-off"));
+            return true;
+        });
     }
 }

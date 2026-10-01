@@ -196,7 +196,7 @@ public final class Protection {
                 if (ac.shadow.isShadowed(ap.getUuid())) {
                     return false;
                 }
-                if (Teams.friendlyFireBlocked(ap, p)) {
+                if (Teams.damageBlocked(ap, p)) {
                     return false;
                 }
                 var am = ac.arenas.matchOf(ap.getUuid());

@@ -75,4 +75,22 @@ class TeamsTest {
         m.disband(a);
         assertNull(m.at("w", 0, 0), "disbanding frees the land");
     }
+
+    @Test
+    void alliesNeedBothSides() {
+        TeamManager m = tm();
+        m.create("Wolves", null, a);
+        m.create("Bears", null, c);
+        assertEquals(Result.ALLY_REQUESTED, m.ally(a, "Bears", 3));
+        assertFalse(m.allied(a, c), "not until they accept");
+        assertEquals(Result.OK, m.ally(c, "Wolves", 3));
+        assertTrue(m.allied(a, c));
+        assertEquals(Result.ALREADY_ALLIES, m.ally(a, "Bears", 3));
+        assertEquals(Result.OK, m.unally(c, "Wolves"));
+        assertFalse(m.allied(a, c));
+        m.ally(a, "Bears", 3);
+        m.ally(c, "Wolves", 3);
+        m.disband(c);
+        assertTrue(m.teamOf(a).allies.isEmpty(), "disbanding removes the alliance");
+    }
 }

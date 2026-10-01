@@ -193,6 +193,8 @@ public final class TeamMenu {
                 });
             }
             menu.set(39, Btn.of(Items.BOOK).name(Msg.tr("team.menu.list")).build(), null, (pl, c) -> list(pl, menu));
+            menu.set(40, Btn.of(Items.NETHER_STAR).name(Msg.tr("team.menu.more")).desc(Msg.tr("team.menu.more-desc")).glint(true).build(), null,
+                    (pl, c) -> more(pl, menu));
             if (me == Team.Role.LEADER) {
                 menu.set(41, Btn.of(Items.TNT).color(Theme.RED).name(Msg.tr("team.menu.disband")).desc(Msg.tr("team.menu.disband-desc")).build(), null,
                         (pl, c) -> Confirm.open(pl, Theme.Category.PLAYER, Msg.trFor(pl, "team.menu.disband"), t.name, new ItemStack(Items.TNT),
@@ -201,6 +203,119 @@ public final class TeamMenu {
                 menu.set(41, Btn.of(Items.OAK_DOOR).color(Theme.RED).name(Msg.tr("team.menu.leave")).build(), null,
                         (pl, c) -> Confirm.open(pl, Theme.Category.PLAYER, Msg.trFor(pl, "team.menu.leave"), t.name, new ItemStack(Items.OAK_DOOR),
                                 () -> Mc.run(pl, "team leave")));
+            }
+        });
+        m.open(p);
+    }
+
+    /** Vault, allies, map, where, ping, border, top, message of the day and land settings. */
+    static void more(ServerPlayerEntity p, Menu parent) {
+        Menu m = Menu.std(Theme.Category.PLAYER, 5, Msg.trFor(p, "team.menu.title"), Msg.trFor(p, "team.menu.more"));
+        m.parent(parent);
+        m.renderer(menu -> {
+            Team t = Teams.tm().teamOf(p.getUuid());
+            if (t == null) {
+                p.closeHandledScreen();
+                return;
+            }
+            Team.Role me = t.role(p.getUuid());
+            menu.set(10, Btn.of(Items.ENDER_CHEST).name(Msg.tr("team.menu.vault")).desc(Msg.tr("team.menu.vault-desc")).build(), null,
+                    (pl, c) -> Teams.openVault(pl));
+            menu.set(11, Btn.of(Items.CYAN_BANNER).name(Msg.tr("team.menu.allies")).desc(Msg.tr("team.menu.allies-desc"))
+                    .count(t.allies.size()).glint(!t.allyRequests.isEmpty()).build(), null, (pl, c) -> allies(pl, menu));
+            menu.set(12, Btn.of(Items.FILLED_MAP).name(Msg.tr("team.menu.map")).desc(Msg.tr("team.menu.map-desc")).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                Teams.showMap(pl);
+            });
+            menu.set(13, Btn.of(Items.RECOVERY_COMPASS).name(Msg.tr("team.menu.where")).desc(Msg.tr("team.menu.where-desc")).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                TeamCommands.where(pl);
+            });
+            menu.set(14, Btn.of(Items.BELL).name(Msg.tr("team.menu.ping")).desc(Msg.tr("team.menu.ping-desc")).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                Teams.ping(pl, null);
+            });
+            menu.set(15, Btn.of(Items.BLAZE_POWDER).name(Msg.tr("team.menu.border")).desc(Msg.tr("team.menu.border-desc")).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                Msg.send(pl, Teams.toggleBorder(pl) ? "team.border-on" : "team.border-off");
+            });
+            menu.set(16, Btn.of(Items.GOLD_INGOT).name(Msg.tr("team.menu.top")).desc(Msg.tr("team.menu.top-desc"))
+                    .left(Msg.tr("team.top.land")).right(Msg.tr("team.top.members")).shift(Msg.tr("team.top.kills")).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                TeamCommands.top(pl.getCommandSource(), c.isShift() ? "kills" : c.isRight() ? "members" : "land");
+            });
+            Btn motd = Btn.of(Items.NAME_TAG).name(Msg.tr("team.menu.motd"))
+                    .line(t.motd.isEmpty() ? Msg.tr("team.menu.motd-none") : "§f" + t.motd.replace('&', '§'));
+            if (me.atLeast(Team.Role.OFFICER)) {
+                motd.left(Msg.tr("team.menu.motd-edit"));
+            }
+            menu.set(29, motd.build(), null, (pl, c) -> {
+                if (t.role(pl.getUuid()).atLeast(Team.Role.OFFICER)) {
+                    pl.closeHandledScreen();
+                    Msg.sendRaw(pl, Msg.suggest("§b[/team motd <text>]", "/team motd ", ""));
+                }
+            });
+            if (me == Team.Role.LEADER) {
+                menu.set(31, Btn.of(Items.OAK_DOOR).name(Msg.tr("team.menu.doors")).desc(Msg.tr("team.menu.doors-desc"))
+                        .onOff(t.outsiderDoors).build(), null, (pl, c) -> {
+                    t.outsiderDoors = !t.outsiderDoors;
+                    say(pl, Result.OK, t.outsiderDoors ? "team.set.doors-on" : "team.set.doors-off");
+                    menu.refresh();
+                });
+                menu.set(33, Btn.of(Items.SHIELD).name(Msg.tr("team.menu.safeland")).desc(Msg.tr("team.menu.safeland-desc"))
+                        .onOff(t.safeLand).build(), null, (pl, c) -> {
+                    t.safeLand = !t.safeLand;
+                    say(pl, Result.OK, t.safeLand ? "team.set.safeland-on" : "team.set.safeland-off");
+                    menu.refresh();
+                });
+            }
+        });
+        m.open(p);
+    }
+
+    /** Allies and requests; officers accept requests or end alliances here. */
+    static void allies(ServerPlayerEntity p, Menu parent) {
+        Menu m = Menu.std(Theme.Category.PLAYER, 5, Msg.trFor(p, "team.menu.title"), Msg.trFor(p, "team.menu.allies"));
+        m.parent(parent);
+        m.renderer(menu -> {
+            Team t = Teams.tm().teamOf(p.getUuid());
+            if (t == null) {
+                p.closeHandledScreen();
+                return;
+            }
+            boolean officer = t.role(p.getUuid()).atLeast(Team.Role.OFFICER);
+            int i = 0;
+            for (String id : new java.util.ArrayList<>(t.allies)) {
+                Team o = Teams.tm().get(id);
+                if (o == null || i >= GRID.length) {
+                    continue;
+                }
+                Btn b = Btn.of(Items.CYAN_BANNER).name(Teams.tagText(o) + " §f" + o.name).line(Msg.tr("team.menu.ally-now"));
+                menu.set(GRID[i++] - 9, (officer ? b.right(Msg.tr("team.menu.unally")) : b).build(), null, (pl, c) -> {
+                    if (officer && c.isRight()) {
+                        Confirm.open(pl, Theme.Category.PLAYER, Msg.trFor(pl, "team.menu.unally"), o.name, new ItemStack(Items.BARRIER),
+                                () -> Mc.run(pl, "team unally " + o.name));
+                    }
+                });
+            }
+            for (String id : new java.util.ArrayList<>(t.allyRequests)) {
+                Team o = Teams.tm().get(id);
+                if (o == null || i >= GRID.length) {
+                    continue;
+                }
+                Btn b = Btn.of(Items.LIME_BANNER).name(Teams.tagText(o) + " §f" + o.name).line(Msg.tr("team.menu.ally-request"));
+                menu.set(GRID[i++] - 9, (officer ? b.left(Msg.tr("team.accept")) : b).build(), null, (pl, c) -> {
+                    if (officer) {
+                        Mc.run(pl, "team ally " + o.name);
+                        menu.refresh();
+                    }
+                });
+            }
+            if (officer) {
+                menu.set(40, Btn.of(Items.WRITABLE_BOOK).name(Msg.tr("team.menu.ally-ask")).desc(Msg.tr("team.menu.ally-ask-desc")).build(), null, (pl, c) -> {
+                    pl.closeHandledScreen();
+                    Msg.sendRaw(pl, Msg.suggest("§b[/team ally <team>]", "/team ally ", ""));
+                });
             }
         });
         m.open(p);

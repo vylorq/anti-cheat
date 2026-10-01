@@ -446,6 +446,9 @@ public class AcConfig {
         public boolean protectTerritory = true;
         /** [TAG] in the team colour above heads and in the tab list. */
         public boolean nameTags = true;
+        public int maxAllies = 3;
+        /** Seconds between raid alerts for the same intruder. */
+        public int raidAlertSeconds = 30;
     }
 
     /** Server-wide events (Blood Moon, Lockdown, Golden Hour). */
