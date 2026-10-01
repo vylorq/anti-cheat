@@ -325,12 +325,6 @@ public final class TeamCommands {
                     where(p);
                     return 1;
                 }))
-                .then(literal("map").executes(ctx -> {
-                    ServerPlayerEntity p = self(ctx);
-                    if (p == null) return 0;
-                    Teams.showMap(p);
-                    return 1;
-                }))
                 .then(literal("ping").executes(ctx -> ping(ctx, null))
                         .then(CommandManager.argument("note", StringArgumentType.greedyString())
                                 .executes(ctx -> ping(ctx, StringArgumentType.getString(ctx, "note")))))
@@ -361,8 +355,11 @@ public final class TeamCommands {
                     top(ctx.getSource(), List.of("members", "kills").contains(by) ? by : "land");
                     return 1;
                 })))
-                .then(literal("doors").executes(ctx -> toggle(ctx, "doors")))
-                .then(literal("safeland").executes(ctx -> toggle(ctx, "safeland")))
+                .then(literal("doors").executes(ctx -> leaderSet(ctx, t -> {
+                    t.outsiderDoors = !t.outsiderDoors;
+                    Msg.ok(ctx.getSource(), t.outsiderDoors ? "team.set.doors-on" : "team.set.doors-off");
+                    return true;
+                })))
                 .then(literal("admin").requires(s -> Perms.visible(s, Perm.MANAGE_ADMINS))
                         .then(literal("disband").then(Args.word("team").executes(ctx -> {
                             if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
@@ -684,17 +681,5 @@ public final class TeamCommands {
             String line = "§6#" + (i + 1) + " " + Teams.tagText(t) + " §f" + t.name + " §7- §e" + score.get(t.id);
             src.sendFeedback(() -> Text.literal(line), false);
         }
-    }
-
-    /** Leader toggles. */
-    private static int toggle(CommandContext<ServerCommandSource> ctx, String what) {
-        return leaderSet(ctx, t -> {
-            boolean on = switch (what) {
-                case "doors" -> t.outsiderDoors = !t.outsiderDoors;
-                default -> t.safeLand = !t.safeLand;
-            };
-            Msg.ok(ctx.getSource(), "team.set." + what + (on ? "-on" : "-off"));
-            return true;
-        });
     }
 }

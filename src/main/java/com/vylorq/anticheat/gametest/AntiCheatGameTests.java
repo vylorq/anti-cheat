@@ -878,7 +878,7 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
-    public void teamAlliesSafeLandAndVault(TestContext ctx) {
+    public void teamAlliesDoorsAndVault(TestContext ctx) {
         var w = ctx.getWorld();
         var tm = com.vylorq.anticheat.feature.Teams.tm();
         var lim = com.vylorq.anticheat.feature.Teams.limits();
@@ -905,10 +905,6 @@ public final class AntiCheatGameTests {
                 ta.outsiderDoors = true;
                 check(com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, door), "outsider doors setting ignored");
                 check(!com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, com.vylorq.anticheat.core.claims.ClaimAction.BREAK), "doors setting let them break");
-                a.setPosition(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
-                check(!com.vylorq.anticheat.feature.Teams.damageBlocked(outsider, a), "safe land on by default");
-                ta.safeLand = true;
-                check(com.vylorq.anticheat.feature.Teams.damageBlocked(outsider, a), "safe land didn't protect");
             }
             var inv = com.vylorq.anticheat.feature.Teams.vault(ta);
             inv.setStack(3, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 5));
