@@ -114,7 +114,7 @@ public final class Teams {
                 o.sendMessage(Msg.prefixed(Msg.trFor(o, "team.raid", intruder.getGameProfile().name(),
                         pos.getX() + " " + pos.getY() + " " + pos.getZ())));
                 o.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket(
-                        net.minecraft.sound.SoundEvents.BLOCK_BELL_USE, net.minecraft.sound.SoundCategory.MASTER,
+                        net.minecraft.registry.Registries.SOUND_EVENT.getEntry(net.minecraft.sound.SoundEvents.BLOCK_BELL_USE), net.minecraft.sound.SoundCategory.MASTER,
                         o.getX(), o.getY(), o.getZ(), 1f, 0.8f, o.getRandom().nextLong()));
             }
         }
