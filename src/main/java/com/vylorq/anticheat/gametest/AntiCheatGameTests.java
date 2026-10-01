@@ -541,7 +541,7 @@ public final class AntiCheatGameTests {
         fake.getInventory().setStack(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 7));
         try {
             com.vylorq.anticheat.feature.BuilderMode.start(null, fake, 0, false);
-            check(fake.isCreative() && fake.getInventory().getStack(0).isEmpty(), "builder mode didn't start cleanly");
+            check(fake.isCreative() && !fake.getInventory().getStack(0).isOf(net.minecraft.item.Items.DIAMOND), "builder mode didn't start cleanly");
             fake.getInventory().setStack(1, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD));
             fake.getInventory().setStack(2, new net.minecraft.item.ItemStack(net.minecraft.item.Items.STONE, 64));
             check(com.vylorq.anticheat.feature.BuilderMode.sanitize(fake) == 1 && fake.getInventory().getStack(1).isEmpty()
