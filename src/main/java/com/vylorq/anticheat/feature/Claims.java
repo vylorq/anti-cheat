@@ -59,6 +59,9 @@ public final class Claims {
      * @return true if allowed
      */
     public static boolean check(ServerPlayerEntity p, World w, BlockPos pos, ClaimAction a) {
+        if (!Teams.allowed(p, w, pos, a)) {
+            return false;
+        }
         Claim c = at(w, pos);
         if (c == null || can(p, c, a)) {
             return true;

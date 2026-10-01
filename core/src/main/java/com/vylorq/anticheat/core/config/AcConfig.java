@@ -42,6 +42,7 @@ public class AcConfig {
     public Restarts restarts = new Restarts();
     public Watcher watcher = new Watcher();
     public Events events = new Events();
+    public Teams teams = new Teams();
 
     public static class General {
         /** Owner UUID. The owner has every power. Leave empty until set. */
@@ -431,6 +432,22 @@ public class AcConfig {
         public boolean banAppearance = true;
     }
 
+    /** Player teams: leaders, officers, members, territory (chunks), tags, team chat. */
+    public static class Teams {
+        public boolean enabled = true;
+        public int maxMembers = 10;
+        /** Chunks a team may claim: base + per member, up to max. */
+        public int baseChunks = 4;
+        public int chunksPerMember = 2;
+        public int maxChunks = 40;
+        /** New chunks must touch the team's other chunks. */
+        public boolean connectedTerritory = true;
+        /** Outsiders can't build, break, open or use anything in a team's territory. */
+        public boolean protectTerritory = true;
+        /** [TAG] in the team colour above heads and in the tab list. */
+        public boolean nameTags = true;
+    }
+
     /** Server-wide events (Blood Moon, Lockdown, Golden Hour). */
     public static class Events {
         public boolean enabled = true;
@@ -467,6 +484,7 @@ public class AcConfig {
         if (general == null) general = d.general;
         if (permissions == null) permissions = d.permissions;
         if (events == null) events = d.events;
+        if (teams == null) teams = d.teams;
         if (detection == null) detection = d.detection;
         if (detection.sensitivity == null) detection.sensitivity = new LinkedHashMap<>();
         if (detection.disabledChecks == null) detection.disabledChecks = new ArrayList<>();

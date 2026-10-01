@@ -63,6 +63,10 @@ public final class Ticker {
         BuilderMode.tick();
         ScareWarning.tick();
         WorldEvents.tick(ac.server);
+        Teams.tick();
+        if (ticks % 200 == 0) {
+            Teams.syncTags();
+        }
         Extras.nightlyWorldBackup();
         Claims.tick();
         Barriers.tick();

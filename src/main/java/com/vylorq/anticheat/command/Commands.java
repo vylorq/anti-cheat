@@ -50,6 +50,7 @@ public final class Commands {
         StaffCommands.register(d);
         WorldCommands.register(d);
         WatcherCommands.register(d);
+        TeamCommands.register(d);
         registerAc(d);
         VigilCommands.register(d);
         // Public "caught" counter (section 28).

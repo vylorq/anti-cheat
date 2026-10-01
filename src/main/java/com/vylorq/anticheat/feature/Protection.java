@@ -84,7 +84,8 @@ public final class Protection {
             }
         });
         ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, sender, params) ->
-                !Ac.running() || ChatFeature.allow(sender, message.getContent().getString()));
+                !Ac.running() || (!Teams.onChat(sender, message.getContent().getString())
+                        && ChatFeature.allow(sender, message.getContent().getString())));
 
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, be) -> {
             if (!Ac.running() || !(player instanceof ServerPlayerEntity p) || !(world instanceof ServerWorld w)) {
@@ -193,6 +194,9 @@ public final class Protection {
             Entity attacker = source.getAttacker();
             if (attacker instanceof ServerPlayerEntity ap && ap != p) {
                 if (ac.shadow.isShadowed(ap.getUuid())) {
+                    return false;
+                }
+                if (Teams.friendlyFireBlocked(ap, p)) {
                     return false;
                 }
                 var am = ac.arenas.matchOf(ap.getUuid());

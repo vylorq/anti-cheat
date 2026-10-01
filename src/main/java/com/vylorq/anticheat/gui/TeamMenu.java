@@ -1,0 +1,208 @@
+package com.vylorq.anticheat.gui;
+
+import com.vylorq.anticheat.Ac;
+import com.vylorq.anticheat.command.TeamCommands;
+import com.vylorq.anticheat.core.team.Team;
+import com.vylorq.anticheat.core.team.TeamManager;
+import com.vylorq.anticheat.core.team.TeamManager.Result;
+import com.vylorq.anticheat.feature.Teams;
+import com.vylorq.anticheat.ui.Btn;
+import com.vylorq.anticheat.ui.Theme;
+import com.vylorq.anticheat.util.Mc;
+import com.vylorq.anticheat.util.Msg;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.ChunkPos;
+
+import java.util.Locale;
+import java.util.UUID;
+
+/** /team: your team at a glance, with every action as a button (works the same on Bedrock). */
+public final class TeamMenu {
+    private TeamMenu() {
+    }
+
+    private static final int[] GRID = {19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
+
+    private static void say(ServerPlayerEntity p, Result r, String okKey, Object... args) {
+        if (r == Result.OK) {
+            Ac.markDirty("teams");
+            Teams.syncTags();
+            if (okKey != null) {
+                Msg.send(p, okKey, args);
+            }
+        } else {
+            Msg.send(p, "team.r." + r.name().toLowerCase(Locale.ROOT), args);
+        }
+    }
+
+    public static void open(ServerPlayerEntity p) {
+        Team t = Teams.tm().teamOf(p.getUuid());
+        if (t == null) {
+            noTeam(p);
+        } else {
+            team(p);
+        }
+    }
+
+    /** Not in a team: start one, accept an invite, or see the teams. */
+    static void noTeam(ServerPlayerEntity p) {
+        Menu m = Menu.std(Theme.Category.PLAYER, 5, Msg.trFor(p, "team.menu.title"));
+        m.renderer(menu -> {
+            menu.set(11, Btn.of(Items.WHITE_BANNER).name(Msg.tr("team.menu.create")).desc(Msg.tr("team.menu.create-desc")).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                Msg.sendRaw(pl, Msg.suggest("§b[/team create <name> [TAG]]", "/team create ", ""));
+            });
+            menu.set(15, Btn.of(Items.BOOK).name(Msg.tr("team.menu.list")).desc(Msg.tr("team.menu.list-desc"))
+                    .count(Teams.tm().list().size()).build(), null, (pl, c) -> list(pl, menu));
+            int i = 0;
+            for (String id : Teams.tm().invitesOf(p.getUuid())) {
+                Team t = Teams.tm().get(id);
+                if (t == null || i >= GRID.length) {
+                    continue;
+                }
+                menu.set(GRID[i++] + 9, Btn.of(Items.LIME_BANNER).name(Teams.tagText(t) + " §f" + t.name)
+                        .desc(Msg.tr("team.menu.invite-from")).left(Msg.tr("team.join")).build(), null, (pl, c) -> {
+                    Result r = Teams.tm().join(pl.getUuid(), t.name, Teams.limits());
+                    say(pl, r, "team.you-joined", t.name);
+                    open(pl);
+                });
+            }
+        });
+        m.open(p);
+    }
+
+    static void list(ServerPlayerEntity p, Menu parent) {
+        Menu m = Menu.std(Theme.Category.PLAYER, 6, Msg.trFor(p, "team.menu.title"), Msg.trFor(p, "team.menu.list"));
+        m.parent(parent);
+        m.renderer(menu -> {
+            int i = 0;
+            for (Team t : Teams.tm().list()) {
+                if (i >= GRID.length) {
+                    break;
+                }
+                Btn b = Btn.of(Items.WHITE_BANNER).name(Teams.tagText(t) + " §f" + t.name)
+                        .line(Msg.tr("team.menu.size", t.members.size(), t.chunks.size()))
+                        .line(Msg.tr(t.open ? "team.open" : "team.invite-only"));
+                boolean canJoin = t.open && Teams.tm().teamOf(p.getUuid()) == null;
+                menu.set(GRID[i++], (canJoin ? b.left(Msg.tr("team.join")) : b).build(), null, (pl, c) -> {
+                    if (canJoin) {
+                        say(pl, Teams.tm().join(pl.getUuid(), t.name, Teams.limits()), "team.you-joined", t.name);
+                        open(pl);
+                    }
+                });
+            }
+        });
+        m.open(p);
+    }
+
+    /** Your team. */
+    static void team(ServerPlayerEntity p) {
+        Menu m = Menu.std(Theme.Category.PLAYER, 6, Msg.trFor(p, "team.menu.title"));
+        m.renderer(menu -> {
+            Team t = Teams.tm().teamOf(p.getUuid());
+            if (t == null) {
+                p.closeHandledScreen();
+                return;
+            }
+            Team.Role me = t.role(p.getUuid());
+            TeamManager.Limits l = Teams.limits();
+            menu.info(Btn.of(Items.WHITE_BANNER).name(Teams.tagText(t) + " §f§l" + t.name)
+                    .line(Msg.tr("team.menu.size", t.members.size(), t.chunks.size()))
+                    .line(Msg.tr("team.menu.land", t.chunks.size(), Teams.tm().chunkLimit(t, l)))
+                    .line(Msg.tr("team.menu.your-role", Msg.tr("team.role." + me.name().toLowerCase(Locale.ROOT)))).build());
+            menu.set(10, Btn.of(Items.RED_BED).name(Msg.tr("team.menu.home")).desc(Msg.tr(t.hasHome() ? "team.menu.home-desc" : "team.no-home"))
+                    .build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                TeamCommands.home(pl);
+            });
+            menu.set(11, Btn.of(Items.LIME_BANNER).name(Msg.tr("team.menu.claim")).desc(Msg.tr("team.menu.claim-desc"))
+                    .left(Msg.tr("team.menu.claim")).right(Msg.tr("team.menu.unclaim")).build(), null, (pl, c) -> {
+                ChunkPos cp = pl.getChunkPos();
+                if (c.isRight()) {
+                    say(pl, Teams.tm().unclaim(pl.getUuid(), Mc.worldId(pl.getEntityWorld()), cp.x, cp.z), "team.unclaimed");
+                } else if (!Teams.claimable((ServerWorld) pl.getEntityWorld(), cp)) {
+                    Msg.send(pl, "team.not-claimable");
+                } else {
+                    say(pl, Teams.tm().claim(pl.getUuid(), Mc.worldId(pl.getEntityWorld()), cp.x, cp.z, l), "team.claimed",
+                            t.chunks.size() + 1, Teams.tm().chunkLimit(t, l));
+                }
+                menu.refresh();
+            });
+            menu.set(12, Btn.of(Items.OAK_SIGN).name(Msg.tr("team.menu.chat")).desc(Msg.tr("team.menu.chat-desc")).build(), null, (pl, c) -> {
+                Msg.send(pl, Teams.toggleChat(pl) ? "team.chat-on" : "team.chat-off");
+            });
+            menu.set(13, Btn.of(Items.WRITABLE_BOOK).name(Msg.tr("team.menu.invite")).desc(Msg.tr("team.menu.invite-desc")).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                Msg.sendRaw(pl, Msg.suggest("§b[/team invite <player>]", "/team invite ", ""));
+            });
+            if (me.atLeast(Team.Role.OFFICER)) {
+                menu.set(14, Btn.of(Items.COMPASS).name(Msg.tr("team.menu.sethome")).desc(Msg.tr("team.menu.sethome-desc")).build(), null, (pl, c) -> {
+                    pl.closeHandledScreen();
+                    Mc.run(pl, "team sethome");
+                });
+            }
+            if (me == Team.Role.LEADER) {
+                menu.set(15, Btn.of(t.open ? Items.OAK_DOOR : Items.IRON_DOOR).name(Msg.tr("team.menu.open"))
+                        .onOff(t.open).build(), null, (pl, c) -> {
+                    t.open = !t.open;
+                    say(pl, Result.OK, t.open ? "team.now-open" : "team.now-closed");
+                    menu.refresh();
+                });
+                menu.set(16, Btn.of(Items.IRON_SWORD).name(Msg.tr("team.menu.ff")).desc(Msg.tr("team.menu.ff-desc"))
+                        .onOff(t.friendlyFire).build(), null, (pl, c) -> {
+                    t.friendlyFire = !t.friendlyFire;
+                    say(pl, Result.OK, t.friendlyFire ? "team.ff-on" : "team.ff-off");
+                    menu.refresh();
+                });
+            }
+            int i = 0;
+            for (UUID id : t.members) {
+                if (i >= GRID.length) {
+                    break;
+                }
+                Team.Role r = t.role(id);
+                String name = com.vylorq.anticheat.command.Args.nameOf(id, "?");
+                boolean online = Ac.server().getPlayerManager().getPlayer(id) != null;
+                Btn b = Btn.of(Items.PLAYER_HEAD).name((r == Team.Role.LEADER ? "§6★ " : r == Team.Role.OFFICER ? "§e☆ " : "§f") + name)
+                        .line(Msg.tr("team.role." + r.name().toLowerCase(Locale.ROOT)))
+                        .status(online ? Theme.GREEN : Theme.RED, Msg.tr(online ? "badmin.online" : "badmin.offline"));
+                if (me == Team.Role.LEADER && !id.equals(p.getUuid())) {
+                    b.left(Msg.tr(r == Team.Role.OFFICER ? "team.menu.demote" : "team.menu.promote"))
+                            .right(Msg.tr("team.menu.kick")).shift(Msg.tr("team.menu.make-leader"));
+                } else if (me == Team.Role.OFFICER && r == Team.Role.MEMBER) {
+                    b.right(Msg.tr("team.menu.kick"));
+                }
+                menu.set(GRID[i++], b.build(), null, (pl, c) -> {
+                    if (id.equals(pl.getUuid())) {
+                        return;
+                    }
+                    if (c.isShift()) {
+                        Confirm.open(pl, Theme.Category.PLAYER, Msg.trFor(pl, "team.menu.make-leader"), name, new ItemStack(Items.GOLDEN_HELMET),
+                                () -> say(pl, Teams.tm().handOver(pl.getUuid(), id), "team.new-leader", name));
+                    } else if (c.isRight()) {
+                        Confirm.open(pl, Theme.Category.PLAYER, Msg.trFor(pl, "team.menu.kick"), name, new ItemStack(Items.BARRIER),
+                                () -> say(pl, Teams.tm().kick(pl.getUuid(), id), "team.kicked", name));
+                    } else {
+                        say(pl, Teams.tm().setOfficer(pl.getUuid(), id, r != Team.Role.OFFICER),
+                                r == Team.Role.OFFICER ? "team.demoted" : "team.promoted", name);
+                        menu.refresh();
+                    }
+                });
+            }
+            menu.set(39, Btn.of(Items.BOOK).name(Msg.tr("team.menu.list")).build(), null, (pl, c) -> list(pl, menu));
+            if (me == Team.Role.LEADER) {
+                menu.set(41, Btn.of(Items.TNT).color(Theme.RED).name(Msg.tr("team.menu.disband")).desc(Msg.tr("team.menu.disband-desc")).build(), null,
+                        (pl, c) -> Confirm.open(pl, Theme.Category.PLAYER, Msg.trFor(pl, "team.menu.disband"), t.name, new ItemStack(Items.TNT),
+                                () -> Mc.run(pl, "team disband confirm")));
+            } else {
+                menu.set(41, Btn.of(Items.OAK_DOOR).color(Theme.RED).name(Msg.tr("team.menu.leave")).build(), null,
+                        (pl, c) -> Confirm.open(pl, Theme.Category.PLAYER, Msg.trFor(pl, "team.menu.leave"), t.name, new ItemStack(Items.OAK_DOOR),
+                                () -> Mc.run(pl, "team leave")));
+            }
+        });
+        m.open(p);
+    }
+}

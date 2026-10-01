@@ -96,6 +96,10 @@ public final class VigilCommands {
             new Help(Group.PLAYER, "duel", "/duel <player>", "help.duel", null),
             new Help(Group.PLAYER, "arena", "/arena join|leave|spectate", "help.arena-play", null),
             new Help(Group.PLAYER, "language", "/language", "help.language", null),
+            new Help(Group.PLAYER, "team", "/team create|invite|join|leave|claim|home|chat|info|list", "help.team", null),
+            new Help(Group.PLAYER, "tc", "/tc <message>", "help.tc", null),
+            new Help(Group.TOOLS, "announce", "/announce <message>  (Title|Subtitle, &colours)", "help.announce", Perm.EVENTS),
+            new Help(Group.TOOLS, "notify", "/notify <players> <message>", "help.notify", Perm.EVENTS),
             new Help(Group.PLAYER, "stats", "/stats [player] | /stats top [playtime|kills|deaths|mined|walked]", "help.pstats", null),
             new Help(Group.PLAYER, "events", "/events [list]", "help.events-status", null),
             new Help(Group.TOOLS, "events", "/events start <event> | /events stop", "help.events", Perm.EVENTS));
