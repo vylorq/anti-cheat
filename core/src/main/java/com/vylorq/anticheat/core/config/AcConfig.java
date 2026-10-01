@@ -41,6 +41,7 @@ public class AcConfig {
     public Fun fun = new Fun();
     public Restarts restarts = new Restarts();
     public Watcher watcher = new Watcher();
+    public Events events = new Events();
 
     public static class General {
         /** Owner UUID. The owner has every power. Leave empty until set. */
@@ -362,6 +363,9 @@ public class AcConfig {
         public int logRetentionDays = 30;
         public boolean dailyBackups = true;
         public int backupsToKeep = 7;
+        /** Back up the whole world every night at this time (24h "HH:mm", server time). */
+        public boolean nightlyWorldBackups = true;
+        public String worldBackupTime = "04:00";
     }
 
     public static class Discord {
@@ -427,6 +431,20 @@ public class AcConfig {
         public boolean banAppearance = true;
     }
 
+    /** Server-wide events (Blood Moon, Lockdown, The Hunt, Whispers, Golden Hour, Gift Rain, Treasure Hunt). */
+    public static class Events {
+        public boolean enabled = true;
+        /** The Blood Moon rises at nightfall every this many days. */
+        public boolean bloodMoon = true;
+        public int bloodMoonEveryDays = 7;
+        /** A random event every this many minutes (random in between) when enough players are on. */
+        public int randomMinMinutes = 120;
+        public int randomMaxMinutes = 240;
+        public int minPlayers = 2;
+        /** Which events can happen by themselves. */
+        public List<String> randomEvents = new ArrayList<>(List.of("whispers", "the_hunt", "golden_hour", "gift_rain", "treasure_hunt"));
+    }
+
     public static class Restarts {
         public boolean enabled = false;
         /** Times of day, 24h "HH:mm", server local time. */
@@ -448,6 +466,7 @@ public class AcConfig {
         AcConfig d = new AcConfig();
         if (general == null) general = d.general;
         if (permissions == null) permissions = d.permissions;
+        if (events == null) events = d.events;
         if (detection == null) detection = d.detection;
         if (detection.sensitivity == null) detection.sensitivity = new LinkedHashMap<>();
         if (detection.disabledChecks == null) detection.disabledChecks = new ArrayList<>();

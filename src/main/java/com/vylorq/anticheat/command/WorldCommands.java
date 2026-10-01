@@ -46,6 +46,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 
+import java.util.List;
 import java.util.OptionalLong;
 import java.util.UUID;
 
@@ -95,6 +96,8 @@ final class WorldCommands {
         registerTraders(d);
         registerEnd(d);
         registerLockedBox(d);
+        registerEvents(d);
+        registerStats(d);
         registerBuilder(d);
         registerBuild(d);
     }
@@ -423,6 +426,113 @@ final class WorldCommands {
                 : b != null && b.draft ? Msg.tr("builder.where-draft") : Msg.tr("builder.where-lobby");
         Msg.ok(ctx.getSource(), "builder.added", t.getGameProfile().name(), where,
                 ms > 0 ? Durations.format(ms) : Msg.tr("builder.until-removed"));
+        return 1;
+    }
+
+    // ---- World events ----
+
+    private static void registerEvents(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("events")
+                .executes(ctx -> {
+                    var a = com.vylorq.anticheat.feature.WorldEvents.active();
+                    if (a == null) {
+                        Msg.ok(ctx.getSource(), "events.none-now");
+                    } else {
+                        Msg.ok(ctx.getSource(), "events.now", Msg.tr("events." + a.id()),
+                                Durations.format(com.vylorq.anticheat.feature.WorldEvents.secondsLeft() * 1000L));
+                    }
+                    return 1;
+                })
+                .then(literal("list").executes(ctx -> {
+                    for (var k : com.vylorq.anticheat.feature.WorldEvents.Kind.values()) {
+                        Msg.ok(ctx.getSource(), "events.entry", k.id(), Msg.tr("events." + k.id()), Msg.tr(k.scary ? "events.scary" : "events.good"));
+                    }
+                    return 1;
+                }))
+                .then(literal("start").requires(s -> Perms.visible(s, Perm.EVENTS)).then(Args.word("event")
+                        .suggests((c, b) -> {
+                            for (var k : com.vylorq.anticheat.feature.WorldEvents.Kind.values()) {
+                                b.suggest(k.id());
+                            }
+                            return b.buildFuture();
+                        })
+                        .executes(ctx -> {
+                            if (!Perms.check(ctx.getSource(), Perm.EVENTS)) return 0;
+                            var k = com.vylorq.anticheat.feature.WorldEvents.Kind.byId(Args.str(ctx, "event"));
+                            if (k == null) {
+                                Msg.err(ctx.getSource(), "events.unknown", Args.str(ctx, "event"));
+                                return 0;
+                            }
+                            String err = com.vylorq.anticheat.feature.WorldEvents.start(k, Staff.name(ctx.getSource().getPlayer()));
+                            if (err != null) {
+                                Msg.err(ctx.getSource(), err);
+                                return 0;
+                            }
+                            Staff.log(ctx.getSource().getPlayer(), "event-start", null, k.id(), "");
+                            return 1;
+                        })))
+                .then(literal("stop").requires(s -> Perms.visible(s, Perm.EVENTS)).executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.EVENTS)) return 0;
+                    if (com.vylorq.anticheat.feature.WorldEvents.active() == null) {
+                        Msg.err(ctx.getSource(), "events.none-now");
+                        return 0;
+                    }
+                    com.vylorq.anticheat.feature.WorldEvents.stop("stopped");
+                    Staff.log(ctx.getSource().getPlayer(), "event-stop", null, null, "");
+                    return 1;
+                })));
+    }
+
+    // ---- Player stats ----
+
+    private static final List<String> STAT_KINDS = List.of("playtime", "kills", "pvp", "deaths", "mined", "walked");
+
+    private static void sendStats(ServerCommandSource src, com.vylorq.anticheat.feature.PlayerStats.Row r) {
+        src.sendFeedback(() -> Text.literal(Msg.tr("pstats.head", r.name())), false);
+        src.sendFeedback(() -> Text.literal(Msg.tr("pstats.line1", com.vylorq.anticheat.feature.PlayerStats.time(r.playTicks()),
+                String.format("%,d", r.mined()), com.vylorq.anticheat.feature.PlayerStats.format("walked", r.walkedCm()))), false);
+        src.sendFeedback(() -> Text.literal(Msg.tr("pstats.line2", String.format("%,d", r.mobKills()), String.format("%,d", r.playerKills()),
+                String.format("%,d", r.deaths()))), false);
+    }
+
+    private static void registerStats(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("stats")
+                .executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    sendStats(ctx.getSource(), com.vylorq.anticheat.feature.PlayerStats.of(p));
+                    return 1;
+                })
+                .then(literal("top").executes(ctx -> statsTop(ctx, "playtime"))
+                        .then(Args.word("what").suggests((c, b) -> {
+                            STAT_KINDS.forEach(b::suggest);
+                            return b.buildFuture();
+                        }).executes(ctx -> statsTop(ctx, Args.str(ctx, "what").toLowerCase()))))
+                .then(Args.player("player").executes(ctx -> {
+                    UUID id = Args.known(ctx.getSource(), Args.str(ctx, "player"));
+                    if (id == null) return 0;
+                    var r = com.vylorq.anticheat.feature.PlayerStats.of(id);
+                    if (r == null) {
+                        Msg.err(ctx.getSource(), "pstats.none", Args.str(ctx, "player"));
+                        return 0;
+                    }
+                    sendStats(ctx.getSource(), r);
+                    return 1;
+                })));
+    }
+
+    private static int statsTop(CommandContext<ServerCommandSource> ctx, String what) {
+        if (!STAT_KINDS.contains(what)) {
+            Msg.err(ctx.getSource(), "pstats.kinds", String.join(", ", STAT_KINDS));
+            return 0;
+        }
+        var rows = com.vylorq.anticheat.feature.PlayerStats.top(what, 10);
+        ctx.getSource().sendFeedback(() -> Text.literal(Msg.tr("pstats.top-head", Msg.tr("pstats.kind." + what))), false);
+        int i = 1;
+        for (var r : rows) {
+            String line = "§e" + i++ + ". §f" + r.name() + " §7- §a" + com.vylorq.anticheat.feature.PlayerStats.format(what, r.get(what));
+            ctx.getSource().sendFeedback(() -> Text.literal(line), false);
+        }
         return 1;
     }
 

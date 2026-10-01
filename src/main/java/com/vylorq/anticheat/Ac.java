@@ -96,6 +96,8 @@ public final class Ac {
         public Map<UUID, Integer> scareAccepted = new LinkedHashMap<>();
         /** Who chose to play without scares (when declining doesn't disconnect). */
         public java.util.Set<UUID> scareDeclined = new java.util.LinkedHashSet<>();
+        public com.vylorq.anticheat.feature.WorldEvents.State events = new com.vylorq.anticheat.feature.WorldEvents.State();
+        public String lastWorldBackupDay = "";
         /** Language each player chose with /language ("auto" when missing). */
         public Map<UUID, String> languages = new LinkedHashMap<>();
         /** Admins who turned menu and message sounds off for themselves. */

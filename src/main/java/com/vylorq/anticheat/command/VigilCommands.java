@@ -95,11 +95,14 @@ public final class VigilCommands {
             new Help(Group.PLAYER, "request", "/request join", "help.request", null),
             new Help(Group.PLAYER, "duel", "/duel <player>", "help.duel", null),
             new Help(Group.PLAYER, "arena", "/arena join|leave|spectate", "help.arena-play", null),
-            new Help(Group.PLAYER, "language", "/language", "help.language", null));
+            new Help(Group.PLAYER, "language", "/language", "help.language", null),
+            new Help(Group.PLAYER, "stats", "/stats [player] | /stats top [playtime|kills|deaths|mined|walked]", "help.pstats", null),
+            new Help(Group.PLAYER, "events", "/events [list]", "help.events-status", null),
+            new Help(Group.TOOLS, "events", "/events start <event> | /events stop", "help.events", Perm.EVENTS));
 
     /** Commands reachable as /vigil &lt;name&gt; (they also stay top-level). */
     private static final List<String> UNDER_VIGIL = List.of("review", "inspect", "whereis", "watch", "exempt", "freeze", "jail", "unjail",
-            "claim", "barrier", "lockedbox", "lobby", "arena", "trader", "requests", "deaths", "rollback", "restore", "lag", "vanish", "maintenance",
+            "claim", "barrier", "lockedbox", "events", "lobby", "arena", "trader", "requests", "deaths", "rollback", "restore", "lag", "vanish", "maintenance",
             "settings", "end", "builder", "watcher", "waitingroom", "report", "warn", "mute", "unmute", "kick", "tempban", "ban", "unban", "login");
 
     private static final int PER_PAGE = 9;

@@ -218,6 +218,44 @@ public final class Extras {
         t.start();
     }
 
+    /** Every second: the nightly world backup, once a day at the configured time. */
+    public static void nightlyWorldBackup() {
+        var st = Ac.config().storage;
+        if (!st.nightlyWorldBackups || backupRunning) {
+            return;
+        }
+        java.time.LocalTime at;
+        try {
+            at = java.time.LocalTime.parse(st.worldBackupTime);
+        } catch (Exception e) {
+            return;
+        }
+        String today = java.time.LocalDate.now().toString();
+        var misc = Ac.get().misc;
+        if (today.equals(misc.lastWorldBackupDay) || java.time.LocalTime.now().isBefore(at)) {
+            return;
+        }
+        misc.lastWorldBackupDay = today;
+        Ac.markDirty("misc");
+        Ac.LOG.info("Nightly world backup starting.");
+        backupAsync(names -> Ac.LOG.info("Nightly world backup done: {}", names), e -> Ac.LOG.error("Nightly world backup failed", e));
+    }
+
+    /** World backups, newest first. */
+    public static List<String> worldBackups() {
+        Path dir = Ac.get().dir.resolve("backups");
+        if (!Files.isDirectory(dir)) {
+            return List.of();
+        }
+        try (Stream<Path> files = Files.list(dir)) {
+            return files.filter(p -> p.getFileName().toString().startsWith("world-"))
+                    .sorted((a, b) -> Long.compare(b.toFile().lastModified(), a.toFile().lastModified()))
+                    .map(p -> p.getFileName().toString()).toList();
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
     public static Path backupWorld() throws Exception {
         Path world = Ac.server().getSavePath(net.minecraft.util.WorldSavePath.ROOT).normalize();
         Path dir = Ac.get().dir.resolve("backups");
