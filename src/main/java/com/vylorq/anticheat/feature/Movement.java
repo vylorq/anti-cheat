@@ -81,9 +81,10 @@ public final class Movement {
             if (!v.allowed()) {
                 Vec3 back = v.sendBackTo() != null ? v.sendBackTo() : from;
                 if (v.wrongSide()) {
-                    com.vylorq.anticheat.perm.PlayerSessionFlags.flag(p, CheckType.BARRIER_ESCAPE, 2.0, "outside barrier " + v.barrier().name);
+                    // Joined, respawned or spawned on the wrong side, or moved there by a teleport: not cheating, just
+                    // put them back on their side, standing on the ground.
                     ServerWorld bw = Mc.world(ac.server, v.barrier().world);
-                    Mc.teleport(p, bw != null ? bw : world, back.x(), back.y(), back.z(), p.getYaw(), p.getPitch());
+                    Barriers.sendTo(p, bw != null ? bw : world, back);
                 } else {
                     pullBack(p, from);
                 }

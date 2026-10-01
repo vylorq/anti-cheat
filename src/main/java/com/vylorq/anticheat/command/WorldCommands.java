@@ -601,6 +601,32 @@ final class WorldCommands {
                     Msg.ok(ctx.getSource(), "barrier.adminpass", b.name, b.adminsPass ? "on" : "off");
                     return 1;
                 }))))
+                .then(literal("newplayers").then(Args.player("name").then(Args.word("side").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.BARRIER)) return 0;
+                    Barrier b = Ac.get().barriers.get(Args.str(ctx, "name"));
+                    String side = Args.str(ctx, "side").toLowerCase();
+                    if (b == null || !(side.equals("inside") || side.equals("outside") || side.equals("auto"))) {
+                        Msg.err(ctx.getSource(), b == null ? "barrier.not-found" : "barrier.bad-side");
+                        return 0;
+                    }
+                    b.newPlayers = side;
+                    Ac.get().barriers.resetSides(b);
+                    Ac.markDirty("barriers");
+                    Msg.ok(ctx.getSource(), "barrier.newplayers", b.name, side);
+                    return 1;
+                }))))
+                .then(literal("reset").then(Args.player("name").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.BARRIER)) return 0;
+                    Barrier b = Ac.get().barriers.get(Args.str(ctx, "name"));
+                    if (b == null) {
+                        Msg.err(ctx.getSource(), "barrier.not-found");
+                        return 0;
+                    }
+                    Ac.get().barriers.resetSides(b);
+                    Ac.markDirty("barriers");
+                    Msg.ok(ctx.getSource(), "barrier.reset", b.name);
+                    return 1;
+                })))
                 .then(literal("list").executes(ctx -> {
                     if (!Perms.check(ctx.getSource(), Perm.BARRIER)) return 0;
                     for (Barrier b : Ac.get().barriers.list()) {

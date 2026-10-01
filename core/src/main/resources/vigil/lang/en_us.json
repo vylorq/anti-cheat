@@ -1548,5 +1548,9 @@
   "watcher.skin-finding": "§7Getting the skin of {0}...",
   "watcher.skin-set": "§aThe Watcher now wears the skin of {0}. Summon it to see.",
   "watcher.skin-failed": "§cCouldn't get that skin: {0}",
-  "watcher.skin-reset": "§aThe Watcher is back to its own look (an empty black suit with a skull)."
+  "watcher.skin-reset": "§aThe Watcher is back to its own look (an empty black suit with a skull).",
+  "barrier.moved-back": "§eYou were moved back to your side of the barrier.",
+  "barrier.bad-side": "§cUse inside, outside or auto.",
+  "barrier.newplayers": "§aNew players of {0} now belong: {1}. Everyone's side was reset.",
+  "barrier.reset": "§aEveryone's side of {0} was reset; they're decided again by where the spawn is."
 }
