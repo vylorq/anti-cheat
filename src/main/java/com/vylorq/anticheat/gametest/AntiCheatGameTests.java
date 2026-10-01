@@ -838,4 +838,42 @@ public final class AntiCheatGameTests {
         check(com.vylorq.anticheat.feature.PlayerStats.time(20 * 60 * 90).equals("1h 30m"), "playtime format");
         ctx.complete();
     }
+
+    @GameTest
+    public void teamTerritoryAndFriendlyFire(TestContext ctx) {
+        var w = ctx.getWorld();
+        var tm = com.vylorq.anticheat.feature.Teams.tm();
+        var leader = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "TeamLead"));
+        var mate = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "TeamMate"));
+        var outsider = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Outsider"));
+        String name = "T" + Long.toString(System.nanoTime() % 100000);
+        BlockPos pos = ctx.getAbsolutePos(new BlockPos(1, 1, 1));
+        try {
+            check(tm.create(name, null, leader.getUuid()) == com.vylorq.anticheat.core.team.TeamManager.Result.OK, "team not created");
+            tm.invite(leader.getUuid(), mate.getUuid(), com.vylorq.anticheat.feature.Teams.limits());
+            tm.join(mate.getUuid(), name, com.vylorq.anticheat.feature.Teams.limits());
+            var r = tm.claim(leader.getUuid(), com.vylorq.anticheat.util.Mc.worldId(w), pos.getX() >> 4, pos.getZ() >> 4, com.vylorq.anticheat.feature.Teams.limits());
+            check(r == com.vylorq.anticheat.core.team.TeamManager.Result.OK || r == com.vylorq.anticheat.core.team.TeamManager.Result.CHUNK_TAKEN,
+                    "claim failed: " + r);
+            if (r == com.vylorq.anticheat.core.team.TeamManager.Result.OK) {
+                check(com.vylorq.anticheat.feature.Teams.allowed(mate, w, pos, com.vylorq.anticheat.core.claims.ClaimAction.BREAK), "a member was blocked");
+                check(!com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, com.vylorq.anticheat.core.claims.ClaimAction.BREAK), "an outsider could break");
+                check(!com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, com.vylorq.anticheat.core.claims.ClaimAction.CONTAINER), "an outsider could open chests");
+                check(com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, com.vylorq.anticheat.core.claims.ClaimAction.ENTER), "outsiders should be able to walk in");
+            }
+            check(com.vylorq.anticheat.feature.Teams.friendlyFireBlocked(leader, mate), "teammates could hurt each other");
+            check(!com.vylorq.anticheat.feature.Teams.friendlyFireBlocked(leader, outsider), "outsiders were protected");
+            com.vylorq.anticheat.feature.Teams.remember(mate);
+            com.vylorq.anticheat.feature.Teams.syncTags();
+            var st = w.getServer().getScoreboard().getScoreHolderTeam("TeamMate");
+            check(st != null && st.getName().startsWith("vt_"), "no name tag team");
+        } finally {
+            var t = tm.get(name);
+            if (t != null) {
+                tm.removeTeam(t);
+            }
+            com.vylorq.anticheat.feature.Teams.syncTags();
+        }
+        ctx.complete();
+    }
 }

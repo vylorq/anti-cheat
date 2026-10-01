@@ -1,0 +1,52 @@
+package com.vylorq.anticheat.core.team;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.UUID;
+
+/** A player team: a leader, officers, members, a short tag, a colour, a home and its territory (chunks). */
+public final class Team {
+    public String id;
+    public String name;
+    public String tag;
+    /** Minecraft colour name (aqua, red, gold...). */
+    public String color = "aqua";
+    public UUID leader;
+    public Set<UUID> officers = new LinkedHashSet<>();
+    /** Everyone in the team, leader and officers included. */
+    public Set<UUID> members = new LinkedHashSet<>();
+    public long created;
+    public String description = "";
+    /** Anyone can join without an invite. */
+    public boolean open;
+    public boolean friendlyFire;
+    public String homeWorld;
+    public double homeX;
+    public double homeY;
+    public double homeZ;
+    public float homeYaw;
+    /** Claimed chunks as "world|x|z". */
+    public Set<String> chunks = new LinkedHashSet<>();
+
+    public Role role(UUID player) {
+        if (player == null || !members.contains(player)) {
+            return null;
+        }
+        if (player.equals(leader)) {
+            return Role.LEADER;
+        }
+        return officers.contains(player) ? Role.OFFICER : Role.MEMBER;
+    }
+
+    public boolean hasHome() {
+        return homeWorld != null;
+    }
+
+    public enum Role {
+        LEADER, OFFICER, MEMBER;
+
+        public boolean atLeast(Role r) {
+            return ordinal() <= r.ordinal();
+        }
+    }
+}

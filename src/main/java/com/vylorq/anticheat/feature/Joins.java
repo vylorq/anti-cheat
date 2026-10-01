@@ -172,6 +172,7 @@ public final class Joins {
         PlayerSession s = Ac.sessionOrNull(p.getUuid());
         TempAdmins.onLeave(p);
         BuilderMode.onLeave(p);
+        Teams.forget(p.getUuid());
         BuilderTools.forget(p.getUuid());
         Trades.onDisconnect(p);
         Traders.onDisconnect(p);
