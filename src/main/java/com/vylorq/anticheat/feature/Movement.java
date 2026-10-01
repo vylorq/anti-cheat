@@ -69,7 +69,7 @@ public final class Movement {
         boolean moved = from.distanceSq(to) > 1.0E-6;
 
         // Frozen players and arena countdowns: no movement at all (turning is fine).
-        if (moved && (ac.staff.isFrozen(p.getUuid()) || Arenas.isCountdownFrozen(p))) {
+        if (moved && (ac.staff.isFrozen(p.getUuid()) || Arenas.isCountdownFrozen(p) || ScareWarning.pending(p))) {
             pullBack(p, from);
             return true;
         }

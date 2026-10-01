@@ -61,6 +61,7 @@ public final class Ticker {
         Jail.tick();
         EndLock.tick(ac.server);
         BuilderMode.tick();
+        ScareWarning.tick();
         Claims.tick();
         Barriers.tick();
         Arenas.tick();

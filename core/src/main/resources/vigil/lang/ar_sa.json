@@ -1528,5 +1528,21 @@
   "watcher.effect.closer": "يقترب",
   "watcher.effect.closer.desc": "كلما أشاح بنظره يقترب أكثر، ثم يظهر أمام وجهه.",
   "watcher.effect.blackout": "ظلام",
-  "watcher.effect.blackout.desc": "تسودّ الشاشة وتدور الأنفاس حوله، ثم يجده واقفاً أمامه."
+  "watcher.effect.blackout.desc": "تسودّ الشاشة وتدور الأنفاس حوله، ثم يجده واقفاً أمامه.",
+  "scarewarn.title": "⚠ تحذير: محتوى مخيف",
+  "scarewarn.info": "يحتوي هذا السيرفر على إخافات مفاجئة وصراخ عالٍ مفاجئ وشاشات وامضة ومظلمة وكائن مخيف قد يظهر في أي وقت. لا يُنصح به إن كنت تخاف بسهولة أو لديك مشكلة في القلب أو صرع ضوئي.",
+  "scarewarn.accept": "أفهم، دعني ألعب",
+  "scarewarn.accept-desc": "أنت توافق على الإخافات والأصوات العالية.",
+  "scarewarn.decline": "لا شكراً",
+  "scarewarn.decline-desc-kick": "سيتم فصلك. يمكنك العودة والموافقة في أي وقت.",
+  "scarewarn.decline-desc-noscares": "يمكنك اللعب، لكن لن يخيفك شيء.",
+  "scarewarn.choose": "اختر",
+  "scarewarn.thanks": "§7لقد تم تحذيرك... §8استمتع.",
+  "scarewarn.kick": "اخترت عدم اللعب مع الإخافات. يمكنك العودة والموافقة في أي وقت.",
+  "scarewarn.no-scares": "§aحسناً، لن يخيفك شيء في هذا السيرفر.",
+  "scarewarn.must-choose": "§eأجب على التحذير أولاً.",
+  "set.scare-warning": "تحذير الإخافة عند أول دخول",
+  "set.scare-warning.desc": "يجب على اللاعبين الجدد الموافقة على تحذير الإخافات والأصوات العالية قبل اللعب.",
+  "set.scare-decline-kicks": "الرفض يفصل اللاعب",
+  "set.scare-decline-kicks.desc": "مشغّل: الرفض يفصلهم. مطفأ: يلعبون لكن الحارس لا يخيفهم أبداً."
 }

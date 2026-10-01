@@ -406,6 +406,10 @@ public class AcConfig {
         public String behindText = "turn around";
         /** How loud jumpscare screams are (0 to 1). */
         public double screamVolume = 1.0;
+        /** New players must accept a warning about jumpscares and loud sounds before they can play. */
+        public boolean warnOnJoin = true;
+        /** Declining the warning disconnects them. Off: they play, but the Watcher never scares them. */
+        public boolean declineKicks = true;
         public String sleepText = "Sleep well.";
         public String chestNoteName = "I was here";
         public String pocketGiftName = "You dropped this";

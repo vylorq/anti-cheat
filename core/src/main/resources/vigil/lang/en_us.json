@@ -1528,5 +1528,21 @@
   "watcher.effect.closer": "Closer",
   "watcher.effect.closer.desc": "Every time they look away it's closer. Then it's in their face.",
   "watcher.effect.blackout": "Blackout",
-  "watcher.effect.blackout.desc": "The screen goes black, breathing circles them, and it's standing right there."
+  "watcher.effect.blackout.desc": "The screen goes black, breathing circles them, and it's standing right there.",
+  "scarewarn.title": "⚠ Warning: scary content",
+  "scarewarn.info": "This server has jumpscares, sudden loud screams, flashing and dark screens, and a creepy figure that can appear at any time. Not recommended if you're easily frightened, have a heart condition, or have photosensitive epilepsy.",
+  "scarewarn.accept": "I understand, let me play",
+  "scarewarn.accept-desc": "You accept jumpscares and loud sounds.",
+  "scarewarn.decline": "No thanks",
+  "scarewarn.decline-desc-kick": "You'll be disconnected. You can come back and accept any time.",
+  "scarewarn.decline-desc-noscares": "You can play, but nothing will scare you.",
+  "scarewarn.choose": "Choose",
+  "scarewarn.thanks": "§7You've been warned... §8Have fun.",
+  "scarewarn.kick": "You chose not to play with scares. You can come back and accept any time.",
+  "scarewarn.no-scares": "§aOK, nothing will scare you on this server.",
+  "scarewarn.must-choose": "§eAnswer the warning first.",
+  "set.scare-warning": "Scare warning on first join",
+  "set.scare-warning.desc": "New players must accept a warning about jumpscares and loud sounds before playing.",
+  "set.scare-decline-kicks": "Declining disconnects",
+  "set.scare-decline-kicks.desc": "On: saying no disconnects them. Off: they play, but the Watcher never scares them."
 }

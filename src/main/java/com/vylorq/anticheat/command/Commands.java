@@ -399,6 +399,11 @@ public final class Commands {
         long now = System.currentTimeMillis();
         ac.logs.chat(now, p.getUuid(), p.getGameProfile().name(), "command", "/" + command);
         ac.evidence.record(p.getUuid(), EvidenceEvent.Type.COMMAND, p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch(), "/" + command);
+        if (com.vylorq.anticheat.feature.ScareWarning.pending(p)) {
+            Msg.send(p, "scarewarn.must-choose");
+            com.vylorq.anticheat.feature.ScareWarning.open(p);
+            return false;
+        }
         if (WaitingRoomFeature.waiting(p) && !(root.equals("request") || root.equals("login"))) {
             Msg.send(p, "waiting.only-request");
             return false;

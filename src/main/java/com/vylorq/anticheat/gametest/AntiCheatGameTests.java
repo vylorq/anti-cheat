@@ -784,4 +784,34 @@ public final class AntiCheatGameTests {
         w.setBlockState(c.east(4).up(), Blocks.AIR.getDefaultState());
         ctx.complete();
     }
+
+    @GameTest
+    public void scareWarningMustBeAccepted(TestContext ctx) {
+        var cfg = Ac.config().watcher;
+        boolean was = cfg.warnOnJoin;
+        boolean kicks = cfg.declineKicks;
+        var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(ctx.getWorld(),
+                new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ScaredTester"));
+        try {
+            cfg.warnOnJoin = true;
+            cfg.declineKicks = false;
+            check(com.vylorq.anticheat.feature.ScareWarning.pending(fake), "a new player wasn't asked");
+            check(com.vylorq.anticheat.feature.Watcher.start(fake, com.vylorq.anticheat.core.watcher.WatcherEffect.JUMPSCARE, "test", true) == null,
+                    "the Watcher scared someone who hadn't accepted");
+            check(!com.vylorq.anticheat.command.Commands.allowCommand(fake, "spawn"), "commands worked before answering");
+            com.vylorq.anticheat.feature.ScareWarning.decline(fake);
+            check(!com.vylorq.anticheat.feature.ScareWarning.pending(fake) && !com.vylorq.anticheat.feature.ScareWarning.accepted(fake.getUuid()),
+                    "declining (no-scares mode) should let them play without scares");
+            com.vylorq.anticheat.feature.ScareWarning.accept(fake);
+            check(com.vylorq.anticheat.feature.ScareWarning.accepted(fake.getUuid()), "accepting didn't stick");
+            cfg.warnOnJoin = false;
+            var other = java.util.UUID.randomUUID();
+            check(com.vylorq.anticheat.feature.ScareWarning.accepted(other), "with the warning off everyone counts as accepted");
+        } finally {
+            com.vylorq.anticheat.feature.Watcher.stopFor(fake.getUuid(), true);
+            cfg.warnOnJoin = was;
+            cfg.declineKicks = kicks;
+        }
+        ctx.complete();
+    }
 }
