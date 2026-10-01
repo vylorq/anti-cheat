@@ -292,7 +292,7 @@
   "watcher.exclude-list": "§8المستثنون: §f{0}",
   "watcher.log-empty": "§7لم يرَ أحد شيئاً بعد.",
   "watcher.log-header": "§8من رأى ماذا (الأحدث في الأسفل):",
-  "watcher.help": "§8/watcher on|off §7- تشغيل أو إيقاف\n§8/watcher summon <player> [effect]\n§8/watcher night\n§8/watcher log\n§8/watcher exclude add|remove|list <player>",
+  "watcher.help": "§8/watcher on|off §7- تشغيل أو إيقاف\n§8/watcher summon <player> [effect]\n§8/watcher night\n§8/watcher log\n§8/watcher exclude add|remove|list <player>\n§8/watcher skin <name|mineskin link|reset>",
   "ui.status.on": "مفعّل",
   "ui.status.off": "معطّل",
   "ui.hint.left": "انقر بالزر الأيسر لـ{0}",
@@ -1544,5 +1544,9 @@
   "set.scare-warning": "تحذير الإخافة عند أول دخول",
   "set.scare-warning.desc": "يجب على اللاعبين الجدد الموافقة على تحذير الإخافات والأصوات العالية قبل اللعب.",
   "set.scare-decline-kicks": "الرفض يفصل اللاعب",
-  "set.scare-decline-kicks.desc": "مشغّل: الرفض يفصلهم. مطفأ: يلعبون لكن الحارس لا يخيفهم أبداً."
+  "set.scare-decline-kicks.desc": "مشغّل: الرفض يفصلهم. مطفأ: يلعبون لكن الحارس لا يخيفهم أبداً.",
+  "watcher.skin-finding": "§7جارٍ جلب سكن {0}...",
+  "watcher.skin-set": "§aالحارس يرتدي الآن سكن {0}. استدعه لتراه.",
+  "watcher.skin-failed": "§cتعذر جلب السكن: {0}",
+  "watcher.skin-reset": "§aعاد الحارس لشكله الأصلي (بدلة سوداء فارغة برأس جمجمة)."
 }

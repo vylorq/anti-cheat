@@ -43,6 +43,40 @@ public final class WatcherCommands {
                     Msg.ok(ctx.getSource(), "watcher.help");
                     return 1;
                 }))
+                .then(literal("skin")
+                        .then(literal("reset").executes(ctx -> {
+                            if (!Perms.check(ctx.getSource(), Perm.WATCHER)) return 0;
+                            Ac.config().watcher.skinValue = "";
+                            Ac.config().watcher.skinSignature = "";
+                            Ac.get().configManager.save();
+                            Msg.ok(ctx.getSource(), "watcher.skin-reset");
+                            return 1;
+                        }))
+                        .then(net.minecraft.server.command.CommandManager.argument("from",
+                                com.mojang.brigadier.arguments.StringArgumentType.greedyString()).executes(ctx -> {
+                            if (!Perms.check(ctx.getSource(), Perm.WATCHER)) return 0;
+                            String from = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "from");
+                            ServerCommandSource src = ctx.getSource();
+                            var server = Ac.server();
+                            Msg.ok(src, "watcher.skin-finding", from);
+                            Thread t = new Thread(() -> {
+                                try {
+                                    var skin = com.vylorq.anticheat.feature.WatcherSkins.find(from);
+                                    server.execute(() -> {
+                                        Ac.config().watcher.skinValue = skin.value();
+                                        Ac.config().watcher.skinSignature = skin.signature();
+                                        Ac.get().configManager.save();
+                                        Staff.log(src.getPlayer(), "watcher-skin", null, from, "");
+                                        Msg.ok(src, "watcher.skin-set", from);
+                                    });
+                                } catch (Exception e) {
+                                    server.execute(() -> Msg.err(src, "watcher.skin-failed", String.valueOf(e.getMessage())));
+                                }
+                            }, "Vigil watcher skin");
+                            t.setDaemon(true);
+                            t.start();
+                            return 1;
+                        })))
                 .then(literal("on").executes(ctx -> setEnabled(ctx, true)))
                 .then(literal("off").executes(ctx -> setEnabled(ctx, false)))
                 .then(literal("summon").then(Args.player("player")

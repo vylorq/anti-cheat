@@ -292,7 +292,7 @@
   "watcher.exclude-list": "§8Excluded: §f{0}",
   "watcher.log-empty": "§7Nobody has seen anything yet.",
   "watcher.log-header": "§8Who saw what (newest last):",
-  "watcher.help": "§8/watcher on|off §7- wake or sleep\n§8/watcher summon <player> [effect]\n§8/watcher night\n§8/watcher log\n§8/watcher exclude add|remove|list <player>",
+  "watcher.help": "§8/watcher on|off §7- wake or sleep\n§8/watcher summon <player> [effect]\n§8/watcher night\n§8/watcher log\n§8/watcher exclude add|remove|list <player>\n§8/watcher skin <name|mineskin link|reset>",
   "ui.status.on": "Enabled",
   "ui.status.off": "Disabled",
   "ui.hint.left": "Left-click to {0}",
@@ -1544,5 +1544,9 @@
   "set.scare-warning": "Scare warning on first join",
   "set.scare-warning.desc": "New players must accept a warning about jumpscares and loud sounds before playing.",
   "set.scare-decline-kicks": "Declining disconnects",
-  "set.scare-decline-kicks.desc": "On: saying no disconnects them. Off: they play, but the Watcher never scares them."
+  "set.scare-decline-kicks.desc": "On: saying no disconnects them. Off: they play, but the Watcher never scares them.",
+  "watcher.skin-finding": "§7Getting the skin of {0}...",
+  "watcher.skin-set": "§aThe Watcher now wears the skin of {0}. Summon it to see.",
+  "watcher.skin-failed": "§cCouldn't get that skin: {0}",
+  "watcher.skin-reset": "§aThe Watcher is back to its own look (an empty black suit with a skull)."
 }
