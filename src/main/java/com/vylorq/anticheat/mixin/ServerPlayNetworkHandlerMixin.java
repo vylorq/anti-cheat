@@ -115,10 +115,15 @@ public abstract class ServerPlayNetworkHandlerMixin {
             target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
             shift = At.Shift.AFTER))
     private void ac$builderCreative(CreativeInventoryActionC2SPacket packet, CallbackInfo ci) {
-        if (Ac.running() && BuilderMode.is(player) && (packet.slot() < 0 || !BuilderMode.allowed(packet.stack()))) {
-            ci.cancel();
-            BuilderMode.denied(player);
-            player.playerScreenHandler.syncState();
+        if (Ac.running() && BuilderMode.is(player)) {
+            if (packet.slot() < 0 || !BuilderMode.allowed(packet.stack())) {
+                ci.cancel();
+                BuilderMode.denied(player, (packet.slot() < 0 ? "drop " : "take ") + com.vylorq.anticheat.util.Mc.itemId(packet.stack().getItem()));
+                player.playerScreenHandler.syncState();
+            } else if (!packet.stack().isEmpty()) {
+                com.vylorq.anticheat.feature.BuilderLog.event(player, "TAKE", com.vylorq.anticheat.util.Mc.itemId(packet.stack().getItem())
+                        + " x" + packet.stack().getCount() + " slot " + packet.slot());
+            }
         }
     }
 

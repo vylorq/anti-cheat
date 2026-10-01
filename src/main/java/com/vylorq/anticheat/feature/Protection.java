@@ -358,6 +358,12 @@ public final class Protection {
                     }
                     return ActionResult.FAIL;
                 }
+                case Tools.BUILDER_BRUSH -> {
+                    if (BuilderTools.canUse(p)) {
+                        BuilderTools.useBrush(p);
+                    }
+                    return ActionResult.FAIL;
+                }
                 case Tools.INSPECTOR -> {
                     if (Perms.require(p, Perm.INSPECTOR_TOOL)) {
                         BlockLog.inspect(p, w, pos);
@@ -457,9 +463,11 @@ public final class Protection {
             return ActionResult.FAIL;
         }
         ItemStack stack = p.getStackInHand(hand);
-        if (Tools.is(stack, Tools.BUILDER_MENU) || Tools.is(stack, Tools.BUILDER_WAND)) {
+        if (Tools.is(stack, Tools.BUILDER_MENU) || Tools.is(stack, Tools.BUILDER_WAND) || Tools.is(stack, Tools.BUILDER_BRUSH)) {
             if (Tools.is(stack, Tools.BUILDER_MENU) && BuilderTools.canUse(p)) {
                 com.vylorq.anticheat.gui.BuilderMenu.open(p);
+            } else if (Tools.is(stack, Tools.BUILDER_BRUSH) && BuilderTools.canUse(p)) {
+                BuilderTools.useBrush(p);
             }
             return ActionResult.FAIL;
         }
@@ -612,6 +620,9 @@ public final class Protection {
             return;
         }
         BlockLog.log(p, null, w, pos, BlockChange.Kind.PLACE, before, after, null);
+        if (BuilderMode.is(p)) {
+            BuilderLog.change(p.getUuid(), "PLACE", w, pos, before, after, "hand");
+        }
         ac.evidence.record(p.getUuid(), EvidenceEvent.Type.PLACE, p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch(),
                 "placed " + Mc.blockId(after.getBlock()).replace("minecraft:", "") + " at " + pos.toShortString());
     }

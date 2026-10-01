@@ -20,6 +20,9 @@ public abstract class CommandManagerMixin {
             return;
         }
         ServerPlayerEntity p = parse.getContext().getSource().getPlayer();
+        if (p != null && com.vylorq.anticheat.feature.BuilderMode.is(p)) {
+            com.vylorq.anticheat.feature.BuilderLog.event(p, "COMMAND", "/" + command);
+        }
         if (p != null && !Commands.allowCommand(p, command)) {
             ci.cancel();
         }

@@ -81,6 +81,37 @@ public final class BlockSnapshots {
         return data.length;
     }
 
+    /** A saved snapshot: its area, every block (x fastest, then z, then y) and the block entities by position. */
+    public record Snap(Area area, BlockState[] states, Map<BlockPos, NbtCompound> blockEntities) {
+    }
+
+    public static Snap read(String name) throws Exception {
+        Path f = file(name);
+        if (!Files.exists(f)) {
+            return null;
+        }
+        NbtCompound root = NbtIo.readCompressed(f, NbtSizeTracker.ofUnlimitedBytes());
+        NbtList pal = root.getListOrEmpty("palette");
+        List<BlockState> palette = new ArrayList<>();
+        for (int i = 0; i < pal.size(); i++) {
+            palette.add(NbtHelper.toBlockState(Mc.blockLookup(), pal.getCompoundOrEmpty(i)));
+        }
+        int[] a = root.getIntArray("area").orElse(new int[6]);
+        int[] data = root.getIntArray("data").orElse(new int[0]);
+        BlockState[] states = new BlockState[data.length];
+        for (int i = 0; i < data.length; i++) {
+            states[i] = palette.get(data[i]);
+        }
+        Map<BlockPos, NbtCompound> bes = new HashMap<>();
+        NbtList list = root.getListOrEmpty("blockEntities");
+        for (int j = 0; j < list.size(); j++) {
+            NbtCompound n = list.getCompoundOrEmpty(j);
+            bes.put(new BlockPos(n.getInt("ac_x", 0), n.getInt("ac_y", 0), n.getInt("ac_z", 0)), n);
+        }
+        Area area = new Area(root.getString("world").orElse(""), a[0], a[1], a[2], a[3], a[4], a[5]);
+        return new Snap(area, states, bes);
+    }
+
     public static boolean exists(String name) {
         return Files.exists(file(name));
     }

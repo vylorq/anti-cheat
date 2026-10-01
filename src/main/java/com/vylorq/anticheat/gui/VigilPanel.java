@@ -381,6 +381,9 @@ public final class VigilPanel {
                 menu.refresh();
             });
             action(menu, 24, Items.CHEST, Category.LOBBY, "panel.lobby.chest", "panel.lobby.chest-desc", "lobby chest");
+            menu.set(31, Btn.of(Items.GOLDEN_AXE).name(Category.LOBBY, Msg.tr("badmin.title")).desc(Msg.tr("badmin.panel-desc"))
+                    .count(com.vylorq.anticheat.feature.BuilderDrafts.all().values().stream().filter(d -> d.submitted).toList().size())
+                    .left(Msg.tr("ui.action.open")).build(), Perm.MANAGE_ADMINS, (pl, c) -> BuilderAdminMenu.open(pl));
         });
         m.open(p);
     }

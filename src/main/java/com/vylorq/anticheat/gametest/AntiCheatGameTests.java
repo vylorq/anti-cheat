@@ -540,7 +540,7 @@ public final class AntiCheatGameTests {
         fake.getInventory().clear();
         fake.getInventory().setStack(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 7));
         try {
-            com.vylorq.anticheat.feature.BuilderMode.start(null, fake, 0, false);
+            com.vylorq.anticheat.feature.BuilderMode.start(null, fake, 0, false, true);
             check(fake.isCreative() && !fake.getInventory().getStack(0).isOf(net.minecraft.item.Items.DIAMOND), "builder mode didn't start cleanly");
             fake.getInventory().setStack(1, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD));
             fake.getInventory().setStack(2, new net.minecraft.item.ItemStack(net.minecraft.item.Items.STONE, 64));
@@ -660,11 +660,18 @@ public final class AntiCheatGameTests {
             com.vylorq.anticheat.feature.BuilderTools.set(fake, Blocks.TNT.getDefaultState());
             runBuildJobs();
             check(!w.getBlockState(a).isOf(Blocks.TNT), "a builder filled with TNT");
+            var summary = com.vylorq.anticheat.feature.BuilderLog.summary(fake.getUuid(), 0);
+            check(summary.toolChanges() >= 7 && summary.placed().getOrDefault("spruce_planks", 0) >= 7,
+                    "the builder log missed tool changes: " + summary);
+            boolean coords = com.vylorq.anticheat.feature.BuilderLog.read(fake.getUuid(), 0).stream()
+                    .anyMatch(e -> e.type().startsWith("TOOL") && e.x() == a.getX() && e.y() == a.getY() && e.z() == a.getZ());
+            check(coords, "the builder log has no coordinates for a changed block");
 
             fake.setPosition(net.minecraft.util.math.Vec3d.ofBottomCenter(a));
             com.vylorq.anticheat.feature.BuilderTools.copy(fake);
             fake.setPosition(net.minecraft.util.math.Vec3d.ofBottomCenter(a.up(10)));
             com.vylorq.anticheat.feature.BuilderTools.paste(fake, true);
+            com.vylorq.anticheat.feature.BuilderTools.confirmPaste(fake);
             runBuildJobs();
             check(w.getBlockState(a.up(10)).isOf(Blocks.SPRUCE_PLANKS) && w.getBlockState(chest.up(10)).isAir(),
                     "paste wrong (containers must not be copied)");
@@ -677,6 +684,84 @@ public final class AntiCheatGameTests {
         } finally {
             com.vylorq.anticheat.feature.BuilderMode.end(null, fake);
             w.setBlockState(chest, Blocks.AIR.getDefaultState());
+        }
+        ctx.complete();
+    }
+
+    @GameTest
+    public void builderShapesMixesAndFlip(TestContext ctx) {
+        var mix = com.vylorq.anticheat.feature.BuilderTools.pattern("70%stone_bricks,30%cracked_stone_bricks");
+        check(mix != null && mix.describe().contains("70%"), "block mix not understood");
+        java.util.Set<net.minecraft.block.Block> seen = new java.util.HashSet<>();
+        for (int i = 0; i < 200; i++) {
+            seen.add(mix.pick().getBlock());
+        }
+        check(seen.size() == 2, "the mix only gave " + seen);
+        check(com.vylorq.anticheat.feature.BuilderTools.pattern("not_a_block") == null, "unknown block accepted");
+
+        var w = ctx.getWorld();
+        var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ShapeTester"));
+        BlockPos c = ctx.getAbsolutePos(new BlockPos(1, 2, 1)).up(60);
+        try {
+            com.vylorq.anticheat.feature.BuilderMode.start(null, fake, 0, true);
+            fake.setPosition(net.minecraft.util.math.Vec3d.ofBottomCenter(c));
+            com.vylorq.anticheat.feature.BuilderTools.sphere(fake, com.vylorq.anticheat.feature.BuilderTools.single(Blocks.GLASS.getDefaultState()), 2, true);
+            runBuildJobs();
+            check(w.getBlockState(c.up(2)).isOf(Blocks.GLASS) && w.getBlockState(c).isAir(), "hollow sphere wrong");
+            com.vylorq.anticheat.feature.BuilderTools.undo(fake);
+            runBuildJobs();
+            check(w.getBlockState(c.up(2)).isAir(), "sphere undo failed");
+
+            // flip: a stair facing east, copied and flipped east-west, faces west
+            w.setBlockState(c, Blocks.OAK_STAIRS.getDefaultState().with(net.minecraft.block.StairsBlock.FACING, Direction.EAST));
+            com.vylorq.anticheat.feature.BuilderTools.corner(fake, w, c, true);
+            com.vylorq.anticheat.feature.BuilderTools.corner(fake, w, c, false);
+            com.vylorq.anticheat.feature.BuilderTools.copy(fake);
+            com.vylorq.anticheat.feature.BuilderTools.flip(fake, true);
+            var clip = com.vylorq.anticheat.feature.BuilderTools.clipboard(fake);
+            check(clip.get(0, 0, 0).get(net.minecraft.block.StairsBlock.FACING) == Direction.WEST, "flip didn't mirror the stairs");
+            w.setBlockState(c, Blocks.AIR.getDefaultState());
+        } finally {
+            com.vylorq.anticheat.feature.BuilderMode.end(null, fake);
+        }
+        ctx.complete();
+    }
+
+    @GameTest(maxTicks = 100)
+    public void builderDraftIsApprovedIntoTheLobby(TestContext ctx) {
+        var w = ctx.getWorld();
+        var lobby = Ac.get().lobby.data();
+        var oldArea = lobby.area;
+        BlockPos a = ctx.getAbsolutePos(new BlockPos(0, 1, 0));
+        lobby.area = new com.vylorq.anticheat.core.util.Area(com.vylorq.anticheat.util.Mc.worldId(w), a.getX(), a.getY(), a.getZ(),
+                a.getX() + 2, a.getY() + 2, a.getZ() + 2);
+        var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "DraftTester"));
+        try {
+            w.setBlockState(a, Blocks.OAK_PLANKS.getDefaultState());
+            com.vylorq.anticheat.feature.BuilderMode.start(null, fake, 0, false);
+            check(com.vylorq.anticheat.feature.BuilderMode.get(fake.getUuid()).draft, "builder didn't get a draft");
+            for (int i = 0; i < 20 && !com.vylorq.anticheat.feature.BuilderDrafts.get(fake.getUuid()).ready; i++) {
+                com.vylorq.anticheat.feature.BuilderTools.tick();
+            }
+            var d = com.vylorq.anticheat.feature.BuilderDrafts.get(fake.getUuid());
+            check(d.ready, "the draft copy never finished");
+            BlockPos copy = a.add(com.vylorq.anticheat.feature.BuilderDrafts.OFFSET, 0, 0);
+            check(w.getBlockState(copy).isOf(Blocks.OAK_PLANKS), "the draft isn't a copy of the lobby");
+            check(com.vylorq.anticheat.feature.BuilderMode.mayBuildAt(fake, w, copy) && !com.vylorq.anticheat.feature.BuilderMode.mayBuildAt(fake, w, a),
+                    "a draft builder could build in the real lobby");
+            w.setBlockState(copy.up(), Blocks.GOLD_BLOCK.getDefaultState());
+            check(w.getBlockState(a.up()).isAir(), "the real lobby changed before approval");
+            check(com.vylorq.anticheat.feature.BuilderDrafts.approve(null, fake.getUuid()), "approve refused");
+            runBuildJobs();
+            check(w.getBlockState(a.up()).isOf(Blocks.GOLD_BLOCK) && w.getBlockState(a).isOf(Blocks.OAK_PLANKS), "approval didn't copy the change");
+            check(com.vylorq.anticheat.feature.BuilderLog.read(fake.getUuid(), 0).stream().anyMatch(e -> e.type().equals("APPROVE")
+                    && e.x() == a.getX() && e.y() == a.getY() + 1), "approval wasn't logged with coordinates");
+        } finally {
+            com.vylorq.anticheat.feature.BuilderMode.end(null, fake);
+            com.vylorq.anticheat.feature.BuilderDrafts.discard(fake.getUuid());
+            lobby.area = oldArea;
+            w.setBlockState(a, Blocks.AIR.getDefaultState());
+            w.setBlockState(a.up(), Blocks.AIR.getDefaultState());
         }
         ctx.complete();
     }

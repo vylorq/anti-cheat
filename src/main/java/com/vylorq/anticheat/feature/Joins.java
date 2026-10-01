@@ -171,6 +171,7 @@ public final class Joins {
         String name = p.getGameProfile().name();
         PlayerSession s = Ac.sessionOrNull(p.getUuid());
         TempAdmins.onLeave(p);
+        BuilderMode.onLeave(p);
         BuilderTools.forget(p.getUuid());
         Trades.onDisconnect(p);
         Traders.onDisconnect(p);
