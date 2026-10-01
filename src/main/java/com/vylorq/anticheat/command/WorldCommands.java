@@ -445,6 +445,20 @@ final class WorldCommands {
                     Staff.log(p, "end-portal", null, Mc.worldId(w) + " " + c.toShortString(), "");
                     Msg.ok(ctx.getSource(), "end.portal-built", c.toShortString());
                     return 1;
+                }))
+                .then(literal("remove").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.SETTINGS);
+                    if (p == null) {
+                        return 0;
+                    }
+                    ServerWorld w = (ServerWorld) p.getEntityWorld();
+                    if (!com.vylorq.anticheat.feature.EndLock.removeBuilt(w, p.getBlockPos())) {
+                        Msg.err(ctx.getSource(), "end.no-portal-near");
+                        return 0;
+                    }
+                    Staff.log(p, "end-portal-remove", null, Mc.worldId(w) + " " + p.getBlockPos().toShortString(), "");
+                    Msg.ok(ctx.getSource(), "end.portal-removed");
+                    return 1;
                 })));
     }
 

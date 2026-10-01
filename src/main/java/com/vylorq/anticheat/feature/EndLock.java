@@ -58,6 +58,8 @@ public final class EndLock {
         public int maxX;
         public int maxY;
         public int maxZ;
+        /** Snapshot of what was there before it was built (so removing it puts the ground back). */
+        public String before;
 
         boolean contains(String w, BlockPos p) {
             return world.equals(w) && p.getX() >= minX && p.getX() <= maxX && p.getY() >= minY && p.getY() <= maxY
@@ -280,6 +282,13 @@ public final class EndLock {
         b.maxY = c.getY() + 4;
         b.minZ = c.getZ() - r;
         b.maxZ = c.getZ() + r;
+        b.before = "endportal-" + java.util.UUID.randomUUID();
+        try {
+            com.vylorq.anticheat.util.BlockSnapshots.save(w, new com.vylorq.anticheat.core.util.Area(b.world, b.minX, b.minY, b.minZ,
+                    b.maxX, b.maxY, b.maxZ), b.before);
+        } catch (Exception e) {
+            b.before = null;
+        }
         data().built.add(b);
         Ac.markDirty("end");
         var rnd = w.getRandom();
@@ -314,5 +323,45 @@ public final class EndLock {
     private static void frame(ServerWorld w, BlockPos pos, Direction facing) {
         w.setBlockState(pos, Blocks.END_PORTAL_FRAME.getDefaultState().with(EndPortalFrameBlock.FACING, facing)
                 .with(EndPortalFrameBlock.EYE, true));
+    }
+
+    /**
+     * Removes the portal room built with /vigil end portal that the player is in or next to, putting back what was
+     * there before. @return false if there's none nearby
+     */
+    public static boolean removeBuilt(ServerWorld w, BlockPos near) {
+        String id = Mc.worldId(w);
+        for (Iterator<Built> it = data().built.iterator(); it.hasNext(); ) {
+            Built b = it.next();
+            if (!b.world.equals(id) || near.getX() < b.minX - 8 || near.getX() > b.maxX + 8 || near.getZ() < b.minZ - 8
+                    || near.getZ() > b.maxZ + 8 || near.getY() < b.minY - 8 || near.getY() > b.maxY + 8) {
+                continue;
+            }
+            it.remove();
+            Ac.markDirty("end");
+            boolean restored = false;
+            if (b.before != null) {
+                try {
+                    restored = com.vylorq.anticheat.util.BlockSnapshots.restore(w, b.before) >= 0;
+                    java.nio.file.Files.deleteIfExists(com.vylorq.anticheat.util.BlockSnapshots.file(b.before));
+                } catch (Exception e) {
+                    restored = false;
+                }
+            }
+            if (!restored) {
+                // Built before snapshots were kept: clear the room but leave the floor.
+                for (BlockPos p : BlockPos.iterate(b.minX, b.minY + 1, b.minZ, b.maxX, b.maxY, b.maxZ)) {
+                    w.setBlockState(p, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS | Block.SKIP_DROPS);
+                }
+            }
+            // Portal blocks can never stay behind, whatever was saved.
+            for (BlockPos p : BlockPos.iterate(b.minX, b.minY, b.minZ, b.maxX, b.maxY, b.maxZ)) {
+                if (isEndBlock(w.getBlockState(p))) {
+                    w.setBlockState(p, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS | Block.SKIP_DROPS);
+                }
+            }
+            return true;
+        }
+        return false;
     }
 }
