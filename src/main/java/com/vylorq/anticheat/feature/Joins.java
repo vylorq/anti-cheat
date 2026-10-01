@@ -107,6 +107,7 @@ public final class Joins {
             Ac.markDirty("misc");
         }
         TempAdmins.onJoin(p);
+        BuilderMode.onJoin(p);
         Arenas.onJoin(p);
         Jail.onJoin(p);
         WaitingRoomFeature.onJoin(p);

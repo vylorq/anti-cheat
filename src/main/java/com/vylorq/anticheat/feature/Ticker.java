@@ -59,6 +59,7 @@ public final class Ticker {
         MenuHandler.tickLive();
         Jail.tick();
         EndLock.tick(ac.server);
+        BuilderMode.tick();
         Claims.tick();
         Barriers.tick();
         Arenas.tick();

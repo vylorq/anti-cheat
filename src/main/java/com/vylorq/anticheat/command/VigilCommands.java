@@ -81,6 +81,7 @@ public final class VigilCommands {
             new Help(Group.TOOLS, "stats", "/vigil stats", "help.stats", Perm.STATS),
             new Help(Group.TOOLS, "inspector", "/vigil inspector", "help.inspector", Perm.INSPECTOR_TOOL),
             new Help(Group.TOOLS, "tp", "/vigil tp <world> <x> <y> <z>", "help.tp", Perm.TELEPORT),
+            new Help(Group.TOOLS, "builder", "/vigil builder add|remove|list <player> [time] [anywhere]", "help.builder", Perm.MANAGE_ADMINS),
             new Help(Group.TOOLS, "tempadmin", "/vigil tempadmin add|remove <player>", "help.tempadmin", Perm.MANAGE_ADMINS),
             new Help(Group.TOOLS, "event", "/vigil event ...", "help.event", Perm.EVENTS),
             new Help(Group.TOOLS, "restart", "/vigil restart", "help.restart", Perm.RESTART),
@@ -97,7 +98,7 @@ public final class VigilCommands {
     /** Commands reachable as /vigil &lt;name&gt; (they also stay top-level). */
     private static final List<String> UNDER_VIGIL = List.of("review", "inspect", "whereis", "watch", "exempt", "freeze", "jail", "unjail",
             "claim", "barrier", "lobby", "arena", "trader", "requests", "deaths", "rollback", "restore", "lag", "vanish", "maintenance",
-            "settings", "end", "watcher", "waitingroom", "report", "warn", "mute", "unmute", "kick", "tempban", "ban", "unban", "login");
+            "settings", "end", "builder", "watcher", "waitingroom", "report", "warn", "mute", "unmute", "kick", "tempban", "ban", "unban", "login");
 
     private static final int PER_PAGE = 9;
 

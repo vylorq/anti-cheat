@@ -37,7 +37,8 @@ public final class LobbyFeature {
         if (!in(w, pos)) {
             return true;
         }
-        boolean ok = Ac.get().lobby.allowed(p.getUuid(), action);
+        boolean ok = Ac.get().lobby.allowed(p.getUuid(), action)
+                || ((action == Lobby.Action.PLACE || action == Lobby.Action.BREAK) && BuilderMode.is(p));
         if (!ok) {
             Msg.actionBar(p, Msg.tr("lobby.protected"));
         }

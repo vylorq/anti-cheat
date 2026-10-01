@@ -4,11 +4,13 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.vylorq.anticheat.Ac;
 import com.vylorq.anticheat.core.evidence.EvidenceEvent;
+import com.vylorq.anticheat.feature.BuilderMode;
 import com.vylorq.anticheat.feature.Combat;
 import com.vylorq.anticheat.feature.Movement;
 import com.vylorq.anticheat.feature.Staff;
 import com.vylorq.anticheat.feature.StaffTools;
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
+import net.minecraft.network.packet.c2s.play.CreativeInventoryActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.network.packet.c2s.play.VehicleMoveC2SPacket;
@@ -76,6 +78,18 @@ public abstract class ServerPlayNetworkHandlerMixin {
         if (Ac.running()) {
             Ac.get().evidence.record(player.getUuid(), EvidenceEvent.Type.INVENTORY, player.getX(), player.getY(), player.getZ(),
                     player.getYaw(), player.getPitch(), "inventory click slot " + packet.slot() + " " + packet.actionType());
+        }
+    }
+
+    /** Builders only get building blocks from the creative menu, and can't throw items out of it. */
+    @Inject(method = "onCreativeInventoryAction", cancellable = true, at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
+            shift = At.Shift.AFTER))
+    private void ac$builderCreative(CreativeInventoryActionC2SPacket packet, CallbackInfo ci) {
+        if (Ac.running() && BuilderMode.is(player) && (packet.slot() < 0 || !BuilderMode.allowed(packet.stack()))) {
+            ci.cancel();
+            BuilderMode.denied(player);
+            player.playerScreenHandler.syncState();
         }
     }
 

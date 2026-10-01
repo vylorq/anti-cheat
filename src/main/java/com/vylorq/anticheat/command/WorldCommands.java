@@ -94,6 +94,69 @@ final class WorldCommands {
         registerArenas(d);
         registerTraders(d);
         registerEnd(d);
+        registerBuilder(d);
+    }
+
+    // ---- Builder mode ----
+
+    private static void registerBuilder(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("builder").requires(s -> Perms.visible(s, Perm.MANAGE_ADMINS))
+                .then(literal("add").then(Args.player("player")
+                        .executes(ctx -> addBuilder(ctx, null, false))
+                        .then(literal("anywhere").executes(ctx -> addBuilder(ctx, null, true)))
+                        .then(Args.word("time").executes(ctx -> addBuilder(ctx, Args.str(ctx, "time"), false))
+                                .then(literal("anywhere").executes(ctx -> addBuilder(ctx, Args.str(ctx, "time"), true))))))
+                .then(literal("remove").then(Args.player("player").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
+                    ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
+                    if (t == null) return 0;
+                    if (!com.vylorq.anticheat.feature.BuilderMode.end(ctx.getSource().getPlayer(), t)) {
+                        Msg.err(ctx.getSource(), "builder.not", t.getGameProfile().name());
+                        return 0;
+                    }
+                    Msg.ok(ctx.getSource(), "builder.removed", t.getGameProfile().name());
+                    return 1;
+                })))
+                .then(literal("list").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
+                    var all = Ac.get().misc.builders.values();
+                    if (all.isEmpty()) {
+                        Msg.ok(ctx.getSource(), "builder.none");
+                        return 1;
+                    }
+                    for (var b : all) {
+                        String left = b.until > 0 ? Durations.format(Math.max(0, b.until - System.currentTimeMillis())) : "-";
+                        Msg.ok(ctx.getSource(), "builder.entry", b.name, b.anywhere ? "anywhere" : "lobby", left);
+                    }
+                    return 1;
+                })));
+    }
+
+    private static int addBuilder(CommandContext<ServerCommandSource> ctx, String time, boolean anywhere) {
+        if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) {
+            return 0;
+        }
+        ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
+        if (t == null) {
+            return 0;
+        }
+        long ms = 0;
+        if (time != null) {
+            OptionalLong dur = Args.duration(ctx.getSource(), time);
+            if (dur.isEmpty()) {
+                return 0;
+            }
+            ms = dur.getAsLong();
+        }
+        if (com.vylorq.anticheat.feature.BuilderMode.is(t) || com.vylorq.anticheat.feature.TempAdmins.isTemp(t.getUuid())) {
+            Msg.err(ctx.getSource(), "builder.already", t.getGameProfile().name());
+            return 0;
+        }
+        com.vylorq.anticheat.feature.BuilderMode.start(ctx.getSource().getPlayer(), t, ms, anywhere);
+        String where = anywhere || Ac.get().lobby.data().area == null ? Msg.tr("builder.where-anywhere") : Msg.tr("builder.where-lobby");
+        Msg.ok(ctx.getSource(), "builder.added", t.getGameProfile().name(), where,
+                ms > 0 ? Durations.format(ms) : Msg.tr("builder.until-removed"));
+        return 1;
     }
 
     // ---- The End ----
