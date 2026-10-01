@@ -23,7 +23,7 @@ public final class Barriers {
                 double z;
                 double y = py + j;
                 switch (b.shape) {
-                    case BOX -> {
+                    case BOX, CUBE -> {
                         double cx = Math.max(b.minX, Math.min(b.maxX + 1, px));
                         double cz = Math.max(b.minZ, Math.min(b.maxZ + 1, pz));
                         boolean xEdge = Math.min(Math.abs(px - b.minX), Math.abs(px - (b.maxX + 1)))
@@ -56,7 +56,8 @@ public final class Barriers {
     public static void tick() {
         Ac ac = Ac.get();
         var spawn = Mc.worldSpawn(ac.server);
-        ac.barriers.setSpawn(Mc.worldId(ac.server.getOverworld()), new Vec3(spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5));
+        ac.barriers.setSpawn(ac.server.getSpawnPoint().getDimension().getValue().toString(),
+                new Vec3(spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5));
         if (!ac.barriers.tick().isEmpty()) {
             Ac.markDirty("barriers");
         }
@@ -86,6 +87,19 @@ public final class Barriers {
         }
     }
 
+    /** The first height at or above y0 (within range) where someone can stand, or null. */
+    public static Integer standableAbove(net.minecraft.server.world.ServerWorld w, int x, int y0, int z, int range) {
+        for (int y = y0; y <= y0 + range && y < w.getTopYInclusive(); y++) {
+            net.minecraft.util.math.BlockPos feet = new net.minecraft.util.math.BlockPos(x, y, z);
+            if (w.getBlockState(feet).getCollisionShape(w, feet).isEmpty()
+                    && w.getBlockState(feet.up()).getCollisionShape(w, feet.up()).isEmpty()
+                    && !w.getBlockState(feet.down()).getCollisionShape(w, feet.down()).isEmpty()) {
+                return y;
+            }
+        }
+        return null;
+    }
+
     private static final java.util.Map<java.util.UUID, Long> TOLD = new java.util.HashMap<>();
 
     /** Moves a player to a spot, standing safely on the ground there (barrier walls go from bedrock to sky). */
@@ -98,7 +112,9 @@ public final class Barriers {
                 && w.getBlockState(feet.up()).getCollisionShape(w, feet.up()).isEmpty()
                 && !w.getBlockState(feet.down()).getCollisionShape(w, feet.down()).isEmpty();
         if (!standable) {
-            y = w.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
+            // First look upward from there (inside a box with a ceiling), then fall back to the surface.
+            Integer found = standableAbove(w, x, (int) Math.floor(to.y()), z, 48);
+            y = found != null ? found : w.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
         }
         Mc.teleport(p, w, x + 0.5, y, z + 0.5, p.getYaw(), p.getPitch());
         long now = System.currentTimeMillis();

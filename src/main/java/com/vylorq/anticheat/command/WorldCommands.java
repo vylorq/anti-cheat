@@ -94,6 +94,7 @@ final class WorldCommands {
         registerArenas(d);
         registerTraders(d);
         registerEnd(d);
+        registerLockedBox(d);
         registerBuilder(d);
         registerBuild(d);
     }
@@ -422,6 +423,66 @@ final class WorldCommands {
                 : b != null && b.draft ? Msg.tr("builder.where-draft") : Msg.tr("builder.where-lobby");
         Msg.ok(ctx.getSource(), "builder.added", t.getGameProfile().name(), where,
                 ms > 0 ? Durations.format(ms) : Msg.tr("builder.until-removed"));
+        return 1;
+    }
+
+    // ---- Locked Box ----
+
+    private static void registerLockedBox(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("lockedbox").requires(s -> Perms.visible(s, Perm.MANAGE_ADMINS))
+                .executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
+                    Barrier b = com.vylorq.anticheat.feature.LockedBox.get();
+                    if (b == null) {
+                        Msg.ok(ctx.getSource(), "lockedbox.none");
+                    } else {
+                        Msg.ok(ctx.getSource(), "lockedbox.info", (int) b.minX + " " + (int) b.minY + " " + (int) b.minZ,
+                                (int) b.maxX + " " + (int) b.maxY + " " + (int) b.maxZ);
+                    }
+                    return 1;
+                })
+                .then(literal("wand").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.MANAGE_ADMINS);
+                    if (p != null) {
+                        p.getInventory().insertStack(Tools.claimStick());
+                        Msg.ok(ctx.getSource(), "lockedbox.wand");
+                    }
+                    return 1;
+                }))
+                .then(literal("create").executes(ctx -> lockBox(ctx, 0))
+                        .then(CommandManager.argument("height", com.mojang.brigadier.arguments.IntegerArgumentType.integer(3, 384))
+                                .executes(ctx -> lockBox(ctx, com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "height")))))
+                .then(literal("remove").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
+                    if (!com.vylorq.anticheat.feature.LockedBox.remove(ctx.getSource().getPlayer())) {
+                        Msg.err(ctx.getSource(), "lockedbox.none");
+                        return 0;
+                    }
+                    Msg.ok(ctx.getSource(), "lockedbox.removed");
+                    return 1;
+                })));
+    }
+
+    /** Makes (or resizes) the Locked Box from the Claim Stick corners. */
+    private static int lockBox(CommandContext<ServerCommandSource> ctx, int height) {
+        ServerPlayerEntity p = staff(ctx, Perm.MANAGE_ADMINS);
+        if (p == null) {
+            return 0;
+        }
+        Area a = selection(p, false);
+        if (a == null) {
+            return 0;
+        }
+        if (height > 0) {
+            a.maxY = a.minY + height - 1;
+        } else if (a.maxY - a.minY < 5) {
+            // Both corners on the ground: give it room to stand and jump.
+            a.maxY = a.minY + 20;
+        }
+        ServerWorld w = Mc.world(Ac.server(), a.world);
+        BlockPos spawn = com.vylorq.anticheat.feature.LockedBox.create(p, w != null ? w : (ServerWorld) p.getEntityWorld(), a);
+        Msg.ok(ctx.getSource(), "lockedbox.created", (a.maxX - a.minX + 1) + "x" + (a.maxY - a.minY + 1) + "x" + (a.maxZ - a.minZ + 1),
+                spawn.toShortString());
         return 1;
     }
 

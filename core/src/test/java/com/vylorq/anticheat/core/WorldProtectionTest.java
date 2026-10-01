@@ -231,6 +231,27 @@ class WorldProtectionTest {
     }
 
     @Test
+    void lockedCubeHasFloorAndCeilingAndKeepsEveryoneIn() {
+        BarrierManager bm = new BarrierManager(null, clock);
+        Barrier b = new Barrier();
+        b.name = "locked-box";
+        b.world = "w";
+        b.shape = Barrier.Shape.CUBE;
+        b.minX = 0; b.maxX = 9; b.minZ = 0; b.maxZ = 9; b.minY = 60; b.maxY = 80;
+        b.adminsPass = false;
+        b.newPlayers = "inside";
+        bm.add(b);
+        assertTrue(b.contains("w", 5, 70, 5));
+        assertFalse(b.contains("w", 5, 90, 5), "above the ceiling is outside");
+        UUID p = UUID.randomUUID();
+        BarrierManager.Verdict far = bm.check(p, true, "w", new Vec3(500, 64, 500), "w", new Vec3(501, 64, 500));
+        assertTrue(far.wrongSide(), "everyone belongs inside, even admins");
+        assertTrue(b.contains("w", far.sendBackTo().x(), far.sendBackTo().y(), far.sendBackTo().z()));
+        assertFalse(bm.check(p, true, "w", new Vec3(5, 70, 5), "w", new Vec3(5, 85, 5)).allowed(), "can't fly out the top");
+        assertFalse(bm.check(p, true, "w", new Vec3(5, 70, 5), "nether", new Vec3(5, 70, 5)).allowed(), "can't leave by portal");
+    }
+
+    @Test
     void barrierShapes() {
         Barrier box = new Barrier();
         box.world = "w";

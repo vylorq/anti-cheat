@@ -12,7 +12,8 @@ import java.util.UUID;
  * Box and cylinder shapes go from bedrock to sky; spheres are true spheres.
  */
 public final class Barrier {
-    public enum Shape { BOX, CYLINDER, SPHERE }
+    /** BOX and CYLINDER go from bedrock to sky; CUBE has a floor and a ceiling (minY..maxY); SPHERE is round. */
+    public enum Shape { BOX, CYLINDER, SPHERE, CUBE }
 
     public String name;
     public String world;
@@ -21,6 +22,11 @@ public final class Barrier {
     public double minZ;
     public double maxX;
     public double maxZ;
+    /** Floor and ceiling (CUBE only). */
+    public double minY;
+    public double maxY;
+    /** The world spawn before this barrier moved it (restored when it's removed), as world, x, y, z. */
+    public String restoreSpawn;
     public double cx;
     public double cy;
     public double cz;
@@ -43,6 +49,7 @@ public final class Barrier {
         }
         return switch (shape) {
             case BOX -> x >= minX && x < maxX + 1 && z >= minZ && z < maxZ + 1;
+            case CUBE -> x >= minX && x < maxX + 1 && z >= minZ && z < maxZ + 1 && y >= minY && y < maxY + 1;
             case CYLINDER -> {
                 double dx = x - cx;
                 double dz = z - cz;
@@ -69,12 +76,26 @@ public final class Barrier {
                 double dz = Math.max(Math.max(minZ - z, 0), z - (maxZ + 1));
                 yield Math.sqrt(dx * dx + dz * dz);
             }
+            case CUBE -> {
+                boolean inside = contains(world, x, y, z);
+                if (inside) {
+                    yield Math.min(Math.min(Math.min(x - minX, maxX + 1 - x), Math.min(z - minZ, maxZ + 1 - z)),
+                            Math.min(y - minY, maxY + 1 - y));
+                }
+                double dx = Math.max(Math.max(minX - x, 0), x - (maxX + 1));
+                double dy = Math.max(Math.max(minY - y, 0), y - (maxY + 1));
+                double dz = Math.max(Math.max(minZ - z, 0), z - (maxZ + 1));
+                yield Math.sqrt(dx * dx + dy * dy + dz * dz);
+            }
             case CYLINDER -> Math.abs(Math.sqrt((x - cx) * (x - cx) + (z - cz) * (z - cz)) - radius);
             case SPHERE -> Math.abs(Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy) + (z - cz) * (z - cz)) - radius);
         };
     }
 
     public Vec3 center() {
+        if (shape == Shape.CUBE) {
+            return new Vec3((minX + maxX + 1) / 2, minY + 1, (minZ + maxZ + 1) / 2);
+        }
         return shape == Shape.BOX ? new Vec3((minX + maxX + 1) / 2, cy, (minZ + maxZ + 1) / 2) : new Vec3(cx, cy, cz);
     }
 }

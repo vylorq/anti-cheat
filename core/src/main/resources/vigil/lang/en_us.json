@@ -1552,5 +1552,13 @@
   "barrier.moved-back": "§eYou were moved back to your side of the barrier.",
   "barrier.bad-side": "§cUse inside, outside or auto.",
   "barrier.newplayers": "§aNew players of {0} now belong: {1}. Everyone's side was reset.",
-  "barrier.reset": "§aEveryone's side of {0} was reset; they're decided again by where the spawn is."
+  "barrier.reset": "§aEveryone's side of {0} was reset; they're decided again by where the spawn is.",
+  "help.lockedbox": "Locked Box: everyone spawns inside and nobody leaves",
+  "lockedbox.none": "§7There's no Locked Box. §8/lockedbox wand§7, click two corners, then §8/lockedbox create",
+  "lockedbox.info": "§6Locked Box §7from §f{0} §7to §f{1}§7. Remove it with §8/lockedbox remove",
+  "lockedbox.wand": "§aRight-click two opposite corners of the box with the Claim Stick (one low, one high), then §f/lockedbox create§a.",
+  "lockedbox.created": "§aLocked Box made ({0}). The spawn is now at {1}; everyone was brought inside and nobody can leave until you remove it.",
+  "lockedbox.removed": "§aLocked Box removed and the old spawn is back.",
+  "lockedbox.locked": "§c🔒 The server is in lockdown: nobody can leave the Locked Box.",
+  "lockedbox.unlocked": "§a🔓 The Locked Box is gone. You're free to go."
 }

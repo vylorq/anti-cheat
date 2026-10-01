@@ -63,6 +63,7 @@ public final class VigilCommands {
             new Help(Group.PUNISH, "rollback", "/rollback <player> <time> [radius]", "help.rollback", Perm.ROLLBACK),
             new Help(Group.PUNISH, "restore", "/restore <player> <time> [radius]", "help.restore", Perm.ROLLBACK),
             new Help(Group.PLACES, "claim", "/claim wand|create|menu|who|near|spawn", "help.claim", Perm.CLAIM),
+            new Help(Group.PLACES, "lockedbox", "/lockedbox wand|create [height]|remove", "help.lockedbox", Perm.MANAGE_ADMINS),
             new Help(Group.PLACES, "barrier", "/barrier create|remove|list|newplayers|reset", "help.barrier", Perm.BARRIER),
             new Help(Group.PLACES, "lobby", "/lobby set|setspawn|edit|chest", "help.lobby", Perm.LOBBY_ADMIN),
             new Help(Group.PLACES, "arena", "/arena create|menu|kit save", "help.arena", Perm.ARENA_ADMIN),
@@ -98,7 +99,7 @@ public final class VigilCommands {
 
     /** Commands reachable as /vigil &lt;name&gt; (they also stay top-level). */
     private static final List<String> UNDER_VIGIL = List.of("review", "inspect", "whereis", "watch", "exempt", "freeze", "jail", "unjail",
-            "claim", "barrier", "lobby", "arena", "trader", "requests", "deaths", "rollback", "restore", "lag", "vanish", "maintenance",
+            "claim", "barrier", "lockedbox", "lobby", "arena", "trader", "requests", "deaths", "rollback", "restore", "lag", "vanish", "maintenance",
             "settings", "end", "builder", "watcher", "waitingroom", "report", "warn", "mute", "unmute", "kick", "tempban", "ban", "unban", "login");
 
     private static final int PER_PAGE = 9;
