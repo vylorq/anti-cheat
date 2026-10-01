@@ -60,6 +60,8 @@ public final class WatcherFigure {
     private final String teamName;
     /** A dark skull for a face instead of the faceless hood (for jumpscares, seen up close). */
     private boolean skull;
+    /** Invisible body: only the armour and the skull show, floating, with no hands. */
+    private boolean hollow;
     public Vec3d pos = Vec3d.ZERO;
     public float yaw;
     public float pitch;
@@ -80,7 +82,13 @@ public final class WatcherFigure {
                 ? new PropertyMap(ImmutableMultimap.of("textures", new Property("textures", cfg.skinValue.trim(),
                 cfg.skinSignature == null || cfg.skinSignature.isBlank() ? null : cfg.skinSignature.trim())))
                 : PropertyMap.EMPTY;
-        return new WatcherFigure(world, new GameProfile(WATCHER_UUID, WATCHER_NAME, props), !skin, 1.2);
+        WatcherFigure f = new WatcherFigure(world, new GameProfile(WATCHER_UUID, WATCHER_NAME, props), !skin, skin ? 1.25 : 1.35);
+        if (!skin) {
+            // No skin set: an empty suit of black armour with a skull for a head, nothing inside it.
+            f.skull = true;
+            f.hollow = true;
+        }
+        return f;
     }
 
     /** The player's own skin, name hidden (33.5 doppelgänger). */
@@ -130,6 +138,11 @@ public final class WatcherFigure {
         // Show every skin layer (hood, sleeves...).
         Watcher.send(viewer, new EntityTrackerUpdateS2CPacket(id(), List.of(
                 DataTracker.SerializedEntry.of(PlayerEntityAccessor.ac$modelParts(), (byte) 0x7F))));
+        if (hollow) {
+            // Entity flag 0x20: invisible (armour still shows).
+            Watcher.send(viewer, new EntityTrackerUpdateS2CPacket(id(), List.of(
+                    new DataTracker.SerializedEntry<>(0, net.minecraft.entity.data.TrackedDataHandlerRegistry.BYTE, (byte) 0x20))));
+        }
         if (dressed) {
             Watcher.send(viewer, new EntityEquipmentUpdateS2CPacket(id(), outfit(skull)));
         }
@@ -155,6 +168,15 @@ public final class WatcherFigure {
     private static ItemStack black(net.minecraft.item.Item item) {
         ItemStack s = new ItemStack(item);
         s.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(0x0B0B0E));
+        // Blood-red ribs over the black.
+        try {
+            var reg = Ac.server().getRegistryManager();
+            s.set(DataComponentTypes.TRIM, new net.minecraft.item.equipment.trim.ArmorTrim(
+                    reg.getOrThrow(net.minecraft.registry.RegistryKeys.TRIM_MATERIAL).getOrThrow(net.minecraft.item.equipment.trim.ArmorTrimMaterials.REDSTONE),
+                    reg.getOrThrow(net.minecraft.registry.RegistryKeys.TRIM_PATTERN).getOrThrow(net.minecraft.item.equipment.trim.ArmorTrimPatterns.RIB)));
+        } catch (RuntimeException ignored) {
+            // plain black then
+        }
         return s;
     }
 
