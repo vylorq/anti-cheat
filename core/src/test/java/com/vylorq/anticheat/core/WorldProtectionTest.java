@@ -196,6 +196,41 @@ class WorldProtectionTest {
     }
 
     @Test
+    void newPlayersBelongOnTheSpawnSideAndAreNeverStuck() {
+        BarrierManager bm = new BarrierManager(null, clock);
+        Barrier b = new Barrier();
+        b.name = "spawn";
+        b.world = "overworld";
+        b.shape = Barrier.Shape.BOX;
+        b.minX = -10; b.maxX = 10; b.minZ = -10; b.maxZ = 10;
+        b.cy = 64;
+        bm.add(b);
+        bm.setSpawn("overworld", new Vec3(0, 64, 0));
+        UUID fresh = UUID.randomUUID();
+        // Spawned just outside (vanilla spawn spreads players out): they belong inside and are brought in.
+        BarrierManager.Verdict v = bm.check(fresh, false, "overworld", new Vec3(12, 64, 3), "overworld", new Vec3(12.1, 64, 3));
+        assertTrue(v.wrongSide());
+        assertTrue(b.contains("overworld", v.sendBackTo().x(), 64, v.sendBackTo().z()), "sent inside");
+        assertEquals(new Vec3(0, 64, 0), bm.respawnInside(fresh, "overworld"), "respawns at the spawn, not a corner");
+        // Someone who belongs outside but is found inside with no history: sent just outside, never left in place.
+        b.newPlayers = "outside";
+        UUID other = UUID.randomUUID();
+        BarrierManager.Verdict o = bm.check(other, false, "overworld", new Vec3(9, 64, 0), "overworld", new Vec3(9, 64, 0));
+        assertTrue(o.wrongSide());
+        assertNotNull(o.sendBackTo());
+        assertFalse(b.contains("overworld", o.sendBackTo().x(), 64, o.sendBackTo().z()), "sent outside");
+        // Old data with stuck players is cleared once.
+        BarrierManager.Data old = new BarrierManager.Data();
+        Barrier ob = new Barrier();
+        ob.name = "x";
+        ob.world = "overworld";
+        ob.sides.put(fresh, false);
+        old.barriers.put("x", ob);
+        new BarrierManager(old, clock);
+        assertTrue(ob.sides.isEmpty() && old.version == 2);
+    }
+
+    @Test
     void barrierShapes() {
         Barrier box = new Barrier();
         box.world = "w";

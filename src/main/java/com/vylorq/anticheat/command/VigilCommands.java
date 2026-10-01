@@ -63,7 +63,7 @@ public final class VigilCommands {
             new Help(Group.PUNISH, "rollback", "/rollback <player> <time> [radius]", "help.rollback", Perm.ROLLBACK),
             new Help(Group.PUNISH, "restore", "/restore <player> <time> [radius]", "help.restore", Perm.ROLLBACK),
             new Help(Group.PLACES, "claim", "/claim wand|create|menu|who|near|spawn", "help.claim", Perm.CLAIM),
-            new Help(Group.PLACES, "barrier", "/barrier create|remove|list", "help.barrier", Perm.BARRIER),
+            new Help(Group.PLACES, "barrier", "/barrier create|remove|list|newplayers|reset", "help.barrier", Perm.BARRIER),
             new Help(Group.PLACES, "lobby", "/lobby set|setspawn|edit|chest", "help.lobby", Perm.LOBBY_ADMIN),
             new Help(Group.PLACES, "arena", "/arena create|menu|kit save", "help.arena", Perm.ARENA_ADMIN),
             new Help(Group.PLACES, "trader", "/trader stick|create|list|edit|remove", "help.trader", Perm.TRADER_ADMIN),

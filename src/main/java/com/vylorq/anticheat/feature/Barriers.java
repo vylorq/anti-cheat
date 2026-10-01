@@ -55,6 +55,8 @@ public final class Barriers {
     /** Every second: particle walls for players close to a barrier, expired barriers removed. */
     public static void tick() {
         Ac ac = Ac.get();
+        var spawn = Mc.worldSpawn(ac.server);
+        ac.barriers.setSpawn(Mc.worldId(ac.server.getOverworld()), new Vec3(spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5));
         if (!ac.barriers.tick().isEmpty()) {
             Ac.markDirty("barriers");
         }
@@ -65,15 +67,45 @@ public final class Barriers {
         }
     }
 
-    /** Respawn inside a barrier the player belongs to. */
+    /** Respawn inside a barrier the player belongs to (at the world spawn if it's inside, else the middle). */
     public static void afterRespawn(ServerPlayerEntity p) {
         Vec3 inside = Ac.get().barriers.respawnInside(p.getUuid(), Mc.worldId(p.getEntityWorld()));
         String world = Ac.get().barriers.worldOfInside(p.getUuid());
         if (inside != null && world != null) {
             var w = Mc.world(Ac.server(), world);
-            if (w != null) {
-                Mc.teleport(p, w, inside.x(), inside.y(), inside.z(), p.getYaw(), p.getPitch());
+            Barrier b = null;
+            for (Barrier x : Ac.get().barriers.list()) {
+                if (Boolean.TRUE.equals(x.sides.get(p.getUuid()))) {
+                    b = x;
+                }
             }
+            boolean already = b != null && b.contains(Mc.worldId(p.getEntityWorld()), p.getX(), p.getY(), p.getZ());
+            if (w != null && !already) {
+                sendTo(p, w, inside);
+            }
+        }
+    }
+
+    private static final java.util.Map<java.util.UUID, Long> TOLD = new java.util.HashMap<>();
+
+    /** Moves a player to a spot, standing safely on the ground there (barrier walls go from bedrock to sky). */
+    public static void sendTo(ServerPlayerEntity p, net.minecraft.server.world.ServerWorld w, Vec3 to) {
+        int x = (int) Math.floor(to.x());
+        int z = (int) Math.floor(to.z());
+        double y = to.y();
+        net.minecraft.util.math.BlockPos feet = net.minecraft.util.math.BlockPos.ofFloored(to.x(), to.y(), to.z());
+        boolean standable = w.getBlockState(feet).getCollisionShape(w, feet).isEmpty()
+                && w.getBlockState(feet.up()).getCollisionShape(w, feet.up()).isEmpty()
+                && !w.getBlockState(feet.down()).getCollisionShape(w, feet.down()).isEmpty();
+        if (!standable) {
+            y = w.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
+        }
+        Mc.teleport(p, w, x + 0.5, y, z + 0.5, p.getYaw(), p.getPitch());
+        long now = System.currentTimeMillis();
+        Long last = TOLD.get(p.getUuid());
+        if (last == null || now - last > 10_000) {
+            TOLD.put(p.getUuid(), now);
+            com.vylorq.anticheat.util.Msg.actionBar(p, com.vylorq.anticheat.util.Msg.trFor(p, "barrier.moved-back"));
         }
     }
 }

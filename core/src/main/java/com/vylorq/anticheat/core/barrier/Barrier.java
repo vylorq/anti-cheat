@@ -27,6 +27,8 @@ public final class Barrier {
     public double radius;
     public boolean adminsPass = true;
     public boolean blockProjectiles = true;
+    /** Which side players belong on the first time they're seen: "inside", "outside", or "auto" (the side the world spawn is on). */
+    public String newPlayers = "auto";
     public long createdAt;
     public long expiresAt = Durations.PERMANENT;
     public String createdBy;
