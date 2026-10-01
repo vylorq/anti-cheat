@@ -382,7 +382,8 @@ public final class TeamCommands {
             p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(sub)));
             p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(title).formatted(Formatting.GOLD)));
             p.sendMessage(Text.literal("§6§l" + title.replaceAll("§.", "") + " §r§f" + sub));
-            p.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), SoundCategory.MASTER, 1f, 1.2f);
+            p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_PLING,
+                    SoundCategory.MASTER, p.getX(), p.getY(), p.getZ(), 1f, 1.2f, p.getRandom().nextLong()));
         }
     }
 
