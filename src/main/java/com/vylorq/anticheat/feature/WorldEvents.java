@@ -41,9 +41,8 @@ import java.util.UUID;
  * Server-wide events, started by hand ({@code /events start <id>}) or on a schedule.
  * <ul>
  * <li><b>Scary</b> (only for players who accepted the scare warning): Blood Moon (every few days at nightfall),
- * Lockdown (everyone locked in the Locked Box), The Hunt (the Watcher chooses one player), Whispers.</li>
- * <li><b>Good</b>: Golden Hour (haste, speed, regeneration), Gift Rain, Treasure Hunt (a chest of loot to find,
- * with hot/cold hints).</li>
+ * Lockdown (everyone locked in the Locked Box).</li>
+ * <li><b>Good</b>: Golden Hour (haste, speed, regeneration).</li>
  * </ul>
  * One event at a time. Every effect of the scary ones is fake and per player, like the Watcher; the good ones give
  * real effects and items.
@@ -55,11 +54,7 @@ public final class WorldEvents {
     public enum Kind {
         BLOOD_MOON(true, 600, BossBar.Color.RED),
         LOCKDOWN(true, 300, BossBar.Color.RED),
-        THE_HUNT(true, 180, BossBar.Color.PURPLE),
-        WHISPERS(true, 300, BossBar.Color.PURPLE),
-        GOLDEN_HOUR(false, 600, BossBar.Color.YELLOW),
-        GIFT_RAIN(false, 300, BossBar.Color.GREEN),
-        TREASURE_HUNT(false, 600, BossBar.Color.BLUE);
+        GOLDEN_HOUR(false, 600, BossBar.Color.YELLOW);
 
         public final boolean scary;
         public final int seconds;
@@ -96,10 +91,7 @@ public final class WorldEvents {
     private static int elapsed;
     private static ServerBossBar bar;
     private static String startedBy;
-    private static UUID hunted;
     private static boolean tempLockBox;
-    private static BlockPos treasure;
-    private static String treasureWorld;
 
     private static AcConfig.Events cfg() {
         return Ac.config().events;
@@ -133,13 +125,7 @@ public final class WorldEvents {
     }
 
     public static void register() {
-        UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
-            if (active == Kind.TREASURE_HUNT && treasure != null && hit.getBlockPos().equals(treasure)
-                    && player instanceof ServerPlayerEntity p && Mc.worldId(world).equals(treasureWorld)) {
-                treasureFound(p);
-            }
-            return ActionResult.PASS;
-        });
+        // Nothing to hook yet (kept for future events).
     }
 
     // ---------------------------------------------------------------- start / stop
@@ -152,18 +138,8 @@ public final class WorldEvents {
         if (active != null) {
             return "events.already";
         }
-        if (k == Kind.THE_HUNT) {
-            List<ServerPlayerEntity> pool = brave();
-            if (pool.isEmpty()) {
-                return "events.nobody";
-            }
-            hunted = pool.get(RANDOM.nextInt(pool.size())).getUuid();
-        }
-        if ((k == Kind.BLOOD_MOON || k == Kind.LOCKDOWN || k == Kind.WHISPERS) && brave().isEmpty()) {
+        if ((k == Kind.BLOOD_MOON || k == Kind.LOCKDOWN) && brave().isEmpty()) {
             return "events.nobody";
-        }
-        if (k == Kind.TREASURE_HUNT && !placeTreasure()) {
-            return "events.no-spot";
         }
         active = k;
         elapsed = 0;
@@ -185,13 +161,6 @@ public final class WorldEvents {
                 }
             }
             case LOCKDOWN -> startLockdown();
-            case THE_HUNT -> {
-                ServerPlayerEntity chosen = Ac.server().getPlayerManager().getPlayer(hunted);
-                String name = chosen == null ? "?" : chosen.getGameProfile().name();
-                for (ServerPlayerEntity p : brave()) {
-                    Msg.send(p, "events.hunt-chosen", name);
-                }
-            }
             default -> {
             }
         }
@@ -225,24 +194,6 @@ public final class WorldEvents {
                     LockedBox.remove(null);
                     tempLockBox = false;
                 }
-            }
-            case THE_HUNT -> {
-                ServerPlayerEntity p = hunted == null ? null : Ac.server().getPlayerManager().getPlayer(hunted);
-                if (p != null && !"stopped".equals(why)) {
-                    give(p, new ItemStack(Items.DIAMOND, 3));
-                    Msg.send(p, "events.hunt-survived");
-                }
-                hunted = null;
-            }
-            case TREASURE_HUNT -> {
-                ServerWorld w = treasureWorld == null ? null : Mc.world(Ac.server(), treasureWorld);
-                if (w != null && treasure != null && !"found".equals(why) && w.getBlockState(treasure).isOf(Blocks.CHEST)) {
-                    if (w.getBlockEntity(treasure) instanceof ChestBlockEntity c) {
-                        c.clear();
-                    }
-                    w.setBlockState(treasure, Blocks.AIR.getDefaultState());
-                }
-                treasure = null;
             }
             default -> {
             }
@@ -293,11 +244,7 @@ public final class WorldEvents {
         switch (active) {
             case BLOOD_MOON -> bloodMoon();
             case LOCKDOWN -> lockdown();
-            case THE_HUNT -> hunt();
-            case WHISPERS -> whispers();
             case GOLDEN_HOUR -> goldenHour();
-            case GIFT_RAIN -> giftRain();
-            case TREASURE_HUNT -> treasureHint();
         }
         if (active != null && elapsed >= active.seconds) {
             stop("time");
@@ -353,8 +300,6 @@ public final class WorldEvents {
 
     private static final WatcherEffect[] SCARES = {WatcherEffect.APPEAR, WatcherEffect.CLOSER, WatcherEffect.JUMPSCARE,
             WatcherEffect.BEHIND_YOU, WatcherEffect.FOOTSTEPS, WatcherEffect.TURN_AROUND, WatcherEffect.BLACKOUT};
-    private static final WatcherEffect[] QUIET = {WatcherEffect.FOOTSTEPS, WatcherEffect.WHISPER, WatcherEffect.KNOCKING,
-            WatcherEffect.OWN_VOICE, WatcherEffect.MESSAGE, WatcherEffect.SILENCE};
 
     private static void scare(ServerPlayerEntity p, WatcherEffect[] pool) {
         if (Watcher.busy(p.getUuid())) {
@@ -415,34 +360,6 @@ public final class WorldEvents {
         }
     }
 
-    private static void hunt() {
-        ServerPlayerEntity p = hunted == null ? null : Ac.server().getPlayerManager().getPlayer(hunted);
-        if (p == null) {
-            stop("left");
-            return;
-        }
-        if (elapsed % 20 == 5) {
-            scare(p, SCARES);
-        }
-        if (elapsed % 4 == 0) {
-            sound(p, SoundEvents.ENTITY_WARDEN_HEARTBEAT, p.getEyePos(), 0.7f, 0.7f + elapsed / 300f);
-        }
-        p.sendMessage(Text.literal(Msg.trFor(p, "events.hunt-bar", secondsLeft())), true);
-        for (ServerPlayerEntity o : brave()) {
-            if (o != p && RANDOM.nextInt(60) == 0) {
-                distantScream(o);
-            }
-        }
-    }
-
-    private static void whispers() {
-        for (ServerPlayerEntity p : brave()) {
-            if (RANDOM.nextInt(20) == 0) {
-                scare(p, QUIET);
-            }
-        }
-    }
-
     // ---------------------------------------------------------------- good
 
     private static void goldenHour() {
@@ -455,77 +372,6 @@ public final class WorldEvents {
             p.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 30 * 20, 0, true, true));
             p.addStatusEffect(new StatusEffectInstance(StatusEffects.LUCK, 30 * 20, 0, true, true));
         }
-    }
-
-    private static void giftRain() {
-        if (elapsed % 30 != 5) {
-            return;
-        }
-        for (ServerPlayerEntity p : players()) {
-            ItemStack gift = switch (RANDOM.nextInt(20)) {
-                case 0 -> new ItemStack(Items.DIAMOND);
-                case 1 -> new ItemStack(Items.GOLDEN_APPLE);
-                case 2, 3 -> new ItemStack(Items.EMERALD, 2);
-                case 4, 5, 6 -> new ItemStack(Items.IRON_INGOT, 4);
-                case 7, 8 -> new ItemStack(Items.GOLD_INGOT, 3);
-                case 9, 10, 11 -> new ItemStack(Items.EXPERIENCE_BOTTLE, 8);
-                case 12, 13, 14 -> new ItemStack(Items.COOKED_BEEF, 4);
-                default -> new ItemStack(Items.BREAD, 8);
-            };
-            Msg.actionBar(p, Msg.trFor(p, "events.gift", gift.getCount() + " " + gift.getName().getString()));
-            give(p, gift);
-            sound(p, SoundEvents.ENTITY_ITEM_PICKUP, p.getEyePos(), 0.8f, 1.2f);
-        }
-    }
-
-    private static boolean placeTreasure() {
-        ServerWorld w = Ac.server().getOverworld();
-        BlockPos s = Mc.worldSpawn(Ac.server());
-        for (int tries = 0; tries < 30; tries++) {
-            double a = RANDOM.nextDouble() * Math.PI * 2;
-            int dist = 40 + RANDOM.nextInt(80);
-            int x = s.getX() + (int) (Math.cos(a) * dist);
-            int z = s.getZ() + (int) (Math.sin(a) * dist);
-            int y = w.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
-            BlockPos pos = new BlockPos(x, y, z);
-            if (!w.getFluidState(pos.down()).isEmpty() || !w.getBlockState(pos).isAir() || LobbyFeature.in(w, pos)) {
-                continue;
-            }
-            w.setBlockState(pos, Blocks.CHEST.getDefaultState());
-            if (w.getBlockEntity(pos) instanceof ChestBlockEntity c) {
-                ItemStack[] loot = {new ItemStack(Items.DIAMOND, 3), new ItemStack(Items.GOLDEN_APPLE, 2), new ItemStack(Items.EMERALD, 8),
-                        new ItemStack(Items.IRON_INGOT, 16), new ItemStack(Items.EXPERIENCE_BOTTLE, 16), new ItemStack(Items.ENDER_PEARL, 4)};
-                for (int i = 0; i < loot.length; i++) {
-                    c.setStack(4 + i * 3 % 27, loot[i]);
-                }
-            }
-            treasure = pos;
-            treasureWorld = Mc.worldId(w);
-            return true;
-        }
-        return false;
-    }
-
-    private static void treasureHint() {
-        if (treasure == null) {
-            return;
-        }
-        for (ServerPlayerEntity p : players()) {
-            if (!Mc.worldId(p.getEntityWorld()).equals(treasureWorld)) {
-                continue;
-            }
-            double d = Math.sqrt(p.getBlockPos().getSquaredDistance(treasure));
-            String key = d < 10 ? "events.treasure-burning" : d < 30 ? "events.treasure-hot" : d < 70 ? "events.treasure-warm" : "events.treasure-cold";
-            Msg.actionBar(p, Msg.trFor(p, key, (int) Math.round(d / 10) * 10));
-        }
-    }
-
-    private static void treasureFound(ServerPlayerEntity p) {
-        String name = p.getGameProfile().name();
-        for (ServerPlayerEntity o : players()) {
-            o.sendMessage(Msg.prefixed(Msg.trFor(o, "events.treasure-found", name)));
-        }
-        stop("found");
     }
 
     // ---------------------------------------------------------------- helpers

@@ -823,7 +823,7 @@ public final class AntiCheatGameTests {
                 "a scary event started with nobody to scare");
         check(com.vylorq.anticheat.feature.WorldEvents.start(com.vylorq.anticheat.feature.WorldEvents.Kind.GOLDEN_HOUR, "test") == null,
                 "golden hour didn't start");
-        check(com.vylorq.anticheat.feature.WorldEvents.start(com.vylorq.anticheat.feature.WorldEvents.Kind.GIFT_RAIN, "test") != null,
+        check(com.vylorq.anticheat.feature.WorldEvents.start(com.vylorq.anticheat.feature.WorldEvents.Kind.GOLDEN_HOUR, "test") != null,
                 "two events at once");
         for (int i = 0; i < 25; i++) {
             com.vylorq.anticheat.feature.WorldEvents.tick(ctx.getWorld().getServer());
@@ -831,12 +831,6 @@ public final class AntiCheatGameTests {
         check(com.vylorq.anticheat.feature.WorldEvents.secondsLeft() > 0, "event ended too early");
         com.vylorq.anticheat.feature.WorldEvents.stop("stopped");
         check(com.vylorq.anticheat.feature.WorldEvents.active() == null, "event didn't stop");
-
-        String err = com.vylorq.anticheat.feature.WorldEvents.start(com.vylorq.anticheat.feature.WorldEvents.Kind.TREASURE_HUNT, "test");
-        if (err == null) {
-            com.vylorq.anticheat.feature.WorldEvents.stop("stopped");
-        }
-        check(com.vylorq.anticheat.feature.WorldEvents.active() == null, "treasure hunt didn't stop");
 
         var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(ctx.getWorld(), new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "StatTester"));
         var row = com.vylorq.anticheat.feature.PlayerStats.of(fake);
