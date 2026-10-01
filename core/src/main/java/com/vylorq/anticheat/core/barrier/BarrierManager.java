@@ -77,7 +77,7 @@ public final class BarrierManager {
         // Just outside the nearest wall.
         Vec3 p = near != null ? near : b.center();
         return switch (b.shape) {
-            case BOX -> {
+            case BOX, CUBE -> {
                 double toW = p.x() - b.minX;
                 double toE = b.maxX + 1 - p.x();
                 double toN = p.z() - b.minZ;
