@@ -1,6 +1,7 @@
 package com.vylorq.anticheat.mixin;
 
 import com.vylorq.anticheat.Ac;
+import com.vylorq.anticheat.feature.BuilderMode;
 import com.vylorq.anticheat.feature.Deaths;
 import com.vylorq.anticheat.perm.Perms;
 import com.vylorq.anticheat.util.Mc;
@@ -26,6 +27,20 @@ public abstract class ItemEntityMixin {
 
     @Shadow
     public abstract Entity getOwner();
+
+    /** Builders can't pass items to anyone, or pick up anything that isn't a building block. */
+    @Inject(method = "onPlayerCollision", at = @At("HEAD"), cancellable = true)
+    private void ac$builderItems(PlayerEntity player, CallbackInfo ci) {
+        if (!Ac.running() || !(player instanceof ServerPlayerEntity p)) {
+            return;
+        }
+        if (getOwner() instanceof ServerPlayerEntity thrower && BuilderMode.is(thrower)) {
+            ci.cancel();
+            ((Entity) (Object) this).discard();
+        } else if (BuilderMode.is(p) && !BuilderMode.allowed(getStack())) {
+            ci.cancel();
+        }
+    }
 
     @Inject(method = "onPlayerCollision", at = @At("HEAD"))
     private void ac$pickup(PlayerEntity player, CallbackInfo ci) {

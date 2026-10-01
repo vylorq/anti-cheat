@@ -1326,5 +1326,20 @@
   "end.status-closed": "§eThe End is closed: stronghold portal rooms are hidden and eyes of ender don't work. §7/vigil end open",
   "end.opened": "§aThe End is open. Hidden portal rooms come back as players get near them.",
   "end.closed-now": "§eThe End is closed. Portal rooms disappear as players get near them.",
-  "end.portal-built": "§aEnd portal room built at {0}. It works even while the End is closed."
+  "end.portal-built": "§aEnd portal room built at {0}. It works even while the End is closed.",
+  "help.builder": "Temporary builder: creative with building blocks only",
+  "builder.you-are": "§aYou're a builder now: creative mode with building blocks only. Chests, containers, workstations and other items aren't available. Your things come back when it ends.",
+  "builder.ended": "§eBuilder mode ended. Your things are back.",
+  "builder.ended-staff": "§eBuilder mode for {0} ended.",
+  "builder.blocks-only": "§cBuilders can only use building blocks.",
+  "builder.lobby-only": "§cYou can only build in the lobby.",
+  "builder.not": "§c{0} isn't a builder.",
+  "builder.already": "§c{0} is already a builder or temporary admin.",
+  "builder.removed": "§aBuilder mode for {0} ended; their things are back.",
+  "builder.added": "§a{0} is a builder ({1}, {2}).",
+  "builder.where-lobby": "lobby only",
+  "builder.where-anywhere": "anywhere",
+  "builder.until-removed": "until removed",
+  "builder.none": "§7No builders.",
+  "builder.entry": "§f{0} §7- {1}, time left: {2}"
 }

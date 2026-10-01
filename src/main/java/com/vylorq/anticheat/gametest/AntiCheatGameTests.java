@@ -516,4 +516,46 @@ public final class AntiCheatGameTests {
         }
         ctx.complete();
     }
+
+    @GameTest
+    public void builderGetsBuildingBlocksOnly(TestContext ctx) {
+        var B = new Object() {
+            boolean ok(net.minecraft.item.Item item) {
+                return com.vylorq.anticheat.feature.BuilderMode.allowed(new net.minecraft.item.ItemStack(item));
+            }
+        };
+        check(B.ok(net.minecraft.item.Items.STONE) && B.ok(net.minecraft.item.Items.OAK_PLANKS) && B.ok(net.minecraft.item.Items.GLASS)
+                && B.ok(net.minecraft.item.Items.OAK_SIGN) && B.ok(net.minecraft.item.Items.OAK_STAIRS), "a building block was refused");
+        for (var bad : new net.minecraft.item.Item[]{net.minecraft.item.Items.CHEST, net.minecraft.item.Items.BARREL,
+                net.minecraft.item.Items.SHULKER_BOX, net.minecraft.item.Items.FURNACE, net.minecraft.item.Items.HOPPER,
+                net.minecraft.item.Items.CRAFTING_TABLE, net.minecraft.item.Items.ENDER_CHEST, net.minecraft.item.Items.TNT,
+                net.minecraft.item.Items.COMMAND_BLOCK, net.minecraft.item.Items.SPAWNER, net.minecraft.item.Items.DIAMOND_SWORD,
+                net.minecraft.item.Items.WATER_BUCKET, net.minecraft.item.Items.ENDER_PEARL, net.minecraft.item.Items.ZOMBIE_SPAWN_EGG}) {
+            check(!B.ok(bad), bad + " was allowed for a builder");
+        }
+
+        var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(ctx.getWorld(),
+                new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "BuilderTester"));
+        fake.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
+        fake.getInventory().clear();
+        fake.getInventory().setStack(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 7));
+        try {
+            com.vylorq.anticheat.feature.BuilderMode.start(null, fake, 0, false);
+            check(fake.isCreative() && fake.getInventory().getStack(0).isEmpty(), "builder mode didn't start cleanly");
+            fake.getInventory().setStack(1, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD));
+            fake.getInventory().setStack(2, new net.minecraft.item.ItemStack(net.minecraft.item.Items.STONE, 64));
+            check(com.vylorq.anticheat.feature.BuilderMode.sanitize(fake) == 1 && fake.getInventory().getStack(1).isEmpty()
+                    && fake.getInventory().getStack(2).isOf(net.minecraft.item.Items.STONE), "non-blocks weren't taken away");
+            BlockPos chest = ctx.getAbsolutePos(new BlockPos(1, 1, 1));
+            ctx.getWorld().setBlockState(chest, Blocks.CHEST.getDefaultState());
+            check(!com.vylorq.anticheat.feature.BuilderMode.mayUse(ctx.getWorld(), chest)
+                    && !com.vylorq.anticheat.feature.BuilderMode.mayBreak(ctx.getWorld(), chest), "builder could open or break a chest");
+        } finally {
+            com.vylorq.anticheat.feature.BuilderMode.end(null, fake);
+        }
+        check(!fake.isCreative() && fake.getInventory().getStack(0).isOf(net.minecraft.item.Items.DIAMOND)
+                && fake.getInventory().getStack(0).getCount() == 7 && fake.getInventory().getStack(2).isEmpty(),
+                "inventory or game mode didn't come back");
+        ctx.complete();
+    }
 }

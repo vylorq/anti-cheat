@@ -92,6 +92,10 @@ public final class Protection {
             if (locked(p)) {
                 return false;
             }
+            if (BuilderMode.is(p) && (!BuilderMode.mayBreak(w, pos) || !BuilderMode.mayBuildAt(p, w, pos))) {
+                BuilderMode.denied(p);
+                return false;
+            }
             if (!LobbyFeature.allowed(p, w, pos, Lobby.Action.BREAK) || !Claims.check(p, w, pos, ClaimAction.BREAK)) {
                 return false;
             }
@@ -146,11 +150,19 @@ public final class Protection {
             if (!Ac.running() || !(player instanceof ServerPlayerEntity p)) {
                 return ActionResult.PASS;
             }
+            if (BuilderMode.is(p)) {
+                BuilderMode.denied(p);
+                return ActionResult.FAIL;
+            }
             return useEntity(p, hand, entity);
         });
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
             if (!Ac.running() || !(player instanceof ServerPlayerEntity p)) {
                 return ActionResult.PASS;
+            }
+            if (BuilderMode.is(p)) {
+                BuilderMode.denied(p);
+                return ActionResult.FAIL;
             }
             return attackEntity(p, entity);
         });
@@ -302,6 +314,13 @@ public final class Protection {
         Ac ac = Ac.get();
         BlockPos pos = hit.getBlockPos();
         ItemStack stack = p.getStackInHand(hand);
+        if (BuilderMode.is(p) && (!BuilderMode.allowed(stack)
+                || (!BuilderMode.mayUse(w, pos) && !(p.isSneaking() && !stack.isEmpty())))) {
+            // Builders place blocks; they don't open containers or menus (sneaking places against them instead).
+            BuilderMode.denied(p);
+            p.playerScreenHandler.syncState();
+            return ActionResult.FAIL;
+        }
         if (stack.isOf(net.minecraft.item.Items.ENDER_EYE) && w.getBlockState(pos).isOf(Blocks.END_PORTAL_FRAME)
                 && !EndLock.allowedAt(w, pos)) {
             endClosed(p);
@@ -420,6 +439,11 @@ public final class Protection {
             return ActionResult.FAIL;
         }
         ItemStack stack = p.getStackInHand(hand);
+        if (BuilderMode.is(p) && !BuilderMode.allowed(stack)) {
+            BuilderMode.denied(p);
+            p.playerScreenHandler.syncState();
+            return ActionResult.FAIL;
+        }
         if (stack.isOf(Items.ENDER_EYE) && !EndLock.open()) {
             // Nothing to find while the End is closed.
             endClosed(p);
@@ -541,6 +565,10 @@ public final class Protection {
             return true;
         }
         if (locked(p)) {
+            return false;
+        }
+        if (BuilderMode.is(p) && !BuilderMode.mayBuildAt(p, w, pos)) {
+            Msg.actionBar(p, Msg.trFor(p, "builder.lobby-only"));
             return false;
         }
         if (!LobbyFeature.allowed(p, w, pos, Lobby.Action.PLACE) || !Claims.check(p, w, pos, ClaimAction.PLACE)) {
