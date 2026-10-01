@@ -15,6 +15,7 @@ public final class Tools {
     public static final String INSPECTOR = "inspector";
     public static final String BUILDER_WAND = "builder_wand";
     public static final String BUILDER_MENU = "builder_menu";
+    public static final String BUILDER_BRUSH = "builder_brush";
 
     private Tools() {
     }
@@ -54,6 +55,13 @@ public final class Tools {
         ItemStack s = Icons.glint(Icons.of(Items.NETHER_STAR, "§bBuilder Menu",
                 "Right-click: set, replace, walls, copy, paste,", "rotate, undo and saved builds"));
         ItemConv.setTag(s, KEY, BUILDER_MENU);
+        return s;
+    }
+
+    public static ItemStack builderBrush() {
+        ItemStack s = Icons.glint(Icons.of(Items.BLAZE_ROD, "§dBuilder Brush",
+                "Right-click: use the brush where you look", "(up to 120 blocks away)", "Change it in the Builder Menu"));
+        ItemConv.setTag(s, KEY, BUILDER_BRUSH);
         return s;
     }
 

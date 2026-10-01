@@ -89,6 +89,9 @@ public final class Ac {
         /** Temporary admins and the state to put back when their visit ends. */
         public Map<UUID, com.vylorq.anticheat.feature.TempAdmins.Grant> tempAdmins = new LinkedHashMap<>();
         public Map<UUID, com.vylorq.anticheat.feature.BuilderMode.Builder> builders = new LinkedHashMap<>();
+        public Map<UUID, com.vylorq.anticheat.feature.BuilderDrafts.Draft> drafts = new LinkedHashMap<>();
+        /** Everyone who has been a builder (so their logs can be found by name). */
+        public Map<UUID, String> builderNames = new LinkedHashMap<>();
         /** Language each player chose with /language ("auto" when missing). */
         public Map<UUID, String> languages = new LinkedHashMap<>();
         /** Admins who turned menu and message sounds off for themselves. */

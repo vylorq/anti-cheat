@@ -100,13 +100,49 @@ final class WorldCommands {
 
     // ---- Builder mode ----
 
+    /** A current or past builder by name. */
+    static java.util.UUID builderId(CommandContext<ServerCommandSource> ctx, String name) {
+        for (var e : Ac.get().misc.builderNames.entrySet()) {
+            if (e.getValue().equalsIgnoreCase(name)) {
+                return e.getKey();
+            }
+        }
+        ServerPlayerEntity online = Ac.server().getPlayerManager().getPlayer(name);
+        if (online != null && Ac.get().misc.builderNames.containsKey(online.getUuid())) {
+            return online.getUuid();
+        }
+        Msg.err(ctx.getSource(), "builder.unknown", name);
+        return null;
+    }
+
+    private static int ownerRun(CommandContext<ServerCommandSource> ctx, java.util.function.Consumer<java.util.UUID> then) {
+        if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) {
+            return 0;
+        }
+        java.util.UUID id = builderId(ctx, Args.str(ctx, "player"));
+        if (id == null) {
+            return 0;
+        }
+        then.accept(id);
+        return 1;
+    }
+
     private static void registerBuilder(CommandDispatcher<ServerCommandSource> d) {
+        var add = Args.player("player").executes(ctx -> addBuilder(ctx, null, false, false))
+                .then(literal("anywhere").executes(ctx -> addBuilder(ctx, null, true, false)))
+                .then(literal("live").executes(ctx -> addBuilder(ctx, null, false, true)))
+                .then(Args.word("time").executes(ctx -> addBuilder(ctx, Args.str(ctx, "time"), false, false))
+                        .then(literal("anywhere").executes(ctx -> addBuilder(ctx, Args.str(ctx, "time"), true, false)))
+                        .then(literal("live").executes(ctx -> addBuilder(ctx, Args.str(ctx, "time"), false, true))));
         d.register(literal("builder").requires(s -> Perms.visible(s, Perm.MANAGE_ADMINS))
-                .then(literal("add").then(Args.player("player")
-                        .executes(ctx -> addBuilder(ctx, null, false))
-                        .then(literal("anywhere").executes(ctx -> addBuilder(ctx, null, true)))
-                        .then(Args.word("time").executes(ctx -> addBuilder(ctx, Args.str(ctx, "time"), false))
-                                .then(literal("anywhere").executes(ctx -> addBuilder(ctx, Args.str(ctx, "time"), true))))))
+                .executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.MANAGE_ADMINS);
+                    if (p != null) {
+                        com.vylorq.anticheat.gui.BuilderAdminMenu.open(p);
+                    }
+                    return 1;
+                })
+                .then(literal("add").then(add))
                 .then(literal("remove").then(Args.player("player").executes(ctx -> {
                     if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
                     ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
@@ -123,14 +159,101 @@ final class WorldCommands {
                     var all = Ac.get().misc.builders.values();
                     if (all.isEmpty()) {
                         Msg.ok(ctx.getSource(), "builder.none");
-                        return 1;
                     }
                     for (var b : all) {
                         String left = b.until > 0 ? Durations.format(Math.max(0, b.until - System.currentTimeMillis())) : "-";
-                        Msg.ok(ctx.getSource(), "builder.entry", b.name, b.anywhere ? "anywhere" : "lobby", left);
+                        Msg.ok(ctx.getSource(), "builder.entry", b.name, b.anywhere ? "anywhere" : b.draft ? "draft" : "lobby", left);
+                    }
+                    for (var e : com.vylorq.anticheat.feature.BuilderDrafts.all().values()) {
+                        Msg.ok(ctx.getSource(), "draft.entry", e.name, e.submitted ? Msg.tr("draft.waiting") : Msg.tr("draft.in-progress"));
                     }
                     return 1;
-                })));
+                }))
+                .then(literal("menu").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.MANAGE_ADMINS);
+                    if (p != null) {
+                        com.vylorq.anticheat.gui.BuilderAdminMenu.open(p);
+                    }
+                    return 1;
+                }))
+                .then(literal("log").then(Args.player("player")
+                        .executes(ctx -> ownerRun(ctx, id -> com.vylorq.anticheat.gui.BuilderAdminMenu.sendSummary(ctx.getSource(), id, 0)))
+                        .then(literal("recent").executes(ctx -> ownerRun(ctx, id ->
+                                com.vylorq.anticheat.gui.BuilderAdminMenu.sendRecent(ctx.getSource(), id, 20))))
+                        .then(Args.word("time").executes(ctx -> ownerRun(ctx, id -> {
+                            OptionalLong dur = Args.duration(ctx.getSource(), Args.str(ctx, "time"));
+                            if (dur.isPresent()) {
+                                com.vylorq.anticheat.gui.BuilderAdminMenu.sendSummary(ctx.getSource(), id, System.currentTimeMillis() - dur.getAsLong());
+                            }
+                        })))))
+                .then(literal("undo").then(Args.player("player").then(Args.word("time").executes(ctx -> ownerRun(ctx, id -> {
+                    OptionalLong dur = Args.duration(ctx.getSource(), Args.str(ctx, "time"));
+                    if (dur.isPresent()) {
+                        int n = com.vylorq.anticheat.feature.BuilderLog.undoSince(ctx.getSource().getPlayer(), id,
+                                System.currentTimeMillis() - dur.getAsLong());
+                        Msg.ok(ctx.getSource(), "builder.undoing", n);
+                    }
+                })))))
+                .then(literal("watch").then(Args.player("player").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.MANAGE_ADMINS);
+                    ServerPlayerEntity t = p == null ? null : Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
+                    if (t == null) return 0;
+                    com.vylorq.anticheat.gui.BuilderAdminMenu.watch(p, t);
+                    return 1;
+                })))
+                .then(literal("review").then(Args.player("player").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.MANAGE_ADMINS);
+                    java.util.UUID id = p == null ? null : builderId(ctx, Args.str(ctx, "player"));
+                    if (id == null) return 0;
+                    if (!com.vylorq.anticheat.feature.BuilderDrafts.review(p, id)) {
+                        Msg.err(ctx.getSource(), "draft.none-for", Args.str(ctx, "player"));
+                    }
+                    return 1;
+                })))
+                .then(literal("approve").then(Args.player("player").executes(ctx -> ownerRun(ctx, id -> {
+                    if (com.vylorq.anticheat.feature.BuilderDrafts.approve(ctx.getSource().getPlayer(), id)) {
+                        Msg.ok(ctx.getSource(), "draft.approving", Args.str(ctx, "player"));
+                    } else {
+                        Msg.err(ctx.getSource(), "draft.none-for", Args.str(ctx, "player"));
+                    }
+                }))))
+                .then(literal("reject").then(Args.player("player").executes(ctx -> ownerRun(ctx, id -> {
+                    if (com.vylorq.anticheat.feature.BuilderDrafts.reject(ctx.getSource().getPlayer(), id)) {
+                        Msg.ok(ctx.getSource(), "draft.rejecting", Args.str(ctx, "player"));
+                    } else {
+                        Msg.err(ctx.getSource(), "draft.none-for", Args.str(ctx, "player"));
+                    }
+                }))))
+                .then(literal("discard").then(Args.player("player").executes(ctx -> ownerRun(ctx, id -> {
+                    com.vylorq.anticheat.feature.BuilderDrafts.discard(id);
+                    Msg.ok(ctx.getSource(), "draft.discarded", Args.str(ctx, "player"));
+                }))))
+                .then(literal("backups").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
+                    var list = com.vylorq.anticheat.feature.BuilderDrafts.backups();
+                    Msg.ok(ctx.getSource(), list.isEmpty() ? "backup.none" : "backup.list", String.join(", ", list));
+                    return 1;
+                }))
+                .then(literal("backup").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
+                    String name = com.vylorq.anticheat.feature.BuilderDrafts.backup("manual");
+                    if (name == null) {
+                        Msg.err(ctx.getSource(), "backup.failed");
+                        return 0;
+                    }
+                    Msg.ok(ctx.getSource(), "backup.saved", name);
+                    return 1;
+                }))
+                .then(literal("restore").then(Args.word("name").executes(ctx -> {
+                    if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
+                    int n = com.vylorq.anticheat.feature.BuilderDrafts.restore(ctx.getSource().getPlayer(), Args.str(ctx, "name"));
+                    if (n < 0) {
+                        Msg.err(ctx.getSource(), "backup.not-found", Args.str(ctx, "name"));
+                        return 0;
+                    }
+                    Msg.ok(ctx.getSource(), "backup.restored", Args.str(ctx, "name"), n);
+                    return 1;
+                }))));
     }
 
     private static ServerPlayerEntity builderSelf(CommandContext<ServerCommandSource> ctx) {
@@ -142,18 +265,21 @@ final class WorldCommands {
         return p;
     }
 
-    private static int withBlock(CommandContext<ServerCommandSource> ctx, String arg,
-                                 java.util.function.BiConsumer<ServerPlayerEntity, net.minecraft.block.BlockState> then) {
+    /** Runs with a block mix from the argument ("hotbar" = the blocks in the hotbar). */
+    private static int withPattern(CommandContext<ServerCommandSource> ctx, String arg,
+                                   java.util.function.BiConsumer<ServerPlayerEntity, com.vylorq.anticheat.feature.BuilderTools.Pattern> then) {
         ServerPlayerEntity p = builderSelf(ctx);
         if (p == null) {
             return 0;
         }
-        var state = com.vylorq.anticheat.feature.BuilderTools.block(Args.str(ctx, arg));
-        if (state == null) {
-            Msg.err(ctx.getSource(), "build.unknown-block", Args.str(ctx, arg));
+        String text = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, arg);
+        var pat = text.equalsIgnoreCase("hotbar") ? com.vylorq.anticheat.feature.BuilderTools.hotbarMix(p)
+                : com.vylorq.anticheat.feature.BuilderTools.pattern(text);
+        if (pat == null) {
+            Msg.err(ctx.getSource(), "build.unknown-block", text);
             return 0;
         }
-        then.accept(p, state);
+        then.accept(p, pat);
         return 1;
     }
 
@@ -166,8 +292,30 @@ final class WorldCommands {
         return 1;
     }
 
+    private static com.mojang.brigadier.builder.RequiredArgumentBuilder<ServerCommandSource, String> blocks() {
+        return CommandManager.argument("blocks", com.mojang.brigadier.arguments.StringArgumentType.greedyString());
+    }
+
+    private static com.mojang.brigadier.builder.RequiredArgumentBuilder<ServerCommandSource, Integer> num(String name) {
+        return CommandManager.argument(name, com.mojang.brigadier.arguments.IntegerArgumentType.integer(1,
+                com.vylorq.anticheat.feature.BuilderTools.MAX_RADIUS));
+    }
+
+    private static int n(CommandContext<ServerCommandSource> ctx, String name) {
+        return com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, name);
+    }
+
     /** /build: the builder tools (for builders and the owner). */
     private static void registerBuild(CommandDispatcher<ServerCommandSource> d) {
+        var T = new Object() {
+            com.vylorq.anticheat.feature.BuilderTools.BrushMode mode(String s) {
+                try {
+                    return com.vylorq.anticheat.feature.BuilderTools.BrushMode.valueOf(s.toUpperCase(java.util.Locale.ROOT));
+                } catch (IllegalArgumentException e) {
+                    return null;
+                }
+            }
+        };
         d.register(literal("build").requires(s -> s.getPlayer() == null ? Mc.hasLevel(s, 3)
                         : com.vylorq.anticheat.feature.BuilderTools.canUse(s.getPlayer()))
                 .executes(ctx -> builderRun(ctx, com.vylorq.anticheat.gui.BuilderMenu::open))
@@ -181,23 +329,59 @@ final class WorldCommands {
                 .then(literal("pos2").executes(ctx -> builderRun(ctx, p ->
                         com.vylorq.anticheat.feature.BuilderTools.corner(p, (ServerWorld) p.getEntityWorld(), p.getBlockPos(), false))))
                 .then(literal("clear").executes(ctx -> builderRun(ctx, com.vylorq.anticheat.feature.BuilderTools::clear)))
-                .then(literal("set").then(Args.word("block").executes(ctx -> withBlock(ctx, "block",
-                        com.vylorq.anticheat.feature.BuilderTools::set))))
-                .then(literal("walls").then(Args.word("block").executes(ctx -> withBlock(ctx, "block",
-                        com.vylorq.anticheat.feature.BuilderTools::walls))))
-                .then(literal("replace").then(Args.word("from").then(Args.word("to").executes(ctx -> {
+                .then(literal("set").then(blocks().executes(ctx -> withPattern(ctx, "blocks", com.vylorq.anticheat.feature.BuilderTools::set))))
+                .then(literal("walls").then(blocks().executes(ctx -> withPattern(ctx, "blocks", com.vylorq.anticheat.feature.BuilderTools::walls))))
+                .then(literal("hollow").then(blocks().executes(ctx -> withPattern(ctx, "blocks", com.vylorq.anticheat.feature.BuilderTools::hollow))))
+                .then(literal("line").then(blocks().executes(ctx -> withPattern(ctx, "blocks", com.vylorq.anticheat.feature.BuilderTools::line))))
+                .then(literal("replace").then(Args.word("from").then(blocks().executes(ctx -> {
                     var from = com.vylorq.anticheat.feature.BuilderTools.block(Args.str(ctx, "from"));
                     if (from == null) {
                         Msg.err(ctx.getSource(), "build.unknown-block", Args.str(ctx, "from"));
                         return 0;
                     }
-                    return withBlock(ctx, "to", (p, to) -> com.vylorq.anticheat.feature.BuilderTools.replace(p, from.getBlock(), to));
+                    return withPattern(ctx, "blocks", (p, pat) -> com.vylorq.anticheat.feature.BuilderTools.replace(p, from.getBlock(), pat));
                 }))))
+                .then(literal("sphere").then(num("radius").then(blocks().executes(ctx -> withPattern(ctx, "blocks", (p, pat) ->
+                        com.vylorq.anticheat.feature.BuilderTools.sphere(p, pat, n(ctx, "radius"), false))))))
+                .then(literal("hsphere").then(num("radius").then(blocks().executes(ctx -> withPattern(ctx, "blocks", (p, pat) ->
+                        com.vylorq.anticheat.feature.BuilderTools.sphere(p, pat, n(ctx, "radius"), true))))))
+                .then(literal("cyl").then(num("radius").then(num("height").then(blocks().executes(ctx -> withPattern(ctx, "blocks", (p, pat) ->
+                        com.vylorq.anticheat.feature.BuilderTools.cylinder(p, pat, n(ctx, "radius"), n(ctx, "height"), false)))))))
+                .then(literal("hcyl").then(num("radius").then(num("height").then(blocks().executes(ctx -> withPattern(ctx, "blocks", (p, pat) ->
+                        com.vylorq.anticheat.feature.BuilderTools.cylinder(p, pat, n(ctx, "radius"), n(ctx, "height"), true)))))))
+                .then(literal("pyramid").then(num("size").then(blocks().executes(ctx -> withPattern(ctx, "blocks", (p, pat) ->
+                        com.vylorq.anticheat.feature.BuilderTools.pyramid(p, pat, n(ctx, "size"), false))))))
+                .then(literal("hpyramid").then(num("size").then(blocks().executes(ctx -> withPattern(ctx, "blocks", (p, pat) ->
+                        com.vylorq.anticheat.feature.BuilderTools.pyramid(p, pat, n(ctx, "size"), true))))))
+                .then(literal("brush").then(Args.word("mode").then(num("radius")
+                        .executes(ctx -> builderRun(ctx, p -> {
+                            var m = T.mode(Args.str(ctx, "mode"));
+                            if (m == null) {
+                                Msg.err(ctx.getSource(), "build.bad-brush");
+                            } else {
+                                com.vylorq.anticheat.feature.BuilderTools.setBrush(p, m, null, n(ctx, "radius"));
+                            }
+                        }))
+                        .then(blocks().executes(ctx -> withPattern(ctx, "blocks", (p, pat) -> {
+                            var m = T.mode(Args.str(ctx, "mode"));
+                            if (m == null) {
+                                Msg.err(ctx.getSource(), "build.bad-brush");
+                            } else {
+                                com.vylorq.anticheat.feature.BuilderTools.setBrush(p, m, pat, n(ctx, "radius"));
+                            }
+                        }))))))
                 .then(literal("copy").executes(ctx -> builderRun(ctx, com.vylorq.anticheat.feature.BuilderTools::copy)))
                 .then(literal("paste").executes(ctx -> builderRun(ctx, p -> com.vylorq.anticheat.feature.BuilderTools.paste(p, true)))
-                        .then(literal("noair").executes(ctx -> builderRun(ctx, p -> com.vylorq.anticheat.feature.BuilderTools.paste(p, false)))))
+                        .then(literal("noair").executes(ctx -> builderRun(ctx, p -> com.vylorq.anticheat.feature.BuilderTools.paste(p, false))))
+                        .then(literal("now").executes(ctx -> builderRun(ctx, p -> com.vylorq.anticheat.feature.BuilderTools.pasteNow(p, true)))
+                                .then(literal("noair").executes(ctx -> builderRun(ctx, p -> com.vylorq.anticheat.feature.BuilderTools.pasteNow(p, false))))))
+                .then(literal("confirm").executes(ctx -> builderRun(ctx, com.vylorq.anticheat.feature.BuilderTools::confirmPaste)))
+                .then(literal("cancel").executes(ctx -> builderRun(ctx, com.vylorq.anticheat.feature.BuilderTools::cancelPaste)))
                 .then(literal("rotate").executes(ctx -> builderRun(ctx, com.vylorq.anticheat.feature.BuilderTools::rotate)))
+                .then(literal("flip").then(literal("x").executes(ctx -> builderRun(ctx, p -> com.vylorq.anticheat.feature.BuilderTools.flip(p, true))))
+                        .then(literal("z").executes(ctx -> builderRun(ctx, p -> com.vylorq.anticheat.feature.BuilderTools.flip(p, false)))))
                 .then(literal("undo").executes(ctx -> builderRun(ctx, com.vylorq.anticheat.feature.BuilderTools::undo)))
+                .then(literal("submit").executes(ctx -> builderRun(ctx, com.vylorq.anticheat.feature.BuilderDrafts::submit)))
                 .then(literal("builds").executes(ctx -> builderRun(ctx, p -> {
                     var files = com.vylorq.anticheat.feature.BuildFiles.list();
                     Msg.ok(ctx.getSource(), files.isEmpty() ? "build.menu.no-builds" : "build.list", String.join(", ", files.keySet()));
@@ -212,7 +396,7 @@ final class WorldCommands {
                                 com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "link"), Args.str(ctx, "name"))))))));
     }
 
-    private static int addBuilder(CommandContext<ServerCommandSource> ctx, String time, boolean anywhere) {
+    private static int addBuilder(CommandContext<ServerCommandSource> ctx, String time, boolean anywhere, boolean live) {
         if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) {
             return 0;
         }
@@ -232,8 +416,10 @@ final class WorldCommands {
             Msg.err(ctx.getSource(), "builder.already", t.getGameProfile().name());
             return 0;
         }
-        com.vylorq.anticheat.feature.BuilderMode.start(ctx.getSource().getPlayer(), t, ms, anywhere);
-        String where = anywhere || Ac.get().lobby.data().area == null ? Msg.tr("builder.where-anywhere") : Msg.tr("builder.where-lobby");
+        com.vylorq.anticheat.feature.BuilderMode.start(ctx.getSource().getPlayer(), t, ms, anywhere, live);
+        var b = com.vylorq.anticheat.feature.BuilderMode.get(t.getUuid());
+        String where = anywhere || Ac.get().lobby.data().area == null ? Msg.tr("builder.where-anywhere")
+                : b != null && b.draft ? Msg.tr("builder.where-draft") : Msg.tr("builder.where-lobby");
         Msg.ok(ctx.getSource(), "builder.added", t.getGameProfile().name(), where,
                 ms > 0 ? Durations.format(ms) : Msg.tr("builder.until-removed"));
         return 1;

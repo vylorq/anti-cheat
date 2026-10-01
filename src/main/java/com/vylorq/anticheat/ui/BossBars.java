@@ -21,6 +21,7 @@ public final class BossBars {
 
     /** Higher wins when two want the screen at once. */
     public enum Kind {
+        BUILDER(0, BossBar.Color.BLUE),
         CLAIM(1, BossBar.Color.GREEN),
         JAIL(2, BossBar.Color.WHITE),
         MAINTENANCE(3, BossBar.Color.YELLOW),

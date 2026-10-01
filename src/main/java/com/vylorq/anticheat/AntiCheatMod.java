@@ -44,10 +44,14 @@ public final class AntiCheatMod implements ModInitializer {
                 }
             }
         });
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> Ac.stop());
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+            com.vylorq.anticheat.feature.BuilderLog.closeAll();
+            Ac.stop();
+        });
         ServerTickEvents.END_SERVER_TICK.register(Ticker::tick);
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> Commands.register(dispatcher));
         Protection.register();
+        com.vylorq.anticheat.feature.BuilderLog.register();
         com.vylorq.anticheat.feature.Watcher.register();
         net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register(
                 (handler, server) -> com.vylorq.anticheat.ui.BossBars.forget(handler.player.getUuid()));

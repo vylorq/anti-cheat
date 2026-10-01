@@ -46,7 +46,11 @@ public final class BuilderMode {
         public long until;
         /** Build anywhere, not just in the lobby. */
         public boolean anywhere;
+        /** Builds in a draft copy of the lobby that the owner approves (instead of the real lobby). */
+        public boolean draft;
         public PlayerSnapshot snapshot;
+        /** Time warnings already given (5 minutes, 1 minute). */
+        public int warned;
     }
 
     /** Blocks that aren't allowed even though they're blocks. */
@@ -78,7 +82,7 @@ public final class BuilderMode {
             return true;
         }
         String tool = Tools.toolOf(stack);
-        if (Tools.BUILDER_WAND.equals(tool) || Tools.BUILDER_MENU.equals(tool)) {
+        if (Tools.BUILDER_WAND.equals(tool) || Tools.BUILDER_MENU.equals(tool) || Tools.BUILDER_BRUSH.equals(tool)) {
             return true;
         }
         if (!(stack.getItem() instanceof BlockItem bi)) {
@@ -123,13 +127,28 @@ public final class BuilderMode {
     /** Whether a builder may build here: in the lobby when one is set (unless they may build anywhere). */
     public static boolean mayBuildAt(ServerPlayerEntity p, ServerWorld w, BlockPos pos) {
         Builder b = builders().get(p.getUuid());
-        if (b == null || b.anywhere || Ac.get().lobby.data().area == null) {
+        if (b == null || b.anywhere) {
+            return true;
+        }
+        if (b.draft) {
+            return BuilderDrafts.inDraft(p.getUuid(), com.vylorq.anticheat.util.Mc.worldId(w), pos);
+        }
+        if (Ac.get().lobby.data().area == null) {
             return true;
         }
         return LobbyFeature.in(w, pos);
     }
 
     public static void start(ServerPlayerEntity by, ServerPlayerEntity p, long durationMs, boolean anywhere) {
+        start(by, p, durationMs, anywhere, false);
+    }
+
+    /**
+     * @param live build straight in the real lobby (no draft to approve)
+     */
+    public static void start(ServerPlayerEntity by, ServerPlayerEntity p, long durationMs, boolean anywhere, boolean live) {
+        Ac.get().misc.builderNames.put(p.getUuid(), p.getGameProfile().name());
+        BuilderDrafts.backup("builder-start-" + p.getGameProfile().name());
         Builder b = new Builder();
         b.name = p.getGameProfile().name();
         b.since = System.currentTimeMillis();
@@ -143,9 +162,16 @@ public final class BuilderMode {
         giveTools(p);
         p.currentScreenHandler.sendContentUpdates();
         Ac.server().getCommandManager().sendCommandTree(p);
-        Staff.log(by, "builder-add", p.getUuid(), b.name, (anywhere ? "anywhere" : "lobby")
-                + (durationMs > 0 ? " for " + com.vylorq.anticheat.core.util.Durations.format(durationMs) : ""));
+        b.draft = !anywhere && !live && BuilderDrafts.start(p);
+        Ac.saveNow("misc");
+        String mode = (anywhere ? "anywhere" : b.draft ? "draft" : "lobby")
+                + (durationMs > 0 ? " for " + com.vylorq.anticheat.core.util.Durations.format(durationMs) : "");
+        Staff.log(by, "builder-add", p.getUuid(), b.name, mode);
+        BuilderLog.event(p, "START", "by " + (by == null ? "console" : by.getGameProfile().name()) + ", " + mode);
         Msg.send(p, "builder.you-are");
+        if (b.draft) {
+            Msg.send(p, "draft.explain");
+        }
     }
 
     /** Ends builder mode and gives back what they had. Call while they're online. */
@@ -157,8 +183,12 @@ public final class BuilderMode {
         BuilderTools.forget(p.getUuid());
         Ac.saveNow("misc");
         p.closeHandledScreen();
+        com.vylorq.anticheat.ui.BossBars.hide(p, com.vylorq.anticheat.ui.BossBars.Kind.BUILDER);
+        BuilderLog.event(p, "END", "by " + (by == null ? "time/server" : by.getGameProfile().name()));
+        BuilderLog.close(p.getUuid());
         if (b.snapshot != null) {
-            PlayerState.apply(p, b.snapshot, false);
+            // From a draft they go back where they were.
+            PlayerState.apply(p, b.snapshot, b.draft);
         } else {
             p.getInventory().clear();
             p.changeGameMode(GameMode.SURVIVAL);
@@ -202,6 +232,17 @@ public final class BuilderMode {
         p.changeGameMode(GameMode.CREATIVE);
         sanitize(p);
         giveTools(p);
+        BuilderLog.event(p, "JOIN", "");
+        if (b.draft) {
+            BuilderDrafts.start(p);
+        }
+    }
+
+    public static void onLeave(ServerPlayerEntity p) {
+        if (builders().containsKey(p.getUuid())) {
+            BuilderLog.event(p, "LEAVE", "");
+            BuilderLog.close(p.getUuid());
+        }
     }
 
     /** The builder wand and builder menu, unless they already have them. */
@@ -240,10 +281,40 @@ public final class BuilderMode {
                 p.changeGameMode(GameMode.CREATIVE);
             }
             sanitize(p);
+            if (b.draft) {
+                BuilderDrafts.keepInside(p);
+            }
+            timer(p, b, now);
+        }
+        BuilderDrafts.tick();
+        BuilderLog.flush();
+    }
+
+    /** The time-left bar, and warnings 5 minutes and 1 minute before the end. */
+    private static void timer(ServerPlayerEntity p, Builder b, long now) {
+        if (b.until <= 0) {
+            return;
+        }
+        long left = Math.max(0, b.until - now);
+        float progress = (float) left / Math.max(1, b.until - b.since);
+        com.vylorq.anticheat.ui.BossBars.show(p, com.vylorq.anticheat.ui.BossBars.Kind.BUILDER,
+                net.minecraft.text.Text.literal(Msg.trFor(p, "builder.bar", com.vylorq.anticheat.core.util.Durations.format(left))), progress, 3);
+        if (left <= 60_000 && b.warned < 2) {
+            b.warned = 2;
+            Msg.send(p, "builder.warn", com.vylorq.anticheat.core.util.Durations.format(left));
+        } else if (left <= 300_000 && b.warned < 1) {
+            b.warned = 1;
+            Msg.send(p, "builder.warn", com.vylorq.anticheat.core.util.Durations.format(left));
         }
     }
 
     public static void denied(ServerPlayerEntity p) {
+        denied(p, com.vylorq.anticheat.util.Mc.itemId(p.getMainHandStack().getItem()));
+    }
+
+    /** Tells the builder no, and logs what they tried. */
+    public static void denied(ServerPlayerEntity p, String what) {
         Msg.actionBar(p, Msg.trFor(p, "builder.blocks-only"));
+        BuilderLog.event(p, "BLOCKED", what);
     }
 }
