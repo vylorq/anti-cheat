@@ -67,7 +67,8 @@ public final class Protection {
     /** Frozen, waiting and jailed players can't change the world. */
     private static boolean locked(ServerPlayerEntity p) {
         Ac ac = Ac.get();
-        return ac.staff.isFrozen(p.getUuid()) || WaitingRoomFeature.waiting(p) || ac.jail.isJailed(p.getUuid());
+        return ac.staff.isFrozen(p.getUuid()) || WaitingRoomFeature.waiting(p) || ac.jail.isJailed(p.getUuid())
+                || ScareWarning.pending(p);
     }
 
     public static void register() {
@@ -181,8 +182,8 @@ public final class Protection {
             if (!(entity instanceof ServerPlayerEntity p)) {
                 return true;
             }
-            if (BuilderMode.is(p)) {
-                // Builders can't die (dying would drop their items).
+            if (BuilderMode.is(p) || ScareWarning.pending(p)) {
+                // Builders can't die (dying would drop their items); nobody is hurt while reading the warning.
                 return false;
             }
             Ac ac = Ac.get();

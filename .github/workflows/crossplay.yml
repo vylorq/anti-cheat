@@ -36,7 +36,7 @@ jobs:
           printf 'online-mode=false\nenforce-secure-profile=false\nenable-rcon=true\nrcon.port=25575\nrcon.password=crossplay\n' > server.properties
           ln -sfn "$PWD" ~/mc
           # The Bedrock bot is the owner (no PIN) so it can open the Vigil menus.
-          mkdir -p config/vigil && echo '{"general":{"ownerName":"BedrockBot"},"staff":{"requirePin":false}}' > config/vigil/config.json
+          mkdir -p config/vigil && echo '{"general":{"ownerName":"BedrockBot"},"staff":{"requirePin":false},"watcher":{"warnOnJoin":false}}' > config/vigil/config.json
           nohup java -Xmx3G -jar server.jar nogui > run.log 2>&1 < /dev/null &
           for i in $(seq 1 150); do grep -q 'Done (' run.log && break; grep -q 'Failed to start' run.log && break; sleep 2; done
           grep -E "Done \(|Failed|Caused by" run.log | head; grep -q 'Done (' run.log

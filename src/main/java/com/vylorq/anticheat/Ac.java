@@ -92,6 +92,10 @@ public final class Ac {
         public Map<UUID, com.vylorq.anticheat.feature.BuilderDrafts.Draft> drafts = new LinkedHashMap<>();
         /** Everyone who has been a builder (so their logs can be found by name). */
         public Map<UUID, String> builderNames = new LinkedHashMap<>();
+        /** Who accepted the jumpscare warning (and which version of it). */
+        public Map<UUID, Integer> scareAccepted = new LinkedHashMap<>();
+        /** Who chose to play without scares (when declining doesn't disconnect). */
+        public java.util.Set<UUID> scareDeclined = new java.util.LinkedHashSet<>();
         /** Language each player chose with /language ("auto" when missing). */
         public Map<UUID, String> languages = new LinkedHashMap<>();
         /** Admins who turned menu and message sounds off for themselves. */

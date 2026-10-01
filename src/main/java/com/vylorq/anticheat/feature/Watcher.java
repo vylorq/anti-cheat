@@ -274,7 +274,7 @@ public final class Watcher {
         UUID id = p.getUuid();
         WatcherEligibility e = new WatcherEligibility();
         e.enabled = cfg().enabled;
-        e.excluded = ac.watcher.excluded(id);
+        e.excluded = ac.watcher.excluded(id) || !ScareWarning.accepted(id);
         e.creativeOrSpectator = p.isCreative() || p.isSpectator();
         e.dead = p.isDead() || p.isRemoved();
         e.inCombat = inCombat(p);
@@ -508,7 +508,8 @@ public final class Watcher {
      * @return the effect actually started (may be a fallback), or null if nothing could start
      */
     public static WatcherEffect start(ServerPlayerEntity p, WatcherEffect eff, String by, boolean forced) {
-        if (ACTIVE.containsKey(p.getUuid())) {
+        if (ACTIVE.containsKey(p.getUuid()) || !ScareWarning.accepted(p.getUuid())) {
+            // Never scare anyone who hasn't accepted the warning (or chose no scares).
             return null;
         }
         Effect e = create(p, eff);

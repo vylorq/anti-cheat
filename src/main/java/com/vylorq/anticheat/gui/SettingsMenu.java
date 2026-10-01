@@ -743,6 +743,8 @@ public final class SettingsMenu {
         l.add(new Num("watcher-min", Page.WATCHER, Items.CLOCK, c -> c.watcher.minMinutes, (c, v) -> c.watcher.minMinutes = Math.min(v, c.watcher.maxMinutes), 5, 600, 5));
         l.add(new Num("watcher-max", Page.WATCHER, Items.CLOCK, c -> c.watcher.maxMinutes, (c, v) -> c.watcher.maxMinutes = Math.max(v, c.watcher.minMinutes), 5, 600, 5));
         l.add(new Toggle("watcher-night", Page.WATCHER, c -> c.watcher.nightEnabled, (c, v) -> c.watcher.nightEnabled = v));
+        l.add(new Toggle("scare-warning", Page.WATCHER, c -> c.watcher.warnOnJoin, (c, v) -> c.watcher.warnOnJoin = v));
+        l.add(new Toggle("scare-decline-kicks", Page.WATCHER, c -> c.watcher.declineKicks, (c, v) -> c.watcher.declineKicks = v));
         l.add(new Toggle("watcher-ban", Page.WATCHER, c -> c.watcher.banAppearance, (c, v) -> c.watcher.banAppearance = v));
         l.add(new Toggle("watcher-rush", Page.WATCHER, c -> c.watcher.rareRush, (c, v) -> c.watcher.rareRush = v));
         for (WatcherEffect e : WatcherEffect.values()) {
