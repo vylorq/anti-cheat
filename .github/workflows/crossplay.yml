@@ -83,7 +83,7 @@ jobs:
             // Every Watcher effect through Geyser: the Bedrock client must stay connected through all of them.
             for (const eff of ['turn_around', 'appear', 'doppelganger', 'mirroring', 'rush', 'bedside', 'sign', 'flicker', 'storm',
                                'gift', 'wrong_compass', 'message', 'glitch_text', 'whisper', 'own_voice', 'fake_join', 'footsteps',
-                               'silence', 'knocking', 'animals_stare', 'sleep_well']) {
+                               'silence', 'knocking', 'animals_stare', 'sleep_well', 'jumpscare', 'behind_you', 'closer', 'blackout']) {
               mc('watcher summon BedrockBot ' + eff)
               await sleep(3500)
               mc('watcher off'); mc('watcher on')

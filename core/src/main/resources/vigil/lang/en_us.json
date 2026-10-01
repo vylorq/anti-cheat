@@ -1520,5 +1520,13 @@
   "build.brush.scatter": "Scatter brush",
   "build.brush.scatter-desc": "Sprinkles blocks on the ground (flowers, grass...).",
   "end.portal-removed": "§aPortal room removed; what was there before is back.",
-  "end.no-portal-near": "§cNo portal room built with /vigil end portal near you. Stand next to it."
+  "end.no-portal-near": "§cNo portal room built with /vigil end portal near you. Stand next to it.",
+  "watcher.effect.jumpscare": "Jumpscare",
+  "watcher.effect.jumpscare.desc": "A heartbeat gets faster, then it's in their face screaming, and gone.",
+  "watcher.effect.behind_you": "Behind you",
+  "watcher.effect.behind_you.desc": "\"turn around...\" and breathing behind them. If they turn, it's there.",
+  "watcher.effect.closer": "Closer",
+  "watcher.effect.closer.desc": "Every time they look away it's closer. Then it's in their face.",
+  "watcher.effect.blackout": "Blackout",
+  "watcher.effect.blackout.desc": "The screen goes black, breathing circles them, and it's standing right there."
 }

@@ -7,18 +7,26 @@ import java.util.Locale;
  * have their own small chances; triggered effects happen on a game event (bed) instead of the schedule.
  */
 public enum WatcherEffect {
-    APPEAR(Kind.POOLED, 25),
-    DOPPELGANGER(Kind.POOLED, 10),
-    MESSAGE(Kind.POOLED, 15),
-    FOOTSTEPS(Kind.POOLED, 10),
+    APPEAR(Kind.POOLED, 15),
+    DOPPELGANGER(Kind.POOLED, 8),
+    MESSAGE(Kind.POOLED, 10),
+    FOOTSTEPS(Kind.POOLED, 8),
+    /** Heartbeat speeds up, then it's right in their face, screaming, and gone. */
+    JUMPSCARE(Kind.POOLED, 8),
+    /** "turn around..." and breathing behind them; when they turn, it's in their face. */
+    BEHIND_YOU(Kind.POOLED, 6),
+    /** Far away; every time they look away it's closer. When it's close and they look... */
+    CLOSER(Kind.POOLED, 5),
+    /** The screen goes black, something breathes around them; when it clears it's standing right there. */
+    BLACKOUT(Kind.POOLED, 4),
     TURN_AROUND(Kind.POOLED, 6),
     MIRRORING(Kind.POOLED, 5),
     FLICKER(Kind.POOLED, 5),
-    SIGN(Kind.POOLED, 4),
-    WHISPER(Kind.POOLED, 4),
-    OWN_VOICE(Kind.POOLED, 4),
+    SIGN(Kind.POOLED, 3),
+    WHISPER(Kind.POOLED, 3),
+    OWN_VOICE(Kind.POOLED, 3),
     SILENCE(Kind.POOLED, 3),
-    KNOCKING(Kind.POOLED, 3),
+    KNOCKING(Kind.POOLED, 2),
     ANIMALS_STARE(Kind.POOLED, 2),
     STORM(Kind.POOLED, 2),
     WRONG_COMPASS(Kind.POOLED, 1),

@@ -1520,5 +1520,13 @@
   "build.brush.scatter": "فرشاة نثر",
   "build.brush.scatter-desc": "تنثر بلوكات على الأرض (زهور، عشب...).",
   "end.portal-removed": "§aأُزيلت غرفة البوابة وعاد ما كان قبلها.",
-  "end.no-portal-near": "§cلا توجد غرفة بوابة مبنية بـ /vigil end portal قريبة منك. قف بجانبها."
+  "end.no-portal-near": "§cلا توجد غرفة بوابة مبنية بـ /vigil end portal قريبة منك. قف بجانبها.",
+  "watcher.effect.jumpscare": "إخافة مفاجئة",
+  "watcher.effect.jumpscare.desc": "نبض يتسارع، ثم يظهر أمام وجهه صارخاً ويختفي.",
+  "watcher.effect.behind_you": "خلفك",
+  "watcher.effect.behind_you.desc": "\"استدر...\" وأنفاس خلفه. إن استدار وجده أمامه.",
+  "watcher.effect.closer": "يقترب",
+  "watcher.effect.closer.desc": "كلما أشاح بنظره يقترب أكثر، ثم يظهر أمام وجهه.",
+  "watcher.effect.blackout": "ظلام",
+  "watcher.effect.blackout.desc": "تسودّ الشاشة وتدور الأنفاس حوله، ثم يجده واقفاً أمامه."
 }

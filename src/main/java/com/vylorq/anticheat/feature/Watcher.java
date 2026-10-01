@@ -561,6 +561,10 @@ public final class Watcher {
             case GIFT -> Gift.create(p);
             case FAKE_JOIN -> new FakeJoin(p);
             case RUSH -> Rush.create(p);
+            case JUMPSCARE -> new Jumpscare(p);
+            case BEHIND_YOU -> BehindYou.create(p);
+            case CLOSER -> Closer.create(p);
+            case BLACKOUT -> Blackout.create(p);
             case BEDSIDE -> Bedside.create(p, p.getBlockPos());
             case SLEEP_WELL -> new Instant(p, eff, () -> sleepWell(p));
         };
@@ -1392,9 +1396,11 @@ public final class Watcher {
             Vec3d d = target.subtract(fig.pos);
             double dist = Math.sqrt(d.x * d.x + d.z * d.z);
             if (dist < 3) {
+                scream(p, fig.head());
+                scareScreen(p);
                 fig.hide(p);
                 shown = false;
-                darknessPulse(p);
+                vanishFlash(p);
                 return false;
             }
             if (age < 20) {
@@ -1463,6 +1469,330 @@ public final class Watcher {
             if (shown) {
                 fig.hide(p);
                 shown = false;
+            }
+        }
+    }
+
+    // =====================================================================================================
+    // Jumpscares
+    // =====================================================================================================
+
+    /** Where the figure's feet go so that its face is right in front of the player's eyes. */
+    static Vec3d inFace(ServerPlayerEntity p, double dist) {
+        Vec3d eye = p.getEyePos();
+        Vec3d dir = p.getRotationVec(1f);
+        Vec3d head = eye.add(dir.multiply(dist));
+        return head.subtract(0, 1.62 * 1.2, 0);
+    }
+
+    /** Several screams at once, from right where the face is. */
+    static void scream(ServerPlayerEntity p, Vec3d at) {
+        float v = (float) Math.max(0, Math.min(1, cfg().screamVolume));
+        if (v <= 0) {
+            return;
+        }
+        sound(p, SoundEvents.ENTITY_ENDERMAN_SCREAM, SoundCategory.HOSTILE, at, v, 0.5f);
+        sound(p, SoundEvents.ENTITY_GHAST_SCREAM, SoundCategory.HOSTILE, at, v, 0.6f);
+        sound(p, SoundEvents.ENTITY_WARDEN_ROAR, SoundCategory.HOSTILE, at, v * 0.8f, 1.3f);
+        sound(p, SoundEvents.ENTITY_PHANTOM_DEATH, SoundCategory.HOSTILE, at, v, 0.5f);
+    }
+
+    /** The glitched red "I SEE YOU" flashed across the screen. */
+    static void scareScreen(ServerPlayerEntity p) {
+        send(p, new TitleFadeS2CPacket(0, 10, 4));
+        send(p, new TitleS2CPacket(Text.literal(cfg().glitchText).formatted(Formatting.DARK_RED, Formatting.BOLD)));
+    }
+
+    /** A fake status effect (screen only), unless they already have the real one. @return whether it was sent */
+    static boolean fakeEffect(ServerPlayerEntity p, RegistryEntry<net.minecraft.entity.effect.StatusEffect> effect, int ticks) {
+        if (p.hasStatusEffect(effect)) {
+            return false;
+        }
+        send(p, new EntityStatusEffectS2CPacket(p.getId(), new StatusEffectInstance(effect, ticks, 0, false, false, false), false));
+        return true;
+    }
+
+    static void clearFakeEffect(ServerPlayerEntity p, RegistryEntry<net.minecraft.entity.effect.StatusEffect> effect) {
+        if (!p.hasStatusEffect(effect)) {
+            send(p, new RemoveEntityStatusEffectS2CPacket(p.getId(), effect));
+        }
+    }
+
+    /** The instant it's gone: a split second of black, then darkness fading. */
+    static void vanishFlash(ServerPlayerEntity p) {
+        if (fakeEffect(p, StatusEffects.BLINDNESS, 12)) {
+            UUID id = p.getUuid();
+            later(10, () -> {
+                ServerPlayerEntity now = Ac.server().getPlayerManager().getPlayer(id);
+                if (now != null) {
+                    clearFakeEffect(now, StatusEffects.BLINDNESS);
+                }
+            });
+        }
+        darknessPulse(p);
+    }
+
+    /** Shared ending: it jumps into their face, screams, holds for a moment, and is gone. */
+    abstract static class Scare extends Effect {
+        WatcherFigure fig;
+        boolean shown;
+        int scaredAt = -1;
+
+        Scare(ServerPlayerEntity p, WatcherEffect type) {
+            super(p, type);
+        }
+
+        void scareNow() {
+            if (fig == null) {
+                fig = WatcherFigure.watcher(p.getEntityWorld()).skull();
+            }
+            Vec3d at = inFace(p, 0.9);
+            if (shown) {
+                fig.moveTo(p, at, fig.yaw, 0);
+            } else {
+                fig.at(at, p.getYaw() + 180, 0);
+                fig.show(p);
+                shown = true;
+            }
+            fig.lookAt(p, p.getEyePos());
+            scream(p, fig.head());
+            scareScreen(p);
+            scaredAt = age;
+        }
+
+        /** While scaring: stays in their face. @return false when it's over */
+        boolean scaring() {
+            if (age - scaredAt >= 14) {
+                if (shown) {
+                    fig.hide(p);
+                    shown = false;
+                }
+                vanishFlash(p);
+                return false;
+            }
+            fig.moveTo(p, inFace(p, 0.9), fig.yaw, 0);
+            fig.lookAt(p, p.getEyePos());
+            return true;
+        }
+
+        @Override
+        void revert(boolean worldGone) {
+            if (shown) {
+                fig.hide(p);
+                shown = false;
+            }
+        }
+    }
+
+    /** Silence, a heartbeat getting faster and faster... then it's in their face, screaming, and gone. */
+    static final class Jumpscare extends Scare {
+        final int at;
+
+        Jumpscare(ServerPlayerEntity p) {
+            super(p, WatcherEffect.JUMPSCARE);
+            this.at = 60 + p.getRandom().nextInt(60);
+        }
+
+        @Override
+        boolean tick() {
+            if (scaredAt >= 0) {
+                return scaring();
+            }
+            int interval = Math.max(4, 22 - age / 5);
+            if (age % interval == 0) {
+                heartbeat(p);
+            }
+            if (age == at - 20) {
+                breathe(p, p.getEyePos().add(p.getRotationVec(1f).multiply(2)));
+            }
+            if (age >= at) {
+                scareNow();
+            }
+            return true;
+        }
+    }
+
+    /** "turn around..." and breathing right behind them. If they turn, it's there. If they don't, it walks away. */
+    static final class BehindYou extends Scare {
+        final float startYaw;
+
+        private BehindYou(ServerPlayerEntity p) {
+            super(p, WatcherEffect.BEHIND_YOU);
+            this.startYaw = p.getYaw();
+        }
+
+        static BehindYou create(ServerPlayerEntity p) {
+            Vec3d at = p.getEntityPos().subtract(look(p.getYaw()).multiply(1.5));
+            BlockPos b = BlockPos.ofFloored(at);
+            ServerWorld w = p.getEntityWorld();
+            return passable(w, b) && passable(w, b.up()) ? new BehindYou(p) : null;
+        }
+
+        @Override
+        boolean tick() {
+            if (scaredAt >= 0) {
+                return scaring();
+            }
+            if (age == 0) {
+                send(p, new net.minecraft.network.packet.s2c.play.OverlayMessageS2CPacket(
+                        Text.literal(cfg().behindText + "...").formatted(Formatting.DARK_GRAY, Formatting.ITALIC)));
+            }
+            Vec3d behind = p.getEyePos().subtract(look(startYaw).multiply(1.5));
+            if (age % 25 == 5) {
+                breathe(p, behind);
+            }
+            if (age % 40 == 20) {
+                heartbeat(p);
+            }
+            if (Math.abs(MathHelper.wrapDegrees(p.getYaw() - startYaw)) > 110) {
+                scareNow();
+                return true;
+            }
+            if (age >= 240) {
+                for (int i = 0; i < 4; i++) {
+                    int step = i;
+                    later(step * 5, () -> sound(p, SoundEvents.BLOCK_STONE_STEP, SoundCategory.HOSTILE,
+                            behind.subtract(look(startYaw).multiply(step + 1)), 0.5f, 0.6f));
+                }
+                return false;
+            }
+            return true;
+        }
+    }
+
+    /** Far away. Every time they look away, it's closer. Once it's close and they look at it... */
+    static final class Closer extends Scare {
+        int away;
+        int steps;
+        boolean armed;
+
+        private Closer(ServerPlayerEntity p, WatcherFigure fig) {
+            super(p, WatcherEffect.CLOSER);
+            this.fig = fig;
+        }
+
+        static Closer create(ServerPlayerEntity p) {
+            Vec3d spot = findSpot(p, 22, 32);
+            return spot == null ? null : new Closer(p, WatcherFigure.watcher(p.getEntityWorld()).skull().at(spot, 0, 0));
+        }
+
+        @Override
+        boolean tick() {
+            if (scaredAt >= 0) {
+                return scaring();
+            }
+            if (!shown) {
+                fig.show(p);
+                shown = true;
+            }
+            Vec3d eye = p.getEyePos();
+            if (age % 2 == 0) {
+                fig.lookAt(p, eye);
+            }
+            boolean looking = Gaze.angleTo(v(eye), p.getYaw(), p.getPitch(), v(fig.head())) < 55;
+            if (looking) {
+                away = 0;
+                if (armed) {
+                    scareNow();
+                }
+                return age < 1200;
+            }
+            if (++away >= 15 && !armed) {
+                away = 0;
+                steps++;
+                Vec3d from = fig.pos;
+                Vec3d d = new Vec3d(p.getX() - from.x, 0, p.getZ() - from.z);
+                double dist = Math.sqrt(d.x * d.x + d.z * d.z);
+                double next = dist * 0.5;
+                if (next < 4.5 || steps >= 4) {
+                    next = 2.5;
+                    armed = true;
+                }
+                Vec3d target = new Vec3d(p.getX(), from.y, p.getZ()).subtract(d.normalize().multiply(next));
+                BlockPos g = ground(p.getEntityWorld(), MathHelper.floor(target.x), MathHelper.floor(p.getY()), MathHelper.floor(target.z));
+                Vec3d spot = g == null ? new Vec3d(target.x, p.getY(), target.z) : new Vec3d(target.x, g.getY(), target.z);
+                fig.moveTo(p, spot, fig.yaw, 0);
+                fig.lookAt(p, eye);
+                sound(p, SoundEvents.BLOCK_STONE_STEP, SoundCategory.HOSTILE, spot, 0.4f, 0.5f);
+                if (armed) {
+                    heartbeat(p);
+                }
+            }
+            return age < 1200;
+        }
+    }
+
+    /** Everything goes black and something breathes as it circles them. The light comes back: it's right there. */
+    static final class Blackout extends Scare {
+        boolean blind;
+        boolean dark;
+
+        private Blackout(ServerPlayerEntity p) {
+            super(p, WatcherEffect.BLACKOUT);
+        }
+
+        static Blackout create(ServerPlayerEntity p) {
+            if (p.hasStatusEffect(StatusEffects.BLINDNESS)) {
+                return null;
+            }
+            return new Blackout(p);
+        }
+
+        @Override
+        boolean tick() {
+            if (scaredAt >= 0) {
+                return scaring();
+            }
+            if (age == 0) {
+                blind = fakeEffect(p, StatusEffects.BLINDNESS, 200);
+                dark = fakeEffect(p, StatusEffects.DARKNESS, 200);
+                heartbeat(p);
+            }
+            if (age < 80 && age % 14 == 4) {
+                double a = age * 0.25;
+                Vec3d around = p.getEyePos().add(Math.cos(a) * 2.2, 0, Math.sin(a) * 2.2);
+                breathe(p, around);
+                sound(p, SoundEvents.BLOCK_GRAVEL_STEP, SoundCategory.HOSTILE, around.subtract(0, 1.5, 0), 0.4f, 0.6f);
+            }
+            if (age == 80) {
+                lightsOn();
+                Vec3d spot = p.getEntityPos().add(look(p.getYaw()).multiply(3));
+                fig = WatcherFigure.watcher(p.getEntityWorld()).skull().at(spot, p.getYaw() + 180, 0);
+                fig.show(p);
+                shown = true;
+                fig.lookAt(p, p.getEyePos());
+            }
+            if (age > 80 && age < 110 && (age == 96 || age == 100 || age == 104)) {
+                // It flickers...
+                fig.hide(p);
+                shown = false;
+            } else if (age > 80 && age < 110 && (age == 98 || age == 102 || age == 106) && !shown) {
+                fig.show(p);
+                shown = true;
+                fig.lookAt(p, p.getEyePos());
+            }
+            if (age >= 110) {
+                scareNow();
+            }
+            return true;
+        }
+
+        private void lightsOn() {
+            if (blind) {
+                clearFakeEffect(p, StatusEffects.BLINDNESS);
+                blind = false;
+            }
+            if (dark) {
+                clearFakeEffect(p, StatusEffects.DARKNESS);
+                dark = false;
+            }
+        }
+
+        @Override
+        void revert(boolean worldGone) {
+            super.revert(worldGone);
+            if (!worldGone) {
+                lightsOn();
             }
         }
     }

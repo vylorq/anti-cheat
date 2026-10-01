@@ -49,9 +49,10 @@ class WatcherTest {
         for (int i = 0; i < n; i++) {
             counts.merge(s.pick(p, set), 1, Integer::sum);
         }
-        assertEquals(0.25, counts.get(WatcherEffect.APPEAR) / (double) n, 0.01);
-        assertEquals(0.10, counts.get(WatcherEffect.DOPPELGANGER) / (double) n, 0.01);
-        assertEquals(0.15, counts.get(WatcherEffect.MESSAGE) / (double) n, 0.01);
+        assertEquals(0.15, counts.get(WatcherEffect.APPEAR) / (double) n, 0.01);
+        assertEquals(0.08, counts.get(WatcherEffect.DOPPELGANGER) / (double) n, 0.01);
+        assertEquals(0.10, counts.get(WatcherEffect.MESSAGE) / (double) n, 0.01);
+        assertEquals(0.08, counts.get(WatcherEffect.JUMPSCARE) / (double) n, 0.01);
         assertEquals(0.01, counts.get(WatcherEffect.GIFT) / (double) n, 0.004);
         int total = 0;
         for (WatcherEffect e : WatcherEffect.values()) {
@@ -190,9 +191,9 @@ class WatcherTest {
     void configDefaultsAndIds() {
         AcConfig c = new AcConfig();
         assertTrue(c.watcher.enabled);
-        assertFalse(c.watcher.rareRush, "rare rush off by default");
-        assertEquals(45, c.watcher.minMinutes);
-        assertEquals(120, c.watcher.maxMinutes);
+        assertTrue(c.watcher.rareRush, "rare rush on by default");
+        assertEquals(30, c.watcher.minMinutes);
+        assertEquals(75, c.watcher.maxMinutes);
         for (WatcherEffect e : WatcherEffect.values()) {
             assertEquals(e, WatcherEffect.byId(e.id()));
         }
