@@ -152,7 +152,7 @@ public final class BuilderMenu {
         m.parent(parent);
         m.renderer(menu -> {
             BuilderTools.BrushMode[] modes = BuilderTools.BrushMode.values();
-            net.minecraft.item.Item[] icons = {Items.SLIME_BALL, Items.BRUSH, Items.SHOVEL_POTTERY_SHERD, Items.POPPY};
+            net.minecraft.item.Item[] icons = {Items.SLIME_BALL, Items.BRUSH, Items.IRON_SHOVEL, Items.POPPY};
             for (int i = 0; i < modes.length; i++) {
                 var mode = modes[i];
                 String key = "build.brush." + mode.name().toLowerCase();
