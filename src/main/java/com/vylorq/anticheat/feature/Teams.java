@@ -34,6 +34,12 @@ public final class Teams {
 
     private static final Map<UUID, String> LAST_AREA = new HashMap<>();
     private static final Set<UUID> CHAT = new HashSet<>();
+    /** Names seen this session (for name tags of members who aren't online). */
+    private static final Map<UUID, String> NAMES = new HashMap<>();
+
+    public static void remember(ServerPlayerEntity p) {
+        NAMES.put(p.getUuid(), p.getGameProfile().name());
+    }
 
     public static TeamManager tm() {
         return Ac.get().teams;
@@ -138,6 +144,7 @@ public final class Teams {
             return;
         }
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
+            remember(p);
             ChunkPos c = p.getChunkPos();
             Team t = tm().at(Mc.worldId(p.getEntityWorld()), c.x, c.z);
             String area = t == null ? "" : t.id;
@@ -207,7 +214,8 @@ public final class Teams {
         if (p != null) {
             return p.getGameProfile().name();
         }
-        return Ac.get().joins.name(id);
+        String n = Ac.get().joins.name(id);
+        return n != null ? n : NAMES.get(id);
     }
 
     private static UUID idOf(String name) {
@@ -217,7 +225,7 @@ public final class Teams {
         }
         for (Team t : tm().list()) {
             for (UUID m : t.members) {
-                if (name.equalsIgnoreCase(Ac.get().joins.name(m))) {
+                if (name.equalsIgnoreCase(name(m))) {
                     return m;
                 }
             }

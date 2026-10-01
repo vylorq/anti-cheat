@@ -47,6 +47,9 @@ public final class TeamCommands {
 
     private static ServerPlayerEntity self(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity p = ctx.getSource().getPlayer();
+        if (p != null) {
+            Teams.remember(p);
+        }
         if (p == null) {
             Msg.err(ctx.getSource(), "general.players-only");
         } else if (!Teams.enabled()) {

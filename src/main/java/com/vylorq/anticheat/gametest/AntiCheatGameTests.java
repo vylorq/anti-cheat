@@ -863,6 +863,7 @@ public final class AntiCheatGameTests {
             }
             check(com.vylorq.anticheat.feature.Teams.friendlyFireBlocked(leader, mate), "teammates could hurt each other");
             check(!com.vylorq.anticheat.feature.Teams.friendlyFireBlocked(leader, outsider), "outsiders were protected");
+            com.vylorq.anticheat.feature.Teams.remember(mate);
             com.vylorq.anticheat.feature.Teams.syncTags();
             var st = w.getServer().getScoreboard().getScoreHolderTeam("TeamMate");
             check(st != null && st.getName().startsWith("vt_"), "no name tag team");
