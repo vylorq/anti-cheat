@@ -380,14 +380,14 @@ public class AcConfig {
     public static class Watcher {
         public boolean enabled = true;
         /** Each eligible player gets one event every this many minutes (random in between). */
-        public int minMinutes = 45;
-        public int maxMinutes = 120;
+        public int minMinutes = 30;
+        public int maxMinutes = 75;
         /** Pool weights by effect id (appear, doppelganger, message, footsteps, ...). Missing ones use defaults. */
         public Map<String, Integer> weights = new LinkedHashMap<>();
         /** Effect ids turned off (e.g. "storm", "gift", "sleep_well"). */
         public List<String> disabledEffects = new ArrayList<>();
-        /** The Watcher runs at the player and vanishes just before reaching them. Off by default. */
-        public boolean rareRush = false;
+        /** The Watcher runs at the player and screams in their face just before reaching them. */
+        public boolean rareRush = true;
         public double rareChance = 0.03;
         public double glitchChance = 0.1;
         public double bedsideChance = 0.05;
@@ -402,6 +402,10 @@ public class AcConfig {
         public String whisperFrom = "???";
         public String whisperText = "behind you";
         public String ownVoiceText = "look behind you";
+        /** Shown (barely) before "behind you" jumpscares. */
+        public String behindText = "turn around";
+        /** How loud jumpscare screams are (0 to 1). */
+        public double screamVolume = 1.0;
         public String sleepText = "Sleep well.";
         public String chestNoteName = "I was here";
         public String pocketGiftName = "You dropped this";

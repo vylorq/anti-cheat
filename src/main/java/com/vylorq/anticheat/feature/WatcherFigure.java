@@ -58,6 +58,8 @@ public final class WatcherFigure {
     private final boolean dressed;
     private final double scale;
     private final String teamName;
+    /** A dark skull for a face instead of the faceless hood (for jumpscares, seen up close). */
+    private boolean skull;
     public Vec3d pos = Vec3d.ZERO;
     public float yaw;
     public float pitch;
@@ -86,6 +88,12 @@ public final class WatcherFigure {
         UUID id = UUID.nameUUIDFromBytes(("watcher-double:" + of.getUuid()).getBytes(StandardCharsets.UTF_8));
         GameProfile real = of.getGameProfile();
         return new WatcherFigure(of.getEntityWorld(), new GameProfile(id, "Double", real.properties()), false, 1.0);
+    }
+
+    /** Gives it a face: a dark skull instead of the faceless hood. */
+    public WatcherFigure skull() {
+        this.skull = true;
+        return this;
     }
 
     public int id() {
@@ -123,7 +131,7 @@ public final class WatcherFigure {
         Watcher.send(viewer, new EntityTrackerUpdateS2CPacket(id(), List.of(
                 DataTracker.SerializedEntry.of(PlayerEntityAccessor.ac$modelParts(), (byte) 0x7F))));
         if (dressed) {
-            Watcher.send(viewer, new EntityEquipmentUpdateS2CPacket(id(), outfit()));
+            Watcher.send(viewer, new EntityEquipmentUpdateS2CPacket(id(), outfit(skull)));
         }
         if (scale != 1.0) {
             EntityAttributeInstance inst = new EntityAttributeInstance(EntityAttributes.SCALE, i -> {
@@ -134,10 +142,10 @@ public final class WatcherFigure {
         Watcher.send(viewer, new EntitySetHeadYawS2CPacket(fake, angle(yaw)));
     }
 
-    private static List<Pair<EquipmentSlot, ItemStack>> outfit() {
+    private static List<Pair<EquipmentSlot, ItemStack>> outfit(boolean skull) {
         List<Pair<EquipmentSlot, ItemStack>> out = new ArrayList<>();
-        // A black block over the head reads as a faceless hood from any distance.
-        out.add(Pair.of(EquipmentSlot.HEAD, new ItemStack(Items.BLACK_CONCRETE)));
+        // A black block over the head reads as a faceless hood from any distance; up close, a dark skull.
+        out.add(Pair.of(EquipmentSlot.HEAD, new ItemStack(skull ? Items.WITHER_SKELETON_SKULL : Items.BLACK_CONCRETE)));
         out.add(Pair.of(EquipmentSlot.CHEST, black(Items.LEATHER_CHESTPLATE)));
         out.add(Pair.of(EquipmentSlot.LEGS, black(Items.LEATHER_LEGGINGS)));
         out.add(Pair.of(EquipmentSlot.FEET, black(Items.LEATHER_BOOTS)));
