@@ -765,4 +765,23 @@ public final class AntiCheatGameTests {
         }
         ctx.complete();
     }
+
+    @GameTest
+    public void endPortalRoomCanBeRemoved(TestContext ctx) {
+        var w = ctx.getWorld();
+        BlockPos feet = ctx.getAbsolutePos(new BlockPos(1, 2, 1)).up(80);
+        BlockPos c = feet.offset(Direction.SOUTH, 6);
+        w.setBlockState(c.down(), Blocks.DIRT.getDefaultState());
+        w.setBlockState(c.east(4).up(), Blocks.OAK_LOG.getDefaultState());
+        com.vylorq.anticheat.feature.EndLock.build(w, feet, Direction.SOUTH);
+        check(w.getBlockState(c).isOf(Blocks.END_PORTAL), "portal room not built");
+        check(com.vylorq.anticheat.feature.EndLock.removeBuilt(w, c.north(2)), "remove didn't find the portal room");
+        check(w.getBlockState(c).isAir() && w.getBlockState(c.north(2)).isAir(), "portal or frames still there");
+        check(w.getBlockState(c.down()).isOf(Blocks.DIRT) && w.getBlockState(c.east(4).up()).isOf(Blocks.OAK_LOG),
+                "what was there before didn't come back");
+        check(!com.vylorq.anticheat.feature.EndLock.removeBuilt(w, c), "removed twice");
+        w.setBlockState(c.down(), Blocks.AIR.getDefaultState());
+        w.setBlockState(c.east(4).up(), Blocks.AIR.getDefaultState());
+        ctx.complete();
+    }
 }

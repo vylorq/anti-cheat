@@ -1321,7 +1321,7 @@
   "end.closed": "§5The End is closed for now.",
   "set.the-end": "The End",
   "set.the-end.desc": "Off: stronghold portal rooms are hidden everywhere, eyes of ender don't work and no portal leads to the End (except ones built with /vigil end portal). On: everything comes back.",
-  "help.end": "Open or close the End, or build a portal room",
+  "help.end": "Open or close the End, build or remove a portal room",
   "end.status-open": "§aThe End is open.",
   "end.status-closed": "§eThe End is closed: stronghold portal rooms are hidden and eyes of ender don't work. §7/vigil end open",
   "end.opened": "§aThe End is open. Hidden portal rooms come back as players get near them.",
@@ -1518,5 +1518,7 @@
   "build.brush.smooth": "Smooth brush",
   "build.brush.smooth-desc": "Evens out bumpy ground.",
   "build.brush.scatter": "Scatter brush",
-  "build.brush.scatter-desc": "Sprinkles blocks on the ground (flowers, grass...)."
+  "build.brush.scatter-desc": "Sprinkles blocks on the ground (flowers, grass...).",
+  "end.portal-removed": "§aPortal room removed; what was there before is back.",
+  "end.no-portal-near": "§cNo portal room built with /vigil end portal near you. Stand next to it."
 }
