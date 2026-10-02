@@ -219,4 +219,64 @@ class MarketTest {
         assertNotNull(m.removeShop(cashBuy.id));
         assertEquals(Market.Result.NO_SUCH, m.shopPurchase(cashBuy, "minecraft:dirt"));
     }
+
+    @Test
+    void boothsSellAndNegotiate() {
+        Market m = new Market(null, clock);
+        Market.Booth b = m.addBooth("w", 0, 0, 0, 0);
+        assertEquals(Market.Result.OK, m.claimBooth(b.id, seller, "Seller"));
+        assertEquals(Market.Result.TAKEN, m.claimBooth(b.id, bob, "Bob"));
+        Market.Booth other = m.addBooth("w", 5, 0, 0, 0);
+        assertEquals(Market.Result.TOO_MANY, m.claimBooth(other.id, seller, "Seller"), "one booth each");
+        assertEquals(Market.Result.NOT_YOURS, m.list(b.id, bob, "x", "X", 5, "cash", 9));
+        assertEquals(Market.Result.OK, m.list(b.id, seller, "sword", "Sword", 100, "cash", 9));
+        assertEquals(Market.Result.OK, m.list(b.id, seller, "bow", "Bow", 3, "minecraft:emerald", 2));
+        assertEquals(Market.Result.FULL, m.list(b.id, seller, "x", "X", 5, "cash", 2));
+        long sword = b.listings.get(0).id;
+        long bow = b.listings.get(1).id;
+
+        // Bob offers 60 for the sword, then 70 (the first is refunded); Cat offers 80.
+        assertNotNull(m.makeOffer(b.id, sword, bob, "Bob", 60));
+        Market.BoothOffer bob70 = m.makeOffer(b.id, sword, bob, "Bob", 70);
+        assertEquals(60, m.balance(bob), "the replaced offer was refunded");
+        Market.BoothOffer cat80 = m.makeOffer(b.id, sword, cat, "Cat", 80);
+        assertNull(m.makeOffer(b.id, sword, seller, "Seller", 10), "no offers on your own booth");
+        assertEquals(2, m.offersFor(b.id).size());
+        assertNull(m.decline(bob70.id, bob), "only the owner can decline");
+        Market.Sale s = m.accept(cat80.id, seller);
+        assertEquals(Market.Result.OK, s.result());
+        assertEquals(80, m.balance(seller));
+        assertEquals(java.util.List.of("sword"), m.takeItems(cat), "the buyer gets the item even if offline");
+        assertEquals(1, s.refunded().size(), "Bob's offer on the sold sword was refunded");
+        assertEquals(130, m.balance(bob));
+
+        // Buy the bow outright (paid in emeralds).
+        Market.Sale buy = m.buy(b.id, bow, bob);
+        assertEquals(Market.Result.OK, buy.result());
+        assertEquals(java.util.Map.of("minecraft:emerald", 3), m.takeOwedItems(seller));
+        assertEquals(Market.Result.SOLD_OUT, m.buy(b.id, bow, bob).result());
+        assertEquals(2, b.sales);
+
+        // Leaving gives listings back and refunds offers.
+        m.list(b.id, seller, "shield", "Shield", 10, "cash", 9);
+        m.makeOffer(b.id, b.listings.get(0).id, cat, "Cat", 4);
+        assertEquals(1, m.freeBooth(b.id).size());
+        assertEquals(java.util.List.of("shield"), m.takeItems(seller));
+        assertEquals(4, m.balance(cat));
+        assertNull(b.owner);
+        assertEquals(Market.Result.OK, m.claimBooth(b.id, bob, "Bob"));
+    }
+
+    @Test
+    void oldOffersExpire() {
+        Market m = new Market(null, clock);
+        Market.Booth b = m.addBooth("w", 0, 0, 0, 0);
+        m.claimBooth(b.id, seller, "S");
+        m.list(b.id, seller, "x", "X", 9, "cash", 9);
+        m.makeOffer(b.id, b.listings.get(0).id, bob, "Bob", 5);
+        assertTrue(m.expireOffers(1000).isEmpty());
+        clock.advance(1000);
+        assertEquals(1, m.expireOffers(1000).size());
+        assertEquals(5, m.balance(bob));
+    }
 }

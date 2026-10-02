@@ -66,6 +66,7 @@ public final class Ticker {
         Teams.tick();
         Markets.tick();
         Shops.tick();
+        Booths.tick();
         if (ticks % 200 == 0) {
             Teams.syncTags();
         }

@@ -162,6 +162,12 @@ public final class Protection {
                 }
                 return ActionResult.FAIL;
             }
+            if (Booths.isBooth(entity)) {
+                if (hand == net.minecraft.util.Hand.MAIN_HAND) {
+                    Booths.click(p, entity);
+                }
+                return ActionResult.FAIL;
+            }
             if (BuilderMode.is(p)) {
                 BuilderMode.denied(p);
                 return ActionResult.FAIL;
@@ -176,6 +182,10 @@ public final class Protection {
                 Shops.click(p, entity);
                 return ActionResult.FAIL;
             }
+            if (Booths.isBooth(entity)) {
+                Booths.click(p, entity);
+                return ActionResult.FAIL;
+            }
             if (BuilderMode.is(p)) {
                 BuilderMode.denied(p);
                 return ActionResult.FAIL;
@@ -187,7 +197,7 @@ public final class Protection {
             if (!Ac.running()) {
                 return true;
             }
-            if (Traders.isTrader(entity) || Shops.isShop(entity)) {
+            if (Traders.isTrader(entity) || Shops.isShop(entity) || Booths.isBooth(entity)) {
                 return false;
             }
             if (!(entity instanceof ServerPlayerEntity p)) {

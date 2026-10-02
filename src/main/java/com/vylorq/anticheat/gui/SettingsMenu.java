@@ -747,6 +747,9 @@ public final class SettingsMenu {
         l.add(new Dbl("sell-rate", Page.ECONOMY, Items.HOPPER, c -> c.market.sellRate, (c, v) -> c.market.sellRate = v, 0, 1, 0.05));
         l.add(new Toggle("shops", Page.ECONOMY, c -> c.market.shops, (c, v) -> c.market.shops = v));
         l.add(new Toggle("shops-lobby-only", Page.ECONOMY, c -> c.market.shopsOnlyInLobby, (c, v) -> c.market.shopsOnlyInLobby = v));
+        l.add(new Toggle("booths", Page.ECONOMY, c -> c.market.booths, (c, v) -> c.market.booths = v));
+        l.add(new Num("booth-slots", Page.ECONOMY, Items.CHEST, c -> c.market.boothSlots, (c, v) -> c.market.boothSlots = v, 1, 28, 1));
+        l.add(new Num("offer-hours", Page.ECONOMY, Items.CLOCK, c -> c.market.offerHours, (c, v) -> c.market.offerHours = v, 1, 336, 1));
         l.add(new Num("max-shops", Page.ECONOMY, Items.CHEST, c -> c.market.maxShopsPerPlayer, (c, v) -> c.market.maxShopsPerPlayer = v, 0, 50, 1));
         l.add(new Num("auction-hours", Page.ECONOMY, Items.CLOCK, c -> c.market.auctionHours, (c, v) -> c.market.auctionHours = v, 1, 168, 1));
         l.add(new Num("max-auctions", Page.ECONOMY, Items.GOLD_BLOCK, c -> c.market.maxAuctionsPerPlayer, (c, v) -> c.market.maxAuctionsPerPlayer = v, 0, 50, 1));

@@ -82,10 +82,7 @@ public final class MarketCommands {
             Ac.markDirty("market");
             String toName = Args.nameOf(to, Args.str(ctx, "player"));
             Msg.ok(ctx.getSource(), "cash.paid", Markets.cash(amount), toName);
-            ServerPlayerEntity o = Ac.server().getPlayerManager().getPlayer(to);
-            if (o != null) {
-                Msg.send(o, "cash.received", Markets.cash(amount), p.getGameProfile().name());
-            }
+            Markets.alert(to, "cash.received-title", "cash.received", Markets.cash(amount), p.getGameProfile().name());
             Ac.get().logs.trade(System.currentTimeMillis(), "pay", p.getUuid(), p.getGameProfile().name(), to, toName, String.valueOf(amount));
             return 1;
         }))));
@@ -178,6 +175,58 @@ public final class MarketCommands {
                     if (p != null) Shops.list(p, true);
                     return 1;
                 })));
+        d.register(literal("booth").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p != null) com.vylorq.anticheat.feature.Booths.openMine(p);
+                    return 1;
+                })
+                .then(literal("claim").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p != null) com.vylorq.anticheat.feature.Booths.claimNearest(p);
+                    return 1;
+                }))
+                .then(literal("add").then(amount("price").then(Args.word("payment").suggests(MarketCommands::paySuggest).executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p != null) com.vylorq.anticheat.feature.Booths.add(p, num(ctx, "price"), Args.str(ctx, "payment"));
+                    return 1;
+                }))))
+                .then(literal("offers").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p != null) com.vylorq.anticheat.feature.Booths.offers(p);
+                    return 1;
+                }))
+                .then(literal("accept").then(CommandManager.argument("id", com.mojang.brigadier.arguments.LongArgumentType.longArg(1)).executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p != null) com.vylorq.anticheat.feature.Booths.accept(p, com.mojang.brigadier.arguments.LongArgumentType.getLong(ctx, "id"));
+                    return 1;
+                })))
+                .then(literal("decline").then(CommandManager.argument("id", com.mojang.brigadier.arguments.LongArgumentType.longArg(1)).executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p != null) com.vylorq.anticheat.feature.Booths.decline(p, com.mojang.brigadier.arguments.LongArgumentType.getLong(ctx, "id"));
+                    return 1;
+                })))
+                .then(literal("leave").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p != null) com.vylorq.anticheat.feature.Booths.leave(p);
+                    return 1;
+                }))
+                .then(literal("create").requires(s -> Perms.visible(s, Perm.TRADER_ADMIN)).executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null || !Perms.check(ctx.getSource(), Perm.TRADER_ADMIN)) return 0;
+                    com.vylorq.anticheat.feature.Booths.create(p);
+                    return 1;
+                }))
+                .then(literal("delete").requires(s -> Perms.visible(s, Perm.TRADER_ADMIN)).executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null || !Perms.check(ctx.getSource(), Perm.TRADER_ADMIN)) return 0;
+                    com.vylorq.anticheat.feature.Booths.delete(p);
+                    return 1;
+                })));
+        d.register(literal("booths").executes(ctx -> {
+            ServerPlayerEntity p = self(ctx);
+            if (p != null) com.vylorq.anticheat.feature.Booths.list(p);
+            return 1;
+        }));
         d.register(literal("shops").executes(ctx -> {
             ServerPlayerEntity p = self(ctx);
             if (p != null) Shops.list(p, false);

@@ -100,6 +100,8 @@ public final class VigilCommands {
             new Help(Group.PLAYER, "collect", "/collect", "help.collect", null),
             new Help(Group.PLAYER, "bounty", "/bounty <player>  ·  /bounties", "help.bounty", null),
             new Help(Group.PLAYER, "shop", "/shop sell|buy <price> <cash|emeralds|item> [per sale]  ·  /shop remove  ·  /shops", "help.shop", null),
+            new Help(Group.PLAYER, "booth", "/booth  ·  /booth claim|add <price> <cash|emeralds|item>|offers|leave  ·  /booths", "help.booth", null),
+            new Help(Group.PLACES, "booth-admin", "/booth create|delete", "help.booth-admin", Perm.TRADER_ADMIN),
             new Help(Group.TOOLS, "eco", "/eco give|take|set <player> <amount>", "help.eco", Perm.SETTINGS),
             new Help(Group.PLAYER, "report", "/report <player> <reason>", "help.report", null),
             new Help(Group.PLAYER, "lobby", "/lobby", "help.lobby-go", null),

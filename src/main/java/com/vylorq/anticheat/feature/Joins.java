@@ -110,6 +110,7 @@ public final class Joins {
         BuilderMode.onJoin(p);
         Teams.onJoin(p);
         Markets.onJoin(p);
+        Booths.onJoin(p);
         Arenas.onJoin(p);
         Jail.onJoin(p);
         WaitingRoomFeature.onJoin(p);
