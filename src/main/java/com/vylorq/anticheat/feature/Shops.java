@@ -399,10 +399,7 @@ public final class Shops {
         relabel(x);
         Mc.sound(p, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
         Msg.send(p, "shop.bought", x.bundle + "x " + x.itemName, priceText(x));
-        ServerPlayerEntity owner = Ac.server().getPlayerManager().getPlayer(x.owner);
-        if (owner != null) {
-            Msg.send(owner, "shop.sold-to", p.getGameProfile().name(), x.bundle + "x " + x.itemName, priceText(x));
-        }
+        Markets.alert(x.owner, "shop.sale-title", "shop.sold-to", p.getGameProfile().name(), x.bundle + "x " + x.itemName, priceText(x));
         Teams.xpForTrade(p);
         Ac.get().logs.trade(System.currentTimeMillis(), "shop-buy", p.getUuid(), p.getGameProfile().name(), x.owner, x.ownerName,
                 x.bundle + "x " + x.itemName + " for " + priceText(x));
@@ -431,10 +428,7 @@ public final class Shops {
         relabel(x);
         Mc.sound(p, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
         Msg.send(p, "shop.you-sold", x.bundle + "x " + x.itemName, priceText(x));
-        ServerPlayerEntity owner = Ac.server().getPlayerManager().getPlayer(x.owner);
-        if (owner != null) {
-            Msg.send(owner, "shop.bought-from", p.getGameProfile().name(), x.bundle + "x " + x.itemName);
-        }
+        Markets.alert(x.owner, "shop.sale-title", "shop.bought-from", p.getGameProfile().name(), x.bundle + "x " + x.itemName);
         Teams.xpForTrade(p);
         Ac.get().logs.trade(System.currentTimeMillis(), "shop-sell", p.getUuid(), p.getGameProfile().name(), x.owner, x.ownerName,
                 x.bundle + "x " + x.itemName + " for " + priceText(x));

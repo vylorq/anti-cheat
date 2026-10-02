@@ -160,6 +160,20 @@ public final class Markets {
         }
     }
 
+    /**
+     * Shows something on a player's screen (title + chat + sound). If they're offline it waits for their next join.
+     */
+    public static void alert(UUID id, String titleKey, String lineKey, Object... args) {
+        ServerPlayerEntity o = online(id);
+        if (o == null) {
+            Ac.get().pendingMessage(id, Msg.tr(lineKey, args));
+            return;
+        }
+        Mc.title(o, Msg.trFor(o, titleKey), Msg.trFor(o, lineKey, args), 5, 70, 15);
+        Mc.sound(o, SoundEvents.ENTITY_PLAYER_LEVELUP, 0.7f, 1.6f);
+        o.sendMessage(Msg.prefixed(Msg.trFor(o, lineKey, args)));
+    }
+
     /** Tells a player to collect what's waiting, with a button. */
     private static void tellCollect(UUID id) {
         ServerPlayerEntity o = online(id);
@@ -709,9 +723,9 @@ public final class Markets {
         for (Market.Auction a : market().settle()) {
             Ac.markDirty("market");
             if (a.bidder != null) {
-                tell(a.bidder, "ah.won", a.itemName, money(a.bid));
+                alert(a.bidder, "ah.won-title", "ah.won", a.itemName, money(a.bid));
                 tellCollect(a.bidder);
-                tell(a.seller, "ah.sold", a.itemName, money(a.bid), a.bidderName);
+                alert(a.seller, "ah.sold-title", "ah.sold", a.itemName, money(a.bid), a.bidderName);
                 Teams.xpForTrade(online(a.bidder));
                 Teams.xpForTrade(online(a.seller));
                 Ac.get().logs.trade(System.currentTimeMillis(), "auction-won", a.bidder, a.bidderName, a.seller, a.sellerName,

@@ -80,8 +80,52 @@ public final class Market {
         public long sales;
     }
 
+    /** A booth in the lobby: admins place them, a player claims one and lists items in it. */
+    public static final class Booth {
+        public long id;
+        public String world;
+        public double x;
+        public double y;
+        public double z;
+        public float yaw;
+        /** null while free. */
+        public UUID owner;
+        public String ownerName;
+        public long claimed;
+        public java.util.List<Listing> listings = new ArrayList<>();
+        public UUID entity;
+        public long sales;
+    }
+
+    /** One item for sale in a booth. */
+    public static final class Listing {
+        public long id;
+        /** The whole stack for sale, encoded. */
+        public String item;
+        public String itemName;
+        public int price;
+        /** "cash" or an item id. */
+        public String pay;
+        public long listed;
+    }
+
+    /** A visitor's offer for a listing; the money is already held. */
+    public static final class BoothOffer {
+        public long id;
+        public long booth;
+        public long listing;
+        public UUID buyer;
+        public String buyerName;
+        public int amount;
+        public String pay;
+        public String itemName;
+        public long created;
+    }
+
     public static final class Data {
         public long nextId = 1;
+        public Map<Long, Booth> booths = new LinkedHashMap<>();
+        public Map<Long, BoothOffer> boothOffers = new LinkedHashMap<>();
         /** Cash balances. */
         public Map<UUID, Long> cash = new LinkedHashMap<>();
         /** Plain items owed (item id -> count), e.g. shop earnings. */
@@ -105,7 +149,11 @@ public final class Market {
         public String dealSignature;
     }
 
-    public enum Result { OK, NO_SUCH, ENDED, OWN, TOO_LOW, HAS_BIDS, NOT_YOURS, TOO_MANY, BAD_AMOUNT, NOT_ENOUGH, SOLD_OUT }
+    public enum Result { OK, NO_SUCH, ENDED, OWN, TOO_LOW, HAS_BIDS, NOT_YOURS, TOO_MANY, BAD_AMOUNT, NOT_ENOUGH, SOLD_OUT, TAKEN, FULL }
+
+    /** What a booth sale or accepted offer did. */
+    public record Sale(Result result, Booth booth, Listing listing, List<BoothOffer> refunded) {
+    }
 
     public record BidResult(Result result, UUID refundTo, int refund) {
     }
@@ -534,5 +582,295 @@ public final class Market {
 
     public synchronized boolean isDeal(String trader, String signature) {
         return trader != null && trader.equals(data.dealTrader) && signature.equals(data.dealSignature);
+    }
+
+    // ---------------------------------------------------------------- booths
+
+    /** Pays someone in cash (wallet) or in items (pickups). */
+    public synchronized void credit(UUID player, String pay, int amount) {
+        if ("cash".equals(pay)) {
+            addCash(player, amount);
+        } else {
+            oweItem(player, pay, amount);
+        }
+    }
+
+    public synchronized List<Booth> booths() {
+        return new ArrayList<>(data.booths.values());
+    }
+
+    public synchronized Booth booth(long id) {
+        return data.booths.get(id);
+    }
+
+    public synchronized Booth boothOf(UUID owner) {
+        for (Booth b : data.booths.values()) {
+            if (owner.equals(b.owner)) {
+                return b;
+            }
+        }
+        return null;
+    }
+
+    public synchronized Booth boothByEntity(UUID entity) {
+        for (Booth b : data.booths.values()) {
+            if (entity.equals(b.entity)) {
+                return b;
+            }
+        }
+        return null;
+    }
+
+    public synchronized Booth addBooth(String world, double x, double y, double z, float yaw) {
+        Booth b = new Booth();
+        b.id = data.nextId++;
+        b.world = world;
+        b.x = x;
+        b.y = y;
+        b.z = z;
+        b.yaw = yaw;
+        data.booths.put(b.id, b);
+        return b;
+    }
+
+    public synchronized Result claimBooth(long id, UUID player, String name) {
+        Booth b = data.booths.get(id);
+        if (b == null) {
+            return Result.NO_SUCH;
+        }
+        if (b.owner != null) {
+            return b.owner.equals(player) ? Result.OWN : Result.TAKEN;
+        }
+        if (boothOf(player) != null) {
+            return Result.TOO_MANY;
+        }
+        b.owner = player;
+        b.ownerName = name;
+        b.claimed = clock.nowMillis();
+        b.sales = 0;
+        return Result.OK;
+    }
+
+    /**
+     * Frees a booth: every listing goes back to the owner's pickups and every open offer is refunded.
+     *
+     * @return the offers refunded (so the buyers can be told)
+     */
+    public synchronized List<BoothOffer> freeBooth(long id) {
+        Booth b = data.booths.get(id);
+        if (b == null || b.owner == null) {
+            return List.of();
+        }
+        for (Listing l : b.listings) {
+            owe(b.owner, l.item);
+        }
+        b.listings.clear();
+        List<BoothOffer> refunded = refundOffers(o -> o.booth == id);
+        b.owner = null;
+        b.ownerName = null;
+        return refunded;
+    }
+
+    /** Removes a booth spot (admin); frees it first. */
+    public synchronized List<BoothOffer> deleteBooth(long id) {
+        List<BoothOffer> r = freeBooth(id);
+        data.booths.remove(id);
+        return r;
+    }
+
+    public synchronized Result list(long boothId, UUID owner, String item, String itemName, int price, String pay, int max) {
+        Booth b = data.booths.get(boothId);
+        if (b == null) {
+            return Result.NO_SUCH;
+        }
+        if (!owner.equals(b.owner)) {
+            return Result.NOT_YOURS;
+        }
+        if (b.listings.size() >= max) {
+            return Result.FULL;
+        }
+        if (price < 1) {
+            return Result.BAD_AMOUNT;
+        }
+        Listing l = new Listing();
+        l.id = data.nextId++;
+        l.item = item;
+        l.itemName = itemName;
+        l.price = price;
+        l.pay = pay;
+        l.listed = clock.nowMillis();
+        b.listings.add(l);
+        return Result.OK;
+    }
+
+    public synchronized Listing listing(Booth b, long listingId) {
+        for (Listing l : b.listings) {
+            if (l.id == listingId) {
+                return l;
+            }
+        }
+        return null;
+    }
+
+    /** The owner takes a listing back (to their pickups); its offers are refunded. */
+    public synchronized List<BoothOffer> unlist(long boothId, long listingId, UUID owner) {
+        Booth b = data.booths.get(boothId);
+        if (b == null || !owner.equals(b.owner)) {
+            return List.of();
+        }
+        Listing l = listing(b, listingId);
+        if (l == null) {
+            return List.of();
+        }
+        b.listings.remove(l);
+        owe(owner, l.item);
+        return refundOffers(o -> o.listing == listingId);
+    }
+
+    public synchronized Result setPrice(long boothId, long listingId, UUID owner, int price) {
+        Booth b = data.booths.get(boothId);
+        if (b == null || !owner.equals(b.owner)) {
+            return Result.NOT_YOURS;
+        }
+        Listing l = listing(b, listingId);
+        if (l == null) {
+            return Result.NO_SUCH;
+        }
+        if (price < 1) {
+            return Result.BAD_AMOUNT;
+        }
+        l.price = price;
+        return Result.OK;
+    }
+
+    private List<BoothOffer> refundOffers(java.util.function.Predicate<BoothOffer> which) {
+        List<BoothOffer> out = new ArrayList<>();
+        for (BoothOffer o : new ArrayList<>(data.boothOffers.values())) {
+            if (which.test(o)) {
+                data.boothOffers.remove(o.id);
+                credit(o.buyer, o.pay, o.amount);
+                out.add(o);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * A visitor buys a listing at its price (they already paid). The seller is paid, other offers on it are
+     * refunded; the server gives the item to the buyer.
+     */
+    public synchronized Sale buy(long boothId, long listingId, UUID buyer) {
+        Booth b = data.booths.get(boothId);
+        if (b == null || b.owner == null) {
+            return new Sale(Result.NO_SUCH, b, null, List.of());
+        }
+        if (b.owner.equals(buyer)) {
+            return new Sale(Result.OWN, b, null, List.of());
+        }
+        Listing l = listing(b, listingId);
+        if (l == null) {
+            return new Sale(Result.SOLD_OUT, b, null, List.of());
+        }
+        b.listings.remove(l);
+        b.sales++;
+        credit(b.owner, l.pay, l.price);
+        return new Sale(Result.OK, b, l, refundOffers(o -> o.listing == listingId));
+    }
+
+    public synchronized List<BoothOffer> offersFor(long boothId) {
+        List<BoothOffer> out = new ArrayList<>();
+        for (BoothOffer o : data.boothOffers.values()) {
+            if (o.booth == boothId) {
+                out.add(o);
+            }
+        }
+        return out;
+    }
+
+    public synchronized BoothOffer offer(long id) {
+        return data.boothOffers.get(id);
+    }
+
+    /**
+     * A visitor offers {@code amount} (already paid) for a listing. Their earlier offer on the same listing is
+     * refunded and replaced.
+     *
+     * @return the new offer, or null if the listing is gone or it's their own booth
+     */
+    public synchronized BoothOffer makeOffer(long boothId, long listingId, UUID buyer, String buyerName, int amount) {
+        Booth b = data.booths.get(boothId);
+        if (b == null || b.owner == null || b.owner.equals(buyer) || amount < 1) {
+            return null;
+        }
+        Listing l = listing(b, listingId);
+        if (l == null) {
+            return null;
+        }
+        refundOffers(o -> o.listing == listingId && o.buyer.equals(buyer));
+        BoothOffer o = new BoothOffer();
+        o.id = data.nextId++;
+        o.booth = boothId;
+        o.listing = listingId;
+        o.buyer = buyer;
+        o.buyerName = buyerName;
+        o.amount = amount;
+        o.pay = l.pay;
+        o.itemName = l.itemName;
+        o.created = clock.nowMillis();
+        data.boothOffers.put(o.id, o);
+        return o;
+    }
+
+    /** The owner accepts: they're paid, the buyer gets the item in their pickups, other offers are refunded. */
+    public synchronized Sale accept(long offerId, UUID owner) {
+        BoothOffer o = data.boothOffers.get(offerId);
+        if (o == null) {
+            return new Sale(Result.NO_SUCH, null, null, List.of());
+        }
+        Booth b = data.booths.get(o.booth);
+        if (b == null || !owner.equals(b.owner)) {
+            return new Sale(Result.NOT_YOURS, b, null, List.of());
+        }
+        Listing l = listing(b, o.listing);
+        if (l == null) {
+            refundOffers(x -> x.id == offerId);
+            return new Sale(Result.SOLD_OUT, b, null, List.of());
+        }
+        data.boothOffers.remove(offerId);
+        b.listings.remove(l);
+        b.sales++;
+        credit(owner, o.pay, o.amount);
+        owe(o.buyer, l.item);
+        return new Sale(Result.OK, b, l, refundOffers(x -> x.listing == l.id));
+    }
+
+    /** The owner says no: the buyer gets their money back. */
+    public synchronized BoothOffer decline(long offerId, UUID owner) {
+        BoothOffer o = data.boothOffers.get(offerId);
+        if (o == null) {
+            return null;
+        }
+        Booth b = data.booths.get(o.booth);
+        if (b == null || !owner.equals(b.owner)) {
+            return null;
+        }
+        refundOffers(x -> x.id == offerId);
+        return o;
+    }
+
+    /** The buyer takes their offer back. */
+    public synchronized BoothOffer withdrawOffer(long offerId, UUID buyer) {
+        BoothOffer o = data.boothOffers.get(offerId);
+        if (o == null || !o.buyer.equals(buyer)) {
+            return null;
+        }
+        refundOffers(x -> x.id == offerId);
+        return o;
+    }
+
+    /** Offers nobody answered in time are refunded. */
+    public synchronized List<BoothOffer> expireOffers(long maxAgeMs) {
+        long now = clock.nowMillis();
+        return refundOffers(o -> now - o.created >= maxAgeMs);
     }
 }

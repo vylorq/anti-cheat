@@ -983,4 +983,40 @@ public final class AntiCheatGameTests {
         }
         ctx.complete();
     }
+
+    @GameTest
+    public void boothBuyAndNegotiate(TestContext ctx) {
+        var w = ctx.getWorld();
+        var seller = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "BoothSeller"));
+        var buyer = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "BoothBuyer"));
+        var m = com.vylorq.anticheat.Ac.get().market;
+        BlockPos pos = ctx.getAbsolutePos(new BlockPos(1, 1, 1));
+        var booth = m.addBooth(com.vylorq.anticheat.util.Mc.worldId(w), pos.getX(), pos.getY(), pos.getZ(), 0);
+        try {
+            check(m.claimBooth(booth.id, seller.getUuid(), "BoothSeller") == com.vylorq.anticheat.core.market.Market.Result.OK, "claim");
+            String sword = com.vylorq.anticheat.util.ItemConv.encode(new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD));
+            String apple = com.vylorq.anticheat.util.ItemConv.encode(new net.minecraft.item.ItemStack(net.minecraft.item.Items.APPLE, 8));
+            m.list(booth.id, seller.getUuid(), sword, "Sword", 100, "cash", 18);
+            m.list(booth.id, seller.getUuid(), apple, "Apples", 10, "cash", 18);
+            m.setCash(buyer.getUuid(), 200);
+            m.setCash(seller.getUuid(), 0);
+            var swordListing = booth.listings.get(0);
+            var appleListing = booth.listings.get(1);
+            com.vylorq.anticheat.feature.Booths.makeOffer(buyer, booth, swordListing, 70);
+            check(m.balance(buyer.getUuid()) == 130, "offer money not held: " + m.balance(buyer.getUuid()));
+            var offers = m.offersFor(booth.id);
+            check(offers.size() == 1, "offer missing");
+            com.vylorq.anticheat.feature.Booths.accept(seller, offers.get(0).id);
+            check(m.balance(seller.getUuid()) == 70, "seller not paid");
+            var owed = m.takeItems(buyer.getUuid());
+            check(owed.size() == 1 && com.vylorq.anticheat.util.ItemConv.decode(owed.get(0)).isOf(net.minecraft.item.Items.DIAMOND_SWORD), "buyer didn't get the sword");
+            com.vylorq.anticheat.feature.Booths.buy(buyer, booth, appleListing);
+            check(m.balance(buyer.getUuid()) == 120 && m.balance(seller.getUuid()) == 80, "buy-now money wrong");
+            check(com.vylorq.anticheat.feature.Markets.countItem(buyer, net.minecraft.item.Items.APPLE) == 8, "apples not given");
+            check(booth.listings.isEmpty() && booth.sales == 2, "listings not cleared");
+        } finally {
+            m.deleteBooth(booth.id);
+        }
+        ctx.complete();
+    }
 }

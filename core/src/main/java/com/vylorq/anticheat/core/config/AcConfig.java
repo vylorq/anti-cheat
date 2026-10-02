@@ -488,6 +488,10 @@ public class AcConfig {
         public boolean shops = true;
         public boolean shopsOnlyInLobby = true;
         public int maxShopsPerPlayer = 3;
+        /** Lobby booths (/booth): items per booth, and hours before an unanswered offer is refunded. */
+        public boolean booths = true;
+        public int boothSlots = 18;
+        public int offerHours = 48;
         public int auctionHours = 24;
         public int maxAuctionsPerPlayer = 5;
         public int maxOrdersPerPlayer = 5;
