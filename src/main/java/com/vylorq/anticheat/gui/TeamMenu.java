@@ -208,7 +208,7 @@ public final class TeamMenu {
         m.open(p);
     }
 
-    /** Vault, allies, where, ping, border, top, message of the day and land settings. */
+    /** Vault, allies, map, where, ping, border, top, message of the day and land settings. */
     static void more(ServerPlayerEntity p, Menu parent) {
         Menu m = Menu.std(Theme.Category.PLAYER, 5, Msg.trFor(p, "team.menu.title"), Msg.trFor(p, "team.menu.more"));
         m.parent(parent);
@@ -235,6 +235,10 @@ public final class TeamMenu {
                 pl.closeHandledScreen();
                 Msg.send(pl, Teams.toggleBorder(pl) ? "team.border-on" : "team.border-off");
             });
+            menu.set(16, Btn.of(Items.FILLED_MAP).name(Msg.tr("team.menu.map")).desc(Msg.tr("team.menu.map-desc")).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                Teams.showMap(pl);
+            });
             menu.set(15, Btn.of(Items.GOLD_INGOT).name(Msg.tr("team.menu.top")).desc(Msg.tr("team.menu.top-desc"))
                     .left(Msg.tr("team.top.land")).right(Msg.tr("team.top.members")).shift(Msg.tr("team.top.kills")).build(), null, (pl, c) -> {
                 pl.closeHandledScreen();
@@ -256,6 +260,12 @@ public final class TeamMenu {
                         .onOff(t.allyFire).build(), null, (pl, c) -> {
                     t.allyFire = !t.allyFire;
                     say(pl, Result.OK, t.allyFire ? "team.allyfire-on" : "team.allyfire-off");
+                    menu.refresh();
+                });
+                menu.set(33, Btn.of(Items.MAP).name(Msg.tr("team.menu.mapshare")).desc(Msg.tr("team.menu.mapshare-desc"))
+                        .onOff(t.shareMap).build(), null, (pl, c) -> {
+                    t.shareMap = !t.shareMap;
+                    say(pl, Result.OK, t.shareMap ? "team.mapshare-on" : "team.mapshare-off");
                     menu.refresh();
                 });
             }

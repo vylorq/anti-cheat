@@ -1728,7 +1728,7 @@
   "team.motd-cleared": "§aTeam message cleared.",
   "team.motd-set": "§aTeam message set. Members see it when they join.",
   "team.menu.more": "More",
-  "team.menu.more-desc": "Vault, allies, ping, top teams and settings.",
+  "team.menu.more-desc": "Vault, allies, map, ping, top teams and settings.",
   "team.menu.vault": "Team vault",
   "team.menu.vault-desc": "A chest every member can use.",
   "team.menu.allies": "Allies",
@@ -1738,7 +1738,7 @@
   "team.menu.ping": "Ping my spot",
   "team.menu.ping-desc": "Send your coordinates to your team.",
   "team.menu.border": "Show borders",
-  "team.menu.border-desc": "Particles on land edges for 30 seconds.",
+  "team.menu.border-desc": "Particles on your and your allies' land edges for 30 seconds.",
   "team.menu.top": "Top teams",
   "team.menu.top-desc": "Leaderboard of all teams.",
   "team.menu.motd": "Team message",
@@ -1752,5 +1752,13 @@
   "team.allyfire-on": "§cAllies can hurt your team now (and you can hurt them).",
   "team.allyfire-off": "§aAllies can't hurt your team anymore (and you can't hurt them).",
   "team.menu.allyfire": "Ally fire",
-  "team.menu.allyfire-desc": "Whether you and your allies can hurt each other."
+  "team.menu.allyfire-desc": "Whether you and your allies can hurt each other.",
+  "team.map-head": "Land map",
+  "team.map-key": "§f✚ §7you  §a■ §7your land  §b■ §7allies  §7▪ §7everything else",
+  "team.menu.map": "Land map",
+  "team.menu.map-desc": "Your land and your allies' land around you.",
+  "team.menu.mapshare": "Share map with allies",
+  "team.menu.mapshare-desc": "Allies see your land on their map and borders. If either team turns it off, neither sees the other.",
+  "team.mapshare-on": "§aYour land is shared with allies on the map again.",
+  "team.mapshare-off": "§aYour land is hidden from allies' maps (and theirs from yours)."
 }

@@ -37,6 +37,8 @@ public final class Team {
     public String motd = "";
     /** Allies can hurt this team's members (and the other way round); either team can turn it off. */
     public boolean allyFire = true;
+    /** Allies see this team's land on the map and borders; either team can turn it off. */
+    public boolean shareMap = true;
 
     public Role role(UUID player) {
         if (player == null || !members.contains(player)) {

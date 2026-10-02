@@ -325,6 +325,17 @@ public final class TeamCommands {
                     where(p);
                     return 1;
                 }))
+                .then(literal("map").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null || mine(ctx, p, null) == null) return 0;
+                    Teams.showMap(p);
+                    return 1;
+                }))
+                .then(literal("mapshare").executes(ctx -> leaderSet(ctx, t -> {
+                    t.shareMap = !t.shareMap;
+                    tellTeam(t, t.shareMap ? "team.mapshare-on" : "team.mapshare-off");
+                    return true;
+                })))
                 .then(literal("ping").executes(ctx -> ping(ctx, null))
                         .then(CommandManager.argument("note", StringArgumentType.greedyString())
                                 .executes(ctx -> ping(ctx, StringArgumentType.getString(ctx, "note")))))
