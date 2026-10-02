@@ -2109,5 +2109,13 @@
   "set.booth-slots": "Items per booth",
   "set.booth-slots.desc": "How many items one booth can list.",
   "set.offer-hours": "Offer time (h)",
-  "set.offer-hours.desc": "Unanswered booth offers are refunded after this."
+  "set.offer-hours.desc": "Unanswered booth offers are refunded after this.",
+  "ui.hint.tap": "Tap to {0}",
+  "ui.hint.tap-choose": "Tap and pick: {0}",
+  "ui.bedrock-choose": "What do you want to do?",
+  "ui.accept": "Accept",
+  "ui.decline": "Decline",
+  "ui.later": "Later",
+  "duel.title": "Duel request",
+  "in.teleport-other-mode": "teleport (switch seen/unseen)"
 }

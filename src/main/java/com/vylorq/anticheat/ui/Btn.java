@@ -39,6 +39,11 @@ public final class Btn {
     private final List<Text> desc = new ArrayList<>();
     private final List<Text> status = new ArrayList<>();
     private final List<Text> hints = new ArrayList<>();
+    /** Click actions offered by this button, as "CLICK\tlabel" (Bedrock players pick one from a list). */
+    private final List<String> actions = new ArrayList<>();
+
+    /** Custom-data key holding a button's actions, for Bedrock (no right-click or shift-click there). */
+    public static final String ACTIONS_TAG = "vigil_actions";
     private boolean glint;
     private int color = Theme.GOLD_LIGHT;
 
@@ -120,19 +125,42 @@ public final class Btn {
     }
 
     public Btn left(String action) {
-        return hint(Msg.tr("ui.hint.left", action));
+        actions.add("LEFT\t" + action);
+        return hint(Msg.tr(Viewer.bedrock() ? "ui.hint.tap" : "ui.hint.left", action));
     }
 
     public Btn right(String action) {
-        return hint(Msg.tr("ui.hint.right", action));
+        actions.add("RIGHT\t" + action);
+        return hint(Msg.tr(Viewer.bedrock() ? "ui.hint.tap-choose" : "ui.hint.right", action));
     }
 
     public Btn shift(String action) {
-        return hint(Msg.tr("ui.hint.shift", action));
+        actions.add("SHIFT_LEFT\t" + action);
+        return hint(Msg.tr(Viewer.bedrock() ? "ui.hint.tap-choose" : "ui.hint.shift", action));
     }
 
     public Btn shiftRight(String action) {
-        return hint(Msg.tr("ui.hint.shift-right", action));
+        actions.add("SHIFT_RIGHT\t" + action);
+        return hint(Msg.tr(Viewer.bedrock() ? "ui.hint.tap-choose" : "ui.hint.shift-right", action));
+    }
+
+    /**
+     * The actions stored on a built button: [click, label] pairs, or empty. A button whose only action is a plain
+     * click has none stored (a tap does it on Bedrock).
+     */
+    public static List<String[]> actionsOf(ItemStack s) {
+        String raw = s == null || s.isEmpty() ? null : com.vylorq.anticheat.util.ItemConv.tag(s, ACTIONS_TAG);
+        List<String[]> out = new ArrayList<>();
+        if (raw == null || raw.isEmpty()) {
+            return out;
+        }
+        for (String line : raw.split("\n")) {
+            String[] kv = line.split("\t", 2);
+            if (kv.length == 2) {
+                out.add(kv);
+            }
+        }
+        return out;
     }
 
     /** A click hint line: "▸ ..." in dim gray. */
@@ -183,6 +211,10 @@ public final class Btn {
         }
         if (glint) {
             s.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
+        }
+        boolean onlyLeft = actions.stream().allMatch(a -> a.startsWith("LEFT\t"));
+        if (!actions.isEmpty() && !onlyLeft) {
+            com.vylorq.anticheat.util.ItemConv.setTag(s, ACTIONS_TAG, String.join("\n", actions));
         }
         hideClutter(s);
         return s;

@@ -105,6 +105,13 @@ public final class MenuHandler extends GenericContainerScreenHandler {
                 // Number keys, offhand swap, middle-click and drop never press a button (34.3).
                 return;
             }
+            if (ck == Menu.Click.LEFT && menu.onClose == null && com.vylorq.anticheat.ui.Viewer.isBedrock(sp)) {
+                // Bedrock has no right-click or shift-click: a button with more than one action asks which.
+                java.util.List<String[]> acts = com.vylorq.anticheat.ui.Btn.actionsOf(menu.inventory().getStack(slot));
+                if (!acts.isEmpty() && bedrockChoose(sp, b, acts, menu.inventory().getStack(slot))) {
+                    return;
+                }
+            }
             if (b.perm() != null && !Perms.require(sp, b.perm())) {
                 sp.closeHandledScreen();
                 return;
@@ -200,5 +207,47 @@ public final class MenuHandler extends GenericContainerScreenHandler {
                 h.menu.refresh();
             }
         }
+    }
+
+    /** Shows a Bedrock list of a button's actions; the chosen one runs as if clicked that way. */
+    private boolean bedrockChoose(ServerPlayerEntity sp, Menu.Button b, java.util.List<String[]> acts, net.minecraft.item.ItemStack icon) {
+        java.util.List<String> labels = new java.util.ArrayList<>();
+        for (String[] a : acts) {
+            labels.add(a[1]);
+        }
+        labels.add(com.vylorq.anticheat.util.Msg.trFor(sp, "ui.cancel"));
+        java.util.UUID id = sp.getUuid();
+        Menu m = menu;
+        String title = icon.getName().getString().replaceAll("§.", "");
+        boolean shown = com.vylorq.anticheat.platform.Floodgate.askChoice(id, title, com.vylorq.anticheat.util.Msg.trFor(sp, "ui.bedrock-choose"), labels,
+                i -> Ac.server().execute(() -> {
+                    ServerPlayerEntity on = Ac.server().getPlayerManager().getPlayer(id);
+                    if (on == null) {
+                        return;
+                    }
+                    m.reopen(on);
+                    if (i == null || i < 0 || i >= acts.size()) {
+                        return;
+                    }
+                    Menu.Click c;
+                    try {
+                        c = Menu.Click.valueOf(acts.get(i)[0]);
+                    } catch (IllegalArgumentException e) {
+                        return;
+                    }
+                    if (b.perm() != null && !Perms.require(on, b.perm())) {
+                        return;
+                    }
+                    try {
+                        com.vylorq.anticheat.ui.Viewer.with(on, () -> b.handler().click(on, c));
+                    } catch (Exception e) {
+                        Ac.LOG.error("Menu action failed", e);
+                        com.vylorq.anticheat.util.Msg.error(on, "general.error");
+                    }
+                }));
+        if (shown) {
+            sp.closeHandledScreen();
+        }
+        return shown;
     }
 }

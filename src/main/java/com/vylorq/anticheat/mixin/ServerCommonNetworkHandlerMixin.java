@@ -11,6 +11,7 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
@@ -31,5 +32,19 @@ public abstract class ServerCommonNetworkHandlerMixin {
         } else if (packet instanceof PlayerPositionLookS2CPacket) {
             Combat.onTeleportPacket(handler.player);
         }
+    }
+
+    /** Bedrock chat can't be clicked: chat buttons also show their command, so Bedrock players can type it. */
+    @ModifyVariable(method = "send", at = @At("HEAD"), argsOnly = true)
+    private Packet<?> ac$bedrockButtons(Packet<?> packet) {
+        if (!Ac.running() || !(packet instanceof net.minecraft.network.packet.s2c.play.GameMessageS2CPacket msg) || msg.overlay()
+                || !((Object) this instanceof ServerPlayNetworkHandler handler) || handler.player == null
+                || !com.vylorq.anticheat.ui.Viewer.isBedrock(handler.player)) {
+            return packet;
+        }
+        if (!com.vylorq.anticheat.util.BedrockText.hasButtons(msg.content())) {
+            return packet;
+        }
+        return new net.minecraft.network.packet.s2c.play.GameMessageS2CPacket(com.vylorq.anticheat.util.BedrockText.withCommands(msg.content()), false);
     }
 }

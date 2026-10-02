@@ -2109,5 +2109,13 @@
   "set.booth-slots": "أغراض لكل كشك",
   "set.booth-slots.desc": "عدد الأغراض التي يعرضها الكشك الواحد.",
   "set.offer-hours": "مدة العرض (ساعة)",
-  "set.offer-hours.desc": "تُرد عروض الأكشاك غير المجاب عليها بعد هذه المدة."
+  "set.offer-hours.desc": "تُرد عروض الأكشاك غير المجاب عليها بعد هذه المدة.",
+  "ui.hint.tap": "انقر لـ{0}",
+  "ui.hint.tap-choose": "انقر واختر: {0}",
+  "ui.bedrock-choose": "ماذا تريد أن تفعل؟",
+  "ui.accept": "قبول",
+  "ui.decline": "رفض",
+  "ui.later": "لاحقاً",
+  "duel.title": "طلب مبارزة",
+  "in.teleport-other-mode": "انتقال (تبديل الظهور/الاختفاء)"
 }

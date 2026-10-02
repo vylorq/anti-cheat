@@ -336,6 +336,12 @@ public class Menu {
         }
     }
 
+    /** Opens this menu again as it was (same page, filter and parent), e.g. after a Bedrock form. */
+    public void reopen(ServerPlayerEntity p) {
+        goingBack = true;
+        open(p);
+    }
+
     /** Test hook: sees every menu as it opens (after rendering). */
     public static Consumer<Menu> onOpen;
 

@@ -202,6 +202,9 @@ public final class Trades {
         to.sendMessage(Msg.prefixed(Msg.tr("trade.received", from.getGameProfile().name())).append(Text.literal(" "))
                 .append(Msg.button("§a[Accept]", "/trade accept " + n, "Open the trade window")).append(Text.literal(" "))
                 .append(Msg.button("§c[Decline]", "/trade deny " + n, "Decline")));
+        com.vylorq.anticheat.ui.BedrockPrompt.ask(to, Msg.trFor(to, "trade.title", from.getGameProfile().name()),
+                Msg.trFor(to, "trade.received", from.getGameProfile().name()),
+                List.of(Msg.trFor(to, "ui.accept"), Msg.trFor(to, "ui.decline")), List.of("trade accept " + n, "trade deny " + n));
     }
 
     public static void deny(ServerPlayerEntity to, ServerPlayerEntity from) {
