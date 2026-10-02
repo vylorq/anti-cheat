@@ -442,8 +442,6 @@ public class AcConfig {
         public int maxChunks = 40;
         /** New chunks must touch the team's other chunks. */
         public boolean connectedTerritory = true;
-        /** Outsiders can't build, break, open or use anything in a team's territory. */
-        public boolean protectTerritory = true;
         /** [TAG] in the team colour above heads and in the tab list. */
         public boolean nameTags = true;
         public int maxAllies = 3;
