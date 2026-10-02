@@ -82,7 +82,7 @@ public final class EndLock {
     }
 
     public static boolean open() {
-        return Ac.config().general.endOpen;
+        return Ac.config().general.endOpen || !Features.on(Features.Feature.END_LOCK);
     }
 
     /** Whether the End can be reached from here: it's open, or this is a portal room built with /vigil end portal. */

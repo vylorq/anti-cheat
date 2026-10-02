@@ -104,6 +104,7 @@ public final class VigilCommands {
             new Help(Group.PLACES, "booth-admin", "/booth create|delete", "help.booth-admin", Perm.TRADER_ADMIN),
             new Help(Group.PEOPLE, "notes", "/note <player> <text>  ·  /notes <player>", "help.notes", Perm.INSPECT),
             new Help(Group.PEOPLE, "snapshot", "/snapshot <player> [note]  ·  /snapshots <player>", "help.snapshot", Perm.INSPECT_EDIT),
+            new Help(Group.TOOLS, "features", "/features  ·  /feature <name> on|off", "help.features", Perm.SETTINGS),
             new Help(Group.TOOLS, "blacklist", "/blacklist add [item]|remove <item>|list", "help.blacklist", Perm.SETTINGS),
             new Help(Group.TOOLS, "servershop-add", "/servershop add <buy> <sell>", "help.servershop-add", Perm.SETTINGS),
             new Help(Group.PLAYER, "servershop", "/servershop", "help.servershop", null),

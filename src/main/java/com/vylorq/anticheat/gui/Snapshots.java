@@ -142,6 +142,9 @@ public final class Snapshots {
 
     /** Every minute: automatic snapshots of everyone online, every configured number of minutes. */
     public static void tickMinute() {
+        if (!com.vylorq.anticheat.feature.Features.on(com.vylorq.anticheat.feature.Features.Feature.AUTO_SNAPSHOTS)) {
+            return;
+        }
         int every = Ac.config().staff.autoSnapshotMinutes;
         long now = System.currentTimeMillis();
         if (every <= 0 || now - lastAuto < every * 60_000L) {

@@ -54,6 +54,9 @@ public final class Barriers {
 
     /** Every second: particle walls for players close to a barrier, expired barriers removed. */
     public static void tick() {
+        if (!Features.on(Features.Feature.BARRIERS)) {
+            return;
+        }
         Ac ac = Ac.get();
         var spawn = Mc.worldSpawn(ac.server);
         ac.barriers.setSpawn(ac.server.getSpawnPoint().getDimension().getValue().toString(),
@@ -70,6 +73,9 @@ public final class Barriers {
 
     /** Respawn inside a barrier the player belongs to (at the world spawn if it's inside, else the middle). */
     public static void afterRespawn(ServerPlayerEntity p) {
+        if (!Features.on(Features.Feature.BARRIERS)) {
+            return;
+        }
         Vec3 inside = Ac.get().barriers.respawnInside(p.getUuid(), Mc.worldId(p.getEntityWorld()));
         String world = Ac.get().barriers.worldOfInside(p.getUuid());
         if (inside != null && world != null) {

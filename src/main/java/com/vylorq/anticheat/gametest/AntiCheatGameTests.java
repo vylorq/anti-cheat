@@ -1125,4 +1125,31 @@ public final class AntiCheatGameTests {
         check(saved != null && com.vylorq.anticheat.gui.SettingsBackups.list().contains(saved), "settings backup not saved");
         ctx.complete();
     }
+
+    @GameTest
+    public void featureSwitches(TestContext ctx) {
+        var claims = com.vylorq.anticheat.feature.Features.Feature.CLAIMS;
+        var teams = com.vylorq.anticheat.feature.Features.Feature.TEAMS;
+        boolean claimsWas = com.vylorq.anticheat.feature.Features.on(claims);
+        boolean teamsWas = com.vylorq.anticheat.feature.Features.on(teams);
+        try {
+            check(com.vylorq.anticheat.feature.Features.forCommand("claim") == claims, "claim command not mapped");
+            check(com.vylorq.anticheat.feature.Features.forCommand("tca") == teams, "tca not mapped");
+            check(com.vylorq.anticheat.feature.Features.forCommand("vigil") == null, "/vigil must never be switched off");
+            check(com.vylorq.anticheat.feature.Features.forCommand("settings") == null, "/settings must never be switched off");
+            com.vylorq.anticheat.feature.Features.set(claims, false);
+            check(!com.vylorq.anticheat.feature.Features.on(claims), "flag not off");
+            com.vylorq.anticheat.feature.Features.set(teams, false);
+            check(!com.vylorq.anticheat.Ac.config().teams.enabled && !com.vylorq.anticheat.feature.Teams.enabled(), "teams setting not linked");
+            com.vylorq.anticheat.feature.Features.set(teams, true);
+            check(com.vylorq.anticheat.Ac.config().teams.enabled, "teams not back on");
+            for (var f : com.vylorq.anticheat.feature.Features.Feature.values()) {
+                check(com.vylorq.anticheat.feature.Features.byId(f.id) == f, "id lookup " + f.id);
+            }
+        } finally {
+            com.vylorq.anticheat.feature.Features.set(claims, claimsWas);
+            com.vylorq.anticheat.feature.Features.set(teams, teamsWas);
+        }
+        ctx.complete();
+    }
 }

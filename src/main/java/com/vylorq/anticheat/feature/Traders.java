@@ -433,6 +433,10 @@ public final class Traders {
     // ---- Player interaction ----
 
     public static void open(ServerPlayerEntity p, Trader t) {
+        if (!Features.on(Features.Feature.TRADERS)) {
+            Msg.send(p, "features.is-off", Msg.trFor(p, "feature.traders"));
+            return;
+        }
         if (Ac.get().jail.isJailed(p.getUuid()) || WaitingRoomFeature.waiting(p) || Arenas.inMatch(p)) {
             Msg.send(p, "trader.blocked");
             return;

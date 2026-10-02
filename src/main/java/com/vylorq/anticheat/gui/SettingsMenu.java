@@ -929,6 +929,8 @@ public final class SettingsMenu {
                     page(p, pg);
                 });
             }
+            menu.set(38, Btn.of(Items.LEVER).color(Theme.GOLD_LIGHT).name(Msg.tr("features.title")).desc(Msg.tr("features.desc"))
+                    .left(Msg.tr("ui.action.open")).build(), Perm.SETTINGS, (p, c) -> FeaturesMenu.open(p));
             menu.set(40, Btn.of(Items.BOOKSHELF).color(Theme.GOLD_LIGHT).name(Msg.tr("setbk.title")).desc(Msg.tr("setbk.desc"))
                     .count(SettingsBackups.list().size()).left(Msg.tr("ui.action.open")).build(), Perm.SETTINGS, (p, c) -> SettingsBackups.open(p));
             menu.set(Menu.SEARCH, Btn.of(Items.NAME_TAG).color(Theme.GOLD_LIGHT).name(Msg.tr("settings.search"))

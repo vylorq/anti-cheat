@@ -59,6 +59,10 @@ public final class ServerShop {
     }
 
     public static void open(ServerPlayerEntity p) {
+        if (!Features.on(Features.Feature.SERVER_SHOP)) {
+            Msg.send(p, "features.is-off", Msg.trFor(p, "feature.server-shop"));
+            return;
+        }
         if (!Markets.enabled()) {
             Msg.send(p, "market.disabled");
             return;
