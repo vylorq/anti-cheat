@@ -156,29 +156,27 @@ public final class InventoryTools {
         m.open(admin);
     }
 
-    /** Saves everything (inventory + ender chest) so the next wipe can be undone. */
-    static void backup(UUID target, Invs i) {
-        List<String> saved = new ArrayList<>();
-        for (int s = 0; s < i.inv().size(); s++) {
-            if (!i.inv().getStack(s).isEmpty()) {
-                saved.add(ItemConv.encodeSlot(s, i.inv().getStack(s)));
-            }
+    /** Remembers exactly what a wipe removed (and from which slot), so it can be undone. */
+    static void backup(UUID target, List<String> removed) {
+        if (removed.isEmpty()) {
+            return;
         }
-        for (int s = 0; s < i.ender().size(); s++) {
-            if (!i.ender().getStack(s).isEmpty()) {
-                saved.add(ItemConv.encodeSlot(1000 + s, i.ender().getStack(s)));
-            }
-        }
-        Ac.get().misc.inventoryBackups.put(target, saved);
+        Ac.get().misc.inventoryBackups.put(target, removed);
         Ac.markDirty("misc");
     }
 
-    static int removeFrom(Inventory inv, Set<String> ids) {
+    /**
+     * Removes matching stacks ({@code ids} null = everything), recording each one in {@code removed}.
+     *
+     * @param offset added to the slot number in the record (1000 for the ender chest)
+     */
+    static int removeFrom(Inventory inv, Set<String> ids, int offset, List<String> removed) {
         int n = 0;
         for (int s = 0; s < inv.size(); s++) {
             ItemStack st = inv.getStack(s);
             if (!st.isEmpty() && (ids == null || ids.contains(id(st)))) {
                 n += st.getCount();
+                removed.add(ItemConv.encodeSlot(offset + s, st));
                 inv.setStack(s, ItemStack.EMPTY);
             }
         }
@@ -195,8 +193,9 @@ public final class InventoryTools {
             Msg.send(admin, "inspect.no-data");
             return;
         }
-        backup(target, i);
-        int n = removeFrom(i.inv(), ids) + (ender ? removeFrom(i.ender(), ids) : 0);
+        List<String> removed = new ArrayList<>();
+        int n = removeFrom(i.inv(), ids, 0, removed) + (ender ? removeFrom(i.ender(), ids, 1000, removed) : 0);
+        backup(target, removed);
         i.save();
         Msg.send(admin, "invtools.deleted", n, name(target));
         Staff.log(admin, "inventory-delete", target, name(target), n + " items: " + String.join(", ", ids) + (ender ? " (+ender)" : ""));
@@ -215,8 +214,9 @@ public final class InventoryTools {
             Msg.send(admin, "inspect.no-data");
             return;
         }
-        backup(target, i);
-        int n = removeFrom(i.inv(), null) + (ender ? removeFrom(i.ender(), null) : 0);
+        List<String> removed = new ArrayList<>();
+        int n = removeFrom(i.inv(), null, 0, removed) + (ender ? removeFrom(i.ender(), null, 1000, removed) : 0);
+        backup(target, removed);
         i.save();
         Msg.send(admin, "invtools.was-reset", name(target), n);
         Staff.log(admin, "inventory-reset", target, name(target), n + " items" + (ender ? " (+ender)" : ""));
