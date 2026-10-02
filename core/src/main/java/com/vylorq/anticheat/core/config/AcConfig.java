@@ -44,6 +44,7 @@ public class AcConfig {
     public Events events = new Events();
     public Teams teams = new Teams();
     public MarketCfg market = new MarketCfg();
+    public ItemBlacklist itemBlacklist = new ItemBlacklist();
 
     public static class General {
         /** Owner UUID. The owner has every power. Leave empty until set. */
@@ -253,6 +254,9 @@ public class AcConfig {
     }
 
     public static class Staff {
+        /** Snapshots kept per player, and how often everyone online gets an automatic one (0 = never). */
+        public int snapshotsKept = 30;
+        public int autoSnapshotMinutes = 60;
         public boolean requirePin = true;
         public int maxPinAttempts = 5;
         public int pinLockMinutes = 30;
@@ -474,6 +478,15 @@ public class AcConfig {
         /** How long a war lasts, and how long before the same team can declare another. */
         public int warMinutes = 60;
         public int warCooldownMinutes = 180;
+    }
+
+    /** Items the server doesn't allow; removed from inventories without flagging anyone. */
+    public static class ItemBlacklist {
+        public boolean enabled = true;
+        public List<String> items = new ArrayList<>();
+        public boolean includeEnderChest = true;
+        public boolean ignoreStaff = true;
+        public boolean ignoreCreative = true;
     }
 
     /** Auction house, buy orders, bounties and the daily deal. */

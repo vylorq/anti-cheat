@@ -621,6 +621,11 @@ public final class SettingsMenu {
         l.add(new Toggle("restart-backup", Page.GENERAL, c -> c.restarts.backupBeforeRestart, (c, v) -> c.restarts.backupBeforeRestart = v));
         l.add(new Toggle("chat-on", Page.GENERAL, c -> c.chat.chatEnabled, (c, v) -> c.chat.chatEnabled = v));
         l.add(new Toggle("daily-backups", Page.GENERAL, c -> c.storage.dailyBackups, (c, v) -> c.storage.dailyBackups = v));
+        l.add(new Num("snapshots-kept", Page.GENERAL, Items.CHEST, c -> c.staff.snapshotsKept, (c, v) -> c.staff.snapshotsKept = v, 1, 200, 5));
+        l.add(new Num("auto-snapshot", Page.GENERAL, Items.CLOCK, c -> c.staff.autoSnapshotMinutes, (c, v) -> c.staff.autoSnapshotMinutes = v, 0, 1440, 15));
+        l.add(new Toggle("item-blacklist", Page.PROTECTION, c -> c.itemBlacklist.enabled, (c, v) -> c.itemBlacklist.enabled = v));
+        l.add(new ListS("blacklist-items", Page.PROTECTION, Items.BARRIER, c -> c.itemBlacklist.items, (c, v) -> c.itemBlacklist.items = v));
+        l.add(new Toggle("blacklist-ender", Page.PROTECTION, c -> c.itemBlacklist.includeEnderChest, (c, v) -> c.itemBlacklist.includeEnderChest = v));
         l.add(new Num("log-days", Page.GENERAL, Items.BOOK, c -> c.storage.logRetentionDays, (c, v) -> c.storage.logRetentionDays = v, 1, 365, 1));
         l.add(new Toggle("admins-settings", Page.GENERAL, c -> c.permissions.adminsUseSettings, (c, v) -> c.permissions.adminsUseSettings = v).owner());
         l.add(new Toggle("admins-private", Page.GENERAL, c -> c.permissions.adminsSeePrivateInfo, (c, v) -> c.permissions.adminsSeePrivateInfo = v).owner());
@@ -924,6 +929,8 @@ public final class SettingsMenu {
                     page(p, pg);
                 });
             }
+            menu.set(40, Btn.of(Items.BOOKSHELF).color(Theme.GOLD_LIGHT).name(Msg.tr("setbk.title")).desc(Msg.tr("setbk.desc"))
+                    .count(SettingsBackups.list().size()).left(Msg.tr("ui.action.open")).build(), Perm.SETTINGS, (p, c) -> SettingsBackups.open(p));
             menu.set(Menu.SEARCH, Btn.of(Items.NAME_TAG).color(Theme.GOLD_LIGHT).name(Msg.tr("settings.search"))
                     .desc(Msg.tr("settings.search-desc")).left(Msg.tr("ui.action.search")).build(), null, (p, c) ->
                     Input.text(p, Msg.trFor(p, "settings.search"), "", txt -> search(p, txt == null ? "" : txt.trim(), menu)));

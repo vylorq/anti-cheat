@@ -52,6 +52,7 @@ public final class Commands {
         WatcherCommands.register(d);
         TeamCommands.register(d);
         MarketCommands.register(d);
+        AdminCommands.register(d);
         d.register(net.minecraft.server.command.CommandManager.literal("invtools")
                 .requires(s -> com.vylorq.anticheat.perm.Perms.visible(s, com.vylorq.anticheat.core.perm.Perm.INSPECT_EDIT))
                 .then(Args.player("player").executes(ctx -> {

@@ -122,8 +122,21 @@ public final class Market {
         public long created;
     }
 
+    /** Something the server itself sells and/or buys back at fixed prices (cash). */
+    public static final class ServerItem {
+        public long id;
+        /** One sale's worth, encoded (its count is the amount per sale). */
+        public String item;
+        public String itemName;
+        /** Price to buy from the server (0 = not for sale). */
+        public int buy;
+        /** What the server pays when players sell it (0 = doesn't buy). */
+        public int sell;
+    }
+
     public static final class Data {
         public long nextId = 1;
+        public Map<Long, ServerItem> serverShop = new LinkedHashMap<>();
         public Map<Long, Booth> booths = new LinkedHashMap<>();
         public Map<Long, BoothOffer> boothOffers = new LinkedHashMap<>();
         /** Cash balances. */
@@ -582,6 +595,27 @@ public final class Market {
 
     public synchronized boolean isDeal(String trader, String signature) {
         return trader != null && trader.equals(data.dealTrader) && signature.equals(data.dealSignature);
+    }
+
+    // ---------------------------------------------------------------- server shop
+
+    public synchronized List<ServerItem> serverShop() {
+        return new ArrayList<>(data.serverShop.values());
+    }
+
+    public synchronized ServerItem addServerItem(String item, String itemName, int buy, int sell) {
+        ServerItem x = new ServerItem();
+        x.id = data.nextId++;
+        x.item = item;
+        x.itemName = itemName;
+        x.buy = Math.max(0, buy);
+        x.sell = Math.max(0, sell);
+        data.serverShop.put(x.id, x);
+        return x;
+    }
+
+    public synchronized ServerItem removeServerItem(long id) {
+        return data.serverShop.remove(id);
     }
 
     // ---------------------------------------------------------------- booths

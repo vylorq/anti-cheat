@@ -252,6 +252,54 @@ public final class InspectMenu {
                 menu.set(33, Btn.of(Items.WRITABLE_BOOK).name(Category.REVIEW, Msg.tr("in.open-case", open.id)).glint(true)
                         .left(Msg.tr("ui.action.open")).build(), Perm.REVIEW, (a, c) -> ReviewMenu.openCase(a, open.id));
             }
+            // Quick actions
+            boolean muted = ac.punishments.isMuted(target);
+            Btn mute = Btn.of(muted ? Items.BOOK : Items.WRITABLE_BOOK).name(Category.PUNISHMENTS, Msg.tr("in.mute")).desc(Msg.tr("in.mute-desc")).onOff(muted);
+            if (muted) {
+                mute.left(Msg.tr("in.unmute"));
+            } else {
+                mute.left(Msg.tr("in.mute-for", "1h")).right(Msg.tr("in.mute-for", "1d")).shift(Msg.tr("in.mute-for", Msg.tr("ui.permanent")));
+            }
+            menu.set(37, mute.build(), Perm.MUTE, (a, c) -> {
+                if (!com.vylorq.anticheat.feature.Punish.allowedOn(a, target)) {
+                    return;
+                }
+                if (muted) {
+                    com.vylorq.anticheat.feature.Punish.unmute(a, target, name(target));
+                } else {
+                    long d = c.isShift() ? Durations.PERMANENT : c.isRight() ? 24 * Durations.HOUR : Durations.HOUR;
+                    com.vylorq.anticheat.feature.Punish.mute(a, target, name(target), d, Msg.tr("in.mute-reason"));
+                }
+                menu.refresh();
+            });
+            if (p != null) {
+                menu.set(38, Btn.of(Items.GLISTERING_MELON_SLICE).name(Category.PLAYERS, Msg.tr("in.heal")).desc(Msg.tr("in.heal-desc"))
+                        .left(Msg.tr("in.heal")).build(), Perm.INSPECT_EDIT, (a, c) -> {
+                    p.setHealth(p.getMaxHealth());
+                    p.extinguish();
+                    p.clearStatusEffects();
+                    Staff.log(a, "heal", target, name(target), "");
+                    Msg.send(a, "in.healed", name(target));
+                    Msg.send(p, "in.you-healed");
+                    menu.refresh();
+                });
+                menu.set(39, Btn.of(Items.COOKED_BEEF).name(Category.PLAYERS, Msg.tr("in.feed")).desc(Msg.tr("in.feed-desc"))
+                        .left(Msg.tr("in.feed")).build(), Perm.INSPECT_EDIT, (a, c) -> {
+                    p.getHungerManager().setFoodLevel(20);
+                    p.getHungerManager().setSaturationLevel(20f);
+                    Staff.log(a, "feed", target, name(target), "");
+                    Msg.send(a, "in.fed", name(target));
+                    Msg.send(p, "in.you-fed");
+                    menu.refresh();
+                });
+            }
+            int notes = Notes.of(target).size();
+            menu.set(40, Btn.of(Items.PAPER).name(Category.PLAYERS, Msg.tr("notes.title")).desc(Msg.tr("notes.desc")).count(notes)
+                    .left(Msg.tr("ui.action.open")).build(), Perm.INSPECT, (a, c) -> Notes.open(a, target));
+            menu.set(41, Btn.of(Items.CHEST).name(Category.PLAYERS, Msg.tr("snap.title")).desc(Msg.tr("snap.desc"))
+                    .left(Msg.tr("ui.action.open")).build(), Perm.INSPECT_EDIT, (a, c) -> Snapshots.open(a, target));
+            menu.set(42, Btn.of(Items.LAVA_BUCKET).name(Category.PLAYERS, Msg.tr("invtools.title")).desc(Msg.tr("invtools.button-desc"))
+                    .left(Msg.tr("ui.action.open")).build(), Perm.INSPECT_EDIT, (a, c) -> InventoryTools.open(a, target));
             if (Perms.has(admin, Perm.INSPECT_PRIVATE)) {
                 menu.set(43, tab(TABS[8], false), Perm.INSPECT_PRIVATE, (a, c) -> privateInfo(a, target));
             }

@@ -46,6 +46,7 @@ public final class Ticker {
         }
         if (ticks % 1200 == 0) {
             Traders.tick(true);
+            com.vylorq.anticheat.gui.Snapshots.tickMinute();
             LobbyFeature.tickMinute();
             ac.watchlist.purgeExpired();
             ac.reports.data();
@@ -95,6 +96,9 @@ public final class Ticker {
                     s.trail.pollFirst();
                 }
                 Dupes.sample(p);
+            }
+            if (ticks % 60 == 0) {
+                ItemBlacklist.clean(p);
             }
             if (++s.dupeSampleTimer >= scanEvery) {
                 s.dupeSampleTimer = 0;
