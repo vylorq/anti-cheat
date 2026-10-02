@@ -249,6 +249,8 @@ class GameplayTest {
     void neverSellsNetheriteOrUnobtained() {
         TraderEconomy e = new TraderEconomy(null, clock);
         TraderEconomy.Settings s = settings();
+        assertTrue(e.maySell("minecraft:diamond_sword", s, List.of()), "traders have stock on a new server");
+        s.onlyObtained = true;
         assertFalse(e.maySell("minecraft:diamond_sword", s, List.of()), "not obtained yet");
         e.markObtained("minecraft:diamond_sword");
         assertTrue(e.maySell("minecraft:diamond_sword", s, List.of()));
@@ -262,6 +264,34 @@ class GameplayTest {
         assertFalse(e.maySell("minecraft:bedrock", s, List.of()));
         e.markObtained("minecraft:zombie_spawn_egg");
         assertFalse(e.maySell("minecraft:zombie_spawn_egg", s, List.of()));
+    }
+
+    @Test
+    void marketPricesMoveEveryPeriod() {
+        Clock.Manual c = new Clock.Manual(1_700_000_000_000L);
+        TraderEconomy e = new TraderEconomy(null, c);
+        TraderEconomy.Settings s = settings();
+        Trader t = new Trader();
+        t.entity = UUID.randomUUID();
+        e.rotate(t, s, List.of(), new SplittableRandom(3));
+        assertFalse(t.offers.isEmpty(), "a new server's trader has stock");
+        SplittableRandom r = new SplittableRandom(4);
+        assertTrue(e.marketTick(List.of(t), s, r));
+        String sig = t.offers.get(0).signature();
+        double start = e.market(sig);
+        assertTrue(start >= 0.85 && start <= 1.15);
+        assertFalse(e.marketTick(List.of(t), s, r), "no change inside the same period");
+        assertEquals(start, e.market(sig));
+        for (int i = 0; i < 40; i++) {
+            c.advance(50 * Durations.MINUTE);
+            double before = e.market(sig);
+            assertTrue(e.marketTick(List.of(t), s, r));
+            double now = e.market(sig);
+            assertNotEquals(before, now, "price changed");
+            assertTrue(now >= s.minPrice && now <= s.maxPrice);
+            assertEquals(now / before - 1, e.trend(sig), 1e-9);
+        }
+        assertTrue(e.untilPriceChange(s) > 0 && e.untilPriceChange(s) <= 50 * Durations.MINUTE);
     }
 
     @Test

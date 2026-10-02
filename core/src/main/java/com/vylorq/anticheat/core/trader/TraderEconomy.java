@@ -50,6 +50,13 @@ public final class TraderEconomy {
         public int perPlayerLegendaryPerWeek = 1;
         public int tradesPerMinute = 20;
         public List<String> neverSell = new ArrayList<>();
+        /** Only sell items a player on the server already got naturally (off: traders always have stock). */
+        public boolean onlyObtained = false;
+        /** Market prices move every this many minutes, up or down by up to {@link #priceSwing}. */
+        public int priceChangeMinutes = 50;
+        public double priceSwing = 0.15;
+        public double minPrice = 0.6;
+        public double maxPrice = 1.8;
     }
 
     public static final class Data {
@@ -63,6 +70,10 @@ public final class TraderEconomy {
         public Map<String, long[]> flow = new LinkedHashMap<>();
         /** day -> key -> count for sell-to caps */
         public Map<String, Map<String, Integer>> sold = new LinkedHashMap<>();
+        /** item signature -> [market price factor, factor before the last change] */
+        public Map<String, double[]> market = new LinkedHashMap<>();
+        /** Which price period the market was last moved for. */
+        public long marketPeriod = -1;
     }
 
     public enum Refusal { NONE, SOLD_OUT, TRADER_WEEKLY_CAP, PLAYER_WEEKLY_CAP, IP_WEEKLY_CAP, RATE_LIMIT }
@@ -102,7 +113,67 @@ public final class TraderEconomy {
         if (id.endsWith("_spawn_egg")) {
             return false;
         }
-        return isObtained(id);
+        return !s.onlyObtained || isObtained(id);
+    }
+
+    // ---- Market prices ----
+
+    /**
+     * Moves every price once per period (every {@code priceChangeMinutes}): each goes up or down by 3% to
+     * {@code priceSwing}, staying between {@code minPrice} and {@code maxPrice}. New items get a starting price.
+     *
+     * @return true if anything changed
+     */
+    public synchronized boolean marketTick(Collection<Trader> traders, Settings s, SplittableRandom r) {
+        boolean changed = false;
+        for (Trader t : traders) {
+            for (TraderOffer o : t.offers) {
+                if (!data.market.containsKey(o.signature())) {
+                    double f = 0.85 + r.nextDouble() * 0.3;
+                    data.market.put(o.signature(), new double[]{f, f});
+                    changed = true;
+                }
+            }
+        }
+        long period = clock.nowMillis() / (Math.max(1, s.priceChangeMinutes) * Durations.MINUTE);
+        if (period == data.marketPeriod) {
+            return changed;
+        }
+        boolean first = data.marketPeriod < 0;
+        data.marketPeriod = period;
+        if (first) {
+            return true;
+        }
+        for (double[] m : data.market.values()) {
+            double step = 0.03 + r.nextDouble() * Math.max(0, s.priceSwing - 0.03);
+            boolean up = r.nextBoolean();
+            if (m[0] * (1 + step) > s.maxPrice) {
+                up = false;
+            } else if (m[0] * (1 - step) < s.minPrice) {
+                up = true;
+            }
+            m[1] = m[0];
+            m[0] = Math.max(s.minPrice, Math.min(s.maxPrice, m[0] * (up ? 1 + step : 1 - step)));
+        }
+        return true;
+    }
+
+    /** Current market price factor (1 = normal). */
+    public synchronized double market(String signature) {
+        double[] m = data.market.get(signature);
+        return m == null ? 1.0 : m[0];
+    }
+
+    /** How much the price moved at the last change, e.g. 0.08 for +8%. */
+    public synchronized double trend(String signature) {
+        double[] m = data.market.get(signature);
+        return m == null || m[1] <= 0 ? 0 : m[0] / m[1] - 1;
+    }
+
+    /** Milliseconds until prices next change. */
+    public long untilPriceChange(Settings s) {
+        long len = Math.max(1, s.priceChangeMinutes) * Durations.MINUTE;
+        return len - clock.nowMillis() % len;
     }
 
     // ---- Rotations ----

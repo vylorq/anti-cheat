@@ -24,30 +24,62 @@ public final class OfferEvaluator {
         return i.id.endsWith("shulker_box") || i.id.equals("minecraft:bundle") || i.id.endsWith("_bundle");
     }
 
+    /** One kind of item in an offer: how many and what they're worth together. */
+    public record Line(String id, int count, double value) {
+    }
+
     /**
      * Total payment value with diminishing returns: the k-th unit of the same item type is worth
      * {@code unit * factor^k}, so huge amounts of cheap items never add up to a valuable one.
      */
     public static double paymentValue(List<ItemInfo> payment, ItemValues values, double factor) {
+        double total = 0;
+        for (Line l : breakdown(payment, values, factor)) {
+            total += l.value();
+        }
+        return total;
+    }
+
+    /** What each kind of item in the payment is worth (same rules as {@link #paymentValue}). */
+    public static List<Line> breakdown(List<ItemInfo> payment, ItemValues values, double factor) {
         Map<String, double[]> byType = new LinkedHashMap<>();
+        Map<String, String> ids = new LinkedHashMap<>();
         for (ItemInfo i : payment) {
             if (i == null || i.isEmpty()) {
                 continue;
             }
             double unit = values.unitValue(i);
             String key = i.id + i.enchantments + i.storedEnchantments;
+            ids.put(key, i.id);
             double[] acc = byType.computeIfAbsent(key, k -> new double[2]);
             // Average unit value weighted by count (damage can differ between stacks).
             acc[0] = (acc[0] * acc[1] + unit * i.count) / (acc[1] + i.count);
             acc[1] += i.count;
         }
-        double total = 0;
-        for (double[] acc : byType.values()) {
-            double n = acc[1];
-            double unit = acc[0];
-            total += factor >= 1.0 ? unit * n : unit * (1 - Math.pow(factor, n)) / (1 - factor);
+        List<Line> out = new java.util.ArrayList<>();
+        for (Map.Entry<String, double[]> e : byType.entrySet()) {
+            double n = e.getValue()[1];
+            double unit = e.getValue()[0];
+            out.add(new Line(ids.get(e.getKey()), (int) n, factor >= 1.0 ? unit * n : unit * (1 - Math.pow(factor, n)) / (1 - factor)));
         }
-        return total;
+        return out;
+    }
+
+    /** What the trader's item is worth before markup. */
+    public static double itemValue(TraderOffer offer, ItemValues values) {
+        ItemInfo sold = new ItemInfo(offer.id, offer.unit);
+        sold.enchantments.putAll(offer.enchantments);
+        sold.storedEnchantments.putAll(offer.storedEnchantments);
+        double v = values.unitValue(sold) * offer.unit;
+        if (offer.potion != null) {
+            v += 6 * offer.unit;
+        }
+        return v;
+    }
+
+    /** The price to pay: value x demand x the trader's mood x the market price. */
+    public static double price(TraderOffer offer, ItemValues values, double demandMultiplier, double mood, double market) {
+        return itemValue(offer, values) * demandMultiplier * mood * market;
     }
 
     /** @param illegal reason from the illegal-item check for any payment item, or null */
@@ -61,14 +93,7 @@ public final class OfferEvaluator {
                 return new Result(Verdict.REJECTED, 0, 0, "shulker boxes and bundles can't be used as payment");
             }
         }
-        ItemInfo sold = new ItemInfo(offer.id, offer.unit);
-        sold.enchantments.putAll(offer.enchantments);
-        sold.storedEnchantments.putAll(offer.storedEnchantments);
-        double itemValue = values.unitValue(sold) * offer.unit;
-        if (offer.potion != null) {
-            itemValue += 6 * offer.unit;
-        }
-        double required = itemValue * demandMultiplier * mood;
+        double required = itemValue(offer, values) * demandMultiplier * mood;
         double offered = paymentValue(payment, values, factor);
         Verdict v;
         if (offered >= required) {

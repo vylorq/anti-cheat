@@ -924,4 +924,23 @@ public final class AntiCheatGameTests {
         }
         ctx.complete();
     }
+
+    @GameTest
+    public void tradersHaveStockAndPrices(TestContext ctx) {
+        var econ = com.vylorq.anticheat.Ac.get().economy;
+        var t = new com.vylorq.anticheat.core.trader.Trader();
+        t.entity = java.util.UUID.randomUUID();
+        t.specialty = com.vylorq.anticheat.core.trader.Specialty.MASON;
+        econ.rotate(t, com.vylorq.anticheat.feature.Traders.settings(), java.util.List.of(), new java.util.SplittableRandom(5));
+        check(!t.offers.isEmpty(), "a trader has no stock");
+        econ.marketTick(java.util.List.of(t), com.vylorq.anticheat.feature.Traders.settings(), new java.util.SplittableRandom(6));
+        for (var o : t.offers) {
+            check(o.stock > 0, "an offer has no stock");
+            check(com.vylorq.anticheat.feature.Traders.price(t, o) > 0, "an offer has no price");
+        }
+        double diamonds = com.vylorq.anticheat.feature.Traders.stackValue(new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 3));
+        double one = com.vylorq.anticheat.feature.Traders.stackValue(new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 1));
+        check(one > 0 && diamonds > one, "item values are wrong: " + one + " / " + diamonds);
+        ctx.complete();
+    }
 }

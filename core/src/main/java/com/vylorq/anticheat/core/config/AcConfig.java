@@ -345,6 +345,14 @@ public class AcConfig {
                 "minecraft:dragon_egg", "minecraft:heavy_core", "minecraft:mace"));
         /** Base values of raw materials. Crafted items are derived from recipes. */
         public Map<String, Double> baseValues = new LinkedHashMap<>();
+        /** Only sell items a player already got naturally. Off = traders always have stock. */
+        public boolean onlyObtainedItems = false;
+        /** Prices change every this many minutes, up or down by up to priceSwing (0.15 = 15%). */
+        public int priceChangeMinutes = 50;
+        public double priceSwing = 0.15;
+        /** Market prices stay between these (1.0 = normal). */
+        public double minPrice = 0.6;
+        public double maxPrice = 1.8;
         public int sellDailyCapPerPlayer = 256;
         public int sellDailyCapServer = 4096;
     }
