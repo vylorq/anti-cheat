@@ -90,6 +90,8 @@ public final class VigilCommands {
             new Help(Group.TOOLS, "backup", "/vigil backup", "help.backup", Perm.RESTART),
             new Help(Group.TOOLS, "reload", "/vigil reload", "help.reload", Perm.RELOAD),
             new Help(Group.PLAYER, "trade", "/trade <player>", "help.trade", null),
+            new Help(Group.PLAYER, "value", "/value [inventory]", "help.value", null),
+            new Help(Group.PLAYER, "market", "/market", "help.market", null),
             new Help(Group.PLAYER, "report", "/report <player> <reason>", "help.report", null),
             new Help(Group.PLAYER, "lobby", "/lobby", "help.lobby-go", null),
             new Help(Group.PLAYER, "request", "/request join", "help.request", null),

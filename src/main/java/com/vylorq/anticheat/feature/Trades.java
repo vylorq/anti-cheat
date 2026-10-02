@@ -315,6 +315,7 @@ public final class Trades {
                 }
             }
         }
+        m.icon(49, valueMeter(side(s, me), side(s, them), theirName));
         int seen = t.revision();
         boolean ready = t.isReady(me);
         boolean confirmed = t.isConfirmed(me);
@@ -347,6 +348,46 @@ public final class Trades {
         if (viewer != null) {
             m.retitle(viewer, title(viewer, theirName, secs));
         }
+    }
+
+    /** What each side is worth (trader values), item by item, and whether the trade looks fair. */
+    private static ItemStack valueMeter(List<ItemStack> mine, List<ItemStack> theirs, String theirName) {
+        double give = 0;
+        double get = 0;
+        List<String> lines = new ArrayList<>();
+        for (ItemStack st : mine) {
+            double v = Traders.stackValue(st);
+            give += v;
+            lines.add("§7" + Msg.tr("trade.you") + ": §f" + st.getCount() + "x " + st.getName().getString() + " §8» §e" + Traders.fmt(v));
+        }
+        for (ItemStack st : theirs) {
+            double v = Traders.stackValue(st);
+            get += v;
+            lines.add("§7" + theirName + ": §f" + st.getCount() + "x " + st.getName().getString() + " §8» §e" + Traders.fmt(v));
+        }
+        String verdict;
+        int color;
+        if (give == 0 && get == 0) {
+            verdict = Msg.tr("trade.value.empty");
+            color = Theme.SOFT;
+        } else if (Math.abs(give - get) <= Math.max(give, get) * 0.15) {
+            verdict = "§a" + Msg.tr("trade.value.fair");
+            color = Theme.GREEN;
+        } else if (give > get) {
+            verdict = "§c" + Msg.tr("trade.value.you-give-more", Traders.fmt(give - get));
+            color = Theme.RED;
+        } else {
+            verdict = "§a" + Msg.tr("trade.value.you-get-more", Traders.fmt(get - give));
+            color = Theme.GOLD;
+        }
+        Btn b = Btn.of(Items.GOLD_INGOT).color(color).name(Msg.tr("trade.value.title"))
+                .line(Msg.tr("trade.value.give", Traders.fmt(give)))
+                .line(Msg.tr("trade.value.get", Traders.fmt(get)))
+                .line(verdict);
+        for (int i = 0; i < Math.min(14, lines.size()); i++) {
+            b.line(lines.get(i));
+        }
+        return b.build();
     }
 
     private static ItemStack head(SecureTrade t, UUID who, String name, String label) {

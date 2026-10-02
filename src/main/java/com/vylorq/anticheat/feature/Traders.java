@@ -108,6 +108,11 @@ public final class Traders {
         s.perPlayerLegendaryPerWeek = c.perPlayerLegendaryPerWeek;
         s.tradesPerMinute = c.tradesPerMinute;
         s.neverSell = c.neverSell;
+        s.onlyObtained = c.onlyObtainedItems;
+        s.priceChangeMinutes = c.priceChangeMinutes;
+        s.priceSwing = c.priceSwing;
+        s.minPrice = c.minPrice;
+        s.maxPrice = c.maxPrice;
         return s;
     }
 
@@ -258,10 +263,48 @@ public final class Traders {
             if (v.isOnFire()) {
                 v.extinguish();
             }
-            if (minute && now >= t.nextRotation) {
+            if (minute && (now >= t.nextRotation || (t.type == Trader.Type.SELLS && t.offers.isEmpty()))) {
                 rotate(t);
             }
         }
+        if (minute && Ac.get().economy.marketTick(all().values(), settings(), RANDOM)) {
+            Ac.markDirty("economy");
+        }
+    }
+
+    // ---- Prices ----
+
+    /** The price of an offer right now (what the trader wants in value). */
+    public static double price(Trader t, TraderOffer o) {
+        Ac ac = Ac.get();
+        return OfferEvaluator.price(o, values(), ac.economy.demand(o.signature(), settings()), t.mood, ac.economy.market(o.signature()));
+    }
+
+    /** "123" or "4.5": values below 10 keep one decimal. */
+    public static String fmt(double v) {
+        return v >= 10 ? String.format("%,d", Math.round(v)) : String.format("%.1f", v);
+    }
+
+    /** "▲ +8%" / "▼ -5%" in green or red. */
+    public static String trendText(String signature) {
+        double tr = Ac.get().economy.trend(signature);
+        int pct = (int) Math.round(tr * 100);
+        if (pct == 0) {
+            return "§7= 0%";
+        }
+        return pct > 0 ? "§c▲ +" + pct + "%" : "§a▼ " + pct + "%";
+    }
+
+    public static String untilPriceChange() {
+        return Durations.format(Ac.get().economy.untilPriceChange(settings()));
+    }
+
+    /** Value of one stack (all of it), for showing players what their items are worth. */
+    public static double stackValue(ItemStack s) {
+        if (s.isEmpty()) {
+            return 0;
+        }
+        return OfferEvaluator.paymentValue(List.of(ItemConv.info(s)), values(), Ac.config().traders.diminishingFactor);
     }
 
     // ---- Items ----
@@ -295,7 +338,7 @@ public final class Traders {
         };
     }
 
-    private static ItemStack offerIcon(TraderOffer o, boolean clickable) {
+    private static ItemStack offerIcon(Trader t, TraderOffer o, boolean clickable) {
         ItemStack s = stackFor(o);
         if (o.soldOut()) {
             return Btn.of(Items.GRAY_STAINED_GLASS_PANE).color(Theme.SOFT).name(s.getName().getString())
@@ -303,15 +346,20 @@ public final class Traders {
         }
         Btn b = Btn.of(s).color(rarityColor(o.rarity)).name(s.getName().getString())
                 .status(rarityColor(o.rarity), Theme.Sym.DOT.sp() + Msg.tr("tr.rarity." + o.rarity.name().toLowerCase(java.util.Locale.ROOT)))
-                .line(Msg.tr("tr.stock", o.stock));
+                .line(Msg.tr("tr.stock", o.stock + "/" + o.maxStock))
+                .line(Msg.tr("tr.price", fmt(price(t, o)), trendText(o.signature())))
+                .line(Msg.tr("tr.price-changes", untilPriceChange()));
         if (clickable) {
             b.left(Msg.tr("tr.action.offer"));
         }
         return b.amount(s.getCount()).build();
     }
 
-    private static ItemStack mysteryIcon(TraderOffer o, boolean clickable) {
-        Btn b = Btn.of(Items.CHEST).color(Theme.VIOLET).name(Msg.tr("tr.mystery")).desc(Msg.tr("tr.mystery-desc")).line(Msg.tr("tr.stock", o.stock));
+    private static ItemStack mysteryIcon(Trader t, TraderOffer o, boolean clickable) {
+        Btn b = Btn.of(Items.CHEST).color(Theme.VIOLET).name(Msg.tr("tr.mystery")).desc(Msg.tr("tr.mystery-desc"))
+                .line(Msg.tr("tr.stock", o.stock + "/" + o.maxStock))
+                .line(Msg.tr("tr.price", fmt(price(t, o)), trendText(o.signature())))
+                .line(Msg.tr("tr.price-changes", untilPriceChange()));
         if (clickable) {
             b.left(Msg.tr("tr.action.offer"));
         }
@@ -336,8 +384,9 @@ public final class Traders {
         Menu m = Menu.std(Theme.Category.PLAYER, t.name);
         m.renderer(menu -> {
             menu.info(Btn.of(Items.EMERALD).color(Theme.GOLD_LIGHT).name(t.name).desc(Msg.tr("tr.offers-desc"))
-                    .line(Msg.tr("tr.next-rotation", Durations.format(Math.max(0, t.nextRotation - System.currentTimeMillis())))).build());
-            menu.list(t.offers, o -> t.type == Trader.Type.MYSTERY ? mysteryIcon(o, true) : offerIcon(o, true),
+                    .line(Msg.tr("tr.next-rotation", Durations.format(Math.max(0, t.nextRotation - System.currentTimeMillis()))))
+                    .line(Msg.tr("tr.price-changes", untilPriceChange())).build());
+            menu.list(t.offers, o -> t.type == Trader.Type.MYSTERY ? mysteryIcon(t, o, true) : offerIcon(t, o, true),
                     o -> (pl, c) -> {
                         if (o.soldOut()) {
                             Msg.send(pl, "trader.sold-out");
@@ -360,7 +409,10 @@ public final class Traders {
             pay.add(i);
         }
         m.allowPlayerInventory(true);
-        m.editable(pay, (pl, slot) -> saveEscrow(pl, m));
+        m.editable(pay, (pl, slot) -> {
+            saveEscrow(pl, m);
+            m.refresh();
+        });
         String[] verdict = {null};
         m.renderer(menu -> {
             ItemStack glass = Btn.pane(Theme.Category.PLAYER.glass);
@@ -372,11 +424,14 @@ public final class Traders {
             for (int r = 1; r <= 4; r++) {
                 menu.icon(r * 9 + 3, Btn.pane(Items.BLACK_STAINED_GLASS_PANE));
             }
-            menu.icon(20, t.type == Trader.Type.MYSTERY ? mysteryIcon(o, false) : offerIcon(o, false));
+            menu.icon(20, t.type == Trader.Type.MYSTERY ? mysteryIcon(t, o, false) : offerIcon(t, o, false));
+            double priceNow = price(t, o);
+            double offered = offerSummary(menu, payment(m), priceNow);
             menu.icon(4, Btn.of(Items.OAK_SIGN).color(Theme.GOLD_LIGHT).name(Msg.tr("tr.how")).desc(Msg.tr("tr.how-desc")).build());
             Btn button;
             if (verdict[0] == null) {
-                button = Btn.of(Items.EMERALD).color(Theme.GREEN).name(Msg.tr("tr.offer")).desc(Msg.tr("tr.offer-desc"));
+                button = Btn.of(Items.EMERALD).color(Theme.GREEN).name(Msg.tr("tr.offer")).desc(Msg.tr("tr.offer-desc"))
+                        .glint(offered >= priceNow && offered > 0);
             } else {
                 char code = verdict[0].length() > 1 && verdict[0].charAt(0) == '§' ? verdict[0].charAt(1) : '7';
                 net.minecraft.item.Item icon = code == 'a' ? Items.LIME_CONCRETE : code == 'e' ? Items.YELLOW_CONCRETE : code == 'c' ? Items.RED_CONCRETE : Items.EMERALD;
@@ -402,6 +457,78 @@ public final class Traders {
         });
         NEGOTIATING.add(p.getUuid());
         m.open(p);
+    }
+
+    /** Bottom of the offer window: what every item in the offer is worth, the total, and how close it is. */
+    private static double offerSummary(Menu menu, List<ItemStack> stacks, double price) {
+        List<ItemInfo> infos = new ArrayList<>();
+        Map<String, String> names = new HashMap<>();
+        for (ItemStack st : stacks) {
+            ItemInfo i = ItemConv.info(st);
+            infos.add(i);
+            names.putIfAbsent(i.id, st.getName().getString());
+        }
+        double factor = Ac.config().traders.diminishingFactor;
+        List<OfferEvaluator.Line> lines = OfferEvaluator.breakdown(infos, values(), factor);
+        double total = 0;
+        for (OfferEvaluator.Line l : lines) {
+            total += l.value();
+        }
+        boolean enough = total >= price && total > 0;
+        int pct = price <= 0 ? 0 : (int) Math.min(100, Math.round(total / price * 100));
+        Btn b = Btn.of(enough ? Items.LIME_DYE : total > 0 ? Items.YELLOW_DYE : Items.GRAY_DYE)
+                .color(enough ? Theme.GREEN : total > 0 ? Theme.GOLD : Theme.SOFT)
+                .name(Msg.tr("tr.offer-value", fmt(total), fmt(price)))
+                .line(bar(pct) + " §f" + pct + "%");
+        if (lines.isEmpty()) {
+            b.line(Msg.tr("tr.offer-empty"));
+        }
+        int shown = 0;
+        for (OfferEvaluator.Line l : lines) {
+            if (shown++ >= 12) {
+                b.line("§7…");
+                break;
+            }
+            b.line("§7" + l.count() + "x §f" + names.getOrDefault(l.id(), l.id()) + " §8» §e" + fmt(l.value()));
+        }
+        if (enough && total > price * 1.25) {
+            b.line(Msg.tr("tr.overpaying", fmt(total - price)));
+        } else if (!enough && total > 0) {
+            b.line(Msg.tr("tr.still-need", fmt(price - total)));
+        }
+        menu.icon(47, b.build());
+        menu.icon(51, Btn.of(Items.GOLD_NUGGET).color(Theme.GOLD_LIGHT).name(Msg.tr("tr.price-now", fmt(price)))
+                .line(Msg.tr("tr.price-changes", untilPriceChange())).line(Msg.tr("tr.value-hint")).build());
+        return total;
+    }
+
+    /** /market: everything traders sell right now, with price, stock and the last price move. */
+    public static void showMarket(ServerPlayerEntity p) {
+        p.sendMessage(Text.literal("§8§m        §r §6§l" + Msg.trFor(p, "tr.market") + " §8§m        "));
+        int n = 0;
+        for (Trader t : all().values()) {
+            if (t.type != Trader.Type.SELLS && t.type != Trader.Type.MYSTERY) {
+                continue;
+            }
+            for (TraderOffer o : t.offers) {
+                if (n++ >= 40) {
+                    break;
+                }
+                String item = t.type == Trader.Type.MYSTERY ? Msg.trFor(p, "tr.mystery") : stackFor(o).getName().getString();
+                p.sendMessage(Text.literal(o.rarity.color + item + (o.unit > 1 ? " §7x" + o.unit : "") + " §8» §e" + fmt(price(t, o))
+                        + " " + trendText(o.signature()) + " §7(" + (o.soldOut() ? Msg.trFor(p, "tr.sold-out") : o.stock + "/" + o.maxStock)
+                        + ") §8@ §f" + t.name));
+            }
+        }
+        if (n == 0) {
+            Msg.send(p, "tr.market-empty");
+        }
+        p.sendMessage(Text.literal(Msg.trFor(p, "tr.price-changes", untilPriceChange())));
+    }
+
+    static String bar(int pct) {
+        int filled = Math.max(0, Math.min(10, pct / 10));
+        return "§a" + "■".repeat(filled) + "§8" + "■".repeat(10 - filled);
     }
 
     private static List<ItemStack> payment(Menu m) {
@@ -467,7 +594,7 @@ public final class Traders {
             saveEscrow(p, m);
             return "§c" + Msg.tr("tr.v.refuses");
         }
-        double demand = ac.economy.demand(o.signature(), st);
+        double demand = ac.economy.demand(o.signature(), st) * ac.economy.market(o.signature());
         OfferEvaluator.Result res = OfferEvaluator.evaluate(o, infos, values(), demand, t.mood,
                 Ac.config().traders.diminishingFactor, Ac.config().traders.closeFraction, null);
         switch (res.verdict()) {

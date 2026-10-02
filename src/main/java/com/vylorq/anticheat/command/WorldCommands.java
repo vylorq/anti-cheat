@@ -1247,6 +1247,34 @@ final class WorldCommands {
                 }))
                 .then(literal("edit").then(Args.word("number").executes(ctx -> traderByIndex(ctx, false))))
                 .then(literal("remove").then(Args.word("number").executes(ctx -> traderByIndex(ctx, true)))));
+        d.register(literal("value").executes(ctx -> {
+            ServerPlayerEntity p = self(ctx);
+            if (p == null) return 0;
+            var held = p.getMainHandStack();
+            if (held.isEmpty()) {
+                Msg.err(ctx.getSource(), "value.hold");
+                return 0;
+            }
+            double all = Traders.stackValue(held);
+            double one = Traders.stackValue(held.copyWithCount(1));
+            Msg.ok(ctx.getSource(), "value.item", held.getCount() + "x " + held.getName().getString(), Traders.fmt(all), Traders.fmt(one));
+            return 1;
+        }).then(literal("inventory").executes(ctx -> {
+            ServerPlayerEntity p = self(ctx);
+            if (p == null) return 0;
+            double total = 0;
+            for (int i = 0; i < p.getInventory().size(); i++) {
+                total += Traders.stackValue(p.getInventory().getStack(i));
+            }
+            Msg.ok(ctx.getSource(), "value.inventory", Traders.fmt(total));
+            return 1;
+        })));
+        d.register(literal("market").executes(ctx -> {
+            ServerPlayerEntity p = self(ctx);
+            if (p == null) return 0;
+            Traders.showMarket(p);
+            return 1;
+        }));
         d.register(literal("trade")
                 .then(literal("accept").then(Args.player("player").executes(ctx -> {
                     ServerPlayerEntity p = self(ctx);
