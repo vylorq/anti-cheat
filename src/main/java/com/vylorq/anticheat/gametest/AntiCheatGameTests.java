@@ -901,6 +901,11 @@ public final class AntiCheatGameTests {
             check(com.vylorq.anticheat.feature.Teams.damageBlocked(a, b), "ally fire off on one side didn't protect");
             check(com.vylorq.anticheat.feature.Teams.damageBlocked(b, a), "ally fire off didn't work both ways");
             tb.allyFire = true;
+            check(com.vylorq.anticheat.feature.Teams.visible(ta, ta) && com.vylorq.anticheat.feature.Teams.visible(tb, ta), "own or ally land hidden on the map");
+            tb.shareMap = false;
+            check(!com.vylorq.anticheat.feature.Teams.visible(tb, ta) && !com.vylorq.anticheat.feature.Teams.visible(ta, tb), "map sharing off didn't hide both ways");
+            tb.shareMap = true;
+            check(!com.vylorq.anticheat.feature.Teams.visible(ta, null), "someone with no team saw team land");
             check(!com.vylorq.anticheat.feature.Teams.damageBlocked(outsider, a), "strangers were protected");
             var inv = com.vylorq.anticheat.feature.Teams.vault(ta);
             inv.setStack(3, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 5));
@@ -908,6 +913,7 @@ public final class AntiCheatGameTests {
             com.vylorq.anticheat.feature.Teams.forgetVault(ta, null);
             check(ta.vault.isEmpty(), "forgotten vault kept items");
             check(tm.unally(a.getUuid(), nb) == R && !tm.allied(a.getUuid(), b.getUuid()), "unally failed");
+            check(!com.vylorq.anticheat.feature.Teams.visible(tb, ta), "another team's land showed on the map");
         } finally {
             for (String n : new String[]{na, nb}) {
                 var t = tm.get(n);

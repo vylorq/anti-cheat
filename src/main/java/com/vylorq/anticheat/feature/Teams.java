@@ -243,11 +243,11 @@ public final class Teams {
                 int cx = c.x + dx;
                 int cz = c.z + dz;
                 Team t = tm().at(w, cx, cz);
-                if (t == null) {
+                if (t == null || !visible(t, tm().teamOf(p.getUuid()))) {
                     continue;
                 }
                 var effect = t.members.contains(p.getUuid()) ? net.minecraft.particle.ParticleTypes.HAPPY_VILLAGER
-                        : net.minecraft.particle.ParticleTypes.FLAME;
+                        : net.minecraft.particle.ParticleTypes.SOUL_FIRE_FLAME;
                 int x0 = cx << 4;
                 int z0 = cz << 4;
                 // Only the edges that touch land that isn't this team's.
@@ -321,6 +321,38 @@ public final class Teams {
     }
 
     // ---------------------------------------------------------------- ping
+
+    /** Whether {@code mine}'s members may see {@code t}'s land: their own, or an ally's while both share the map. */
+    public static boolean visible(Team t, Team mine) {
+        return t != null && mine != null && (t == mine || (mine.allies.contains(t.id) && mine.shareMap && t.shareMap));
+    }
+
+    /** A small map of the land around the player, in chat. Only their own team and allies are shown, never other teams. */
+    public static void showMap(ServerPlayerEntity p) {
+        String w = Mc.worldId(p.getEntityWorld());
+        ChunkPos c = p.getChunkPos();
+        Team mine = tm().teamOf(p.getUuid());
+        p.sendMessage(Text.literal("§8§m          §r §6" + Msg.trFor(p, "team.map-head") + " §8§m          "));
+        for (int dz = -4; dz <= 4; dz++) {
+            StringBuilder row = new StringBuilder();
+            for (int dx = -8; dx <= 8; dx++) {
+                if (dx == 0 && dz == 0) {
+                    row.append("§f✚");
+                    continue;
+                }
+                Team t = tm().at(w, c.x + dx, c.z + dz);
+                if (!visible(t, mine)) {
+                    row.append("§7▪");
+                } else if (t == mine) {
+                    row.append("§a■");
+                } else {
+                    row.append("§b■");
+                }
+            }
+            p.sendMessage(Text.literal(row.toString()));
+        }
+        p.sendMessage(Text.literal(Msg.trFor(p, "team.map-key")));
+    }
 
     private static final Map<UUID, Long> PINGED = new HashMap<>();
 
