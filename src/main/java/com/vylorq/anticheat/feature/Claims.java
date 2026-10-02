@@ -60,6 +60,9 @@ public final class Claims {
      */
     public static boolean check(ServerPlayerEntity p, World w, BlockPos pos, ClaimAction a) {
         Teams.watch(p, w, pos, a);
+        if (!Features.on(Features.Feature.CLAIMS)) {
+            return true;
+        }
         Claim c = at(w, pos);
         if (c == null || can(p, c, a)) {
             return true;
@@ -126,6 +129,9 @@ public final class Claims {
 
     /** Timer tick (every second): warnings, expiry, removal of every permission. */
     public static void tick() {
+        if (!Features.on(Features.Feature.CLAIMS)) {
+            return;
+        }
         Ac ac = Ac.get();
         for (ClaimManager.TimerEvent e : ac.claims.tick(Ac.config().claims.archiveOnExpiry)) {
             Claim c = e.claim();
@@ -196,6 +202,9 @@ public final class Claims {
 
     /** Every second for players holding the Claim Stick: their selection and nearby claim borders. */
     public static void showBorders(ServerPlayerEntity p) {
+        if (!Features.on(Features.Feature.CLAIMS)) {
+            return;
+        }
         PlayerSession s = Ac.session(p);
         if (s.corner1 != null && s.corner2 != null && Mc.worldId(p.getEntityWorld()).equals(s.cornerWorld)) {
             outline(p, Math.min(s.corner1.getX(), s.corner2.getX()), Math.min(s.corner1.getZ(), s.corner2.getZ()),
@@ -208,6 +217,9 @@ public final class Claims {
 
     /** Pushes a player out of a private claim they ended up inside (pearls, chorus fruit, teleports, other mods). */
     public static void enforceInside(ServerPlayerEntity p) {
+        if (!Features.on(Features.Feature.CLAIMS)) {
+            return;
+        }
         Claim c = Ac.get().claims.at(Mc.worldId(p.getEntityWorld()), p.getX(), p.getZ());
         if (c == null || canEnter(p, c)) {
             return;

@@ -180,6 +180,10 @@ public final class Trades {
     }
 
     public static void request(ServerPlayerEntity from, ServerPlayerEntity to) {
+        if (!Features.on(Features.Feature.PLAYER_TRADES)) {
+            Msg.send(from, "features.is-off", Msg.trFor(from, "feature.player-trades"));
+            return;
+        }
         if (from == to) {
             Msg.send(from, "trade.self");
             return;

@@ -34,6 +34,9 @@ public final class LobbyFeature {
 
     /** @return true when the action is allowed (always true outside the lobby). */
     public static boolean allowed(ServerPlayerEntity p, World w, BlockPos pos, Lobby.Action action) {
+        if (!Features.on(Features.Feature.LOBBY)) {
+            return true;
+        }
         if (!in(w, pos)) {
             return true;
         }
@@ -97,6 +100,9 @@ public final class LobbyFeature {
 
     /** Every minute: refill loot chests. Every second: void rescue, no hunger. */
     public static void tickMinute() {
+        if (!Features.on(Features.Feature.LOBBY)) {
+            return;
+        }
         Ac ac = Ac.get();
         Lobby lobby = ac.lobby;
         if (!lobby.isSet()) {
@@ -132,6 +138,9 @@ public final class LobbyFeature {
     }
 
     public static void tickPlayer(ServerPlayerEntity p) {
+        if (!Features.on(Features.Feature.LOBBY)) {
+            return;
+        }
         Lobby lobby = Ac.get().lobby;
         if (!lobby.isSet()) {
             return;

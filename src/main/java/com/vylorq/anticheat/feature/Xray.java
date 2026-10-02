@@ -117,7 +117,7 @@ public final class Xray {
     public static Map<ChunkSection, ChunkSection> modifiedSections(WorldChunk chunk) {
         Map<ChunkSection, ChunkSection> out = new IdentityHashMap<>();
         Ac ac = Ac.get();
-        if (ac == null || !(chunk.getWorld() instanceof ServerWorld w)) {
+        if (ac == null || !(chunk.getWorld() instanceof ServerWorld w) || !Features.on(Features.Feature.XRAY)) {
             return out;
         }
         AcConfig.Xray cfg = Ac.config().xray;
@@ -197,6 +197,9 @@ public final class Xray {
 
     /** After a block is broken: reveal neighbours, check traps, mining analysis and ore alerts. */
     public static void afterBreak(ServerPlayerEntity p, ServerWorld w, BlockPos pos, BlockState state, boolean wasEnclosed) {
+        if (!Features.on(Features.Feature.XRAY)) {
+            return;
+        }
         Ac ac = Ac.get();
         AcConfig.Xray cfg = Ac.config().xray;
         boolean trapHit = false;

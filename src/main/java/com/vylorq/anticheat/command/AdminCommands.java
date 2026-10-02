@@ -46,6 +46,29 @@ public final class AdminCommands {
     }
 
     public static void register(CommandDispatcher<ServerCommandSource> d) {
+        // ---- feature switches ----
+        d.register(literal("features").requires(s -> Perms.visible(s, Perm.SETTINGS)).executes(ctx -> {
+            ServerPlayerEntity p = ctx.getSource().getPlayer();
+            if (p != null) {
+                com.vylorq.anticheat.gui.FeaturesMenu.open(p);
+            } else {
+                StringBuilder b = new StringBuilder();
+                for (var f : com.vylorq.anticheat.feature.Features.Feature.values()) {
+                    b.append(f.id).append(com.vylorq.anticheat.feature.Features.on(f) ? "=on " : "=off ");
+                }
+                ctx.getSource().sendFeedback(() -> Text.literal(b.toString().trim()), false);
+            }
+            return 1;
+        }));
+        d.register(literal("feature").requires(s -> Perms.visible(s, Perm.SETTINGS))
+                .then(Args.word("feature").suggests((c, b) -> {
+                    for (var f : com.vylorq.anticheat.feature.Features.Feature.values()) {
+                        b.suggest(f.id);
+                    }
+                    return b.buildFuture();
+                }).then(literal("on").executes(ctx -> feature(ctx, true)))
+                        .then(literal("off").executes(ctx -> feature(ctx, false)))));
+
         // ---- notes ----
         d.register(literal("note").requires(s -> Perms.visible(s, Perm.INSPECT))
                 .then(Args.player("player").then(CommandManager.argument("text", StringArgumentType.greedyString())
@@ -111,6 +134,19 @@ public final class AdminCommands {
                                 return 1;
                             })))));
         }
+    }
+
+    private static int feature(CommandContext<ServerCommandSource> ctx, boolean on) {
+        if (!Perms.check(ctx.getSource(), Perm.SETTINGS)) return 0;
+        var f = com.vylorq.anticheat.feature.Features.byId(Args.str(ctx, "feature"));
+        if (f == null) {
+            Msg.err(ctx.getSource(), "features.unknown", Args.str(ctx, "feature"));
+            return 0;
+        }
+        com.vylorq.anticheat.feature.Features.set(f, on);
+        Staff.log(ctx.getSource().getPlayer(), on ? "feature-on" : "feature-off", null, f.id, "");
+        Msg.ok(ctx.getSource(), on ? "features.turned-on" : "features.turned-off", Msg.tr("feature." + f.id));
+        return 1;
     }
 
     private static int snapshot(CommandContext<ServerCommandSource> ctx, String note) {

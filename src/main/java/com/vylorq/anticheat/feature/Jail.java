@@ -93,6 +93,9 @@ public final class Jail {
 
     /** Every second. */
     public static void tick() {
+        if (!Features.on(Features.Feature.JAIL)) {
+            return;
+        }
         Ac ac = Ac.get();
         Set<UUID> online = new HashSet<>();
         for (ServerPlayerEntity p : ac.server.getPlayerManager().getPlayerList()) {

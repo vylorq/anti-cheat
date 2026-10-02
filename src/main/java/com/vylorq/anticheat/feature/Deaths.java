@@ -27,6 +27,9 @@ public final class Deaths {
     }
 
     public static void onDamage(ServerPlayerEntity p, DamageSource source, float amount) {
+        if (!Features.on(Features.Feature.DEATH_LOGS)) {
+            return;
+        }
         PlayerSession s = Ac.session(p);
         DeathRecord.DamageEntry e = new DeathRecord.DamageEntry();
         e.at = System.currentTimeMillis();
@@ -45,6 +48,9 @@ public final class Deaths {
 
     /** Called just before the player dies: record everything and tag the items that will drop. */
     public static void onDeath(ServerPlayerEntity p, DamageSource source) {
+        if (!Features.on(Features.Feature.DEATH_LOGS)) {
+            return;
+        }
         Ac ac = Ac.get();
         PlayerSession s = Ac.session(p);
         DeathRecord r = new DeathRecord();

@@ -44,6 +44,8 @@ public class AcConfig {
     public Events events = new Events();
     public Teams teams = new Teams();
     public MarketCfg market = new MarketCfg();
+    /** Feature switches without a setting of their own (id -> on); missing = on. */
+    public Map<String, Boolean> features = new LinkedHashMap<>();
     public ItemBlacklist itemBlacklist = new ItemBlacklist();
 
     public static class General {

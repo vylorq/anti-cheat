@@ -75,7 +75,7 @@ public final class Movement {
         }
 
         // Barriers: nobody gets in or out.
-        if (moved) {
+        if (moved && Features.on(Features.Feature.BARRIERS)) {
             boolean bypass = Perms.isActiveStaff(p);
             BarrierManager.Verdict v = ac.barriers.check(p.getUuid(), bypass, w, from, w, to);
             if (!v.allowed()) {

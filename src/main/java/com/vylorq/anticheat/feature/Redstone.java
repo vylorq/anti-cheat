@@ -36,6 +36,9 @@ public final class Redstone {
 
     /** A clock component ticked. @return false to stop it (disabled lag machine). */
     public static boolean onToggle(ServerWorld w, BlockPos pos) {
+        if (!Features.on(Features.Feature.REDSTONE)) {
+            return true;
+        }
         Ac ac = Ac.get();
         if (ac == null) {
             return true;
@@ -54,16 +57,25 @@ public final class Redstone {
     }
 
     public static boolean onPiston(ServerWorld w, BlockPos pos) {
+        if (!Features.on(Features.Feature.REDSTONE)) {
+            return true;
+        }
         Ac ac = Ac.get();
         return ac == null || ac.redstone.onPistonMove(Mc.worldId(w), Mc.pos(pos), System.currentTimeMillis(), limits());
     }
 
     public static boolean onDispense(ServerWorld w, BlockPos pos) {
+        if (!Features.on(Features.Feature.REDSTONE)) {
+            return true;
+        }
         Ac ac = Ac.get();
         return ac == null || ac.redstone.onDispense(Mc.worldId(w), Mc.pos(pos), System.currentTimeMillis(), limits());
     }
 
     public static boolean mayPrimeTnt(ServerWorld w, BlockPos pos) {
+        if (!Features.on(Features.Feature.REDSTONE)) {
+            return true;
+        }
         Ac ac = Ac.get();
         if (ac == null) {
             return true;
@@ -102,6 +114,9 @@ public final class Redstone {
 
     /** Every 10 seconds: entity counts per chunk; excess dropped items are removed. */
     public static void scanEntities() {
+        if (!Features.on(Features.Feature.REDSTONE)) {
+            return;
+        }
         AcConfig.Redstone r = Ac.config().redstone;
         for (ServerWorld w : Ac.server().getWorlds()) {
             Map<Long, int[]> counts = new HashMap<>();

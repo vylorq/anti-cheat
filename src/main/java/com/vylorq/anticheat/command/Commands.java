@@ -420,6 +420,11 @@ public final class Commands {
         long now = System.currentTimeMillis();
         ac.logs.chat(now, p.getUuid(), p.getGameProfile().name(), "command", "/" + command);
         ac.evidence.record(p.getUuid(), EvidenceEvent.Type.COMMAND, p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch(), "/" + command);
+        com.vylorq.anticheat.feature.Features.Feature off = com.vylorq.anticheat.feature.Features.forCommand(root);
+        if (off != null && !com.vylorq.anticheat.feature.Features.on(off)) {
+            Msg.send(p, "features.is-off", Msg.trFor(p, "feature." + off.id));
+            return false;
+        }
         if (com.vylorq.anticheat.feature.ScareWarning.pending(p)) {
             Msg.send(p, "scarewarn.must-choose");
             com.vylorq.anticheat.feature.ScareWarning.open(p);
