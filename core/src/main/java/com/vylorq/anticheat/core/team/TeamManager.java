@@ -24,12 +24,47 @@ public final class TeamManager {
         public Map<UUID, Set<String>> invites = new HashMap<>();
         /** "world|x|z" to team id. */
         public Map<String, String> chunkOwner = new HashMap<>();
+        public List<War> wars = new ArrayList<>();
+        /** Team id -> when it may declare war again. */
+        public Map<String, Long> warCooldown = new HashMap<>();
+    }
+
+    /** A war between two teams: kills between them score points until it ends. */
+    public static final class War {
+        public String a;
+        public String b;
+        public int scoreA;
+        public int scoreB;
+        public long started;
+        public long endsAt;
+
+        public boolean involves(String team) {
+            return a.equals(team) || b.equals(team);
+        }
+
+        /** Winner's id, or null for a draw. */
+        public String winner() {
+            return scoreA == scoreB ? null : scoreA > scoreB ? a : b;
+        }
+    }
+
+    public static final int MAX_LEVEL = 10;
+
+    /** Level 1 at 0 XP, then 50, 200, 450, 800 ... (50 x (level-1)^2), up to level 10. */
+    public static int level(long xp) {
+        return Math.min(MAX_LEVEL, 1 + (int) Math.floor(Math.sqrt(Math.max(0, xp) / 50.0)));
+    }
+
+    /** XP needed to reach a level. */
+    public static long xpFor(int level) {
+        long n = Math.max(0, level - 1);
+        return 50 * n * n;
     }
 
     public enum Result {
         OK, BAD_NAME, NAME_TAKEN, TAG_TAKEN, ALREADY_IN_TEAM, NOT_IN_TEAM, NO_SUCH_TEAM, NOT_ALLOWED, NOT_INVITED, FULL,
         NOT_A_MEMBER, LEADER_MUST_HAND_OVER, CHUNK_TAKEN, CHUNK_NOT_YOURS, CHUNK_LIMIT, NOT_CONNECTED, SELF,
-        ALREADY_ALLIES, ALLY_REQUESTED, NOT_ALLIES, TOO_MANY
+        ALREADY_ALLIES, ALLY_REQUESTED, NOT_ALLIES, TOO_MANY, AT_WAR, ARE_ALLIES, WAR_COOLDOWN, NOT_ENOUGH
     }
 
     /** Limits (from the config). */
@@ -40,6 +75,8 @@ public final class TeamManager {
         public int maxChunks = 40;
         /** New chunks must touch the team's other chunks. */
         public boolean connected = true;
+        /** Extra chunks for every team level above 1. */
+        public int chunksPerLevel = 2;
     }
 
     private final Data data;
@@ -96,7 +133,7 @@ public final class TeamManager {
     }
 
     public int chunkLimit(Team t, Limits l) {
-        return Math.min(l.maxChunks, l.baseChunks + l.chunksPerMember * t.members.size());
+        return Math.min(l.maxChunks, l.baseChunks + l.chunksPerMember * t.members.size()) + l.chunksPerLevel * (level(t.xp) - 1);
     }
 
     // ---------------------------------------------------------------- membership
@@ -334,6 +371,8 @@ public final class TeamManager {
 
     /** Removes a team completely (admins, or the last member leaving). */
     public synchronized void removeTeam(Team t) {
+        data.wars.removeIf(w -> w.involves(t.id));
+        data.warCooldown.remove(t.id);
         for (Team o : data.teams.values()) {
             o.allies.remove(t.id);
             o.allyRequests.remove(t.id);
@@ -402,5 +441,146 @@ public final class TeamManager {
             t.chunks.remove(k);
         }
         return t;
+    }
+
+    // ---------------------------------------------------------------- levels, bank, wars
+
+    /** @return the new level if this XP made the team level up, else 0 */
+    public synchronized int addXp(Team t, long amount) {
+        int before = level(t.xp);
+        t.xp = Math.max(0, t.xp + amount);
+        int after = level(t.xp);
+        return after > before ? after : 0;
+    }
+
+    private static void bankLog(Team t, String line) {
+        t.bankLog.add(line);
+        while (t.bankLog.size() > 20) {
+            t.bankLog.remove(0);
+        }
+    }
+
+    /** The player has already handed in the currency. */
+    public synchronized Result deposit(UUID by, String byName, int amount) {
+        Team t = teamOf(by);
+        if (t == null) {
+            return Result.NOT_IN_TEAM;
+        }
+        if (amount <= 0) {
+            return Result.NOT_ENOUGH;
+        }
+        t.bank += amount;
+        bankLog(t, clock.nowMillis() + "|" + byName + "|+" + amount);
+        return Result.OK;
+    }
+
+    /** Officers and the leader take from the bank (the server then gives the currency). */
+    public synchronized Result withdraw(UUID by, String byName, int amount) {
+        Team t = teamOf(by);
+        if (t == null) {
+            return Result.NOT_IN_TEAM;
+        }
+        if (!t.role(by).atLeast(Team.Role.OFFICER)) {
+            return Result.NOT_ALLOWED;
+        }
+        if (amount <= 0 || amount > t.bank) {
+            return Result.NOT_ENOUGH;
+        }
+        t.bank -= amount;
+        bankLog(t, clock.nowMillis() + "|" + byName + "|-" + amount);
+        return Result.OK;
+    }
+
+    public synchronized War warOf(String teamId) {
+        for (War w : data.wars) {
+            if (w.involves(teamId)) {
+                return w;
+            }
+        }
+        return null;
+    }
+
+    public synchronized List<War> wars() {
+        return new ArrayList<>(data.wars);
+    }
+
+    /** A leader starts a war with another team; both must be free and not allies. */
+    public synchronized Result declareWar(UUID by, String otherName, long durationMs, long cooldownMs) {
+        Team t = teamOf(by);
+        if (t == null) {
+            return Result.NOT_IN_TEAM;
+        }
+        if (t.role(by) != Team.Role.LEADER) {
+            return Result.NOT_ALLOWED;
+        }
+        Team o = get(otherName);
+        if (o == null) {
+            return Result.NO_SUCH_TEAM;
+        }
+        if (o == t) {
+            return Result.SELF;
+        }
+        if (t.allies.contains(o.id)) {
+            return Result.ARE_ALLIES;
+        }
+        if (warOf(t.id) != null || warOf(o.id) != null) {
+            return Result.AT_WAR;
+        }
+        long now = clock.nowMillis();
+        if (data.warCooldown.getOrDefault(t.id, 0L) > now) {
+            return Result.WAR_COOLDOWN;
+        }
+        War w = new War();
+        w.a = t.id;
+        w.b = o.id;
+        w.started = now;
+        w.endsAt = now + durationMs;
+        data.wars.add(w);
+        data.warCooldown.put(t.id, now + durationMs + cooldownMs);
+        return Result.OK;
+    }
+
+    /** A kill between two teams at war scores a point. @return the war, or null if they aren't at war */
+    public synchronized War warKill(UUID killer, UUID victim) {
+        Team k = teamOf(killer);
+        Team v = teamOf(victim);
+        if (k == null || v == null || k == v) {
+            return null;
+        }
+        War w = warOf(k.id);
+        if (w == null || !w.involves(v.id)) {
+            return null;
+        }
+        if (w.a.equals(k.id)) {
+            w.scoreA++;
+        } else {
+            w.scoreB++;
+        }
+        return w;
+    }
+
+    /** Ends wars whose hour is up: records wins and losses. */
+    public synchronized List<War> endWars() {
+        long now = clock.nowMillis();
+        List<War> ended = new ArrayList<>();
+        for (War w : new ArrayList<>(data.wars)) {
+            if (now < w.endsAt) {
+                continue;
+            }
+            data.wars.remove(w);
+            String win = w.winner();
+            if (win != null) {
+                Team winner = data.teams.get(win);
+                Team loser = data.teams.get(win.equals(w.a) ? w.b : w.a);
+                if (winner != null) {
+                    winner.warsWon++;
+                }
+                if (loser != null) {
+                    loser.warsLost++;
+                }
+            }
+            ended.add(w);
+        }
+        return ended;
     }
 }

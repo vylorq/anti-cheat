@@ -48,6 +48,7 @@ public final class SettingsMenu {
         WAITING(Items.BLACK_CANDLE, Perm.SETTINGS),
         ARENAS(Items.DIAMOND_SWORD, Perm.SETTINGS),
         TRADERS(Items.EMERALD, Perm.SETTINGS),
+        ECONOMY(Items.GOLD_INGOT, Perm.SETTINGS),
         WATCHER(Items.ENDER_EYE, Perm.WATCHER),
         STYLE(Items.PAINTING, Perm.SETTINGS);
 
@@ -733,6 +734,28 @@ public final class SettingsMenu {
         l.add(new Num("player-legendary-cap", Page.TRADERS, Items.NETHER_STAR, c -> c.traders.perPlayerLegendaryPerWeek, (c, v) -> c.traders.perPlayerLegendaryPerWeek = v, 0, 20, 1));
         l.add(new Num("sell-cap", Page.TRADERS, Items.WHEAT, c -> c.traders.sellDailyCapPerPlayer, (c, v) -> c.traders.sellDailyCapPerPlayer = v, 16, 10_000, 16));
         l.add(new ListS("never-sell", Page.TRADERS, Items.BARRIER, c -> c.traders.neverSell, (c, v) -> c.traders.neverSell = v));
+        l.add(new Choice("trader-payment", Page.TRADERS, Items.GOLD_INGOT, List.of("items", "emeralds", "cash"), v -> Msg.tr("tr.pay." + v),
+                c -> c.traders.defaultPayment, (c, v) -> c.traders.defaultPayment = v));
+        l.add(new Num("price-change", Page.TRADERS, Items.CLOCK, c -> c.traders.priceChangeMinutes, (c, v) -> c.traders.priceChangeMinutes = v, 5, 600, 5));
+        l.add(new Toggle("only-obtained", Page.TRADERS, c -> c.traders.onlyObtainedItems, (c, v) -> c.traders.onlyObtainedItems = v));
+        // Economy
+        l.add(new Toggle("market", Page.ECONOMY, c -> c.market.enabled, (c, v) -> c.market.enabled = v));
+        l.add(new Choice("market-currency", Page.ECONOMY, Items.GOLD_NUGGET, List.of("cash", "minecraft:emerald"),
+                v -> Msg.tr(v.equals("cash") ? "tr.pay.cash" : "tr.pay.emeralds"), c -> c.market.currency, (c, v) -> c.market.currency = v));
+        l.add(new Num("starting-cash", Page.ECONOMY, Items.GOLD_INGOT, c -> c.market.startingCash, (c, v) -> c.market.startingCash = v, 0, 100_000, 50));
+        l.add(new Dbl("cash-per-value", Page.ECONOMY, Items.GOLD_BLOCK, c -> c.market.cashPerValue, (c, v) -> c.market.cashPerValue = v, 0.1, 10, 0.1));
+        l.add(new Dbl("sell-rate", Page.ECONOMY, Items.HOPPER, c -> c.market.sellRate, (c, v) -> c.market.sellRate = v, 0, 1, 0.05));
+        l.add(new Toggle("shops", Page.ECONOMY, c -> c.market.shops, (c, v) -> c.market.shops = v));
+        l.add(new Toggle("shops-lobby-only", Page.ECONOMY, c -> c.market.shopsOnlyInLobby, (c, v) -> c.market.shopsOnlyInLobby = v));
+        l.add(new Num("max-shops", Page.ECONOMY, Items.CHEST, c -> c.market.maxShopsPerPlayer, (c, v) -> c.market.maxShopsPerPlayer = v, 0, 50, 1));
+        l.add(new Num("auction-hours", Page.ECONOMY, Items.CLOCK, c -> c.market.auctionHours, (c, v) -> c.market.auctionHours = v, 1, 168, 1));
+        l.add(new Num("max-auctions", Page.ECONOMY, Items.GOLD_BLOCK, c -> c.market.maxAuctionsPerPlayer, (c, v) -> c.market.maxAuctionsPerPlayer = v, 0, 50, 1));
+        l.add(new Num("max-orders", Page.ECONOMY, Items.HOPPER, c -> c.market.maxOrdersPerPlayer, (c, v) -> c.market.maxOrdersPerPlayer = v, 0, 50, 1));
+        l.add(new Dbl("deal-discount", Page.ECONOMY, Items.EMERALD, c -> c.market.dailyDealDiscount, (c, v) -> c.market.dailyDealDiscount = v, 0, 0.9, 0.05));
+        l.add(new Toggle("bounties", Page.ECONOMY, c -> c.market.bounties, (c, v) -> c.market.bounties = v));
+        l.add(new Num("war-minutes", Page.ECONOMY, Items.IRON_SWORD, c -> c.teams.warMinutes, (c, v) -> c.teams.warMinutes = v, 10, 600, 10));
+        l.add(new Num("war-cooldown", Page.ECONOMY, Items.CLOCK, c -> c.teams.warCooldownMinutes, (c, v) -> c.teams.warCooldownMinutes = v, 0, 1440, 30));
+        l.add(new Num("chunks-per-level", Page.ECONOMY, Items.GRASS_BLOCK, c -> c.teams.chunksPerLevel, (c, v) -> c.teams.chunksPerLevel = v, 0, 20, 1));
         // Watcher (owner only)
         l.add(new Toggle("watcher", Page.WATCHER, c -> c.watcher.enabled, (c, v) -> {
             c.watcher.enabled = v;
@@ -873,7 +896,7 @@ public final class SettingsMenu {
             long changedCount = all().stream().filter(S::changed).count();
             menu.info(Btn.of(Items.COMPARATOR).name(Category.SETTINGS, Msg.tr("cat.settings")).desc(Msg.tr("settings.hub-desc"))
                     .line(Msg.tr("settings.changed-count", changedCount)).build());
-            int[] slots = {19, 20, 21, 22, 23, 24, 25, 29, 31, 33};
+            int[] slots = {19, 20, 21, 22, 23, 24, 25, 29, 30, 31, 32, 33};
             Page[] pages = Page.values();
             for (int i = 0; i < pages.length; i++) {
                 Page pg = pages[i];

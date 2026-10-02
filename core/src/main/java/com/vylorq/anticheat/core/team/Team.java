@@ -39,6 +39,15 @@ public final class Team {
     public boolean allyFire = true;
     /** Allies see this team's land on the map and borders; either team can turn it off. */
     public boolean shareMap = true;
+    /** Team experience (playtime, kills, trades, wars): decides the level. */
+    public long xp;
+    /** Team bank: currency items held for the team. */
+    public long bank;
+    /** Recent bank deposits and withdrawals, newest last. */
+    public java.util.List<String> bankLog = new java.util.ArrayList<>();
+    /** Wars won and lost. */
+    public int warsWon;
+    public int warsLost;
 
     public Role role(UUID player) {
         if (player == null || !members.contains(player)) {

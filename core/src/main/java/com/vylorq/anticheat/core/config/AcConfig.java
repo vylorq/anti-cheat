@@ -43,6 +43,7 @@ public class AcConfig {
     public Watcher watcher = new Watcher();
     public Events events = new Events();
     public Teams teams = new Teams();
+    public MarketCfg market = new MarketCfg();
 
     public static class General {
         /** Owner UUID. The owner has every power. Leave empty until set. */
@@ -353,6 +354,8 @@ public class AcConfig {
         /** Market prices stay between these (1.0 = normal). */
         public double minPrice = 0.6;
         public double maxPrice = 1.8;
+        /** How traders get paid unless a trader is set otherwise: "items" (any items and blocks), "emeralds" or "cash". */
+        public String defaultPayment = "items";
         public int sellDailyCapPerPlayer = 256;
         public int sellDailyCapServer = 4096;
     }
@@ -455,6 +458,42 @@ public class AcConfig {
         public int maxAllies = 3;
         /** Seconds between raid alerts for the same intruder. */
         public int raidAlertSeconds = 30;
+        /** Extra chunks for every team level above 1. */
+        public int chunksPerLevel = 2;
+        /** Team level at which the vault becomes a double chest. */
+        public int bigVaultLevel = 3;
+        /** Team XP: per online member per minute, per player kill, per trade. */
+        public int xpPerMinute = 1;
+        public int xpPerKill = 10;
+        public int xpPerTrade = 3;
+        public int xpWarWin = 100;
+        /** How long a war lasts, and how long before the same team can declare another. */
+        public int warMinutes = 60;
+        public int warCooldownMinutes = 180;
+    }
+
+    /** Auction house, buy orders, bounties and the daily deal. */
+    public static class MarketCfg {
+        public boolean enabled = true;
+        /** Money for auctions, buy orders, bounties and the team bank: "cash" or an item id (e.g. minecraft:emerald). */
+        public String currency = "cash";
+        public String cashSymbol = "$";
+        /** Cash every new player starts with. */
+        public int startingCash = 100;
+        /** Cash price of 1 point of trader value. */
+        public double cashPerValue = 1.0;
+        /** Traders that buy from players pay this share of an item's value. */
+        public double sellRate = 0.5;
+        /** Player shops (/shop). */
+        public boolean shops = true;
+        public boolean shopsOnlyInLobby = true;
+        public int maxShopsPerPlayer = 3;
+        public int auctionHours = 24;
+        public int maxAuctionsPerPlayer = 5;
+        public int maxOrdersPerPlayer = 5;
+        /** One random trader item is this much cheaper for a day (0.3 = 30% off). */
+        public double dailyDealDiscount = 0.3;
+        public boolean bounties = true;
     }
 
     /** Server-wide events (Blood Moon, Lockdown, Golden Hour). */

@@ -27,4 +27,6 @@ public final class Trader {
     public String requestItem;
     public int requestCount;
     public String requestDay;
+    /** How this trader is paid: "default" (server setting), "items", "emeralds" or "cash". */
+    public String payment = "default";
 }

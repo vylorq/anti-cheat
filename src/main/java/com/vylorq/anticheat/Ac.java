@@ -150,6 +150,7 @@ public final class Ac {
     public ClaimManager claims;
     public BarrierManager barriers;
     public com.vylorq.anticheat.core.team.TeamManager teams;
+    public com.vylorq.anticheat.core.market.Market market;
     public LagMachineDetector redstone;
     public XrayTrap xrayTrap;
     public final OreAlerts oreAlerts = new OreAlerts();
@@ -274,6 +275,7 @@ public final class Ac {
         claims = new ClaimManager(state.load("claims", ClaimManager.Data.class, null), clock);
         barriers = new BarrierManager(state.load("barriers", BarrierManager.Data.class, null), clock);
         teams = new com.vylorq.anticheat.core.team.TeamManager(state.load("teams", com.vylorq.anticheat.core.team.TeamManager.Data.class, null), clock);
+        market = new com.vylorq.anticheat.core.market.Market(state.load("market", com.vylorq.anticheat.core.market.Market.Data.class, null), clock);
         redstone = new LagMachineDetector(state.load("redstone", LagMachineDetector.Data.class, null));
         joins = new JoinGuard(state.load("joins", JoinGuard.Data.class, null));
         lobby = new Lobby(state.load("lobby", Lobby.Data.class, null));
@@ -372,6 +374,7 @@ public final class Ac {
             case "claims" -> claims.data();
             case "barriers" -> barriers.data();
             case "teams" -> teams.data();
+            case "market" -> market.data();
             case "redstone" -> redstone.data();
             case "joins" -> joins.data();
             case "lobby" -> lobby.data();
@@ -390,7 +393,7 @@ public final class Ac {
 
     public static final List<String> ALL_KEYS = List.of("watchlist", "exempt", "shadow", "reviews", "stats", "pins",
             "punishments", "reports", "staff", "deaths", "claims", "barriers", "redstone", "joins", "lobby", "jail",
-            "waiting", "arenas", "economy", "traders", "escrow", "misc", "watcher", "end", "teams");
+            "waiting", "arenas", "economy", "traders", "escrow", "misc", "watcher", "end", "teams", "market");
 
     /** Saves dirty modules (called every few seconds on the server thread). */
     public void saveDirty() {
