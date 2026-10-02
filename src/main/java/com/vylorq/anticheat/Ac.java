@@ -102,6 +102,8 @@ public final class Ac {
         public Map<UUID, String> languages = new LinkedHashMap<>();
         /** Admins who turned menu and message sounds off for themselves. */
         public Set<UUID> quietUi = new java.util.HashSet<>();
+        /** What the last staff inventory wipe removed per player (encoded slots), so it can be undone. */
+        public Map<UUID, List<String>> inventoryBackups = new LinkedHashMap<>();
     }
 
     /** Items held by the mod on a player's behalf (trade windows, trader offers). Returned after a crash. */
