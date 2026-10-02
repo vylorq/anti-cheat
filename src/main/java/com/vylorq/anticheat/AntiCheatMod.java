@@ -31,6 +31,7 @@ public final class AntiCheatMod implements ModInitializer {
             KitPresets.ensure();
             com.vylorq.anticheat.feature.TempAdmins.onServerStarted();
             com.vylorq.anticheat.feature.Traders.economyWarnings();
+            com.vylorq.anticheat.feature.WatcherSkins.onServerStarted();
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             if (!Ac.running()) {

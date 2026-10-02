@@ -44,6 +44,20 @@ public final class WatcherCommands {
                     return 1;
                 }))
                 .then(literal("skin")
+                        .then(literal("scary").executes(ctx -> {
+                            if (!Perms.check(ctx.getSource(), Perm.WATCHER)) return 0;
+                            ServerCommandSource src = ctx.getSource();
+                            Msg.ok(src, "watcher.skin-uploading");
+                            com.vylorq.anticheat.feature.WatcherSkins.applyBuiltIn(err -> {
+                                if (err == null) {
+                                    Staff.log(src.getPlayer(), "watcher-skin", null, "built-in", "");
+                                    Msg.ok(src, "watcher.skin-set", "built-in");
+                                } else {
+                                    Msg.err(src, "watcher.skin-upload-failed", err);
+                                }
+                            });
+                            return 1;
+                        }))
                         .then(literal("reset").executes(ctx -> {
                             if (!Perms.check(ctx.getSource(), Perm.WATCHER)) return 0;
                             Ac.config().watcher.skinValue = "";
