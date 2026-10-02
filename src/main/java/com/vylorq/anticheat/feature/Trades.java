@@ -549,6 +549,10 @@ public final class Trades {
                 b.getUuid(), b.getGameProfile().name(), detail);
         Ac.get().dupeWatch.legitGain(a.getUuid(), Dupes.value(fromB), System.currentTimeMillis());
         Ac.get().dupeWatch.legitGain(b.getUuid(), Dupes.value(fromA), System.currentTimeMillis());
+        if (!fromA.isEmpty() && !fromB.isEmpty()) {
+            Teams.xpForTrade(a);
+            Teams.xpForTrade(b);
+        }
         a.closeHandledScreen();
         b.closeHandledScreen();
         Msg.send(a, "trade.done");

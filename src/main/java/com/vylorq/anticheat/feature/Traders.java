@@ -12,6 +12,7 @@ import com.vylorq.anticheat.core.detect.CheckType;
 import com.vylorq.anticheat.core.item.ItemInfo;
 import com.vylorq.anticheat.core.items.IllegalItems;
 import com.vylorq.anticheat.core.perm.Perm;
+import com.vylorq.anticheat.core.market.Market;
 import com.vylorq.anticheat.core.trader.Enchants;
 import com.vylorq.anticheat.core.trader.ItemValues;
 import com.vylorq.anticheat.core.trader.OfferEvaluator;
@@ -267,8 +268,22 @@ public final class Traders {
                 rotate(t);
             }
         }
-        if (minute && Ac.get().economy.marketTick(all().values(), settings(), RANDOM)) {
+        TraderEconomy econ = Ac.get().economy;
+        long period = econ.data().marketPeriod;
+        if (minute && econ.marketTick(all().values(), settings(), RANDOM)) {
             Ac.markDirty("economy");
+            boolean moved = period != econ.data().marketPeriod;
+            Set<String> sigs = new HashSet<>();
+            for (Trader t : all().values()) {
+                for (TraderOffer o : t.offers) {
+                    sigs.add(o.signature());
+                    if (moved || Ac.get().market.history(o.signature()).isEmpty()) {
+                        Ac.get().market.recordPrice(o.signature(), econ.market(o.signature()));
+                    }
+                }
+            }
+            Ac.get().market.keepHistory(sigs);
+            Ac.markDirty("market");
         }
     }
 
@@ -278,6 +293,42 @@ public final class Traders {
     public static double price(Trader t, TraderOffer o) {
         Ac ac = Ac.get();
         return OfferEvaluator.price(o, values(), ac.economy.demand(o.signature(), settings()), t.mood, ac.economy.market(o.signature()));
+    }
+
+    /** The price for one player: today's deal and their reputation with this trader lower it. */
+    public static double price(Trader t, TraderOffer o, UUID player) {
+        double v = price(t, o) * Markets.dealFactor(t, o);
+        if (player != null) {
+            v *= 1 - Market.discount(Ac.get().market.deals(player, t.entity.toString()));
+        }
+        return v;
+    }
+
+    /** How a trader is paid: "items", "emeralds" or "cash". */
+    public static String payment(Trader t) {
+        String p = t.payment == null || t.payment.equals("default") ? Ac.config().traders.defaultPayment : t.payment;
+        return switch (p) {
+            case "cash", "emeralds" -> p;
+            default -> "items";
+        };
+    }
+
+    public static int cashPrice(double value) {
+        return (int) Math.max(1, Math.ceil(value * Ac.config().market.cashPerValue));
+    }
+
+    public static int emeraldPrice(double value) {
+        double em = values().value("minecraft:emerald");
+        return (int) Math.max(1, Math.ceil(value / Math.max(0.01, em)));
+    }
+
+    /** The price as players pay it at this trader: "$120", "6 Emerald" or "120 ◆" (in items). */
+    public static String priceText(Trader t, double value) {
+        return switch (payment(t)) {
+            case "cash" -> Markets.cash(cashPrice(value));
+            case "emeralds" -> emeraldPrice(value) + " " + new ItemStack(Items.EMERALD).getName().getString();
+            default -> fmt(value) + " ◆";
+        };
     }
 
     /** "123" or "4.5": values below 10 keep one decimal. */
@@ -338,7 +389,7 @@ public final class Traders {
         };
     }
 
-    private static ItemStack offerIcon(Trader t, TraderOffer o, boolean clickable) {
+    private static ItemStack offerIcon(Trader t, TraderOffer o, boolean clickable, UUID viewer) {
         ItemStack s = stackFor(o);
         if (o.soldOut()) {
             return Btn.of(Items.GRAY_STAINED_GLASS_PANE).color(Theme.SOFT).name(s.getName().getString())
@@ -346,22 +397,35 @@ public final class Traders {
         }
         Btn b = Btn.of(s).color(rarityColor(o.rarity)).name(s.getName().getString())
                 .status(rarityColor(o.rarity), Theme.Sym.DOT.sp() + Msg.tr("tr.rarity." + o.rarity.name().toLowerCase(java.util.Locale.ROOT)))
-                .line(Msg.tr("tr.stock", o.stock + "/" + o.maxStock))
-                .line(Msg.tr("tr.price", fmt(price(t, o)), trendText(o.signature())))
-                .line(Msg.tr("tr.price-changes", untilPriceChange()));
+                .line(Msg.tr("tr.stock", o.stock + "/" + o.maxStock));
+        priceLines(b, t, o, viewer);
         if (clickable) {
-            b.left(Msg.tr("tr.action.offer"));
+            b.left(Msg.tr(payment(t).equals("items") ? "tr.action.offer" : "tr.action.buy"));
         }
         return b.amount(s.getCount()).build();
     }
 
-    private static ItemStack mysteryIcon(Trader t, TraderOffer o, boolean clickable) {
+    private static void priceLines(Btn b, Trader t, TraderOffer o, UUID viewer) {
+        b.line(Msg.tr("tr.price", priceText(t, price(t, o, viewer)), trendText(o.signature())));
+        if (Markets.dealFactor(t, o) < 1) {
+            b.line(Msg.tr("tr.deal-tag", (int) Math.round(Ac.config().market.dailyDealDiscount * 100)));
+        }
+        if (viewer != null) {
+            double off = Market.discount(Ac.get().market.deals(viewer, t.entity.toString()));
+            if (off > 0) {
+                b.line(Msg.tr("tr.rep-tag", (int) Math.round(off * 100)));
+            }
+        }
+        b.line(Msg.tr("tr.pay-with", Msg.tr("tr.pay." + payment(t))));
+        b.line(Msg.tr("tr.price-changes", untilPriceChange()));
+    }
+
+    private static ItemStack mysteryIcon(Trader t, TraderOffer o, boolean clickable, UUID viewer) {
         Btn b = Btn.of(Items.CHEST).color(Theme.VIOLET).name(Msg.tr("tr.mystery")).desc(Msg.tr("tr.mystery-desc"))
-                .line(Msg.tr("tr.stock", o.stock + "/" + o.maxStock))
-                .line(Msg.tr("tr.price", fmt(price(t, o)), trendText(o.signature())))
-                .line(Msg.tr("tr.price-changes", untilPriceChange()));
+                .line(Msg.tr("tr.stock", o.stock + "/" + o.maxStock));
+        priceLines(b, t, o, viewer);
         if (clickable) {
-            b.left(Msg.tr("tr.action.offer"));
+            b.left(Msg.tr(payment(t).equals("items") ? "tr.action.offer" : "tr.action.buy"));
         }
         return b.build();
     }
@@ -386,17 +450,83 @@ public final class Traders {
             menu.info(Btn.of(Items.EMERALD).color(Theme.GOLD_LIGHT).name(t.name).desc(Msg.tr("tr.offers-desc"))
                     .line(Msg.tr("tr.next-rotation", Durations.format(Math.max(0, t.nextRotation - System.currentTimeMillis()))))
                     .line(Msg.tr("tr.price-changes", untilPriceChange())).build());
-            menu.list(t.offers, o -> t.type == Trader.Type.MYSTERY ? mysteryIcon(t, o, true) : offerIcon(t, o, true),
+            menu.list(t.offers, o -> icon(t, o, true, p.getUuid()),
                     o -> (pl, c) -> {
                         if (o.soldOut()) {
                             Msg.send(pl, "trader.sold-out");
                             return;
                         }
-                        openNegotiation(pl, t, o);
+                        if (payment(t).equals("items")) {
+                            openNegotiation(pl, t, o);
+                        } else {
+                            openBuy(pl, t, o);
+                        }
                     },
                     null, List.of(), Msg.tr("tr.no-offers"), Msg.tr("tr.restock"));
         });
         m.open(p);
+    }
+
+    private static ItemStack icon(Trader t, TraderOffer o, boolean clickable, UUID viewer) {
+        return t.type == Trader.Type.MYSTERY ? mysteryIcon(t, o, clickable, viewer) : offerIcon(t, o, clickable, viewer);
+    }
+
+    /** Cash or emerald traders: a simple "buy for this much" window. */
+    private static void openBuy(ServerPlayerEntity p, Trader t, TraderOffer o) {
+        Menu m = Menu.std(Theme.Category.PLAYER, 3, t.name, Msg.trFor(p, "tr.buy-title"));
+        m.parent(null);
+        m.renderer(menu -> {
+            double v = price(t, o, p.getUuid());
+            boolean cash = payment(t).equals("cash");
+            int cost = cash ? cashPrice(v) : emeraldPrice(v);
+            long have = cash ? Ac.get().market.balance(p.getUuid()) : Markets.countItem(p, Items.EMERALD);
+            boolean afford = have >= cost;
+            menu.set(11, icon(t, o, false, p.getUuid()), null, null);
+            menu.set(13, Btn.of(cash ? Items.GOLD_INGOT : Items.EMERALD).color(Theme.GOLD_LIGHT)
+                    .name(Msg.tr("tr.you-have", cash ? Markets.cash(have) : have + " " + new ItemStack(Items.EMERALD).getName().getString())).build(), null, null);
+            menu.set(15, Btn.of(afford ? Items.LIME_CONCRETE : Items.RED_CONCRETE).color(afford ? Theme.GREEN : Theme.RED)
+                    .name(Msg.tr("tr.buy-for", priceText(t, v))).desc(Msg.tr(afford ? "tr.buy-desc" : "tr.cant-afford"))
+                    .left(Msg.tr("tr.action.buy")).glint(afford).build(), null, (pl, c) -> {
+                String verdict = buyDirect(pl, t, o);
+                Msg.actionBar(pl, verdict);
+                pl.sendMessage(Text.literal(verdict));
+                if (o.soldOut()) {
+                    openOffers(pl, t);
+                } else {
+                    menu.refresh();
+                }
+            });
+            menu.set(18, Menu.back(), null, (pl, c) -> openOffers(pl, t));
+        });
+        m.open(p);
+    }
+
+    private static String buyDirect(ServerPlayerEntity p, Trader t, TraderOffer o) {
+        if (!Ac.get().economy.rateOk(p.getUuid(), settings().tradesPerMinute)) {
+            PlayerSessionFlags.flag(p, CheckType.TRADE_MACRO, 0.5, "trade rate limit");
+            return "§c" + Msg.tr("tr.v.slow");
+        }
+        double v = price(t, o, p.getUuid());
+        boolean cash = payment(t).equals("cash");
+        int cost = cash ? cashPrice(v) : emeraldPrice(v);
+        long have = cash ? Ac.get().market.balance(p.getUuid()) : Markets.countItem(p, Items.EMERALD);
+        if (have < cost) {
+            Mc.sound(p, SoundEvents.ENTITY_VILLAGER_NO, 1f, 1f);
+            return "§c" + Msg.tr("tr.cant-afford");
+        }
+        String paid = cash ? Markets.cash(cost) : cost + "x emerald";
+        return deliver(p, t, o, paid, () -> {
+            if (cash) {
+                boolean ok = Ac.get().market.takeCash(p.getUuid(), cost);
+                Ac.markDirty("market");
+                return ok;
+            }
+            boolean ok = Markets.takeItem(p, Items.EMERALD, cost);
+            if (ok) {
+                Ac.get().economy.flow("minecraft:emerald", cost, 0);
+            }
+            return ok;
+        });
     }
 
     private static final Set<UUID> NEGOTIATING = new HashSet<>();
@@ -424,8 +554,8 @@ public final class Traders {
             for (int r = 1; r <= 4; r++) {
                 menu.icon(r * 9 + 3, Btn.pane(Items.BLACK_STAINED_GLASS_PANE));
             }
-            menu.icon(20, t.type == Trader.Type.MYSTERY ? mysteryIcon(t, o, false) : offerIcon(t, o, false));
-            double priceNow = price(t, o);
+            menu.icon(20, icon(t, o, false, p.getUuid()));
+            double priceNow = price(t, o, p.getUuid());
             double offered = offerSummary(menu, payment(m), priceNow);
             menu.icon(4, Btn.of(Items.OAK_SIGN).color(Theme.GOLD_LIGHT).name(Msg.tr("tr.how")).desc(Msg.tr("tr.how-desc")).build());
             Btn button;
@@ -515,7 +645,7 @@ public final class Traders {
                     break;
                 }
                 String item = t.type == Trader.Type.MYSTERY ? Msg.trFor(p, "tr.mystery") : stackFor(o).getName().getString();
-                p.sendMessage(Text.literal(o.rarity.color + item + (o.unit > 1 ? " §7x" + o.unit : "") + " §8» §e" + fmt(price(t, o))
+                p.sendMessage(Text.literal(o.rarity.color + item + (o.unit > 1 ? " §7x" + o.unit : "") + " §8» §e" + priceText(t, price(t, o, p.getUuid()))
                         + " " + trendText(o.signature()) + " §7(" + (o.soldOut() ? Msg.trFor(p, "tr.sold-out") : o.stock + "/" + o.maxStock)
                         + ") §8@ §f" + t.name));
             }
@@ -594,7 +724,8 @@ public final class Traders {
             saveEscrow(p, m);
             return "§c" + Msg.tr("tr.v.refuses");
         }
-        double demand = ac.economy.demand(o.signature(), st) * ac.economy.market(o.signature());
+        double demand = ac.economy.demand(o.signature(), st) * ac.economy.market(o.signature()) * Markets.dealFactor(t, o)
+                * (1 - Market.discount(ac.market.deals(p.getUuid(), t.entity.toString())));
         OfferEvaluator.Result res = OfferEvaluator.evaluate(o, infos, values(), demand, t.mood,
                 Ac.config().traders.diminishingFactor, Ac.config().traders.closeFraction, null);
         switch (res.verdict()) {
@@ -614,6 +745,24 @@ public final class Traders {
                 // fall through to the deal
             }
         }
+        return deliver(p, t, o, Trades.describe(payStacks), () -> {
+            for (ItemInfo i : infos) {
+                ac.economy.flow(i.id, i.count, 0);
+            }
+            clearPayment(m);
+            ac.setEscrow(p.getUuid(), "trader", List.of());
+            return true;
+        });
+    }
+
+    /**
+     * The deal itself: checks room and caps, claims the stock, takes the payment ({@code pay}), then gives the goods.
+     *
+     * @return the verdict line
+     */
+    private static String deliver(ServerPlayerEntity p, Trader t, TraderOffer o, String paid, java.util.function.BooleanSupplier pay) {
+        Ac ac = Ac.get();
+        TraderEconomy.Settings st = settings();
         Rarity mysteryRarity = null;
         ItemStack goods;
         if (t.type == Trader.Type.MYSTERY) {
@@ -644,13 +793,14 @@ public final class Traders {
             return "§c" + Msg.tr("trader.refusal." + ref.name().toLowerCase());
         }
         // Deal: the payment is destroyed (item sink) and the goods are given, in this one step.
-        String paid = Trades.describe(payStacks);
-        for (ItemInfo i : infos) {
-            ac.economy.flow(i.id, i.count, 0);
+        if (!pay.getAsBoolean()) {
+            ac.economy.refund(o);
+            return "§c" + Msg.tr("tr.cant-afford");
         }
-        clearPayment(m);
-        ac.setEscrow(p.getUuid(), "trader", List.of());
         p.getInventory().insertStack(goods.copy());
+        ac.market.addDeal(p.getUuid(), t.entity.toString());
+        Ac.markDirty("market");
+        Teams.xpForTrade(p);
         if (mysteryRarity != null) {
             mysteryAnimation(p, mysteryRarity, goods);
         }
@@ -689,6 +839,10 @@ public final class Traders {
     // ---- Sell-to and request traders ----
 
     private static void openSellTo(ServerPlayerEntity p, Trader t) {
+        if (!payment(t).equals("items")) {
+            openSellForMoney(p, t);
+            return;
+        }
         Menu m = Menu.std(Theme.Category.PLAYER, 3, t.name, Msg.trFor(p, "tr.buying"));
         m.renderer(menu -> {
             menu.info(Btn.of(Items.EMERALD).color(Theme.GOLD_LIGHT).name(t.name).desc(Msg.tr("tr.buying-desc")).build());
@@ -708,6 +862,178 @@ public final class Traders {
             }
         });
         m.open(p);
+    }
+
+    /** Cash or emerald traders that buy: put anything in, see what you'd get, sell. */
+    private static void openSellForMoney(ServerPlayerEntity p, Trader t) {
+        boolean cash = payment(t).equals("cash");
+        Menu m = new Menu("", 6);
+        m.titleText(Theme.title(Theme.Category.PLAYER, t.name, Msg.trFor(p, "tr.buying")));
+        Set<Integer> pay = new HashSet<>();
+        for (int i : PAYMENT) {
+            pay.add(i);
+        }
+        m.allowPlayerInventory(true);
+        m.editable(pay, (pl, slot) -> {
+            saveEscrow(pl, m);
+            m.refresh();
+        });
+        m.renderer(menu -> {
+            ItemStack glass = Btn.pane(Theme.Category.PLAYER.glass);
+            for (int i = 0; i < 54; i++) {
+                if (!pay.contains(i)) {
+                    menu.icon(i, glass);
+                }
+            }
+            for (int r = 1; r <= 4; r++) {
+                menu.icon(r * 9 + 3, Btn.pane(Items.BLACK_STAINED_GLASS_PANE));
+            }
+            menu.icon(20, Btn.of(cash ? Items.GOLD_INGOT : Items.EMERALD).color(Theme.GOLD_LIGHT).name(t.name)
+                    .desc(Msg.tr("tr.sell-money-desc", (int) Math.round(Ac.config().market.sellRate * 100), Msg.tr("tr.pay." + payment(t)))).build());
+            List<ItemStack> items = payment(m);
+            double value = 0;
+            Btn sum = Btn.of(Items.PAPER).color(Theme.GOLD_LIGHT);
+            List<String> lines = new ArrayList<>();
+            for (ItemStack st : items) {
+                double v = stackValue(st) * Ac.config().market.sellRate;
+                value += v;
+                lines.add("§7" + st.getCount() + "x §f" + st.getName().getString() + " §8» §e" + payout(cash, v));
+            }
+            int units = payoutUnits(cash, value);
+            sum.name(Msg.tr("tr.you-get", payout(cash, value)));
+            for (int i = 0; i < Math.min(14, lines.size()); i++) {
+                sum.line(lines.get(i));
+            }
+            if (lines.isEmpty()) {
+                sum.line(Msg.tr("tr.offer-empty"));
+            }
+            menu.icon(47, sum.build());
+            menu.set(49, Btn.of(units > 0 ? Items.LIME_CONCRETE : Items.GRAY_CONCRETE).color(units > 0 ? Theme.GREEN : Theme.SOFT)
+                    .name(Msg.tr("tr.sell-for", payout(cash, value))).left(Msg.tr("tr.action.sell")).glint(units > 0).build(), (pl, c) -> {
+                sellForMoney(pl, t, m, cash);
+                menu.refresh();
+            });
+            menu.set(45, Menu.back(), (pl, c) -> pl.closeHandledScreen());
+            menu.set(53, Menu.close(), (pl, c) -> pl.closeHandledScreen());
+        });
+        m.onClose(pl -> {
+            returnPayment(pl, m);
+            NEGOTIATING.remove(pl.getUuid());
+        });
+        NEGOTIATING.add(p.getUuid());
+        m.open(p);
+    }
+
+    private static int payoutUnits(boolean cash, double value) {
+        if (cash) {
+            return (int) Math.floor(value * Ac.config().market.cashPerValue);
+        }
+        return (int) Math.floor(value / Math.max(0.01, values().value("minecraft:emerald")));
+    }
+
+    private static String payout(boolean cash, double value) {
+        int n = payoutUnits(cash, value);
+        return cash ? Markets.cash(n) : n + " " + new ItemStack(Items.EMERALD).getName().getString();
+    }
+
+    private static void sellForMoney(ServerPlayerEntity p, Trader t, Menu m, boolean cash) {
+        Ac ac = Ac.get();
+        List<ItemStack> items = payment(m);
+        if (items.isEmpty()) {
+            Msg.actionBar(p, "§7" + Msg.trFor(p, "tr.v.empty"));
+            return;
+        }
+        if (!ac.economy.rateOk(p.getUuid(), settings().tradesPerMinute)) {
+            Msg.send(p, "trader.slow-down");
+            return;
+        }
+        double value = 0;
+        int count = 0;
+        for (ItemStack st : items) {
+            ItemInfo info = ItemConv.info(st);
+            if (OfferEvaluator.forbiddenPayment(info)) {
+                Msg.send(p, "market.no-containers");
+                return;
+            }
+            String illegal = IllegalItems.check(info, Ac.config().illegalItems.bannedItems, Enchants.MAX_LEVELS);
+            if (illegal != null) {
+                Illegal.handle(p, st, illegal);
+                Msg.send(p, "market.illegal");
+                return;
+            }
+            value += stackValue(st) * Ac.config().market.sellRate;
+            count += st.getCount();
+        }
+        int units = payoutUnits(cash, value);
+        if (units <= 0) {
+            Msg.send(p, "tr.too-little");
+            return;
+        }
+        var cfg = Ac.config().traders;
+        if (!ac.economy.sellAllowed(p.getUuid(), count, cfg.sellDailyCapPerPlayer, cfg.sellDailyCapServer)) {
+            Msg.send(p, "trader.sell-cap");
+            return;
+        }
+        String sold = Trades.describe(items);
+        for (ItemStack st : items) {
+            ac.economy.flow(Registries.ITEM.getId(st.getItem()).toString(), st.getCount(), 0);
+        }
+        clearPayment(m);
+        ac.setEscrow(p.getUuid(), "trader", List.of());
+        if (cash) {
+            ac.market.addCash(p.getUuid(), units);
+            Ac.markDirty("market");
+        } else {
+            Markets.giveItem(p, Items.EMERALD, units);
+            ac.economy.flow("minecraft:emerald", 0, units);
+        }
+        Mc.sound(p, SoundEvents.ENTITY_VILLAGER_YES, 1f, 1f);
+        Msg.send(p, "tr.sold", payout(cash, value));
+        ac.logs.trade(System.currentTimeMillis(), "sell-to-trader", p.getUuid(), p.getGameProfile().name(), null, t.name,
+                "sold " + sold + " for " + payout(cash, value));
+        Teams.xpForTrade(p);
+        Ac.markDirty("economy");
+    }
+
+    /** /market <item>: how the price of matching items moved over the last day. */
+    public static void showHistory(ServerPlayerEntity p, String query) {
+        String q = query.toLowerCase(java.util.Locale.ROOT).replace("minecraft:", "").replace(' ', '_');
+        int shown = 0;
+        for (Trader t : all().values()) {
+            for (TraderOffer o : t.offers) {
+                if (shown >= 5 || !o.id.replace("minecraft:", "").contains(q)) {
+                    continue;
+                }
+                shown++;
+                List<double[]> h = Ac.get().market.history(o.signature());
+                double now = price(t, o, p.getUuid());
+                double current = Ac.get().economy.market(o.signature());
+                StringBuilder spark = new StringBuilder();
+                double min = Double.MAX_VALUE;
+                double max = 0;
+                for (double[] pt : h) {
+                    min = Math.min(min, pt[1]);
+                    max = Math.max(max, pt[1]);
+                }
+                String bars = "▁▂▃▄▅▆▇█";
+                double prev = -1;
+                for (double[] pt : h) {
+                    int i = max - min < 1e-9 ? 3 : (int) Math.round((pt[1] - min) / (max - min) * 7);
+                    spark.append(prev < 0 ? "§e" : pt[1] > prev ? "§c" : pt[1] < prev ? "§a" : "§7").append(bars.charAt(i));
+                    prev = pt[1];
+                }
+                double first = h.isEmpty() ? current : h.get(0)[1];
+                int pct = first <= 0 ? 0 : (int) Math.round((current / first - 1) * 100);
+                double unit = current <= 0 ? now : now / current;
+                p.sendMessage(Text.literal("§6" + stackFor(o).getName().getString() + " §8@ §f" + t.name + " §8» §e" + priceText(t, now)
+                        + " " + trendText(o.signature())));
+                p.sendMessage(Text.literal("  " + spark + " §7" + Msg.trFor(p, "tr.history-range", priceText(t, unit * (h.isEmpty() ? current : min)),
+                        priceText(t, unit * (h.isEmpty() ? current : max)), (pct >= 0 ? "+" : "") + pct + "%")));
+            }
+        }
+        if (shown == 0) {
+            Msg.send(p, "tr.history-none", query);
+        }
     }
 
     private static int count(ServerPlayerEntity p, Item item) {
@@ -895,6 +1221,20 @@ public final class Traders {
                 Trader.Type[] all = Trader.Type.values();
                 t.type = all[(t.type.ordinal() + 1) % all.length];
                 rotate(t);
+                menu.refresh();
+            });
+            Btn pb = Btn.of(Items.GOLD_INGOT).name(cat, Msg.tr("tr.payment"));
+            for (String opt : List.of("default", "items", "emeralds", "cash")) {
+                boolean cur = opt.equals(t.payment == null ? "default" : t.payment);
+                String label = opt.equals("default") ? Msg.tr("tr.pay.default", Msg.tr("tr.pay." + payment(new Trader()))) : Msg.tr("tr.pay." + opt);
+                pb.status(cur ? Theme.GOLD_LIGHT : Theme.SOFT, (cur ? Theme.Sym.ARROW.sp() : "  ") + label);
+            }
+            menu.set(25, pb.left(Msg.tr("settings.next-option")).build(), (pl, c) -> {
+                List<String> opts = List.of("default", "items", "emeralds", "cash");
+                int i = Math.max(0, opts.indexOf(t.payment == null ? "default" : t.payment));
+                t.payment = opts.get((i + 1) % opts.size());
+                Ac.markDirty("traders");
+                Staff.log(pl, "trader-payment", null, t.name, t.payment);
                 menu.refresh();
             });
             menu.set(24, Btn.of(Items.EMERALD).name(cat, Msg.tr("tr.restock-now")).desc(Msg.tr("tr.restock-now-desc"))

@@ -64,6 +64,8 @@ public final class Ticker {
         ScareWarning.tick();
         WorldEvents.tick(ac.server);
         Teams.tick();
+        Markets.tick();
+        Shops.tick();
         if (ticks % 200 == 0) {
             Teams.syncTags();
         }

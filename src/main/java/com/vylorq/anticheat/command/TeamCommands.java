@@ -359,11 +359,11 @@ public final class TeamCommands {
                     top(ctx.getSource(), "land");
                     return 1;
                 }).then(Args.word("by").suggests((c, b) -> {
-                    List.of("land", "members", "kills").forEach(b::suggest);
+                    List.of("land", "members", "kills", "level", "wars").forEach(b::suggest);
                     return b.buildFuture();
                 }).executes(ctx -> {
                     String by = Args.str(ctx, "by").toLowerCase(Locale.ROOT);
-                    top(ctx.getSource(), List.of("members", "kills").contains(by) ? by : "land");
+                    top(ctx.getSource(), List.of("members", "kills", "level", "wars").contains(by) ? by : "land");
                     return 1;
                 })))
                 .then(literal("allypvp").executes(ctx -> leaderSet(ctx, t -> {
@@ -371,6 +371,69 @@ public final class TeamCommands {
                     tellTeam(t, t.allyFire ? "team.allyfire-on" : "team.allyfire-off");
                     return true;
                 })))
+                .then(literal("level").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    Team t = mine(ctx, p, null);
+                    if (t == null) return 0;
+                    level(ctx.getSource(), t);
+                    return 1;
+                }))
+                .then(literal("war").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    Team t = mine(ctx, p, null);
+                    if (t == null) return 0;
+                    TeamManager.War w = tm().warOf(t.id);
+                    if (w == null) {
+                        Msg.ok(ctx.getSource(), "team.war.none", t.warsWon, t.warsLost);
+                    } else {
+                        Msg.ok(ctx.getSource(), "team.war.status", Teams.warLine(w),
+                                com.vylorq.anticheat.core.util.Durations.format(Math.max(0, w.endsAt - System.currentTimeMillis())));
+                    }
+                    return 1;
+                }).then(Args.word("team").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    Teams.declareWar(p, Args.str(ctx, "team"));
+                    return 1;
+                })))
+                .then(literal("bank").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    Team t = mine(ctx, p, null);
+                    if (t == null) return 0;
+                    bank(ctx.getSource(), t);
+                    return 1;
+                }).then(literal("deposit").then(CommandManager.argument("amount", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1)).executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    int n = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "amount");
+                    if (tm().teamOf(p.getUuid()) == null) {
+                        return result(ctx.getSource(), Result.NOT_IN_TEAM, null);
+                    }
+                    if (!com.vylorq.anticheat.feature.Markets.takeMoney(p, n)) {
+                        Msg.err(ctx.getSource(), "market.no-money", com.vylorq.anticheat.feature.Markets.money(n));
+                        return 0;
+                    }
+                    Result r = tm().deposit(p.getUuid(), p.getGameProfile().name(), n);
+                    if (r == Result.OK) {
+                        tellTeam(tm().teamOf(p.getUuid()), "team.bank.deposited", p.getGameProfile().name(), com.vylorq.anticheat.feature.Markets.money(n));
+                    } else {
+                        com.vylorq.anticheat.feature.Markets.giveMoney(p, n);
+                    }
+                    return result(ctx.getSource(), r, null);
+                }))).then(literal("withdraw").then(CommandManager.argument("amount", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1)).executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    int n = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "amount");
+                    Result r = tm().withdraw(p.getUuid(), p.getGameProfile().name(), n);
+                    if (r == Result.OK) {
+                        com.vylorq.anticheat.feature.Markets.giveMoney(p, n);
+                        tellTeam(tm().teamOf(p.getUuid()), "team.bank.withdrew", p.getGameProfile().name(), com.vylorq.anticheat.feature.Markets.money(n));
+                    }
+                    return result(ctx.getSource(), r, null);
+                }))))
                 .then(literal("admin").requires(s -> Perms.visible(s, Perm.MANAGE_ADMINS))
                         .then(literal("disband").then(Args.word("team").executes(ctx -> {
                             if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
@@ -663,6 +726,31 @@ public final class TeamCommands {
         }
     }
 
+    /** Level, XP to the next level and what the level gives. */
+    public static void level(ServerCommandSource src, Team t) {
+        int lvl = TeamManager.level(t.xp);
+        String next = lvl >= TeamManager.MAX_LEVEL ? Msg.tr("team.level.max") : Msg.tr("team.level.next", TeamManager.xpFor(lvl + 1) - t.xp, lvl + 1);
+        Msg.ok(src, "team.level.info", lvl, t.xp, next);
+        Msg.ok(src, "team.level-perks", tm().chunkLimit(t, Teams.limits()), Teams.vaultSize(t));
+    }
+
+    /** Balance and the last few deposits and withdrawals. */
+    public static void bank(ServerCommandSource src, Team t) {
+        Msg.ok(src, "team.bank.balance", com.vylorq.anticheat.feature.Markets.money((int) Math.min(Integer.MAX_VALUE, t.bank)));
+        int from = Math.max(0, t.bankLog.size() - 8);
+        for (int i = t.bankLog.size() - 1; i >= from; i--) {
+            String[] parts = t.bankLog.get(i).split("\\|", 3);
+            if (parts.length < 3) {
+                continue;
+            }
+            String when = new java.text.SimpleDateFormat("MM-dd HH:mm").format(new java.util.Date(Long.parseLong(parts[0])));
+            boolean in = parts[2].startsWith("+");
+            int amount = Integer.parseInt(parts[2].substring(1));
+            String line = "§7" + when + " §f" + parts[1] + " " + (in ? "§a+" : "§c-") + com.vylorq.anticheat.feature.Markets.money(amount);
+            src.sendFeedback(() -> Text.literal(line), false);
+        }
+    }
+
     /** Teams ranked by land, members or kills. */
     public static void top(ServerCommandSource src, String what) {
         java.util.List<Team> all = new java.util.ArrayList<>(tm().list());
@@ -678,6 +766,8 @@ public final class TeamCommands {
                     }
                     yield k;
                 }
+                case "level" -> t.xp;
+                case "wars" -> t.warsWon;
                 default -> t.chunks.size();
             };
             score.put(t.id, v);

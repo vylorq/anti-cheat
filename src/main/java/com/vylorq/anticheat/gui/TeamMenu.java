@@ -111,6 +111,7 @@ public final class TeamMenu {
             TeamManager.Limits l = Teams.limits();
             menu.info(Btn.of(Items.WHITE_BANNER).name(Teams.tagText(t) + " §f§l" + t.name)
                     .line(Msg.tr("team.menu.size", t.members.size(), t.chunks.size()))
+                    .line(Msg.tr("team.menu.level", TeamManager.level(t.xp)))
                     .line(Msg.tr("team.menu.land", t.chunks.size(), Teams.tm().chunkLimit(t, l)))
                     .line(Msg.tr("team.menu.your-role", Msg.tr("team.role." + me.name().toLowerCase(Locale.ROOT)))).build());
             menu.set(10, Btn.of(Items.RED_BED).name(Msg.tr("team.menu.home")).desc(Msg.tr(t.hasHome() ? "team.menu.home-desc" : "team.no-home"))
@@ -243,6 +244,49 @@ public final class TeamMenu {
                     .left(Msg.tr("team.top.land")).right(Msg.tr("team.top.members")).shift(Msg.tr("team.top.kills")).build(), null, (pl, c) -> {
                 pl.closeHandledScreen();
                 TeamCommands.top(pl.getCommandSource(), c.isShift() ? "kills" : c.isRight() ? "members" : "land");
+            });
+            Btn bank = Btn.of(Items.GOLD_BLOCK).name(Msg.tr("team.menu.bank"))
+                    .line(Msg.tr("team.bank.balance", com.vylorq.anticheat.feature.Markets.money((int) Math.min(Integer.MAX_VALUE, t.bank))))
+                    .desc(Msg.tr("team.menu.bank-desc")).left(Msg.tr("team.menu.bank-deposit"));
+            if (me.atLeast(Team.Role.OFFICER)) {
+                bank.right(Msg.tr("team.menu.bank-withdraw"));
+            }
+            menu.set(20, bank.shift(Msg.tr("team.menu.bank-log")).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                if (c.isShift()) {
+                    TeamCommands.bank(pl.getCommandSource(), t);
+                } else if (c.isRight() && t.role(pl.getUuid()).atLeast(Team.Role.OFFICER)) {
+                    Msg.sendRaw(pl, Msg.suggest("§b[/team bank withdraw <amount>]", "/team bank withdraw ", ""));
+                } else {
+                    Msg.sendRaw(pl, Msg.suggest("§b[/team bank deposit <amount>]", "/team bank deposit ", ""));
+                }
+            });
+            int lvl = TeamManager.level(t.xp);
+            long need = lvl >= TeamManager.MAX_LEVEL ? 0 : TeamManager.xpFor(lvl + 1) - TeamManager.xpFor(lvl);
+            long into = t.xp - TeamManager.xpFor(lvl);
+            int pct = need <= 0 ? 100 : (int) Math.min(100, into * 100 / need);
+            menu.set(22, Btn.of(Items.EXPERIENCE_BOTTLE).name(Msg.tr("team.menu.level", lvl))
+                    .line("§a" + "■".repeat(pct / 10) + "§8" + "■".repeat(10 - pct / 10) + " §f" + pct + "%")
+                    .line(Msg.tr("team.level-perks", Teams.tm().chunkLimit(t, Teams.limits()), Teams.vaultSize(t)))
+                    .desc(Msg.tr("team.menu.level-desc")).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                TeamCommands.level(pl.getCommandSource(), t);
+            });
+            TeamManager.War war = Teams.tm().warOf(t.id);
+            Btn wb = Btn.of(war != null ? Items.NETHERITE_SWORD : Items.IRON_SWORD).name(Msg.tr("team.menu.war"));
+            if (war != null) {
+                wb.line(Teams.warLine(war)).glint(true);
+            } else {
+                wb.line(Msg.tr("team.menu.war-record", t.warsWon, t.warsLost)).desc(Msg.tr("team.menu.war-desc"));
+            }
+            if (me == Team.Role.LEADER && war == null) {
+                wb.left(Msg.tr("team.menu.war-declare"));
+            }
+            menu.set(24, wb.build(), null, (pl, c) -> {
+                if (war == null && t.role(pl.getUuid()) == Team.Role.LEADER) {
+                    pl.closeHandledScreen();
+                    Msg.sendRaw(pl, Msg.suggest("§b[/team war <team>]", "/team war ", ""));
+                }
             });
             Btn motd = Btn.of(Items.NAME_TAG).name(Msg.tr("team.menu.motd"))
                     .line(t.motd.isEmpty() ? Msg.tr("team.menu.motd-none") : "§f" + t.motd.replace('&', '§'));

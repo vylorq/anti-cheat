@@ -943,4 +943,44 @@ public final class AntiCheatGameTests {
         check(one > 0 && diamonds > one, "item values are wrong: " + one + " / " + diamonds);
         ctx.complete();
     }
+
+    @GameTest
+    public void cashShopsAndTeamLevels(TestContext ctx) {
+        var w = ctx.getWorld();
+        var a = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "CashA"));
+        var b = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "CashB"));
+        var m = com.vylorq.anticheat.Ac.get().market;
+        m.setCash(a.getUuid(), 50);
+        check(com.vylorq.anticheat.feature.Markets.cashMode(), "cash is the default market money");
+        check(com.vylorq.anticheat.feature.Markets.takeMoney(a, 20), "couldn't take cash");
+        check(!com.vylorq.anticheat.feature.Markets.takeMoney(a, 31), "took more cash than there was");
+        com.vylorq.anticheat.feature.Markets.giveMoney(b, 5);
+        check(m.balance(a.getUuid()) == 30 && m.balance(b.getUuid()) == 5, "wrong balances");
+        check(com.vylorq.anticheat.feature.Markets.money(12).contains("12"), "money text");
+        a.getInventory().insertStack(new net.minecraft.item.ItemStack(net.minecraft.item.Items.EMERALD, 10));
+        check(com.vylorq.anticheat.feature.Markets.countItem(a, net.minecraft.item.Items.EMERALD) == 10, "emerald count");
+        check(com.vylorq.anticheat.feature.Markets.takeItem(a, net.minecraft.item.Items.EMERALD, 4), "take emeralds");
+        check(com.vylorq.anticheat.feature.Markets.countItem(a, net.minecraft.item.Items.EMERALD) == 6, "emeralds left");
+
+        var tm = com.vylorq.anticheat.feature.Teams.tm();
+        String name = String.format("L%05d", System.nanoTime() % 100000);
+        try {
+            check(tm.create(name, null, a.getUuid()) == com.vylorq.anticheat.core.team.TeamManager.Result.OK, "team not created");
+            var t = tm.get(name);
+            check(com.vylorq.anticheat.feature.Teams.vaultSize(t) == 27, "small vault at level 1");
+            var inv = com.vylorq.anticheat.feature.Teams.vault(t);
+            inv.setStack(5, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 2));
+            com.vylorq.anticheat.feature.Teams.addXp(t, 1000);
+            check(com.vylorq.anticheat.core.team.TeamManager.level(t.xp) >= 3, "no level up");
+            var big = com.vylorq.anticheat.feature.Teams.vault(t);
+            check(big.size() == 54, "vault didn't grow");
+            check(big.getStack(5).isOf(net.minecraft.item.Items.DIAMOND), "vault items lost when it grew");
+        } finally {
+            var t = tm.get(name);
+            if (t != null) {
+                tm.removeTeam(t);
+            }
+        }
+        ctx.complete();
+    }
 }
