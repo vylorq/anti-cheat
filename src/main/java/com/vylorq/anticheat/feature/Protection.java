@@ -156,6 +156,12 @@ public final class Protection {
             if (!Ac.running() || !(player instanceof ServerPlayerEntity p)) {
                 return ActionResult.PASS;
             }
+            if (Shops.isShop(entity)) {
+                if (hand == net.minecraft.util.Hand.MAIN_HAND) {
+                    Shops.click(p, entity);
+                }
+                return ActionResult.FAIL;
+            }
             if (BuilderMode.is(p)) {
                 BuilderMode.denied(p);
                 return ActionResult.FAIL;
@@ -165,6 +171,10 @@ public final class Protection {
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
             if (!Ac.running() || !(player instanceof ServerPlayerEntity p)) {
                 return ActionResult.PASS;
+            }
+            if (Shops.isShop(entity)) {
+                Shops.click(p, entity);
+                return ActionResult.FAIL;
             }
             if (BuilderMode.is(p)) {
                 BuilderMode.denied(p);
@@ -177,7 +187,7 @@ public final class Protection {
             if (!Ac.running()) {
                 return true;
             }
-            if (Traders.isTrader(entity)) {
+            if (Traders.isTrader(entity) || Shops.isShop(entity)) {
                 return false;
             }
             if (!(entity instanceof ServerPlayerEntity p)) {
@@ -232,6 +242,8 @@ public final class Protection {
             }
             Trades.cancelFor(p, SecureTrade.CancelReason.DIED);
             Deaths.onDeath(p, source);
+            Teams.onKill(p, killer);
+            Markets.onKill(p, killer);
             return true;
         });
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {

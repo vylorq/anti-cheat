@@ -1274,7 +1274,12 @@ final class WorldCommands {
             if (p == null) return 0;
             Traders.showMarket(p);
             return 1;
-        }));
+        }).then(Args.rest("item").executes(ctx -> {
+            ServerPlayerEntity p = self(ctx);
+            if (p == null) return 0;
+            Traders.showHistory(p, Args.str(ctx, "item"));
+            return 1;
+        })));
         d.register(literal("trade")
                 .then(literal("accept").then(Args.player("player").executes(ctx -> {
                     ServerPlayerEntity p = self(ctx);

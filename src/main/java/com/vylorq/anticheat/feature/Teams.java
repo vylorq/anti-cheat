@@ -60,6 +60,7 @@ public final class Teams {
         l.chunksPerMember = cfg().chunksPerMember;
         l.maxChunks = cfg().maxChunks;
         l.connected = cfg().connectedTerritory;
+        l.chunksPerLevel = cfg().chunksPerLevel;
         return l;
     }
 
@@ -144,12 +145,24 @@ public final class Teams {
     private static final Map<String, net.minecraft.inventory.SimpleInventory> VAULTS = new HashMap<>();
 
     /** The team's shared chest (27 slots), saved whenever it changes. */
+    /** 27 slots, or a double chest (54) from the configured team level. */
+    public static int vaultSize(Team t) {
+        return TeamManager.level(t.xp) >= cfg().bigVaultLevel ? 54 : 27;
+    }
+
     public static net.minecraft.inventory.SimpleInventory vault(Team t) {
+        net.minecraft.inventory.SimpleInventory cached = VAULTS.get(t.id);
+        if (cached != null && cached.size() != vaultSize(t)) {
+            // The team levelled up: rebuild bigger (t.vault already holds every item by slot).
+            closeViewers(cached);
+            VAULTS.remove(t.id);
+        }
+        int size = vaultSize(t);
         return VAULTS.computeIfAbsent(t.id, k -> {
-            net.minecraft.inventory.SimpleInventory inv = new net.minecraft.inventory.SimpleInventory(27);
+            net.minecraft.inventory.SimpleInventory inv = new net.minecraft.inventory.SimpleInventory(size);
             for (String e : t.vault) {
                 int slot = com.vylorq.anticheat.util.ItemConv.slotOf(e);
-                if (slot >= 0 && slot < 27) {
+                if (slot >= 0 && slot < size) {
                     inv.setStack(slot, com.vylorq.anticheat.util.ItemConv.decodeSlot(e));
                 }
             }
@@ -178,7 +191,9 @@ public final class Teams {
         }
         var inv = vault(t);
         p.openHandledScreen(new net.minecraft.screen.SimpleNamedScreenHandlerFactory(
-                (syncId, playerInv, pl) -> net.minecraft.screen.GenericContainerScreenHandler.createGeneric9x3(syncId, playerInv, inv),
+                (syncId, playerInv, pl) -> inv.size() == 54
+                        ? net.minecraft.screen.GenericContainerScreenHandler.createGeneric9x6(syncId, playerInv, inv)
+                        : net.minecraft.screen.GenericContainerScreenHandler.createGeneric9x3(syncId, playerInv, inv),
                 Text.literal(tagText(t) + " §8" + Msg.trFor(p, "team.vault"))));
     }
 
@@ -187,11 +202,7 @@ public final class Teams {
     public static void forgetVault(Team t, ServerPlayerEntity to) {
         net.minecraft.inventory.SimpleInventory inv = vault(t);
         VAULTS.remove(t.id);
-        for (ServerPlayerEntity o : Ac.server().getPlayerManager().getPlayerList()) {
-            if (o.currentScreenHandler instanceof net.minecraft.screen.GenericContainerScreenHandler h && h.getInventory() == inv) {
-                o.closeHandledScreen();
-            }
-        }
+        closeViewers(inv);
         if (to != null) {
             for (int i = 0; i < inv.size(); i++) {
                 net.minecraft.item.ItemStack st = inv.getStack(i);
@@ -201,6 +212,112 @@ public final class Teams {
             }
         }
         t.vault.clear();
+    }
+
+    private static void closeViewers(net.minecraft.inventory.Inventory inv) {
+        for (ServerPlayerEntity o : Ac.server().getPlayerManager().getPlayerList()) {
+            if (o.currentScreenHandler instanceof net.minecraft.screen.GenericContainerScreenHandler h && h.getInventory() == inv) {
+                o.closeHandledScreen();
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------- levels and wars
+
+    /** Adds team XP and celebrates a level-up. */
+    public static void addXp(Team t, long amount) {
+        if (t == null || amount <= 0) {
+            return;
+        }
+        int lvl = tm().addXp(t, amount);
+        Ac.markDirty("teams");
+        if (lvl > 0) {
+            for (UUID m : t.members) {
+                ServerPlayerEntity o = Ac.server().getPlayerManager().getPlayer(m);
+                if (o != null) {
+                    Mc.title(o, "§6§l" + Msg.trFor(o, "team.level-up-title"), Msg.trFor(o, "team.level-up", lvl), 10, 60, 20);
+                    Mc.sound(o, net.minecraft.sound.SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
+                    Msg.send(o, "team.level-perks", tm().chunkLimit(t, limits()), vaultSize(t));
+                }
+            }
+        }
+    }
+
+    /** A trade by this player gives their team some XP. */
+    public static void xpForTrade(ServerPlayerEntity p) {
+        if (p != null && enabled()) {
+            addXp(tm().teamOf(p.getUuid()), cfg().xpPerTrade);
+        }
+    }
+
+    /** A player killed another: team XP and war points. */
+    public static void onKill(ServerPlayerEntity victim, ServerPlayerEntity killer) {
+        if (!enabled() || killer == null || killer == victim || tm().sameTeam(killer.getUuid(), victim.getUuid())) {
+            return;
+        }
+        String vip = Ac.session(victim).ip;
+        if (vip != null && vip.equals(Ac.session(killer).ip)) {
+            return;
+        }
+        Team kt = tm().teamOf(killer.getUuid());
+        addXp(kt, cfg().xpPerKill);
+        TeamManager.War w = tm().warKill(killer.getUuid(), victim.getUuid());
+        if (w != null) {
+            Ac.markDirty("teams");
+            Team a = tm().data().teams.get(w.a);
+            Team b = tm().data().teams.get(w.b);
+            for (Team t : new Team[]{a, b}) {
+                if (t == null) {
+                    continue;
+                }
+                for (UUID m : t.members) {
+                    ServerPlayerEntity o = Ac.server().getPlayerManager().getPlayer(m);
+                    if (o != null) {
+                        Msg.actionBar(o, Msg.trFor(o, "team.war.score", warLine(w)));
+                    }
+                }
+            }
+        }
+    }
+
+    public static String warLine(TeamManager.War w) {
+        Team a = tm().data().teams.get(w.a);
+        Team b = tm().data().teams.get(w.b);
+        return (a == null ? "?" : tagText(a) + " " + a.name) + " §f" + w.scoreA + " §7- §f" + w.scoreB + " " + (b == null ? "?" : tagText(b) + " " + b.name);
+    }
+
+    public static void declareWar(ServerPlayerEntity p, String other) {
+        TeamManager.Result r = tm().declareWar(p.getUuid(), other, cfg().warMinutes * 60_000L, cfg().warCooldownMinutes * 60_000L);
+        if (r != TeamManager.Result.OK) {
+            Msg.send(p, "team.r." + r.name().toLowerCase(java.util.Locale.ROOT), other);
+            return;
+        }
+        Ac.markDirty("teams");
+        Team a = tm().teamOf(p.getUuid());
+        Team b = tm().get(other);
+        String msg = Msg.tr("team.war.declared", tagText(a) + " " + a.name, tagText(b) + " " + b.name, cfg().warMinutes);
+        com.vylorq.anticheat.command.TeamCommands.showOnScreen(Ac.server().getPlayerManager().getPlayerList(), "team.war.title",
+                "§c§l" + Msg.tr("team.war.title") + "|" + msg);
+    }
+
+    private static int minuteTimer;
+
+    private static void tickWarsAndXp() {
+        for (TeamManager.War w : tm().endWars()) {
+            Ac.markDirty("teams");
+            String win = w.winner();
+            Team winner = win == null ? null : tm().data().teams.get(win);
+            String sub = winner == null ? Msg.tr("team.war.draw", warLine(w)) : Msg.tr("team.war.won", tagText(winner) + " " + winner.name, warLine(w));
+            com.vylorq.anticheat.command.TeamCommands.showOnScreen(Ac.server().getPlayerManager().getPlayerList(), "team.war.title",
+                    "§6§l" + Msg.tr("team.war.over") + "|" + sub);
+            addXp(winner, cfg().xpWarWin);
+        }
+        if (++minuteTimer >= 60) {
+            minuteTimer = 0;
+            for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
+                addXp(tm().teamOf(p.getUuid()), cfg().xpPerMinute);
+            }
+        }
     }
 
     public static int cfgAllies() {
@@ -407,6 +524,7 @@ public final class Teams {
             return;
         }
         long now = System.currentTimeMillis();
+        tickWarsAndXp();
         BORDER.values().removeIf(until -> now > until);
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
             remember(p);
