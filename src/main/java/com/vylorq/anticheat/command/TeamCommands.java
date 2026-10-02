@@ -139,6 +139,9 @@ public final class TeamCommands {
                             MutableText m = Msg.prefixed(Msg.trFor(o, "team.invited-you", Teams.tagText(t) + " §f" + t.name, p.getGameProfile().name()));
                             m.append(" ").append(Msg.button("§a[" + Msg.trFor(o, "team.join") + "]", "/team join " + t.name, ""));
                             o.sendMessage(m);
+                            com.vylorq.anticheat.ui.BedrockPrompt.ask(o, Msg.trFor(o, "team.menu.title"),
+                                    Msg.trFor(o, "team.invited-you", Teams.tagText(t) + " " + t.name, p.getGameProfile().name()),
+                                    List.of(Msg.trFor(o, "team.join")), List.of("team join " + t.name));
                         }
                     }
                     return result(ctx.getSource(), r, "team.invited", name);
@@ -668,6 +671,9 @@ public final class TeamCommands {
                         MutableText msg = Msg.prefixed(Msg.trFor(x, "team.ally-asked", Teams.tagText(t) + " §f" + t.name));
                         msg.append(" ").append(Msg.button("§a[" + Msg.trFor(x, "team.accept") + "]", "/team ally " + t.name, ""));
                         x.sendMessage(msg);
+                        com.vylorq.anticheat.ui.BedrockPrompt.ask(x, Msg.trFor(x, "team.menu.allies"),
+                                Msg.trFor(x, "team.ally-asked", Teams.tagText(t) + " " + t.name),
+                                List.of(Msg.trFor(x, "team.accept")), List.of("team ally " + t.name));
                     }
                 }
                 Msg.ok(ctx.getSource(), "team.ally-sent", o.name);

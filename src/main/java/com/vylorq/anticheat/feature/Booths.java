@@ -475,6 +475,10 @@ public final class Booths {
         ServerPlayerEntity owner = Ac.server().getPlayerManager().getPlayer(b.owner);
         if (owner != null) {
             owner.sendMessage(offerButtons(owner, o));
+            com.vylorq.anticheat.ui.BedrockPrompt.ask(owner, Msg.trFor(owner, "booth.offer-title"),
+                    Msg.trFor(owner, "booth.offer-in", p.getGameProfile().name(), priceText(l.pay, amount), l.itemName, priceText(l.pay, l.price)),
+                    List.of(Msg.trFor(owner, "booth.accept"), Msg.trFor(owner, "booth.decline"), Msg.trFor(owner, "booth.see-offers")),
+                    List.of("booth accept " + o.id, "booth decline " + o.id, "booth offers"));
         }
         Ac.get().logs.trade(System.currentTimeMillis(), "booth-offer", p.getUuid(), p.getGameProfile().name(), b.owner, b.ownerName,
                 l.itemName + " offer " + priceText(l.pay, amount));

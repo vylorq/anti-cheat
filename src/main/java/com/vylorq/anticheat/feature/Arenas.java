@@ -398,6 +398,8 @@ public final class Arenas {
         to.sendMessage(Msg.prefixed(Msg.tr("duel.received", from.getGameProfile().name(), kit)).append(Text.literal(" "))
                 .append(Msg.button("§a[Accept]", "/duel accept " + n, "Accept the duel")).append(Text.literal(" "))
                 .append(Msg.button("§c[Decline]", "/duel deny " + n, "Decline")));
+        com.vylorq.anticheat.ui.BedrockPrompt.ask(to, Msg.trFor(to, "duel.title"), Msg.trFor(to, "duel.received", from.getGameProfile().name(), kit),
+                java.util.List.of(Msg.trFor(to, "ui.accept"), Msg.trFor(to, "ui.decline")), java.util.List.of("duel accept " + n, "duel deny " + n));
     }
 
     public static void acceptDuel(ServerPlayerEntity to, ServerPlayerEntity from) {

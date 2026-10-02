@@ -554,7 +554,7 @@ public final class InspectMenu {
             if (!deaths.isEmpty()) {
                 DeathRecord d = deaths.get(0);
                 menu.set(22, Btn.of(Items.SKELETON_SKULL).name(Category.DEATHS, Msg.tr("in.last-death")).line(d.pos.formatExact())
-                        .line(d.world.replace("minecraft:", "")).line(date(d.at)).left(Msg.tr("panel.action.teleport")).build(), Perm.TELEPORT, (a, c) -> {
+                        .line(d.world.replace("minecraft:", "")).line(date(d.at)).left(Msg.tr("panel.action.teleport")).right(Msg.tr("in.teleport-other-mode")).build(), Perm.TELEPORT, (a, c) -> {
                     ServerWorld w = Mc.world(ac.server, d.world);
                     if (w != null) {
                         a.closeHandledScreen();

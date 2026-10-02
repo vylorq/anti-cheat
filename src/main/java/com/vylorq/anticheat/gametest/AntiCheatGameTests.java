@@ -1019,4 +1019,26 @@ public final class AntiCheatGameTests {
         }
         ctx.complete();
     }
+
+    @GameTest
+    public void bedrockButtonsAndChat(TestContext ctx) {
+        var plain = com.vylorq.anticheat.ui.Btn.of(net.minecraft.item.Items.STONE).name("x").left("open").build();
+        check(com.vylorq.anticheat.ui.Btn.actionsOf(plain).isEmpty(), "a plain button shouldn't ask on Bedrock");
+        var multi = com.vylorq.anticheat.ui.Btn.of(net.minecraft.item.Items.STONE).name("x").left("buy").right("offer").shift("remove").build();
+        var acts = com.vylorq.anticheat.ui.Btn.actionsOf(multi);
+        check(acts.size() == 3 && acts.get(1)[0].equals("RIGHT") && acts.get(1)[1].equals("offer")
+                && acts.get(2)[0].equals("SHIFT_LEFT"), "button actions not stored");
+        for (String[] a : acts) {
+            com.vylorq.anticheat.gui.Menu.Click.valueOf(a[0]);
+        }
+        var rightOnly = com.vylorq.anticheat.ui.Btn.of(net.minecraft.item.Items.STONE).name("x").right("kick").build();
+        check(com.vylorq.anticheat.ui.Btn.actionsOf(rightOnly).size() == 1, "right-only button must ask on Bedrock");
+        net.minecraft.text.MutableText msg = net.minecraft.text.Text.literal("Offer! ");
+        msg.append(com.vylorq.anticheat.util.Msg.button("[Accept]", "/booth accept 7", ""));
+        check(com.vylorq.anticheat.util.BedrockText.hasButtons(msg), "button not found");
+        String shown = com.vylorq.anticheat.util.BedrockText.withCommands(msg).getString();
+        check(shown.contains("[Accept]") && shown.contains("/booth accept 7"), "command not shown for Bedrock: " + shown);
+        check(!com.vylorq.anticheat.util.BedrockText.hasButtons(net.minecraft.text.Text.literal("hi")), "plain text has no buttons");
+        ctx.complete();
+    }
 }
