@@ -1073,4 +1073,56 @@ public final class AntiCheatGameTests {
         check(!com.vylorq.anticheat.Ac.get().misc.inventoryBackups.containsKey(p.getUuid()), "backup not cleared");
         ctx.complete();
     }
+
+    @GameTest
+    public void snapshotsNotesBlacklistShop(TestContext ctx) {
+        var w = ctx.getWorld();
+        var admin = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "SnapAdmin"));
+        var p = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "SnapTarget"));
+        var DIAMOND = net.minecraft.item.Items.DIAMOND;
+        // Snapshot, change the inventory, restore.
+        p.getInventory().setStack(3, new net.minecraft.item.ItemStack(DIAMOND, 5));
+        var inv = com.vylorq.anticheat.gui.InventoryTools.of(p);
+        var snap = com.vylorq.anticheat.gui.Snapshots.take(p.getUuid(), inv, "test", "before", false);
+        p.getInventory().setStack(3, net.minecraft.item.ItemStack.EMPTY);
+        p.getInventory().setStack(7, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIRT, 1));
+        com.vylorq.anticheat.gui.Snapshots.restore(admin, p.getUuid(), inv, snap);
+        check(p.getInventory().getStack(3).getCount() == 5 && p.getInventory().getStack(7).isEmpty(), "snapshot restore wrong");
+        check(com.vylorq.anticheat.gui.Snapshots.list(p.getUuid()).size() == 2, "the pre-restore snapshot is missing");
+        // Notes.
+        com.vylorq.anticheat.gui.Notes.add(admin, p.getUuid(), "warned for spam");
+        var notes = com.vylorq.anticheat.gui.Notes.of(p.getUuid());
+        check(notes.size() == 1 && notes.get(0).text.equals("warned for spam"), "note not saved");
+        com.vylorq.anticheat.gui.Notes.remove(admin, p.getUuid(), notes.get(0));
+        check(com.vylorq.anticheat.gui.Notes.of(p.getUuid()).isEmpty(), "note not removed");
+        // Blacklist: TNT is removed, diamonds stay.
+        var bl = com.vylorq.anticheat.Ac.config().itemBlacklist;
+        java.util.List<String> before = new java.util.ArrayList<>(bl.items);
+        try {
+            bl.items = new java.util.ArrayList<>(java.util.List.of("tnt"));
+            p.getInventory().setStack(8, new net.minecraft.item.ItemStack(net.minecraft.item.Items.TNT, 16));
+            p.getEnderChestInventory().setStack(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.TNT, 4));
+            int removed = com.vylorq.anticheat.feature.ItemBlacklist.clean(p);
+            check(removed == 20 && p.getInventory().getStack(8).isEmpty() && p.getEnderChestInventory().getStack(0).isEmpty(), "blacklist missed TNT: " + removed);
+            check(p.getInventory().getStack(3).isOf(DIAMOND), "blacklist removed something else");
+        } finally {
+            bl.items = before;
+        }
+        // Server shop: buy and sell for cash.
+        var m = com.vylorq.anticheat.Ac.get().market;
+        var item = m.addServerItem(com.vylorq.anticheat.util.ItemConv.encode(new net.minecraft.item.ItemStack(DIAMOND, 1)), "1x Diamond", 50, 20);
+        try {
+            m.setCash(p.getUuid(), 120);
+            com.vylorq.anticheat.feature.ServerShop.buy(p, item, 2);
+            check(m.balance(p.getUuid()) == 20 && com.vylorq.anticheat.feature.Markets.countItem(p, DIAMOND) == 7, "server shop buy wrong");
+            com.vylorq.anticheat.feature.ServerShop.sell(p, item, 3);
+            check(m.balance(p.getUuid()) == 80 && com.vylorq.anticheat.feature.Markets.countItem(p, DIAMOND) == 4, "server shop sell wrong");
+        } finally {
+            m.removeServerItem(item.id);
+        }
+        // Settings backup.
+        var saved = com.vylorq.anticheat.gui.SettingsBackups.save("test");
+        check(saved != null && com.vylorq.anticheat.gui.SettingsBackups.list().contains(saved), "settings backup not saved");
+        ctx.complete();
+    }
 }

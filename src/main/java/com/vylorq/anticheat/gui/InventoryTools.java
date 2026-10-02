@@ -45,7 +45,7 @@ public final class InventoryTools {
         }
     }
 
-    static Invs get(UUID target) {
+    public static Invs get(UUID target) {
         ServerPlayerEntity p = Ac.server().getPlayerManager().getPlayer(target);
         if (p != null) {
             return new Invs(p.getInventory(), p.getEnderChestInventory(), null, p);
@@ -63,7 +63,7 @@ public final class InventoryTools {
         return Registries.ITEM.getId(s.getItem()).toString();
     }
 
-    static String name(UUID target) {
+    public static String name(UUID target) {
         return Args.nameOf(target, target.toString().substring(0, 8));
     }
 
@@ -145,6 +145,8 @@ public final class InventoryTools {
                                 reset(pl, target, ender[0]);
                                 menu.reopen(pl);
                             }));
+            menu.set(47, Btn.of(Items.CHEST).name(Category.PLAYERS, Msg.tr("snap.title")).desc(Msg.tr("snap.desc"))
+                    .left(Msg.tr("ui.action.open")).build(), null, (pl, c) -> Snapshots.open(pl, target));
             boolean canUndo = Ac.get().misc.inventoryBackups.containsKey(target);
             menu.set(52, Btn.of(canUndo ? Items.CLOCK : Items.GRAY_DYE).color(canUndo ? Theme.GOLD_LIGHT : Theme.SOFT)
                     .name(Msg.tr("invtools.undo")).desc(Msg.tr(canUndo ? "invtools.undo-desc" : "invtools.undo-none")).left(Msg.tr("invtools.undo-action"))

@@ -104,6 +104,8 @@ public final class Ac {
         public Set<UUID> quietUi = new java.util.HashSet<>();
         /** What the last staff inventory wipe removed per player (encoded slots), so it can be undone. */
         public Map<UUID, List<String>> inventoryBackups = new LinkedHashMap<>();
+        /** Private staff notes per player. */
+        public Map<UUID, List<com.vylorq.anticheat.gui.Notes.Note>> notes = new LinkedHashMap<>();
     }
 
     /** Items held by the mod on a player's behalf (trade windows, trader offers). Returned after a crash. */
