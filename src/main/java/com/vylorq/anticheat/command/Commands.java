@@ -52,6 +52,19 @@ public final class Commands {
         WatcherCommands.register(d);
         TeamCommands.register(d);
         MarketCommands.register(d);
+        d.register(net.minecraft.server.command.CommandManager.literal("invtools")
+                .requires(s -> com.vylorq.anticheat.perm.Perms.visible(s, com.vylorq.anticheat.core.perm.Perm.INSPECT_EDIT))
+                .then(Args.player("player").executes(ctx -> {
+                    var p = ctx.getSource().getPlayer();
+                    if (p == null) {
+                        return 0;
+                    }
+                    java.util.UUID id = Args.known(ctx.getSource(), Args.str(ctx, "player"));
+                    if (id != null) {
+                        com.vylorq.anticheat.gui.InventoryTools.open(p, id);
+                    }
+                    return 1;
+                })));
         registerAc(d);
         VigilCommands.register(d);
         // Public "caught" counter (section 28).

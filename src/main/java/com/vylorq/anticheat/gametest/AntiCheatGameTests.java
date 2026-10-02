@@ -1043,4 +1043,34 @@ public final class AntiCheatGameTests {
         check(com.vylorq.anticheat.util.BedrockText.withCommands(self).getString().equals("/inspect <player>"), "command shown twice");
         ctx.complete();
     }
+
+    @GameTest
+    public void inventoryResetDeleteAndUndo(TestContext ctx) {
+        var w = ctx.getWorld();
+        var admin = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "InvAdmin"));
+        var p = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "InvTarget"));
+        p.getInventory().setStack(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 10));
+        p.getInventory().setStack(1, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIRT, 64));
+        p.getInventory().setStack(5, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 3));
+        p.getEnderChestInventory().setStack(2, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 7));
+        var inv = com.vylorq.anticheat.gui.InventoryTools.of(p);
+        // Delete only diamonds, not from the ender chest.
+        com.vylorq.anticheat.gui.InventoryTools.delete(admin, p.getUuid(), inv, java.util.Set.of("minecraft:diamond"), false);
+        check(p.getInventory().getStack(0).isEmpty() && p.getInventory().getStack(5).isEmpty(), "diamonds not deleted");
+        check(p.getInventory().getStack(1).isOf(net.minecraft.item.Items.DIRT), "dirt was deleted too");
+        check(p.getEnderChestInventory().getStack(2).getCount() == 7, "ender chest touched");
+        com.vylorq.anticheat.gui.InventoryTools.undo(admin, p.getUuid(), inv);
+        check(p.getInventory().getStack(0).getCount() == 10 && p.getInventory().getStack(5).getCount() == 3, "undo didn't put diamonds back");
+        check(com.vylorq.anticheat.feature.Markets.countItem(p, net.minecraft.item.Items.DIRT) == 64
+                && com.vylorq.anticheat.feature.Markets.countItem(p, net.minecraft.item.Items.DIAMOND) == 13
+                && p.getEnderChestInventory().getStack(2).getCount() == 7, "undo duplicated items");
+        // Reset everything, ender chest included.
+        com.vylorq.anticheat.gui.InventoryTools.reset(admin, p.getUuid(), inv, true);
+        check(p.getInventory().isEmpty() && p.getEnderChestInventory().isEmpty(), "reset left items");
+        com.vylorq.anticheat.gui.InventoryTools.undo(admin, p.getUuid(), inv);
+        check(p.getInventory().getStack(1).getCount() == 64 && p.getEnderChestInventory().getStack(2).getCount() == 7
+                && com.vylorq.anticheat.feature.Markets.countItem(p, net.minecraft.item.Items.DIAMOND) == 13, "undo after reset failed");
+        check(!com.vylorq.anticheat.Ac.get().misc.inventoryBackups.containsKey(p.getUuid()), "backup not cleared");
+        ctx.complete();
+    }
 }

@@ -323,9 +323,11 @@ public final class InspectMenu {
             m.reserved(contentSlots());
         }
         m.renderer(menu -> {
-            for (int i = 41; i < 44; i++) {
+            for (int i = 41; i < 43; i++) {
                 menu.icon(i, Btn.of(Items.BLACK_STAINED_GLASS_PANE).color(Theme.SOFT).name(Msg.tr("in.armour-label")).build());
             }
+            menu.set(43, Btn.of(Items.LAVA_BUCKET).name(Category.PLAYERS, Msg.tr("invtools.title")).desc(Msg.tr("invtools.button-desc"))
+                    .left(Msg.tr("ui.action.open")).build(), Perm.INSPECT_EDIT, (a, c) -> InventoryTools.open(a, target));
             menu.set(44, editButton(edit), edit ? Perm.INSPECT : Perm.INSPECT_EDIT, (a, c) -> inventory(a, target, !edit));
             bottomNav(menu, target, "inventory");
         });
