@@ -1039,6 +1039,8 @@ public final class AntiCheatGameTests {
         String shown = com.vylorq.anticheat.util.BedrockText.withCommands(msg).getString();
         check(shown.contains("[Accept]") && shown.contains("/booth accept 7"), "command not shown for Bedrock: " + shown);
         check(!com.vylorq.anticheat.util.BedrockText.hasButtons(net.minecraft.text.Text.literal("hi")), "plain text has no buttons");
+        var self = com.vylorq.anticheat.util.Msg.suggest("/inspect <player>", "/inspect ", "");
+        check(com.vylorq.anticheat.util.BedrockText.withCommands(self).getString().equals("/inspect <player>"), "command shown twice");
         ctx.complete();
     }
 }
