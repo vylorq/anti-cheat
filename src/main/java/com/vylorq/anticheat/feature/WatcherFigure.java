@@ -167,16 +167,8 @@ public final class WatcherFigure {
 
     private static ItemStack black(net.minecraft.item.Item item) {
         ItemStack s = new ItemStack(item);
-        s.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(0x0B0B0E));
-        // Blood-red ribs over the black.
-        try {
-            var reg = Ac.server().getRegistryManager();
-            s.set(DataComponentTypes.TRIM, new net.minecraft.item.equipment.trim.ArmorTrim(
-                    reg.getOrThrow(net.minecraft.registry.RegistryKeys.TRIM_MATERIAL).getOrThrow(net.minecraft.item.equipment.trim.ArmorTrimMaterials.REDSTONE),
-                    reg.getOrThrow(net.minecraft.registry.RegistryKeys.TRIM_PATTERN).getOrThrow(net.minecraft.item.equipment.trim.ArmorTrimPatterns.RIB)));
-        } catch (RuntimeException ignored) {
-            // plain black then
-        }
+        // Pitch black all over (the built-in skin adds the eyes and teeth).
+        s.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(0x050506));
         return s;
     }
 

@@ -292,7 +292,7 @@
   "watcher.exclude-list": "§8المستثنون: §f{0}",
   "watcher.log-empty": "§7لم يرَ أحد شيئاً بعد.",
   "watcher.log-header": "§8من رأى ماذا (الأحدث في الأسفل):",
-  "watcher.help": "§8/watcher on|off §7- تشغيل أو إيقاف\n§8/watcher summon <player> [effect]\n§8/watcher night\n§8/watcher log\n§8/watcher exclude add|remove|list <player>\n§8/watcher skin <name|mineskin link|reset>",
+  "watcher.help": "§8/watcher on|off §7- تشغيل أو إيقاف\n§8/watcher summon <player> [effect]\n§8/watcher night\n§8/watcher log\n§8/watcher exclude add|remove|list <player>\n§8/watcher skin scary|<name|mineskin link>|reset",
   "ui.status.on": "مفعّل",
   "ui.status.off": "معطّل",
   "ui.hint.left": "انقر بالزر الأيسر لـ{0}",
@@ -2117,5 +2117,7 @@
   "ui.decline": "رفض",
   "ui.later": "لاحقاً",
   "duel.title": "طلب مبارزة",
-  "in.teleport-other-mode": "انتقال (تبديل الظهور/الاختفاء)"
+  "in.teleport-other-mode": "انتقال (تبديل الظهور/الاختفاء)",
+  "watcher.skin-uploading": "§7جارٍ رفع مظهر المراقب (أسود، عيون متوهجة، أسنان حادة) إلى MineSkin...",
+  "watcher.skin-upload-failed": "§cتعذر الرفع ({0}). ارفع docs/watcher-skin.png على mineskin.org ثم: /watcher skin <الرابط>"
 }

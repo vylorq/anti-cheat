@@ -437,6 +437,10 @@ public class AcConfig {
         /** Optional custom skin for the Watcher (signed textures from e.g. mineskin.org). Empty = dark outfit. */
         public String skinValue = "";
         public String skinSignature = "";
+        /** Which built-in skin was last applied (the server uploads a newer one to MineSkin once). */
+        public int builtInSkinVersion = 0;
+        /** Optional mineskin.org API key, used when uploading the built-in skin. */
+        public String mineskinApiKey = "";
         /** Players are only eligible this long after their last hit given or taken. */
         public int combatSeconds = 15;
         /** The Watcher appears where a cheater stood just before the ban lightning (needs fun.banEffects). */

@@ -292,7 +292,7 @@
   "watcher.exclude-list": "§8Excluded: §f{0}",
   "watcher.log-empty": "§7Nobody has seen anything yet.",
   "watcher.log-header": "§8Who saw what (newest last):",
-  "watcher.help": "§8/watcher on|off §7- wake or sleep\n§8/watcher summon <player> [effect]\n§8/watcher night\n§8/watcher log\n§8/watcher exclude add|remove|list <player>\n§8/watcher skin <name|mineskin link|reset>",
+  "watcher.help": "§8/watcher on|off §7- wake or sleep\n§8/watcher summon <player> [effect]\n§8/watcher night\n§8/watcher log\n§8/watcher exclude add|remove|list <player>\n§8/watcher skin scary|<name|mineskin link>|reset",
   "ui.status.on": "Enabled",
   "ui.status.off": "Disabled",
   "ui.hint.left": "Left-click to {0}",
@@ -2117,5 +2117,7 @@
   "ui.decline": "Decline",
   "ui.later": "Later",
   "duel.title": "Duel request",
-  "in.teleport-other-mode": "teleport (switch seen/unseen)"
+  "in.teleport-other-mode": "teleport (switch seen/unseen)",
+  "watcher.skin-uploading": "§7Uploading the Watcher's skin (black, glowing eyes, sharp teeth) to MineSkin...",
+  "watcher.skin-upload-failed": "§cCouldn't upload it ({0}). Upload docs/watcher-skin.png at mineskin.org, then: /watcher skin <link>"
 }

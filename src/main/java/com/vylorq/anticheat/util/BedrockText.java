@@ -47,7 +47,12 @@ public final class BedrockText {
             if (!shown.startsWith("/")) {
                 shown = "/" + shown;
             }
-            out.append(Text.literal(" " + shown).formatted(Formatting.GRAY, Formatting.ITALIC));
+            // Skip it when the text already shows the command (e.g. "/inspect <player>").
+            String own = t.copyContentOnly().getString();
+            String first = shown.split(" ")[0];
+            if (!own.contains(first)) {
+                out.append(Text.literal(" " + shown).formatted(Formatting.GRAY, Formatting.ITALIC));
+            }
         }
         return out;
     }
