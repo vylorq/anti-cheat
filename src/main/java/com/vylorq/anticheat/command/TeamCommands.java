@@ -355,9 +355,9 @@ public final class TeamCommands {
                     top(ctx.getSource(), List.of("members", "kills").contains(by) ? by : "land");
                     return 1;
                 })))
-                .then(literal("doors").executes(ctx -> leaderSet(ctx, t -> {
-                    t.outsiderDoors = !t.outsiderDoors;
-                    Msg.ok(ctx.getSource(), t.outsiderDoors ? "team.set.doors-on" : "team.set.doors-off");
+                .then(literal("allypvp").executes(ctx -> leaderSet(ctx, t -> {
+                    t.allyFire = !t.allyFire;
+                    tellTeam(t, t.allyFire ? "team.allyfire-on" : "team.allyfire-off");
                     return true;
                 })))
                 .then(literal("admin").requires(s -> Perms.visible(s, Perm.MANAGE_ADMINS))

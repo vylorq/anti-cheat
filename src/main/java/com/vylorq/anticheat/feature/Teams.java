@@ -76,25 +76,19 @@ public final class Teams {
         return "§" + color(t).getCode() + "[" + t.tag + "]";
     }
 
-    /** Territory protection: outsiders can walk in, but can't build, break, open, or use anything. */
-    public static boolean allowed(ServerPlayerEntity p, World w, BlockPos pos, ClaimAction a) {
-        if (!enabled() || !cfg().protectTerritory || a == ClaimAction.ENTER || a == ClaimAction.PVP) {
-            return true;
+    /**
+     * Team land isn't protected: anyone can build, break, open or fight in it. Members just get a raid alert when
+     * an outsider changes something or opens a container there.
+     */
+    public static void watch(ServerPlayerEntity p, World w, BlockPos pos, ClaimAction a) {
+        if (!enabled() || !(a.isChange() || a == ClaimAction.CONTAINER)) {
+            return;
         }
         Team t = at(w, pos);
         if (t == null || t.members.contains(p.getUuid()) || Perms.isActiveStaff(p) || BuilderMode.is(p)) {
-            return true;
+            return;
         }
-        boolean doorish = a == ClaimAction.DOOR || a == ClaimAction.REDSTONE;
-        Team mine = tm().teamOf(p.getUuid());
-        if (doorish && (t.outsiderDoors || (mine != null && t.allies.contains(mine.id)))) {
-            return true;
-        }
-        Msg.actionBar(p, Msg.trFor(p, "team.protected", tagText(t) + " §f" + t.name));
-        if (a.isChange() || a == ClaimAction.CONTAINER) {
-            raidAlert(t, p, pos);
-        }
-        return false;
+        raidAlert(t, p, pos);
     }
 
     private static final Map<String, Long> ALERTED = new HashMap<>();
@@ -129,12 +123,20 @@ public final class Teams {
         return t != null && !t.friendlyFire && t.members.contains(victim.getUuid());
     }
 
-    /** Whether a player may not hurt another: teammates or allies. */
+    /** Whether a player may not hurt another: teammates (friendly fire off) or allies (ally fire off on either side). */
     public static boolean damageBlocked(ServerPlayerEntity attacker, ServerPlayerEntity victim) {
         if (!enabled()) {
             return false;
         }
-        return friendlyFireBlocked(attacker, victim) || tm().allied(attacker.getUuid(), victim.getUuid());
+        if (friendlyFireBlocked(attacker, victim)) {
+            return true;
+        }
+        if (!tm().allied(attacker.getUuid(), victim.getUuid())) {
+            return false;
+        }
+        Team a = tm().teamOf(attacker.getUuid());
+        Team v = tm().teamOf(victim.getUuid());
+        return !a.allyFire || !v.allyFire;
     }
 
     // ---------------------------------------------------------------- vault

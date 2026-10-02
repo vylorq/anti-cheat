@@ -856,10 +856,9 @@ public final class AntiCheatGameTests {
             check(r == com.vylorq.anticheat.core.team.TeamManager.Result.OK || r == com.vylorq.anticheat.core.team.TeamManager.Result.CHUNK_TAKEN,
                     "claim failed: " + r);
             if (r == com.vylorq.anticheat.core.team.TeamManager.Result.OK) {
-                check(com.vylorq.anticheat.feature.Teams.allowed(mate, w, pos, com.vylorq.anticheat.core.claims.ClaimAction.BREAK), "a member was blocked");
-                check(!com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, com.vylorq.anticheat.core.claims.ClaimAction.BREAK), "an outsider could break");
-                check(!com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, com.vylorq.anticheat.core.claims.ClaimAction.CONTAINER), "an outsider could open chests");
-                check(com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, com.vylorq.anticheat.core.claims.ClaimAction.ENTER), "outsiders should be able to walk in");
+                // Land isn't protected: an outsider breaking in only raises a raid alert.
+                com.vylorq.anticheat.feature.Teams.watch(outsider, w, pos, com.vylorq.anticheat.core.claims.ClaimAction.BREAK);
+                check(com.vylorq.anticheat.feature.Teams.at(w, pos) == tm.get(name), "land not claimed");
             }
             check(com.vylorq.anticheat.feature.Teams.friendlyFireBlocked(leader, mate), "teammates could hurt each other");
             check(!com.vylorq.anticheat.feature.Teams.friendlyFireBlocked(leader, outsider), "outsiders were protected");
@@ -878,7 +877,7 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
-    public void teamAlliesDoorsAndVault(TestContext ctx) {
+    public void teamAlliesAllyFireAndVault(TestContext ctx) {
         var w = ctx.getWorld();
         var tm = com.vylorq.anticheat.feature.Teams.tm();
         var lim = com.vylorq.anticheat.feature.Teams.limits();
@@ -895,17 +894,14 @@ public final class AntiCheatGameTests {
             check(tm.ally(a.getUuid(), nb, 3) == com.vylorq.anticheat.core.team.TeamManager.Result.ALLY_REQUESTED, "no ally request");
             check(!tm.allied(a.getUuid(), b.getUuid()), "allied before accepting");
             check(tm.ally(b.getUuid(), na, 3) == R, "ally not accepted");
-            check(com.vylorq.anticheat.feature.Teams.damageBlocked(a, b), "allies could hurt each other");
             var ta = tm.get(na);
-            var r = tm.claim(a.getUuid(), com.vylorq.anticheat.util.Mc.worldId(w), pos.getX() >> 4, pos.getZ() >> 4, lim);
-            if (r == R) {
-                var door = com.vylorq.anticheat.core.claims.ClaimAction.DOOR;
-                check(com.vylorq.anticheat.feature.Teams.allowed(b, w, pos, door), "an ally couldn't use doors");
-                check(!com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, door), "a stranger could use doors");
-                ta.outsiderDoors = true;
-                check(com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, door), "outsider doors setting ignored");
-                check(!com.vylorq.anticheat.feature.Teams.allowed(outsider, w, pos, com.vylorq.anticheat.core.claims.ClaimAction.BREAK), "doors setting let them break");
-            }
+            var tb = tm.get(nb);
+            check(!com.vylorq.anticheat.feature.Teams.damageBlocked(a, b), "allies can hurt each other by default");
+            tb.allyFire = false;
+            check(com.vylorq.anticheat.feature.Teams.damageBlocked(a, b), "ally fire off on one side didn't protect");
+            check(com.vylorq.anticheat.feature.Teams.damageBlocked(b, a), "ally fire off didn't work both ways");
+            tb.allyFire = true;
+            check(!com.vylorq.anticheat.feature.Teams.damageBlocked(outsider, a), "strangers were protected");
             var inv = com.vylorq.anticheat.feature.Teams.vault(ta);
             inv.setStack(3, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND, 5));
             check(ta.vault.size() == 1, "vault not saved");

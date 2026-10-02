@@ -252,10 +252,10 @@ public final class TeamMenu {
                 }
             });
             if (me == Team.Role.LEADER) {
-                menu.set(31, Btn.of(Items.OAK_DOOR).name(Msg.tr("team.menu.doors")).desc(Msg.tr("team.menu.doors-desc"))
-                        .onOff(t.outsiderDoors).build(), null, (pl, c) -> {
-                    t.outsiderDoors = !t.outsiderDoors;
-                    say(pl, Result.OK, t.outsiderDoors ? "team.set.doors-on" : "team.set.doors-off");
+                menu.set(31, Btn.of(Items.GOLDEN_SWORD).name(Msg.tr("team.menu.allyfire")).desc(Msg.tr("team.menu.allyfire-desc"))
+                        .onOff(t.allyFire).build(), null, (pl, c) -> {
+                    t.allyFire = !t.allyFire;
+                    say(pl, Result.OK, t.allyFire ? "team.allyfire-on" : "team.allyfire-off");
                     menu.refresh();
                 });
             }

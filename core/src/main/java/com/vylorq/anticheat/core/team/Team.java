@@ -35,8 +35,8 @@ public final class Team {
     public java.util.List<String> vault = new java.util.ArrayList<>();
     /** Message shown to members when they join. */
     public String motd = "";
-    /** Anyone may use doors, gates, buttons and levers in the team's land. */
-    public boolean outsiderDoors;
+    /** Allies can hurt this team's members (and the other way round); either team can turn it off. */
+    public boolean allyFire = true;
 
     public Role role(UUID player) {
         if (player == null || !members.contains(player)) {
