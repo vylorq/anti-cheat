@@ -54,8 +54,10 @@ public final class BuilderTools {
     static final int PER_TICK = 40_000;
     /** Biggest edit at once. */
     public static final int MAX_EDIT = 2_000_000;
-    /** Edits bigger than this can't be undone (the old blocks would take too much memory). */
-    static final int MAX_UNDO = 400_000;
+    /** Edits bigger than this can't be undone (the old blocks would take too much memory). Fits a whole lobby paste. */
+    static final int MAX_UNDO = 1_000_000;
+    /** Most changed blocks kept for undo per player, over all their saved edits. */
+    static final int MAX_UNDO_KEPT = 1_500_000;
     public static final int MAX_RADIUS = 64;
 
     // ---------------------------------------------------------------- block mixes
@@ -367,8 +369,12 @@ public final class BuilderTools {
                 if (j.changes != null && !j.changes.isEmpty()) {
                     Deque<List<Change>> stack = UNDO.computeIfAbsent(j.key, k -> new ArrayDeque<>());
                     stack.addFirst(j.changes);
-                    while (stack.size() > 10) {
-                        stack.removeLast();
+                    int kept = 0;
+                    for (List<Change> l : stack) {
+                        kept += l.size();
+                    }
+                    while (stack.size() > 10 || (stack.size() > 1 && kept > MAX_UNDO_KEPT)) {
+                        kept -= stack.removeLast().size();
                     }
                 }
                 if (j.player != null && !j.player.isRemoved()) {
