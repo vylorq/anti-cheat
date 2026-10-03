@@ -40,6 +40,12 @@ public final class PlayerSession {
     /** When the server opened or closed a screen for this player. */
     public int ticksSinceScreenChange = 1000;
     public Object lastScreen;
+    // Packet checks.
+    public long lastBadRotationFlag;
+    public long badClickWindow;
+    public int badClicks;
+    public int starvingSprintTicks;
+    public final com.vylorq.anticheat.core.packets.BreakTracker breaks = new com.vylorq.anticheat.core.packets.BreakTracker();
     /** When move and swing packets reached the network thread (nanoTime), so lag on the server doesn't bunch them up. */
     public final java.util.concurrent.ConcurrentLinkedDeque<Long> moveArrivals = new java.util.concurrent.ConcurrentLinkedDeque<>();
     public final java.util.concurrent.ConcurrentLinkedDeque<Long> swingArrivals = new java.util.concurrent.ConcurrentLinkedDeque<>();

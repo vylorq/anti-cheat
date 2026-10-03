@@ -25,6 +25,10 @@ public final class DetectionListener implements DetectionEngine.Listener {
     @Override
     public void onFlag(DetectionEngine.Flag f) {
         Ac.get().logs.flag(f.time(), f.player(), f.name(), f.check().id(), f.points(), f.suspicion(), f.detail());
+        if (Ac.config().general.debug) {
+            Ac.LOG.info("[flag] {} {} +{} (suspicion {}) {}", f.name(), f.check().id(),
+                    String.format(java.util.Locale.ROOT, "%.2f", f.points()), f.suspicion(), f.detail() == null ? "" : f.detail());
+        }
         Ac.markDirty("stats");
     }
 

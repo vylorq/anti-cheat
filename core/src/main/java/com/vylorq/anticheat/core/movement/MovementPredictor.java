@@ -109,7 +109,8 @@ public final class MovementPredictor {
         }
         if (!skipAll && h > maxH + tolH && h > 0.05) {
             double over = h - maxH;
-            fail(r, st, CheckType.SPEED, over, String.format(Locale.ROOT, "%.3f > %.3f b/t", h, maxH), over > 1.0, in);
+            fail(r, st, CheckType.SPEED, over, String.format(Locale.ROOT, "%.3f > %.3f b/t%s", h, maxH,
+                    in.usingItemTicks >= 6 ? " while using an item" : ""), over > 1.0, in);
         } else {
             relax(st, CheckType.SPEED);
         }
@@ -173,6 +174,12 @@ public final class MovementPredictor {
         } else {
             accel = AIR_ACCEL;
             nextFriction = 0.91;
+        }
+        // Eating, drinking, blocking or drawing a bow slows walking to a fifth. Only judged once the item has been
+        // in use for a moment (momentum from before fades through friction, which this already models) and not for
+        // Bedrock, whose input arrives through Geyser.
+        if (in.usingItemTicks >= 6 && !in.bedrock && !in.inWater && !in.inLava && in.ticksSinceLiquid >= 5) {
+            accel *= 0.2;
         }
         double max = st.lastHorizontal * st.lastFriction + accel;
         boolean jumped = (in.serverWasOnGround || st.lastClientOnGround) && in.dy() > 0;

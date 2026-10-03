@@ -55,6 +55,8 @@ public final class MoveInput {
     public boolean crawling;
     public boolean gliding;
     public boolean usingItem;
+    /** Ticks the current item has been in use (eating, drinking, blocking, drawing a bow). */
+    public int usingItemTicks;
     public boolean inVehicle;
     public boolean flightAllowed;
     public boolean creativeOrSpectator;
