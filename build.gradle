@@ -1,6 +1,7 @@
 plugins {
     id 'fabric-loom' version "${loom_version}"
     id 'maven-publish'
+    id 'com.github.spotbugs' version '6.4.8'
 }
 
 version = project.mod_version
@@ -58,7 +59,7 @@ def targetJavaVersion = 21
 tasks.withType(JavaCompile).configureEach {
     it.options.encoding = 'UTF-8'
     it.options.release.set(targetJavaVersion)
-    it.options.compilerArgs += ['-Xmaxerrs', '5000']
+    it.options.compilerArgs += ['-Xmaxerrs', '5000', '-Xmaxwarns', '5000', '-Xlint:all,-serial,-processing,-rawtypes,-this-escape']
 }
 
 java {
@@ -75,4 +76,13 @@ jar {
 // Run the core unit tests as part of `./gradlew build`.
 tasks.named('check') {
     dependsOn ':core:test'
+}
+
+spotbugs {
+    ignoreFailures = true
+    effort = com.github.spotbugs.snom.Effort.MAX
+    reportLevel = com.github.spotbugs.snom.Confidence.MEDIUM
+}
+tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+    reports { text { required = true } }
 }

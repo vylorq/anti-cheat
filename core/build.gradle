@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'com.github.spotbugs' version '6.4.8'
 }
 
 group = 'com.vylorq.anticheat'
@@ -36,4 +37,16 @@ test {
         events 'failed'
         exceptionFormat 'full'
     }
+}
+
+spotbugs {
+    ignoreFailures = true
+    effort = com.github.spotbugs.snom.Effort.MAX
+    reportLevel = com.github.spotbugs.snom.Confidence.MEDIUM
+}
+tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+    reports { text { required = true } }
+}
+tasks.withType(JavaCompile).configureEach {
+    it.options.compilerArgs += ['-Xmaxwarns', '5000', '-Xlint:all,-serial,-processing,-rawtypes,-this-escape']
 }

@@ -3,6 +3,7 @@
 name: Crossplay
 on:
   push:
+    branches-ignore: [lint-scan]
   pull_request:
   workflow_dispatch:
 jobs:

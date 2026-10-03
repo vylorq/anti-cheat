@@ -1,0 +1,24 @@
+name: Lint scan
+on: push
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Compile with all warnings
+        run: |
+          chmod +x gradlew
+          ./gradlew compileJava :core:compileJava --rerun-tasks 2>&1 | tee compile.log
+      - name: SpotBugs
+        run: ./gradlew spotbugsMain :core:spotbugsMain 2>&1 | tail -20
+      - name: Print reports
+        if: always()
+        run: |
+          echo "=== WARNINGS ==="; grep -E "warning:" compile.log | sort | uniq | head -600
+          echo "=== SPOTBUGS ROOT ==="; cat build/reports/spotbugs/*.txt 2>/dev/null | head -700
+          echo "=== SPOTBUGS CORE ==="; cat core/build/reports/spotbugs/*.txt 2>/dev/null | head -700
