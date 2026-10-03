@@ -571,11 +571,31 @@ public final class AntiCheatGameTests {
         c.set(0, 0, 0, Blocks.STONE.getDefaultState());
         c.set(2, 1, 1, stairs);
         c.set(1, 0, 1, Blocks.GLASS.getDefaultState());
+        c.ox = -1;
+        c.oy = -4;
+        c.oz = 2;
         java.nio.file.Path tmp = java.nio.file.Files.createTempFile("vigil", ".schem");
         com.vylorq.anticheat.feature.BuildFiles.write(c, tmp);
         var back = com.vylorq.anticheat.feature.BuildFiles.read(tmp);
         java.nio.file.Files.deleteIfExists(tmp);
         check(back.sx == 3 && back.sy == 2 && back.sz == 2 && java.util.Arrays.equals(back.states, c.states), "schematic changed after saving");
+        check(back.ox == -1 && back.oy == -4 && back.oz == 2, "schematic lost where it sits");
+
+        // The lobby that comes with the mod: every block known, the spawn spot on its floor
+        byte[] lobby;
+        try (var in = com.vylorq.anticheat.feature.BuildFiles.class.getResourceAsStream("/vigil/builds/lobby_enraze.schem")) {
+            check(in != null, "bundled lobby missing");
+            lobby = in.readAllBytes();
+        }
+        var lc = com.vylorq.anticheat.feature.BuildFiles.read(lobby);
+        int solid = 0;
+        for (var st : lc.states) {
+            if (!st.isAir()) {
+                solid++;
+            }
+        }
+        check(lc.sx == 109 && lc.sy == 63 && lc.sz == 109 && solid == 115499, "bundled lobby read wrong: " + lc.sx + "x" + lc.sy + "x" + lc.sz + " " + solid);
+        check(lc.get(-lc.ox, -lc.oy - 1, -lc.oz).isOf(Blocks.SMOOTH_STONE_SLAB) && lc.get(-lc.ox, -lc.oy, -lc.oz).isAir(), "bundled lobby spawn spot wrong");
 
         // .litematic: 2 x 1 x 2, palette air/stone/dirt, 2 bits per block, negative size
         var root = new net.minecraft.nbt.NbtCompound();

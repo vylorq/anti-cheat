@@ -2340,5 +2340,6 @@
   "features.turned-on": "§a{0} is now on.",
   "features.turned-off": "§e{0} is now off.",
   "features.unknown": "§cNo feature called {0}. /features shows them all.",
-  "help.features": "Turn any feature or system on or off"
+  "help.features": "Turn any feature or system on or off",
+  "build.loaded-spot": "§aLoaded {0} ({1}). It is placed around where you stand: its marked spot goes at your feet. Paste when ready."
 }
