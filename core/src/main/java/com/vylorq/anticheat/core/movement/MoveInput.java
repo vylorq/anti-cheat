@@ -31,6 +31,10 @@ public final class MoveInput {
     public float slipperiness = 0.6f;
     public boolean onSlime;
     public boolean onHoney;
+    /** Touching a honey block from the side (slow wall slide). */
+    public boolean touchingHoney;
+    /** Other players or mobs close enough to push. */
+    public boolean pushedByEntity;
     public boolean onSoulSand;
     public boolean inCobweb;
     public boolean inPowderSnow;
@@ -91,6 +95,8 @@ public final class MoveInput {
     public int ticksSinceLiquid = 1000;
     public int ticksSinceSlime = 1000;
     public int ticksSinceIce = 1000;
+    /** Ticks since a block change by this player was refused (the client saw a ghost block). */
+    public int ticksSinceGhostBlock = 1000;
     public boolean chunksLoaded = true;
     public int pingMs;
     public double tps = 20.0;

@@ -23,6 +23,7 @@ public final class AimAnalyzer {
     private float lastPitch;
     private boolean hasLast;
     private int snapHits;
+    private int lastSnapHit;
     private int hits;
     private static final int WINDOW = 40;
 
@@ -61,9 +62,14 @@ public final class AimAnalyzer {
         push(centreErrors, centreError);
         double score = 0;
         // Instant snap onto a (new) target.
-        if (rotationBeforeHit > 60 && targetSwitched) {
+        if (rotationBeforeHit > 90 && targetSwitched) {
+            // Snaps only count when they come close together (within 20 hits), not over a whole evening.
+            if (hits - lastSnapHit > 20) {
+                snapHits = 0;
+            }
+            lastSnapHit = hits;
             snapHits++;
-            if (snapHits >= 3) {
+            if (snapHits >= 5) {
                 score = Math.max(score, 0.6);
             }
         }
@@ -98,7 +104,7 @@ public final class AimAnalyzer {
         } else if (cv < 0.1) {
             score = 0.4;
         }
-        if (distinct < 0.2) {
+        if (distinct < 0.1) {
             score = Math.max(score, 0.6);
         }
         return score;

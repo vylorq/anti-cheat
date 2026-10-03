@@ -10,7 +10,7 @@ import java.util.Map;
  * Every field has a sensible default so a missing or partial file still works.
  */
 public class AcConfig {
-    public int configVersion = 1;
+    public int configVersion = 2;
 
     public General general = new General();
     public Permissions permissions = new Permissions();
@@ -84,24 +84,24 @@ public class AcConfig {
         /** Whether admins (not just the owner) may open /settings. */
         public boolean adminsUseSettings = true;
         /** Flag clients that send GUI actions or commands they aren't allowed to use. */
-        public boolean flagUnauthorizedActions = true;
+        public boolean flagUnauthorizedActions = false;
     }
 
     public static class Detection {
         /** Violation points removed per minute from each check. */
-        public double decayPerMinute = 2.0;
+        public double decayPerMinute = 3.0;
         /** Total points that map to suspicion ~63. Larger = slower to turn red. */
-        public double suspicionScale = 40.0;
+        public double suspicionScale = 60.0;
         /** Suspicion score at which a review case opens. */
-        public int reviewThreshold = 60;
+        public int reviewThreshold = 70;
         /** Suspicion score at which the player is automatically watched. */
-        public int autoWatchScore = 45;
+        public int autoWatchScore = 60;
         /** Number of flags within {@link #autoWatchWindowMinutes} that auto-watches. */
-        public int autoWatchFlagCount = 25;
+        public int autoWatchFlagCount = 40;
         public int autoWatchWindowMinutes = 10;
         public boolean autoWatchEnabled = true;
         /** Suspicion at which admins get a (grouped) alert. */
-        public int alertScore = 25;
+        public int alertScore = 35;
         /** Per-check multiplier for points (sensitivity). 1.0 = default, 0 = check disabled. */
         public Map<String, Double> sensitivity = new LinkedHashMap<>();
         /** Checks that are fully disabled. */
@@ -113,7 +113,7 @@ public class AcConfig {
     public static class Warnings {
         public boolean enabled = true;
         /** Suspicion score at which the player gets the generic warning. */
-        public int warnScore = 40;
+        public int warnScore = 55;
         public int cooldownMinutes = 15;
         public int maxPerSession = 3;
     }
@@ -124,15 +124,15 @@ public class AcConfig {
         /** Seconds of grace after join, respawn, teleport, dimension change. */
         public double graceSeconds = 3.0;
         /** Buffer size before a movement violation adds points. */
-        public double bufferLimit = 6.0;
+        public double bufferLimit = 8.0;
         /** How fast the buffer drains per legit move. */
         public double bufferDecay = 0.25;
         /** Extra horizontal tolerance in blocks/tick. */
-        public double speedTolerance = 0.03;
+        public double speedTolerance = 0.05;
         /** Extra vertical tolerance in blocks/tick. */
-        public double verticalTolerance = 0.05;
+        public double verticalTolerance = 0.06;
         /** Tolerance multiplier applied to Bedrock players. */
-        public double bedrockLeniency = 1.6;
+        public double bedrockLeniency = 2.5;
         /** Ticks after an external velocity (knockback, wind charge, explosion) during which limits are relaxed. */
         public int velocityGraceTicks = 40;
         /** Max ping (ms) used for compensation. */
@@ -142,18 +142,18 @@ public class AcConfig {
     public static class Combat {
         public boolean enabled = true;
         public double maxReach = 3.0;
-        public double reachTolerance = 0.3;
-        public double bedrockReachTolerance = 0.6;
+        public double reachTolerance = 0.4;
+        public double bedrockReachTolerance = 0.8;
         /** Creative players can reach further; they are skipped. */
         public boolean wallHitCheck = true;
         public boolean aimCheck = true;
-        public int maxCps = 20;
-        public int bedrockMaxCps = 24;
+        public int maxCps = 28;
+        public int bedrockMaxCps = 30;
         /** Click interval coefficient of variation below this is "too consistent". */
-        public double minClickCv = 0.08;
+        public double minClickCv = 0.05;
         public double bedrockMinClickCv = 0.05;
         /** Multiplier on autoclicker points ("strict"). */
-        public double autoclickerStrictness = 1.5;
+        public double autoclickerStrictness = 1.0;
         /** Degrees between targets hit in one window considered impossible. */
         public double multiTargetAngle = 90.0;
         public int multiTargetWindowMs = 150;
@@ -194,8 +194,8 @@ public class AcConfig {
         public boolean oreAlerts = true;
         /** Ore alerts are grouped for this many seconds. */
         public int oreAlertGroupSeconds = 30;
-        /** Suspicious mining ratio: rare ores per 100 stone-type blocks. */
-        public double suspiciousRatio = 4.0;
+        /** Suspicious mining ratio: rare ore veins found per 100 stone-type blocks mined. */
+        public double suspiciousRatio = 2.0;
         public List<String> hiddenBlocks = new ArrayList<>(List.of(
                 "minecraft:diamond_ore", "minecraft:deepslate_diamond_ore", "minecraft:ancient_debris",
                 "minecraft:emerald_ore", "minecraft:deepslate_emerald_ore", "minecraft:gold_ore",
@@ -542,6 +542,42 @@ public class AcConfig {
     }
 
     /** Sensitivity multiplier for a check; defaults to 1. */
+    /**
+     * Version 2 made detection much harder to trip by accident. Settings still on the old defaults move to the new
+     * ones; anything an admin changed is kept.
+     */
+    private void migrate() {
+        if (configVersion >= 2) {
+            return;
+        }
+        if (detection != null) {
+            if (detection.suspicionScale == 40.0) detection.suspicionScale = 60.0;
+            if (detection.decayPerMinute == 2.0) detection.decayPerMinute = 3.0;
+            if (detection.reviewThreshold == 60) detection.reviewThreshold = 70;
+            if (detection.autoWatchScore == 45) detection.autoWatchScore = 60;
+            if (detection.autoWatchFlagCount == 25) detection.autoWatchFlagCount = 40;
+            if (detection.alertScore == 25) detection.alertScore = 35;
+        }
+        if (warnings != null && warnings.warnScore == 40) warnings.warnScore = 55;
+        if (movement != null) {
+            if (movement.bufferLimit == 6.0) movement.bufferLimit = 8.0;
+            if (movement.speedTolerance == 0.03) movement.speedTolerance = 0.05;
+            if (movement.verticalTolerance == 0.05) movement.verticalTolerance = 0.06;
+            if (movement.bedrockLeniency == 1.6) movement.bedrockLeniency = 2.5;
+        }
+        if (combat != null) {
+            if (combat.maxCps == 20) combat.maxCps = 28;
+            if (combat.bedrockMaxCps == 24) combat.bedrockMaxCps = 30;
+            if (combat.minClickCv == 0.08) combat.minClickCv = 0.05;
+            if (combat.autoclickerStrictness == 1.5) combat.autoclickerStrictness = 1.0;
+            if (combat.reachTolerance == 0.3) combat.reachTolerance = 0.4;
+            if (combat.bedrockReachTolerance == 0.6) combat.bedrockReachTolerance = 0.8;
+        }
+        if (permissions != null) permissions.flagUnauthorizedActions = false;
+        if (xray != null && xray.suspiciousRatio == 4.0) xray.suspiciousRatio = 2.0;
+        configVersion = 2;
+    }
+
     public double sensitivity(String checkId) {
         if (detection.disabledChecks.contains(checkId)) {
             return 0;
@@ -552,6 +588,7 @@ public class AcConfig {
     /** Fills in anything Gson left null because the file was partial. */
     public AcConfig normalize() {
         AcConfig d = new AcConfig();
+        migrate();
         if (general == null) general = d.general;
         if (permissions == null) permissions = d.permissions;
         if (events == null) events = d.events;

@@ -92,13 +92,16 @@ public final class Protection {
                 return true;
             }
             if (locked(p)) {
+                Movement.ghostBlock(p);
                 return false;
             }
             if (BuilderMode.is(p) && (!BuilderMode.mayBreak(w, pos) || !BuilderMode.mayBuildAt(p, w, pos))) {
                 BuilderMode.denied(p);
+                Movement.ghostBlock(p);
                 return false;
             }
             if (!LobbyFeature.allowed(p, w, pos, Lobby.Action.BREAK) || !Claims.check(p, w, pos, ClaimAction.BREAK)) {
+                Movement.ghostBlock(p);
                 return false;
             }
             if (Ac.get().shadow.isShadowed(p.getUuid())) {

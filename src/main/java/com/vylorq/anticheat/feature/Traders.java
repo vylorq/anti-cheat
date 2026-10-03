@@ -507,7 +507,7 @@ public final class Traders {
 
     private static String buyDirect(ServerPlayerEntity p, Trader t, TraderOffer o) {
         if (!Ac.get().economy.rateOk(p.getUuid(), settings().tradesPerMinute)) {
-            PlayerSessionFlags.flag(p, CheckType.TRADE_MACRO, 0.5, "trade rate limit");
+            // Buying quickly isn't cheating: the limit just slows it down.
             return "§c" + Msg.tr("tr.v.slow");
         }
         double v = price(t, o, p.getUuid());
@@ -710,7 +710,7 @@ public final class Traders {
             return "§7" + Msg.tr("tr.v.empty");
         }
         if (!ac.economy.rateOk(p.getUuid(), st.tradesPerMinute)) {
-            PlayerSessionFlags.flag(p, CheckType.TRADE_MACRO, 0.5, "trade rate limit");
+            // Buying quickly isn't cheating: the limit just slows it down.
             return "§c" + Msg.tr("tr.v.slow");
         }
         List<ItemInfo> infos = new ArrayList<>();

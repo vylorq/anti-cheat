@@ -17,7 +17,11 @@ import java.util.List;
  * spread randomly), which is how they are told apart from macros.
  */
 public final class ClickAnalyzer {
-    public record Settings(int maxCps, double minCv, double strictness) {
+    /** @param patterns judge click timing too (off when the timing can't be trusted, e.g. Bedrock's batched input) */
+    public record Settings(int maxCps, double minCv, double strictness, boolean patterns) {
+        public Settings(int maxCps, double minCv, double strictness) {
+            this(maxCps, minCv, strictness, true);
+        }
     }
 
     public record Finding(String reason, double points) {
@@ -68,7 +72,7 @@ public final class ClickAnalyzer {
         lastClickTick = serverTick;
         tickCount++;
         if (tickCount >= 40) {
-            if (sameTickClicks >= 3) {
+            if (sameTickClicks >= 3 && s.patterns()) {
                 out.add(new Finding("3+ clicks in one tick x" + sameTickClicks, 1.0 * s.strictness()));
             }
             sameTickClicks = 0;
@@ -80,7 +84,7 @@ public final class ClickAnalyzer {
             out.add(new Finding("cps " + cps, (0.5 + (cps - s.maxCps()) * 0.2) * s.strictness()));
         }
 
-        if (intervals.size() >= 20 && cps >= 8) {
+        if (s.patterns() && intervals.size() >= 20 && cps >= 8) {
             double[] iv = Stats.toArray(intervals);
             double cv = Stats.cv(iv);
             double kurt = Stats.kurtosis(iv);

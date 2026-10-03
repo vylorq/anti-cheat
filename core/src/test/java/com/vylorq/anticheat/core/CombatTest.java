@@ -21,6 +21,19 @@ class CombatTest {
     }
 
     @Test
+    void bedrockBatchedClicksOnlyCheckRate() {
+        ClickAnalyzer.Settings bedrock = new ClickAnalyzer.Settings(30, 0.05, 1.0, false);
+        ClickAnalyzer a = new ClickAnalyzer();
+        int n = 0;
+        // 12 clicks a second, delivered in batches of three per tick: looks robotic, is just how Bedrock sends input.
+        for (int i = 0; i < 300; i++) {
+            long t = 1000 + (i / 3) * 250L;
+            n += a.onClick(t, t / 50, bedrock).size();
+        }
+        assertEquals(0, n);
+    }
+
+    @Test
     void steadyMacroCaught() {
         long[] t = new long[200];
         for (int i = 0; i < t.length; i++) {

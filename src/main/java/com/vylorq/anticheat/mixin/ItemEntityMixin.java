@@ -42,8 +42,30 @@ public abstract class ItemEntityMixin {
         }
     }
 
+    @org.spongepowered.asm.mixin.Unique
+    private int ac$countBefore = -1;
+    @org.spongepowered.asm.mixin.Unique
+    private ItemStack ac$stackBefore = ItemStack.EMPTY;
+
+    /** Items picked up from the ground (mined drops, mob loot, your own death pile) are real gains, not a dupe. */
+    @Inject(method = "onPlayerCollision", at = @At("TAIL"))
+    private void ac$pickedUp(PlayerEntity player, CallbackInfo ci) {
+        int before = ac$countBefore;
+        ac$countBefore = -1;
+        if (before <= 0 || !Ac.running() || !(player instanceof ServerPlayerEntity p)) {
+            return;
+        }
+        ItemStack was = ac$stackBefore;
+        ac$stackBefore = ItemStack.EMPTY;
+        int taken = before - (((Entity) (Object) this).isRemoved() ? 0 : getStack().getCount());
+        if (taken > 0 && !was.isEmpty()) {
+            com.vylorq.anticheat.feature.Dupes.legit(p, java.util.List.of(was.copyWithCount(taken)));
+        }
+    }
+
     @Inject(method = "onPlayerCollision", at = @At("HEAD"))
     private void ac$pickup(PlayerEntity player, CallbackInfo ci) {
+        ac$countBefore = -1;
         if (!Ac.running() || !(player instanceof ServerPlayerEntity p) || p.isCreative() || p.isSpectator()) {
             return;
         }
@@ -52,6 +74,8 @@ public abstract class ItemEntityMixin {
             return;
         }
         Deaths.onPickup(p, stack);
+        ac$countBefore = stack.getCount();
+        ac$stackBefore = stack.copy();
         Entity thrower = getOwner();
         boolean fromStaffOrCreative = thrower instanceof ServerPlayerEntity t && (t.isCreative() || Perms.isStaff(t));
         if (!fromStaffOrCreative && !Ac.get().economy.isObtained(Mc.itemId(stack.getItem()))) {

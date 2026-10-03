@@ -52,6 +52,28 @@ class OtherDetectionTest {
     }
 
     @Test
+    void luckyVeinAndTntMiningAreClean() {
+        // One big vein of 8 diamonds found after a short tunnel: one find, not eight.
+        MiningAnalyzer lucky = new MiningAnalyzer();
+        double max = 0;
+        for (int i = 0; i < 60; i++) {
+            max = Math.max(max, lucky.onBreak("minecraft:stone", false, true, true, 2.0, i * 500L, i, -58, 0));
+        }
+        for (int i = 0; i < 8; i++) {
+            max = Math.max(max, lucky.onBreak("minecraft:diamond_ore", true, true, false, 2.0, 40_000 + i * 500L, 60 + i % 2, -58 + i / 4, i % 3));
+        }
+        assertEquals(0, max, 1e-9);
+        // Bed and TNT mining for debris: the blown-up netherrack counts as mined.
+        MiningAnalyzer tnt = new MiningAnalyzer();
+        max = 0;
+        for (int round = 0; round < 10; round++) {
+            tnt.onExplosionNearby(60);
+            max = Math.max(max, tnt.onBreak("minecraft:ancient_debris", true, true, false, 2.0, round * 60_000L, round * 20, 15, 0));
+        }
+        assertEquals(0, max, 1e-9);
+    }
+
+    @Test
     void oreAlertsGrouped() {
         OreAlerts a = new OreAlerts();
         for (int i = 0; i < 8; i++) a.onMine(p, "Steve", "diamond_ore", 1000 + i * 100);

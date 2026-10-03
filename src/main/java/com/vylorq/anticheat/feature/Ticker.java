@@ -30,6 +30,12 @@ public final class Ticker {
         for (PlayerSession s : ac.sessions.values()) {
             s.tick();
         }
+        for (var pl : ac.server.getPlayerManager().getPlayerList()) {
+            PlayerSession s = Ac.sessionOrNull(pl.getUuid());
+            if (s != null) {
+                s.screen(pl.currentScreenHandler);
+            }
+        }
         Trades.tick();
         BuilderTools.tick();
         Extras.tick();

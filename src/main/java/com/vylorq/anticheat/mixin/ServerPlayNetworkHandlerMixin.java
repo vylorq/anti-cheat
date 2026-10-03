@@ -37,10 +37,72 @@ public abstract class ServerPlayNetworkHandlerMixin {
     @Shadow
     private Vec3d requestedTeleportPos;
 
+    /** True on the network thread (the first call of a packet handler, before it is passed to the server thread). */
+    @org.spongepowered.asm.mixin.Unique
+    private boolean ac$offThread() {
+        var server = player == null ? null : player.getEntityWorld().getServer();
+        return server != null && !server.isOnThread();
+    }
+
+    @Inject(method = "onPlayerMove", at = @At("HEAD"))
+    private void ac$moveArrived(PlayerMoveC2SPacket packet, CallbackInfo ci) {
+        if (Ac.running() && ac$offThread()) {
+            var s = Ac.sessionOrNull(player.getUuid());
+            if (s != null) {
+                com.vylorq.anticheat.PlayerSession.arrived(s.moveArrivals);
+            }
+        }
+    }
+
+    @Inject(method = "onHandSwing", at = @At("HEAD"))
+    private void ac$swingArrived(HandSwingC2SPacket packet, CallbackInfo ci) {
+        if (Ac.running() && ac$offThread()) {
+            var s = Ac.sessionOrNull(player.getUuid());
+            if (s != null) {
+                com.vylorq.anticheat.PlayerSession.arrived(s.swingArrivals);
+            }
+        }
+    }
+
+    /** A block the player tried to place didn't appear: their client briefly shows a ghost block. */
+    @Inject(method = "onPlayerInteractBlock", at = @At("TAIL"))
+    private void ac$placeRefused(net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket packet, CallbackInfo ci) {
+        if (!Ac.running() || ac$offThread()) {
+            return;
+        }
+        var hit = packet.getBlockHitResult();
+        var w = player.getEntityWorld();
+        var held = player.getStackInHand(packet.getHand());
+        if (!(held.getItem() instanceof net.minecraft.item.BlockItem) && !held.isEmpty()) {
+            return;
+        }
+        var pos = hit.getBlockPos();
+        var place = w.getBlockState(pos).isReplaceable() ? pos : pos.offset(hit.getSide());
+        if (w.getBlockState(place).isReplaceable()) {
+            com.vylorq.anticheat.feature.Movement.ghostBlock(player);
+        }
+    }
+
+    /** A block the player finished breaking is still there: the client thinks it's gone. */
+    @Inject(method = "onPlayerAction", at = @At("TAIL"))
+    private void ac$breakRefused(PlayerActionC2SPacket packet, CallbackInfo ci) {
+        if (!Ac.running() || ac$offThread()) {
+            return;
+        }
+        var a = packet.getAction();
+        if ((a == PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK || a == PlayerActionC2SPacket.Action.START_DESTROY_BLOCK)
+                && !player.getEntityWorld().getBlockState(packet.getPos()).isAir()
+                && (a == PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK || player.isCreative())) {
+            com.vylorq.anticheat.feature.Movement.ghostBlock(player);
+        }
+    }
+
     @Inject(method = "onPlayerMove", cancellable = true, at = @At(value = "INVOKE",
             target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
             shift = At.Shift.AFTER))
     private void ac$onMove(PlayerMoveC2SPacket packet, CallbackInfo ci) {
+        var session = Ac.running() ? Ac.sessionOrNull(player.getUuid()) : null;
+        long arrived = session == null ? System.nanoTime() : com.vylorq.anticheat.PlayerSession.arrival(session.moveArrivals);
         if (!Ac.running() || this.requestedTeleportPos != null) {
             // Vanilla ignores moves until the client confirms a teleport; so do we.
             return;
@@ -53,7 +115,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
         if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z)) {
             return;
         }
-        if (Movement.onMove(player, x, y, z, yaw, pitch, packet.isOnGround(), packet.changesPosition(), packet.changesLook())) {
+        if (Movement.onMove(player, x, y, z, yaw, pitch, packet.isOnGround(), packet.changesPosition(), packet.changesLook(), arrived)) {
             ci.cancel();
         }
     }
@@ -70,7 +132,9 @@ public abstract class ServerPlayNetworkHandlerMixin {
             shift = At.Shift.AFTER))
     private void ac$onSwing(HandSwingC2SPacket packet, CallbackInfo ci) {
         if (Ac.running()) {
-            Combat.onSwing(player);
+            var s = Ac.sessionOrNull(player.getUuid());
+            long arrived = s == null ? System.nanoTime() : com.vylorq.anticheat.PlayerSession.arrival(s.swingArrivals);
+            Combat.onSwing(player, System.currentTimeMillis() - (System.nanoTime() - arrived) / 1_000_000L);
         }
     }
 
