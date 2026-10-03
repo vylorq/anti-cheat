@@ -134,6 +134,10 @@ format), `snapshots/` (arena and claim block snapshots), `backups/` (daily datab
 | `/vigil watcher on\|off\|summon\|night\|log\|exclude` | owner | The Watcher |
 | `/language [auto\|english\|arabic]` | all | Your language |
 
+Builds that come with the mod are copied into `config/vigil/builds` on start: `lobby_enraze` is the "Lobby" map
+by EnrazeGames (a sky island, converted from 1.10 to 1.21; its "Map built by EnrazeGames" sign is left out).
+Stand where its spawn spot should go (high up, it hangs about 28 blocks below you), then `/build load lobby_enraze` and `/build paste confirm`.
+
 Bedrock names with a prefix or spaces work everywhere. Put them in quotes: `/inspect ".Steve Two"`.
 
 ## Code layout

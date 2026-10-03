@@ -90,6 +90,27 @@ public final class BuildFiles {
         return Ac.get().dir.resolve("builds");
     }
 
+    /** Builds that come with the mod (in vigil/builds/ of the jar). */
+    public static final List<String> BUNDLED = List.of("lobby_enraze.schem");
+
+    /** Puts the builds that come with the mod into the builds folder (never over a file that is already there). */
+    public static void installBundled() {
+        for (String name : BUNDLED) {
+            Path f = dir().resolve(name);
+            if (Files.exists(f)) {
+                continue;
+            }
+            try (var in = BuildFiles.class.getResourceAsStream("/vigil/builds/" + name)) {
+                if (in != null) {
+                    Files.createDirectories(f.getParent());
+                    Files.copy(in, f);
+                }
+            } catch (IOException e) {
+                Ac.LOG.warn("Could not add the build {}", name, e);
+            }
+        }
+    }
+
     /** Safe file name: letters, digits, - and _. */
     public static String cleanName(String name) {
         String n = name.toLowerCase(Locale.ROOT).replaceAll("\\.(schem|schematic|litematic|nbt)$", "")
@@ -205,6 +226,13 @@ public final class BuildFiles {
             // Sponge order is (y * length + z) * width + x, the same as Clip's.
             c.states[index++] = palette.getOrDefault(value, Blocks.AIR.getDefaultState());
         }
+        // Where the box sits from the spot it was saved at (WorldEdit's "Offset").
+        int[] off = s.getIntArray("Offset").orElse(new int[0]);
+        if (off.length == 3) {
+            c.ox = off[0];
+            c.oy = off[1];
+            c.oz = off[2];
+        }
         return c;
     }
 
@@ -311,6 +339,7 @@ public final class BuildFiles {
         root.putShort("Width", (short) c.sx);
         root.putShort("Height", (short) c.sy);
         root.putShort("Length", (short) c.sz);
+        root.putIntArray("Offset", new int[] {c.ox, c.oy, c.oz});
         Map<String, Integer> ids = new LinkedHashMap<>();
         ByteArrayOutputStream data = new ByteArrayOutputStream();
         for (BlockState s : c.states) {

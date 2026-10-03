@@ -1025,11 +1025,9 @@ public final class BuilderTools {
                     removed++;
                 }
             }
-            c.ox = 0;
-            c.oy = 0;
-            c.oz = 0;
             CLIP.put(p.getUuid(), c);
-            Msg.send(p, "build.loaded", BuildFiles.cleanName(name), c.sx + "x" + c.sy + "x" + c.sz);
+            boolean centred = c.ox != 0 || c.oy != 0 || c.oz != 0;
+            Msg.send(p, centred ? "build.loaded-spot" : "build.loaded", BuildFiles.cleanName(name), c.sx + "x" + c.sy + "x" + c.sz);
             if (BuilderMode.is(p)) {
                 BuilderLog.event(p, "LOAD", BuildFiles.cleanName(name) + " " + c.sx + "x" + c.sy + "x" + c.sz
                         + (removed > 0 ? ", " + removed + " blocks left out" : ""));
