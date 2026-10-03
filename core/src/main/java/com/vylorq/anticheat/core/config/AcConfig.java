@@ -108,6 +108,8 @@ public class AcConfig {
         public List<String> disabledChecks = new ArrayList<>();
         /** Minimum seconds between admin alerts for the same player and check (watched players ignore this). */
         public int alertCooldownSeconds = 10;
+        /** A player sending more packets than this in one second is disconnected (crash and lag exploits). 0 = off. */
+        public int maxPacketsPerSecond = 2500;
     }
 
     public static class Warnings {

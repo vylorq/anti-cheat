@@ -23,6 +23,12 @@ public abstract class CommandManagerMixin {
         if (p != null && com.vylorq.anticheat.feature.BuilderMode.is(p)) {
             com.vylorq.anticheat.feature.BuilderLog.event(p, "COMMAND", "/" + command);
         }
+        if (p != null && Ac.config().watchlist.logCommands && Ac.get().watchlist.isWatched(p.getUuid())) {
+            // Watched players: every command goes into their activity log and evidence.
+            Ac.get().logs.activity(System.currentTimeMillis(), p.getUuid(), "command", "/" + command);
+            Ac.get().evidence.record(p.getUuid(), com.vylorq.anticheat.core.evidence.EvidenceEvent.Type.COMMAND,
+                    p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch(), "/" + command);
+        }
         if (p != null && !Commands.allowCommand(p, command)) {
             ci.cancel();
         }

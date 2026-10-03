@@ -117,6 +117,7 @@ public final class Protection {
                 return;
             }
             BlockLog.log(p, null, w, pos, BlockChange.Kind.BREAK, state, w.getBlockState(pos), be);
+            watchedBlock(p, "broke", state, pos);
             Ac.get().evidence.record(p.getUuid(), EvidenceEvent.Type.BREAK, p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch(),
                     "broke " + Mc.blockId(state.getBlock()).replace("minecraft:", "") + " at " + pos.toShortString());
             Xray.afterBreak(p, w, pos, state, ENCLOSED.get());
@@ -640,6 +641,14 @@ public final class Protection {
     }
 
     /** After a placement succeeded (logging, shadow mode, evidence). */
+    /** Watched players: every block they place or break also goes into their activity log. */
+    static void watchedBlock(ServerPlayerEntity p, String what, BlockState st, BlockPos pos) {
+        if (Ac.config().watchlist.logBlocks && Ac.get().watchlist.isWatched(p.getUuid())) {
+            Ac.get().logs.activity(System.currentTimeMillis(), p.getUuid(), "block",
+                    what + " " + Mc.blockId(st.getBlock()).replace("minecraft:", "") + " at " + pos.toShortString());
+        }
+    }
+
     public static void afterPlace(ServerPlayerEntity p, ServerWorld w, BlockPos pos, BlockState before) {
         Ac ac = Ac.get();
         BlockState after = w.getBlockState(pos);
@@ -650,6 +659,7 @@ public final class Protection {
             return;
         }
         BlockLog.log(p, null, w, pos, BlockChange.Kind.PLACE, before, after, null);
+        watchedBlock(p, "placed", after, pos);
         if (BuilderMode.is(p)) {
             BuilderLog.change(p.getUuid(), "PLACE", w, pos, before, after, "hand");
         }

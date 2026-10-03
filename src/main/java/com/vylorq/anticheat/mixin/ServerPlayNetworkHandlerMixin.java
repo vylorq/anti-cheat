@@ -83,6 +83,16 @@ public abstract class ServerPlayNetworkHandlerMixin {
         }
     }
 
+    /** Every click on a block: is its geometry possible? */
+    @Inject(method = "onPlayerInteractBlock", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
+            shift = At.Shift.AFTER))
+    private void ac$blockClick(net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket packet, CallbackInfo ci) {
+        if (Ac.running()) {
+            com.vylorq.anticheat.feature.PacketChecks.blockClick(player, packet.getBlockHitResult());
+        }
+    }
+
     /** A block the player finished breaking is still there: the client thinks it's gone. */
     @Inject(method = "onPlayerAction", at = @At("TAIL"))
     private void ac$breakRefused(PlayerActionC2SPacket packet, CallbackInfo ci) {
@@ -90,6 +100,15 @@ public abstract class ServerPlayNetworkHandlerMixin {
             return;
         }
         var a = packet.getAction();
+        if (a == PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK) {
+            var s = Ac.sessionOrNull(player.getUuid());
+            boolean stillThere = !player.getEntityWorld().getBlockState(packet.getPos()).isAir();
+            // Refused by a protection (claims, lobby...) isn't fast breaking: those mark the ghost block themselves.
+            boolean refusedByProtection = s != null && s.ticksSinceGhostBlock == 0;
+            if (!refusedByProtection) {
+                com.vylorq.anticheat.feature.PacketChecks.finishedBreaking(player, stillThere);
+            }
+        }
         if ((a == PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK || a == PlayerActionC2SPacket.Action.START_DESTROY_BLOCK)
                 && !player.getEntityWorld().getBlockState(packet.getPos()).isAir()
                 && (a == PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK || player.isCreative())) {
@@ -153,6 +172,12 @@ public abstract class ServerPlayNetworkHandlerMixin {
             target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
             shift = At.Shift.AFTER))
     private void ac$builderDrop(PlayerActionC2SPacket packet, CallbackInfo ci) {
+        if (Ac.running() && (packet.getAction() == PlayerActionC2SPacket.Action.DROP_ITEM
+                || packet.getAction() == PlayerActionC2SPacket.Action.DROP_ALL_ITEMS) && !player.getMainHandStack().isEmpty()) {
+            var held = player.getMainHandStack();
+            com.vylorq.anticheat.feature.PacketChecks.watchedItem(player, "dropped",
+                    packet.getAction() == PlayerActionC2SPacket.Action.DROP_ITEM ? held.copyWithCount(1) : held.copy());
+        }
         if (Ac.running() && BuilderMode.is(player) && (packet.getAction() == PlayerActionC2SPacket.Action.DROP_ITEM
                 || packet.getAction() == PlayerActionC2SPacket.Action.DROP_ALL_ITEMS)) {
             ci.cancel();

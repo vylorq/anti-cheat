@@ -60,6 +60,7 @@ public abstract class ItemEntityMixin {
         int taken = before - (((Entity) (Object) this).isRemoved() ? 0 : getStack().getCount());
         if (taken > 0 && !was.isEmpty()) {
             com.vylorq.anticheat.feature.Dupes.legit(p, java.util.List.of(was.copyWithCount(taken)));
+            com.vylorq.anticheat.feature.PacketChecks.watchedItem(p, "picked up", was.copyWithCount(taken));
         }
     }
 

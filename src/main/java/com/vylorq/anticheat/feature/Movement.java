@@ -67,6 +67,10 @@ public final class Movement {
         PlayerSession s = Ac.session(p);
         s.movesThisTick++;
         if (changesLook) {
+            PacketChecks.rotation(p, pitch);
+        }
+        PacketChecks.sprint(p);
+        if (changesLook) {
             float dYaw = Math.abs(net.minecraft.util.math.MathHelper.wrapDegrees(yaw - s.lastYaw));
             s.rotationThisTick += dYaw + Math.abs(pitch - s.lastPitch);
             s.combat.aim.onRotation(yaw, pitch);
@@ -320,6 +324,7 @@ public final class Movement {
             s.ticksSinceGlide = 0;
         }
         in.usingItem = p.isUsingItem();
+        in.usingItemTicks = p.isUsingItem() ? p.getItemUseTime() : 0;
         in.inVehicle = p.hasVehicle();
         if (in.inVehicle) {
             s.ticksSinceVehicle = 0;

@@ -308,6 +308,42 @@ class MovementTest {
     }
 
     @Test
+    void eatingWhileWalkingIsClean() {
+        Sim sim = new Sim();
+        sim.speedAttr = 0.1;
+        for (int i = 0; i < 120; i++) {
+            boolean eating = i >= 40 && i < 80;
+            // Real client: input shrinks to a fifth while eating.
+            double before = sim.speedAttr;
+            if (eating) {
+                sim.speedAttr = 0.1 * 0.2;
+            }
+            MoveInput in = sim.tick(false, true);
+            sim.speedAttr = before;
+            in.movementSpeed = 0.1;
+            in.sprinting = false;
+            in.usingItem = eating;
+            in.usingItemTicks = eating ? i - 40 : 0;
+            MoveResult r = predictor.process(in, st);
+            assertTrue(r.violations.isEmpty(), "tick " + i + " " + r.failed);
+        }
+    }
+
+    @Test
+    void noSlowIsCaught() {
+        Sim sim = new Sim();
+        boolean flagged = false;
+        for (int i = 0; i < 100; i++) {
+            MoveInput in = sim.tick(false, true);
+            // Sprinting at full speed while "eating".
+            in.usingItem = true;
+            in.usingItemTicks = 10 + i;
+            flagged |= predictor.process(in, st).violations.stream().anyMatch(v -> v.check() == CheckType.SPEED);
+        }
+        assertTrue(flagged);
+    }
+
+    @Test
     void crowdPushIsClean() {
         Sim sim = new Sim();
         for (int i = 0; i < 100; i++) {
