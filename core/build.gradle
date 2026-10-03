@@ -41,8 +41,8 @@ test {
 
 spotbugs {
     ignoreFailures = true
-    effort = com.github.spotbugs.snom.Effort.MAX
-    reportLevel = com.github.spotbugs.snom.Confidence.MEDIUM
+    effort = com.github.spotbugs.snom.Effort.valueOf('MAX')
+    reportLevel = com.github.spotbugs.snom.Confidence.valueOf('MEDIUM')
 }
 tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
     reports { text { required = true } }
