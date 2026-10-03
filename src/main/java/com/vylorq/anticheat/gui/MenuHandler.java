@@ -55,8 +55,10 @@ public final class MenuHandler extends GenericContainerScreenHandler {
         }
         int totalSlots = this.slots.size();
         if (slot != -999 && (slot < -1 || slot >= totalSlots)) {
-            // Impossible slot index: only a modified client sends this.
-            PlayerSessionFlags.flag(sp, CheckType.BAD_PACKET, 1.0, "menu slot " + slot);
+            // Impossible slot index: only a modified client sends this (Geyser can translate Bedrock clicks oddly).
+            if (!Ac.session(sp).bedrock) {
+                PlayerSessionFlags.flag(sp, CheckType.BAD_PACKET, 1.0, "menu slot " + slot);
+            }
             syncState();
             return;
         }

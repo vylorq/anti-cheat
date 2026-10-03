@@ -257,6 +257,70 @@ class MovementTest {
     }
 
     @Test
+    void ghostBlockIsClean() {
+        // Standing on a block the server refused to place: the client says "on ground" in mid-air for a moment.
+        Vec3 pos = new Vec3(0, 100, 0);
+        for (int i = 0; i < 30; i++) {
+            MoveInput in = new MoveInput();
+            in.from = pos;
+            pos = pos.add(new Vec3(0.1, 0, 0));
+            in.to = pos;
+            in.clientOnGround = true;
+            in.ticksSinceGhostBlock = i;
+            MoveResult r = predictor.process(in, st);
+            assertTrue(r.violations.isEmpty(), "tick " + i);
+        }
+    }
+
+    @Test
+    void lagSpikeBurstIsNotTimer() {
+        Sim sim = new Sim();
+        long t = 1_000_000_000L;
+        for (int i = 0; i < 400; i++) {
+            MoveInput in = sim.tick(false, true);
+            // Every 100 ticks: 2.5 seconds with nothing, then all the held-up packets at once.
+            if (i % 100 == 50) {
+                t += 2_500_000_000L;
+            } else if (i % 100 > 50) {
+                t += 1_000_000L;
+            } else {
+                t += 50_000_000L;
+            }
+            in.arrivalNanos = t;
+            for (MoveResult.Violation v : predictor.process(in, st).violations) {
+                assertNotEquals(CheckType.TIMER, v.check(), "tick " + i);
+            }
+        }
+    }
+
+    @Test
+    void timerIsCaught() {
+        Sim sim = new Sim();
+        long t = 1_000_000_000L;
+        boolean flagged = false;
+        for (int i = 0; i < 600; i++) {
+            MoveInput in = sim.tick(false, true);
+            t += 33_000_000L; // 1.5x game speed
+            in.arrivalNanos = t;
+            flagged |= predictor.process(in, st).violations.stream().anyMatch(v -> v.check() == CheckType.TIMER);
+        }
+        assertTrue(flagged);
+    }
+
+    @Test
+    void crowdPushIsClean() {
+        Sim sim = new Sim();
+        for (int i = 0; i < 100; i++) {
+            MoveInput in = sim.tick(false, true);
+            // Another player shoves us sideways a little every tick.
+            in.to = in.to.add(new Vec3(0, 0, 0.08 * Math.sin(i)));
+            in.pushedByEntity = true;
+            MoveResult r = predictor.process(in, st);
+            assertTrue(r.violations.isEmpty(), "tick " + i + " " + r.failed);
+        }
+    }
+
+    @Test
     void phaseSetsBackImmediately() {
         MoveInput in = new MoveInput();
         in.from = new Vec3(0, 64, 0);

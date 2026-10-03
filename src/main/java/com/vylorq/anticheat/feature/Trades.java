@@ -639,7 +639,7 @@ public final class Trades {
 
     /** A click on the other player's side or a control slot is refused; an odd one gets flagged. */
     static void badClick(ServerPlayerEntity p) {
-        PlayerSessionFlags.flag(p, CheckType.BAD_PACKET, 0.5, "trade window click");
+        // A misclick on the other side of the window: refused, but not a sign of cheating.
     }
 
     /** A paper icon listing a shulker box's contents (works for Bedrock too, where the tooltip doesn't show it). */

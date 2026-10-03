@@ -57,12 +57,15 @@ public final class Combat {
             return true;
         }
         boolean allow = true;
+        // Very high ping: what the server sees is too far behind what the player saw to judge fairly.
+        boolean laggy = p.networkHandler.getLatency() > 600;
 
-        // Several attacks in one tick.
+        // Several attacks in one tick. Packets that were held up by lag arrive together, and Bedrock sends its
+        // input in batches, so only an absurd number counts.
         long tick = Tps.tick();
         if (s.lastAttackTick == tick) {
             s.attacksThisTick++;
-            if (s.attacksThisTick > 2) {
+            if (s.attacksThisTick == 5 && !s.bedrock && !laggy) {
                 flag(p, CheckType.ATTACK_COOLDOWN, 0.5, s.attacksThisTick + " attacks in one tick");
             }
         } else {
@@ -71,9 +74,11 @@ public final class Combat {
         }
 
         // Invalid actions: attacking with a container open, while eating/drinking or blocking.
-        String invalid = CombatTracker.invalidAction(p.currentScreenHandler != p.playerScreenHandler,
-                p.isUsingItem() && !p.getActiveItem().isOf(Items.SHIELD), p.isBlocking());
-        if (invalid != null) {
+        // Only when it has clearly been that way for a while: a menu the server just opened, or eating that just
+        // started or stopped, can cross with a click on the way.
+        String invalid = CombatTracker.invalidAction(p.currentScreenHandler != p.playerScreenHandler && s.ticksSinceScreenChange > 20,
+                p.isUsingItem() && !p.getActiveItem().isOf(Items.SHIELD) && p.getItemUseTime() > 10, p.isBlocking() && p.getItemUseTime() > 10);
+        if (invalid != null && !s.bedrock) {
             flag(p, CheckType.INVALID_ACTION, 1.0, invalid);
         }
 
@@ -87,8 +92,9 @@ public final class Combat {
                     .expand(0.1 + (target.getVelocity().horizontalLength() * 3)).distanceTo(eye);
         }
         double tol = s.bedrock ? cfg.combat.bedrockReachTolerance : cfg.combat.reachTolerance;
-        double max = cfg.combat.maxReach + tol;
-        if (reach > max) {
+        // Creative mode and attribute changes give more reach; never check against less than what the game allows.
+        double max = Math.max(cfg.combat.maxReach, p.getEntityInteractionRange()) + tol;
+        if (reach > max && !laggy) {
             flag(p, CheckType.REACH, 1.0 + Math.min(2, (reach - max) * 2), String.format(Locale.ROOT, "%.2f blocks", reach));
             if (reach > max + 1.5) {
                 allow = false;
@@ -96,26 +102,29 @@ public final class Combat {
         }
 
         // Hits through walls: line of sight from the eyes to any point of the target's hitbox.
-        if (cfg.combat.wallHitCheck && !canSee(p, target)) {
+        if (cfg.combat.wallHitCheck && !laggy && !canSee(p, target, ts, now)) {
             flag(p, CheckType.WALL_HIT, 1.5, "no line of sight to " + targetName);
             allow = false;
         }
 
         // Multi-target.
         double spread = s.combat.onHitMultiTarget(now, target.getUuid(), eye, Mc.vec(target.getEntityPos()), cfg.combat.multiTargetWindowMs);
-        if (spread > cfg.combat.multiTargetAngle) {
+        // Bedrock touch controls attack whatever is tapped on screen, wherever the player is looking.
+        if (spread > cfg.combat.multiTargetAngle && !s.bedrock && !laggy) {
             flag(p, CheckType.MULTI_TARGET, 1.5, String.format(Locale.ROOT, "targets %.0f° apart", spread));
         }
 
         // Aim analysis.
-        if (cfg.combat.aimCheck) {
+        // Bedrock (touch, controller) and Java controller mods don't turn like a mouse, so aim is judged for Java only.
+        if (cfg.combat.aimCheck && !s.bedrock) {
             boolean switched = s.combat.switchedTarget(target.getUuid());
             double aim = s.combat.aim.onHit(s.rotationThisTick, angle, switched);
             if (aim >= 0.5) {
                 flag(p, CheckType.AIM, aim * 1.5, "robotic aim " + String.format(Locale.ROOT, "%.2f", aim));
             }
+            // Zoom mods and cinematic camera also lose the mouse step, so this only adds to other aim signs.
             double gcd = s.combat.aim.sensitivityScore();
-            if (gcd > 0 && s.combat.aim.hits() % 20 == 0) {
+            if (gcd > 0 && aim >= 0.3 && s.combat.aim.hits() % 20 == 0) {
                 flag(p, CheckType.AIM, gcd, "rotation has no mouse step");
             }
         }
@@ -124,13 +133,18 @@ public final class Combat {
 
     /** Arm swings (every left click): autoclicker analysis. */
     public static void onSwing(ServerPlayerEntity p) {
+        onSwing(p, System.currentTimeMillis());
+    }
+
+    /** @param clickTime when the swing reached the server's network thread (wall clock) */
+    public static void onSwing(ServerPlayerEntity p, long clickTime) {
         Ac ac = Ac.get();
         if (ac == null || p.isCreative() || p.isSpectator()) {
             return;
         }
         AcConfig cfg = Ac.config();
         PlayerSession s = Ac.session(p);
-        long now = System.currentTimeMillis();
+        long now = clickTime;
         ac.evidence.record(p.getUuid(), EvidenceEvent.Type.CLICK, p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch(), "click");
         if (!cfg.combat.enabled || Tps.tps() < cfg.general.lagTpsThreshold) {
             return;
@@ -139,9 +153,10 @@ public final class Combat {
         if (p.raycast(5.0, 1.0f, false).getType() == HitResult.Type.BLOCK) {
             return;
         }
+        // Bedrock input reaches the server in batches, so its click timing can't be judged: only the click rate.
         ClickAnalyzer.Settings st = s.bedrock
-                ? new ClickAnalyzer.Settings(cfg.combat.bedrockMaxCps, cfg.combat.bedrockMinClickCv, cfg.combat.autoclickerStrictness)
-                : new ClickAnalyzer.Settings(cfg.combat.maxCps, cfg.combat.minClickCv, cfg.combat.autoclickerStrictness);
+                ? new ClickAnalyzer.Settings(cfg.combat.bedrockMaxCps, cfg.combat.bedrockMinClickCv, cfg.combat.autoclickerStrictness, false)
+                : new ClickAnalyzer.Settings(cfg.combat.maxCps, cfg.combat.minClickCv, cfg.combat.autoclickerStrictness, true);
         List<ClickAnalyzer.Finding> f = s.combat.clicks.onClick(now, Tps.tick(), st);
         for (ClickAnalyzer.Finding x : f) {
             flag(p, CheckType.AUTOCLICKER, x.points(), x.reason());
@@ -150,8 +165,37 @@ public final class Combat {
 
     /** Server-side line of sight to the target's hitbox (centre, eyes, feet and corners). */
     public static boolean canSee(ServerPlayerEntity p, Entity target) {
+        return canSee(p, target, null, System.currentTimeMillis());
+    }
+
+    /**
+     * Also tries where the target was a moment ago (what a lagging attacker saw). A point counts as hidden only
+     * when both the block's collision box and its outline are in the way, so hitting over fences and walls (tall
+     * collision, low outline) or through grass and flowers is fine.
+     */
+    public static boolean canSee(ServerPlayerEntity p, Entity target, PlayerSession ts, long now) {
+        if (canSeeBox(p, target.getBoundingBox().expand(0.1 + target.getVelocity().horizontalLength() * 2))) {
+            return true;
+        }
+        if (ts != null) {
+            long back = p.networkHandler.getLatency() + 150L;
+            for (var sample : ts.history.between(now - back, now)) {
+                var b = sample.box();
+                if (canSeeBox(p, new net.minecraft.util.math.Box(b.minX(), b.minY(), b.minZ(), b.maxX(), b.maxY(), b.maxZ()).expand(0.1))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean blocked(ServerPlayerEntity p, Vec3d from, Vec3d to, RaycastContext.ShapeType type) {
+        return p.getEntityWorld().raycast(new RaycastContext(from, to, type, RaycastContext.FluidHandling.NONE, p)).getType()
+                != HitResult.Type.MISS;
+    }
+
+    private static boolean canSeeBox(ServerPlayerEntity p, net.minecraft.util.math.Box b) {
         Vec3d eye = p.getEyePos();
-        net.minecraft.util.math.Box b = target.getBoundingBox().expand(0.1);
         Vec3d[] points = {
                 b.getCenter(),
                 new Vec3d(b.getCenter().x, b.maxY - 0.05, b.getCenter().z),
@@ -161,9 +205,7 @@ public final class Combat {
                 new Vec3d(b.minX, b.maxY, b.minZ), new Vec3d(b.maxX, b.maxY, b.maxZ),
         };
         for (Vec3d pt : points) {
-            BlockHitResult r = p.getEntityWorld().raycast(new RaycastContext(eye, pt, RaycastContext.ShapeType.COLLIDER,
-                    RaycastContext.FluidHandling.NONE, p));
-            if (r.getType() == HitResult.Type.MISS) {
+            if (!blocked(p, eye, pt, RaycastContext.ShapeType.COLLIDER) || !blocked(p, eye, pt, RaycastContext.ShapeType.OUTLINE)) {
                 return true;
             }
         }

@@ -46,6 +46,20 @@ public final class Movement {
      */
     public static boolean onMove(ServerPlayerEntity p, double x, double y, double z, float yaw, float pitch,
                                  boolean onGround, boolean changesPos, boolean changesLook) {
+        return onMove(p, x, y, z, yaw, pitch, onGround, changesPos, changesLook, System.nanoTime());
+    }
+
+    /** A block change by this player was refused: their client shows a ghost block for a moment. */
+    public static void ghostBlock(ServerPlayerEntity p) {
+        PlayerSession s = Ac.sessionOrNull(p.getUuid());
+        if (s != null) {
+            s.ticksSinceGhostBlock = 0;
+        }
+    }
+
+    /** @param arrivalNanos when the packet reached the server's network thread */
+    public static boolean onMove(ServerPlayerEntity p, double x, double y, double z, float yaw, float pitch,
+                                 boolean onGround, boolean changesPos, boolean changesLook, long arrivalNanos) {
         Ac ac = Ac.get();
         if (ac == null || p.isRemoved()) {
             return false;
@@ -129,6 +143,7 @@ public final class Movement {
             return false;
         }
         MoveInput in = input(p, s, world, from, to, onGround);
+        in.arrivalNanos = arrivalNanos;
         MoveResult r = ac.predictor.process(in, s.move);
         for (MoveResult.Violation v : r.violations) {
             ac.engine.flag(p.getUuid(), p.getGameProfile().name(), v.check(), v.points(), v.detail(), s.bedrock);
@@ -186,6 +201,15 @@ public final class Movement {
         };
     }
 
+    private static boolean blockCollides(ServerWorld w, Entity e, Box box) {
+        for (net.minecraft.util.shape.VoxelShape shape : w.getBlockCollisions(e, box)) {
+            if (!shape.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static boolean chunkLoaded(ServerWorld w, double x, double z) {
         return w.getChunkManager().isChunkLoaded(((int) Math.floor(x)) >> 4, ((int) Math.floor(z)) >> 4);
     }
@@ -227,7 +251,11 @@ public final class Movement {
         in.serverOnGround = !w.isSpaceEmpty(p, feetTo);
         in.serverWasOnGround = !w.isSpaceEmpty(p, feetFrom) || p.isOnGround();
         in.nearGround = !w.isSpaceEmpty(p, nearTo);
-        in.movedIntoSolid = !w.isSpaceEmpty(p, boxTo.contract(0.08)) && w.isSpaceEmpty(p, boxFrom.contract(0.08));
+        // Only blocks count (a boat or another player bumping into you isn't phasing). Bedrock players' hitboxes
+        // and some block shapes differ a little from Java, so they get more room.
+        double inset = s.bedrock ? 0.2 : 0.08;
+        in.movedIntoSolid = blockCollides(w, p, boxTo.contract(inset)) && !blockCollides(w, p, boxFrom.contract(inset));
+        in.pushedByEntity = !w.getOtherEntities(p, boxTo.expand(0.3), e -> e.isPushable() && !e.isSpectator()).isEmpty();
         Box around = new Box(boxTo.minX - 0.06, boxTo.minY + 0.05, boxTo.minZ - 0.06, boxTo.maxX + 0.06, boxTo.maxY - 0.05, boxTo.maxZ + 0.06);
         in.horizontalCollision = !w.isSpaceEmpty(p, around);
         in.blockAbove = !w.isSpaceEmpty(p, new Box(boxTo.minX, boxTo.maxY, boxTo.minZ, boxTo.maxX, boxTo.maxY + 0.2, boxTo.maxZ));
@@ -249,7 +277,7 @@ public final class Movement {
         in.onBed = belowToState.getBlock() instanceof BedBlock || belowState.getBlock() instanceof BedBlock;
         // One pass over the blocks the player touches instead of a separate scan per block type.
         boolean climb = false, water = false, lava = false;
-        Box touch = boxTo.expand(0, 0.1, 0);
+        Box touch = boxTo.expand(0.05, 0.1, 0.05);
         for (BlockPos pos : BlockPos.iterate(BlockPos.ofFloored(touch.minX, touch.minY, touch.minZ),
                 BlockPos.ofFloored(touch.maxX, touch.maxY, touch.maxZ))) {
             BlockState st = w.getBlockState(pos);
@@ -261,6 +289,7 @@ public final class Movement {
             else if (st.isOf(Blocks.SWEET_BERRY_BUSH)) in.inBerryBush = true;
             else if (st.isOf(Blocks.SCAFFOLDING)) in.inScaffolding = true;
             else if (st.isOf(Blocks.BUBBLE_COLUMN)) in.inBubbleColumn = true;
+            else if (st.isOf(Blocks.HONEY_BLOCK)) in.touchingHoney = true;
             if (st.isIn(BlockTags.CLIMBABLE)) climb = true;
             if (!st.getFluidState().isEmpty()) {
                 if (st.getFluidState().isIn(net.minecraft.registry.tag.FluidTags.WATER)) water = true;
@@ -330,6 +359,7 @@ public final class Movement {
         in.ticksSinceLiquid = s.ticksSinceLiquid;
         in.ticksSinceSlime = s.ticksSinceSlime;
         in.ticksSinceIce = s.ticksSinceIce;
+        in.ticksSinceGhostBlock = s.ticksSinceGhostBlock;
         return in;
     }
 
@@ -361,9 +391,9 @@ public final class Movement {
                     "mangrove_boat", "cherry_boat", "pale_oak_boat", "bamboo_raft", "oak_chest_boat", "spruce_chest_boat",
                     "birch_chest_boat", "jungle_chest_boat", "acacia_chest_boat", "dark_oak_chest_boat",
                     "mangrove_chest_boat", "cherry_chest_boat", "pale_oak_chest_boat", "bamboo_chest_raft" -> 4.3;
-            case "camel" -> 1.6;
+            case "camel" -> 2.0;
             case "minecart" -> 1.2;
-            default -> 1.3;
+            default -> 1.6;
         };
         double lenient = s.bedrock ? Ac.config().movement.bedrockLeniency : 1.0;
         boolean onGround = v.isOnGround() || v.isTouchingWater() || v.isInLava();
@@ -372,16 +402,18 @@ public final class Movement {
         } else {
             s.move.vehicleAirUpTicks = 0;
         }
-        int maxAirUp = type.contains("boat") || type.contains("raft") || type.contains("minecart") ? 4 : 14;
+        int maxAirUp = type.contains("boat") || type.contains("raft") ? 4 : 14;
+        // Flying mounts and carts climbing rails rise legitimately.
+        boolean mayRise = type.equals("happy_ghast") || type.contains("minecart") || v.hasNoGravity();
         String problem = null;
         if (h > maxH * lenient) {
             problem = String.format(java.util.Locale.ROOT, "%s %.2f b/t", type, h);
-        } else if (s.move.vehicleAirUpTicks > maxAirUp * lenient && !v.hasNoGravity()) {
+        } else if (s.move.vehicleAirUpTicks > maxAirUp * lenient && !mayRise) {
             problem = type + " rising in the air";
         }
         if (problem != null) {
             ac.engine.flag(p.getUuid(), p.getGameProfile().name(), CheckType.VEHICLE, 1.0, problem, s.bedrock);
-            if (s.move.vehicleAirUpTicks > maxAirUp * 3 || h > maxH * 2) {
+            if ((!mayRise && s.move.vehicleAirUpTicks > maxAirUp * 3) || h > maxH * 2.5) {
                 p.stopRiding();
                 pullBack(p, last);
                 s.move.vehicleAirUpTicks = 0;

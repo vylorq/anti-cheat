@@ -20,11 +20,11 @@ public final class MovementPredictor {
     public static final class Settings {
         public boolean setbacks = true;
         public double graceSeconds = 3.0;
-        public double bufferLimit = 6.0;
+        public double bufferLimit = 8.0;
         public double bufferDecay = 0.25;
-        public double speedTolerance = 0.03;
-        public double verticalTolerance = 0.05;
-        public double bedrockLeniency = 1.6;
+        public double speedTolerance = 0.05;
+        public double verticalTolerance = 0.06;
+        public double bedrockLeniency = 2.5;
         public int velocityGraceTicks = 40;
         public int maxPingCompensationMs = 500;
         public double lagTpsThreshold = 18.0;
@@ -76,9 +76,10 @@ public final class MovementPredictor {
         if (in.arrivalNanos > 0 && st.lastArrivalNanos > 0) {
             double elapsedMs = (in.arrivalNanos - st.lastArrivalNanos) / 1_000_000.0;
             st.timerBalanceMs += 50.0 - elapsedMs;
-            // Packets that arrive bunched after lag are fine: clamp how much "debt" can build up.
-            st.timerBalanceMs = Math.max(st.timerBalanceMs, -1000);
-            if (st.timerBalanceMs > 300 * lenient) {
+            // Packets that arrive bunched after a lag spike are fine: the delay before them is kept as "debt"
+            // (up to a few seconds) so the burst that follows cancels out.
+            st.timerBalanceMs = Math.max(st.timerBalanceMs, -3000);
+            if (st.timerBalanceMs > 500 * lenient) {
                 fail(r, st, CheckType.TIMER, 1.0, String.format(Locale.ROOT, "%.0fms ahead", st.timerBalanceMs), false, in);
                 st.timerBalanceMs = 0;
             }
@@ -86,7 +87,8 @@ public final class MovementPredictor {
         st.lastArrivalNanos = in.arrivalNanos;
 
         // ---- Phase: moving into solid blocks. ----
-        if (in.movedIntoSolid && !in.pistonNearby && !velocityGrace) {
+        boolean ghost = in.ticksSinceGhostBlock < 40;
+        if (in.movedIntoSolid && !in.pistonNearby && !velocityGrace && !ghost && !in.crawling && !in.swimming) {
             fail(r, st, CheckType.PHASE, 2.0, "moved into a block", true, in);
         }
 
@@ -116,7 +118,8 @@ public final class MovementPredictor {
         // ---- Vertical ----
         boolean vertExempt = skipAll || velocityGrace || in.inWater || in.inLava || in.ticksSinceLiquid < 10
                 || in.onClimbable || in.ticksSinceClimbable < 5 || in.inScaffolding || in.inBubbleColumn
-                || in.levitation >= 0 || in.inCobweb || in.inPowderSnow || in.inBerryBush;
+                || in.levitation >= 0 || in.inCobweb || in.inPowderSnow || in.inBerryBush
+                || in.touchingHoney || ghost;
         double feedDy = dy;
         if (!vertExempt) {
             feedDy = checkVertical(in, st, r, dy, tolV);
@@ -178,6 +181,10 @@ public final class MovementPredictor {
         }
         if (in.onSlime || in.ticksSinceSlime < 20) {
             max += 0.1;
+        }
+        if (in.pushedByEntity) {
+            // Crowds and mobs push players around a little every tick.
+            max += 0.15;
         }
         if (in.ticksSinceFirework < 40) {
             max = Math.max(max, 2.5);

@@ -220,18 +220,32 @@ public final class Xray {
         PlayerSession s = Ac.session(p);
         if (trapHit) {
             long now = System.currentTimeMillis();
-            if (now - s.lastTrapHit > 10 * 60_000L) {
+            if (now - s.lastTrapHit > 30 * 60_000L) {
                 s.trapHits = 0;
+                s.trapSpots.clear();
             }
-            s.trapHits++;
-            s.lastTrapHit = now;
-            // A strip-miner can stumble onto one by chance; two in a short time is x-ray.
-            PlayerSessionFlags.flag(p, CheckType.XRAY_TRAP, s.trapHits >= 2 ? 3.0 : 0.6,
-                    "dug to a fake diamond vein at " + pos.toShortString() + " (" + s.trapHits + ")");
+            // The same fake vein only counts once (a miner walking along it isn't finding new ones).
+            boolean known = false;
+            for (BlockPos t : s.trapSpots) {
+                if (t.getManhattanDistance(pos) <= 6) {
+                    known = true;
+                    break;
+                }
+            }
+            if (!known) {
+                s.trapSpots.add(pos.toImmutable());
+                s.trapHits++;
+                s.lastTrapHit = now;
+                // A strip-miner can pass by one or two by chance; three different ones in half an hour is x-ray.
+                if (s.trapHits >= 3) {
+                    PlayerSessionFlags.flag(p, CheckType.XRAY_TRAP, 3.0,
+                            "dug to " + s.trapHits + " fake diamond veins, last at " + pos.toShortString());
+                }
+            }
         }
         boolean alert = alertBlocks.contains(state.getBlock());
         double score = s.mining.onBreak(Mc.blockId(state.getBlock()), alert, !wasEnclosed, STONE_LIKE.contains(state.getBlock()),
-                cfg.suspiciousRatio);
+                cfg.suspiciousRatio, System.currentTimeMillis(), pos.getX(), pos.getY(), pos.getZ());
         if (score >= 0.5) {
             PlayerSessionFlags.flag(p, CheckType.XRAY, score * 2, "mining pattern " + String.format("%.2f", score));
         }
@@ -242,6 +256,15 @@ public final class Xray {
 
     /** Explosions can expose ores too. */
     public static void afterExplosion(ServerWorld w, List<BlockPos> destroyed) {
+        if (!destroyed.isEmpty() && Ac.running()) {
+            // TNT and bed mining: what was blown up counts as mined for players close by.
+            BlockPos c = destroyed.get(0);
+            for (ServerPlayerEntity pl : w.getPlayers()) {
+                if (pl.squaredDistanceTo(c.getX() + 0.5, c.getY() + 0.5, c.getZ() + 0.5) < 48 * 48) {
+                    Ac.session(pl).mining.onExplosionNearby(destroyed.size());
+                }
+            }
+        }
         if (hidden.isEmpty()) {
             return;
         }

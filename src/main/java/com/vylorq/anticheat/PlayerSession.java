@@ -35,6 +35,14 @@ public final class PlayerSession {
     public int ticksSinceSlime = 1000;
     public int ticksSinceIce = 1000;
     public int movesThisTick;
+    /** A block the client placed or broke was refused (claims, lobby, spawn protection): the client briefly sees a ghost block. */
+    public int ticksSinceGhostBlock = 1000;
+    /** When the server opened or closed a screen for this player. */
+    public int ticksSinceScreenChange = 1000;
+    public Object lastScreen;
+    /** When move and swing packets reached the network thread (nanoTime), so lag on the server doesn't bunch them up. */
+    public final java.util.concurrent.ConcurrentLinkedDeque<Long> moveArrivals = new java.util.concurrent.ConcurrentLinkedDeque<>();
+    public final java.util.concurrent.ConcurrentLinkedDeque<Long> swingArrivals = new java.util.concurrent.ConcurrentLinkedDeque<>();
 
     // Combat.
     public final CombatTracker combat = new CombatTracker();
@@ -49,6 +57,7 @@ public final class PlayerSession {
     public final MiningAnalyzer mining = new MiningAnalyzer();
     public int trapHits;
     public long lastTrapHit;
+    public final java.util.List<BlockPos> trapSpots = new java.util.ArrayList<>();
 
     // Tools.
     public BlockPos corner1;
@@ -95,8 +104,30 @@ public final class PlayerSession {
         ticksSinceLiquid++;
         ticksSinceSlime++;
         ticksSinceIce++;
+        ticksSinceGhostBlock++;
+        ticksSinceScreenChange++;
         movesThisTick = 0;
         rotationThisTick = 0;
+    }
+
+    /** Network-thread arrival time of the oldest unhandled packet in {@code q}, or now. */
+    public static long arrival(java.util.concurrent.ConcurrentLinkedDeque<Long> q) {
+        Long t = q.pollFirst();
+        return t == null ? System.nanoTime() : t;
+    }
+
+    public static void arrived(java.util.concurrent.ConcurrentLinkedDeque<Long> q) {
+        if (q.size() > 100) {
+            q.clear();
+        }
+        q.addLast(System.nanoTime());
+    }
+
+    public void screen(Object handler) {
+        if (handler != lastScreen) {
+            lastScreen = handler;
+            ticksSinceScreenChange = 0;
+        }
     }
 
     public void teleported() {
