@@ -136,7 +136,9 @@ format), `snapshots/` (arena and claim block snapshots), `backups/` (daily datab
 
 Builds that come with the mod are copied into `config/vigil/builds` on start: `lobby_enraze` is the "Lobby" map
 by EnrazeGames (a sky island, converted from 1.10 to 1.21; its "Map built by EnrazeGames" sign is left out).
-Stand where its spawn spot should go (high up, it hangs about 28 blocks below you), then `/build load lobby_enraze` and `/build paste confirm`.
+Stand where its spawn spot should go (high up, it hangs about 28 blocks below you), then `/build load lobby_enraze`, `/build paste` and `/build confirm`.
+
+To put an area back from the nightly world backup (only the chunks it covers): `bash anti-cheat/scripts/restore-area.sh <x1> <z1> <x2> <z2> [backup]`.
 
 Bedrock names with a prefix or spaces work everywhere. Put them in quotes: `/inspect ".Steve Two"`.
 
