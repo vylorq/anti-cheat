@@ -55,6 +55,7 @@ public final class AntiCheatMod implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> Commands.register(dispatcher));
         Protection.register();
         com.vylorq.anticheat.feature.SecretItems.register();
+        com.vylorq.anticheat.feature.Bosses.register();
         com.vylorq.anticheat.feature.BuilderLog.register();
         com.vylorq.anticheat.feature.WorldEvents.register();
         com.vylorq.anticheat.feature.Watcher.register();

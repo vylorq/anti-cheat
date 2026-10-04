@@ -64,7 +64,8 @@ public abstract class ServerCommonNetworkHandlerMixin {
     private Packet<?> ac$ownerRadar(Packet<?> packet) {
         if (Ac.running() && (Object) this instanceof ServerPlayNetworkHandler handler && handler.player != null
                 && packet instanceof net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket) {
-            return com.vylorq.anticheat.feature.OwnerPowers.radarRewrite(handler.player, packet);
+            return com.vylorq.anticheat.feature.Bosses.forViewer(handler.player,
+                    com.vylorq.anticheat.feature.OwnerPowers.radarRewrite(handler.player, packet));
         }
         return packet;
     }

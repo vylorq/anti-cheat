@@ -266,6 +266,25 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void drownedWardenBoss(TestContext ctx) {
+        var w = ctx.getWorld();
+        var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
+        var boss = com.vylorq.anticheat.feature.Bosses.spawn(w, at, com.vylorq.anticheat.feature.Bosses.DROWNED_WARDEN);
+        check(boss != null, "the boss didn't spawn");
+        check(com.vylorq.anticheat.feature.Bosses.isBoss(boss), "the boss isn't tracked");
+        check(boss.isInvisible(), "the boss mob should be invisible (its model shows instead)");
+        check(boss.getMaxHealth() >= 150, "the boss has too little health: " + boss.getMaxHealth());
+        check(boss.getCustomName() != null && boss.getCustomName().getString().contains("Drowned Warden"), "no health name tag");
+        com.vylorq.anticheat.feature.Bosses.tick(1);
+        var models = w.getEntitiesByClass(net.minecraft.entity.decoration.DisplayEntity.ItemDisplayEntity.class,
+                boss.getBoundingBox().expand(3), e -> e.getCommandTags().contains(com.vylorq.anticheat.feature.Bosses.MODEL_TAG));
+        check(models.size() == 1, "the boss has " + models.size() + " models instead of 1");
+        boss.discard();
+        models.forEach(net.minecraft.entity.Entity::discard);
+        ctx.complete();
+    }
+
+    @GameTest
     public void replayStartsAndCleansUp(TestContext ctx) {
         var w = ctx.getWorld();
         var staff = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ReplayStaff"));

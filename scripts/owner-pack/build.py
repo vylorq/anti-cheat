@@ -768,6 +768,7 @@ SECRET = {"voidblade": ("diamond_sword", voidblade, "minecraft:item/handheld"),
           "magnet_charm": ("iron_nugget", magnet_charm, "minecraft:item/generated"),
           "ender_pouch": ("rabbit_hide", ender_pouch, "minecraft:item/generated"),
           "backpack": ("leather", backpack, "minecraft:item/generated")}
+MODELS3D = {"drowned_warden": "nautilus_shell"}
 # Item models that aren't one plain model (the grappling hook looks different once cast).
 CASE_MODELS = {"grappling_hook": {"type": "minecraft:condition", "property": "minecraft:fishing_rod/cast",
                                   "on_false": {"type": "minecraft:model", "model": "vigil:item/grappling_hook"},
@@ -1070,6 +1071,12 @@ SOUNDS3 = {
     "orbital_fire": lambda: mix(1.4, [(0, 0.7 * env(sweep(2400, 600, 0.35), 0.002, 0.1)), (0.05, 0.5 * echo(env(np.sin(2 * np.pi * 880 * t(0.08)), 0.002, 0.04), 0.12, 0.5, 3)),
                                       (0.3, 0.6 * env(lowpass(noise(0.9), 10) * np.linspace(1, 0, int(SR * 0.9)), 0.05, 0.3))]),
     "orbital_undo": lambda: mix(1.2, [(0, 0.6 * env(sweep(300, 1200, 0.6), 0.02, 0.2)), (0.4, chord([523.25, 659.25, 783.99], 0.7, 0.01))]),
+    "boss_rise": lambda: echo(mix(2.4, [(0, env(lowpass(noise(2.0), 5) * np.linspace(0.5, 5, int(SR * 2.0)), 0.3, 0.4)),
+                                        (0.2, 0.8 * env(saw(np.full(int(SR * 1.8), 55.0), 1.8, 0.02), 0.4, 0.6)), (1.2, 1.4 * boom(0.8, 45, 4))]), 0.2, 0.3, 2),
+    "boss_shock": lambda: mix(1.4, [(0, 1.6 * boom(0.8, 50, 4)), (0, env(lowpass(noise(1.2), 6) * np.sin(np.linspace(0, np.pi, int(SR * 1.2))) * 6, 0.02, 0.4))]),
+    "boss_throw": lambda: mix(0.6, [(0, env(whoosh(0.4, True) * 3, 0.01, 0.15)), (0.05, 0.4 * env(sweep(900, 300, 0.3), 0.005, 0.1))]),
+    "boss_defeated": lambda: echo(mix(3.0, [(0, 1.5 * boom(1.2, 40, 2.5)), (0.3, chord([261.63, 329.63, 392.0, 523.25], 2.2, 0.1)),
+                                            (0.8, 0.5 * bell(1046.5, 1.6, 2))]), 0.2, 0.35, 2),
     "home_tp": lambda: mix(1.3, [(0, env(whoosh(0.5, True) * 3, 0.02, 0.2)), (0.25, chord([659.25, 830.61, 987.77, 1318.5], 0.9, 0.01))]),
 }
 
@@ -1192,6 +1199,12 @@ def build():
         files[f"assets/vigil/textures/item/{name}.png"] = png(draw())
         files[f"assets/vigil/models/item/{name}.json"] = json.dumps(
             {"parent": parent, "textures": {"layer0": f"vigil:item/{name}"}}, indent=2).encode()
+        by_base.setdefault(base, []).append(name)
+    # 3D boss models (made by scripts/models/voxelize.py from the .glb files)
+    for name, base in MODELS3D.items():
+        mdir = os.path.join(ROOT, "scripts", "models", "built")
+        files[f"assets/vigil/models/item/{name}.json"] = open(os.path.join(mdir, name + ".json"), "rb").read()
+        files[f"assets/vigil/textures/item/{name}.png"] = open(os.path.join(mdir, name + ".png"), "rb").read()
         by_base.setdefault(base, []).append(name)
     files["assets/vigil/textures/item/grappling_hook_cast.png"] = png(grappling_hook(True))
     files["assets/vigil/models/item/grappling_hook_cast.json"] = json.dumps(
