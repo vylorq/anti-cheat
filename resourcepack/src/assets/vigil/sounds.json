@@ -167,6 +167,20 @@
       }
     ]
   },
+  "gavel": {
+    "sounds": [
+      {
+        "name": "vigil:gavel"
+      }
+    ]
+  },
+  "gavel_soft": {
+    "sounds": [
+      {
+        "name": "vigil:gavel_soft"
+      }
+    ]
+  },
   "insta": {
     "sounds": [
       {

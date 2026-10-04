@@ -210,6 +210,27 @@ def freeze_wand():
     return img
 
 
+def judge_gavel():
+    img = canvas()
+    px = img.load()
+    rod(img, 1, 14, 7, 8, hexc("#7a4a24"), hexc("#a46a3a"), hexc("#4a2a12"))
+    # The hammer head, tilted, with gold bands.
+    head = {2: [9, 10, 11], 3: [8, 9, 10, 11, 12], 4: [8, 9, 10, 11, 12, 13], 5: [9, 10, 11, 12, 13, 14],
+            6: [10, 11, 12, 13, 14], 7: [11, 12, 13]}
+    for y, xs in head.items():
+        for x in xs:
+            px[x, y] = hexc("#8b5a2b")
+        px[xs[0], y] = hexc("#5a3517")
+        px[xs[-1], y] = hexc("#b07a45")
+    for (x, y) in [(9, 3), (10, 4), (11, 5), (12, 6)]:
+        px[x, y] = hexc("#ffd23f")
+    for (x, y) in [(8, 7), (9, 8)]:
+        px[x, y] = hexc("#7a4a24")
+    for (x, y) in [(15, 1), (14, 9), (6, 3)]:
+        px[x, y] = hexc("#ffe79a", 170)
+    return img
+
+
 def pack_icon():
     img = Image.new("RGBA", (64, 64), hexc("#14101f"))
     d = ImageDraw.Draw(img)
@@ -404,6 +425,12 @@ SOUNDS2 = {
                              (0, 0.8 * hp(rng.standard_normal(int(SR * 0.08))) * np.exp(-t(0.08) * 40))]),
     "thaw": lambda: mix(1.0, [(k * 0.14, 0.6 * env(glide(1300 - k * 80, 600, 0.1), 0.002, 0.05)) for k in range(6)]
                         + [(0, 0.25 * lowpass(rng.standard_normal(int(SR * 0.9)), 6) * np.exp(-t(0.9) * 3))]),
+    "gavel": lambda: mix(0.7, [(0, env(np.sin(2 * np.pi * 140 * t(0.25)) * np.exp(-t(0.25) * 18) * 2
+                                       + lowpass(hp(rng.standard_normal(int(SR * 0.25))), 4) * np.exp(-t(0.25) * 35), 0.001, 0.05)),
+                               (0.28, env(np.sin(2 * np.pi * 120 * t(0.3)) * np.exp(-t(0.3) * 14) * 2.4
+                                          + lowpass(hp(rng.standard_normal(int(SR * 0.3))), 4) * np.exp(-t(0.3) * 30), 0.001, 0.08))]),
+    "gavel_soft": lambda: env(np.sin(2 * np.pi * 300 * t(0.15)) * np.exp(-t(0.15) * 30)
+                              + 0.5 * lowpass(hp(rng.standard_normal(int(SR * 0.15))), 4) * np.exp(-t(0.15) * 45), 0.001, 0.04),
     "insta": lambda: mix(0.2, [(0, env(hp(rng.standard_normal(int(SR * 0.07))) * np.exp(-t(0.07) * 50), 0.001, 0.03)),
                                (0, 0.4 * env(np.sin(2 * np.pi * 3000 * t(0.05)), 0.001, 0.03))]),
 }
@@ -414,7 +441,7 @@ SOUNDS = {"zap": s_zap, "mode": s_mode, "launch": s_launch,
 # ------------------------------------------------------------------ pack
 
 TOOLS = {"lightning_wand": ("blaze_rod", lightning_wand), "launch_stick": ("stick", launch_stick), "heal_wand": ("ghast_tear", heal_wand),
-         "freeze_wand": ("prismarine_shard", freeze_wand)}
+         "freeze_wand": ("prismarine_shard", freeze_wand), "judge_gavel": ("breeze_rod", judge_gavel)}
 ICON_ITEMS = {**{k: (v[0], (lambda rows=v[1], o=v[2]: grid(rows, o))) for k, v in ICONS.items()},
               "icon_join": ("nether_star", star_icon), "icon_pack": ("painting", palette_icon)}
 
