@@ -1202,7 +1202,7 @@ def build():
         by_base.setdefault(base, []).append(name)
     # 3D boss models (made by scripts/models/voxelize.py from the .glb files)
     for name, base in MODELS3D.items():
-        mdir = os.path.join(ROOT, "scripts", "models", "out")
+        mdir = os.path.join(ROOT, "scripts", "models", "built")
         files[f"assets/vigil/models/item/{name}.json"] = open(os.path.join(mdir, name + ".json"), "rb").read()
         files[f"assets/vigil/textures/item/{name}.png"] = open(os.path.join(mdir, name + ".png"), "rb").read()
         by_base.setdefault(base, []).append(name)

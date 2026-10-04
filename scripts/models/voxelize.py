@@ -6,7 +6,7 @@ is filled, and every visible side of the voxel surface is merged into as few rec
 Colors are reduced to a 16x16 palette texture; each face points at its color's pixel.
 
     python3 scripts/models/voxelize.py model.glb out_name [height_in_voxels]
-writes scripts/models/out/<out_name>.json (model) and <out_name>.png (palette).
+writes scripts/models/built/<out_name>.json (model) and <out_name>.png (palette).
 """
 import json
 import os
@@ -17,7 +17,7 @@ import trimesh
 from PIL import Image
 from scipy import ndimage
 
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "built")
 
 
 def load(path):
