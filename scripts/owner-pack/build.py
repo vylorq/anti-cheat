@@ -211,53 +211,42 @@ def freeze_wand():
 
 
 def judge_gavel():
-    """A courtroom gavel: a round wooden mallet head with light end caps and a gold band, on a handle meeting its middle."""
+    """A courtroom gavel, pixel by pixel on the 45-degree grid vanilla tools use: a barrel head lit from the top,
+    lighter striking faces, two gold rings, a straight two-pixel handle with a gold knob, and a solid outline."""
     img = canvas()
     px = img.load()
-
-    def seg(px_, py_, ax, ay, bx, by):
-        # (distance from the segment, position along it 0..1, which side)
-        dx, dy = bx - ax, by - ay
-        L2 = dx * dx + dy * dy or 1e-9
-        tt = max(0.0, min(1.0, ((px_ - ax) * dx + (py_ - ay) * dy) / L2))
-        cx, cy = ax + tt * dx, ay + tt * dy
-        side = (px_ - cx) * dy - (py_ - cy) * dx
-        return ((px_ - cx) ** 2 + (py_ - cy) ** 2) ** 0.5, tt, side
-
-    # Handle first (head drawn over it).
+    wood = {9: "#c9743a", 8: "#a4562a", 7: "#82401e", 6: "#622d14", 5: "#45200d"}
+    cap = {9: "#e8a868", 8: "#cc8648", 7: "#a8663a", 6: "#844c2a", 5: "#5e341c"}
+    gold = {9: "#fff6b0", 8: "#ffd94a", 7: "#eeb21e", 6: "#c48a0e", 5: "#8e600a"}
+    # Handle along x + y = 15/16, from the knob up to the head.
+    for x in range(1, 10):
+        px[x, 15 - x] = hexc("#b0683a")
+        px[x, 16 - x] = hexc("#5e2c14")
+    for (x, y) in [(0, 15), (1, 15), (0, 14)]:
+        px[x, y] = hexc("#c48a0e")
+    px[1, 14] = hexc("#ffd94a")
+    # Head: x - y from 5 (shadow side) to 9 (lit side), x + y from 10 to 20 (its length).
     for y in range(16):
         for x in range(16):
-            d, tt, side = seg(x + 0.5, y + 0.5, 2.3, 13.7, 10.2, 5.8)
-            if d <= 0.8:
-                px[x, y] = hexc("#b07a45") if side > 0.15 else hexc("#6b4220") if side < -0.15 else hexc("#8b5a2b")
-            # A small knob at the end of the handle.
-            dk, _, sk = seg(x + 0.5, y + 0.5, 1.8, 14.2, 1.8, 14.2)
-            if dk <= 1.25:
-                px[x, y] = hexc("#5a3517") if sk < 0 else hexc("#7a4a24")
-    # Head: a fat rounded cylinder across the top of the handle.
-    for y in range(16):
-        for x in range(16):
-            d, tt, side = seg(x + 0.5, y + 0.5, 8.6, 1.6, 14.4, 7.4)
-            if d > 2.05:
+            c, a_ = x - y, x + y
+            if not (5 <= c <= 9 and 10 <= a_ <= 20):
                 continue
-            if tt < 0.13 or tt > 0.87:
-                c = "#d79257" if side > 0 else "#a8622f"        # end caps (the striking faces)
-            elif 0.42 <= tt <= 0.58:
-                c = "#ffe066" if side > 0 else "#d4a017"        # gold band
-            elif side > 0.6:
-                c = "#a8572e"                                    # light side
-            elif side < -0.6:
-                c = "#4a200e"                                    # shadow side
+            if a_ in (10, 20) and c in (5, 9):
+                continue                       # rounded corners
+            if a_ in (10, 11, 19, 20):
+                col = cap[c]                   # striking faces
+            elif a_ in (12, 13, 17, 18):
+                col = gold[c]                  # gold rings
             else:
-                c = "#7a3b1f"                                    # mahogany
-            px[x, y] = hexc(c)
-    # A thin dark outline so it reads at any size.
+                col = wood[c]
+            px[x, y] = hexc(col)
+    # Solid outline, like vanilla items.
     solid = [(x, y) for y in range(16) for x in range(16) if px[x, y][3] == 255]
     for x, y in solid:
         for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
             nx, ny = x + dx, y + dy
             if 0 <= nx < 16 and 0 <= ny < 16 and px[nx, ny][3] == 0:
-                px[nx, ny] = hexc("#1b1210", 210)
+                px[nx, ny] = hexc("#2a170b")
     return img
 
 
