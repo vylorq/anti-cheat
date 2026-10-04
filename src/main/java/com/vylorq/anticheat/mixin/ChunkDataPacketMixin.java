@@ -21,7 +21,14 @@ public abstract class ChunkDataPacketMixin {
     private void ac$beginChunk(CallbackInfo ci, @Local(argsOnly = true) WorldChunk chunk) {
         if (Ac.running() && chunk.getWorld() != null && !chunk.getWorld().isClient()) {
             try {
-                Xray.REPLACEMENTS.set(Xray.modifiedSections(chunk));
+                var replacements = Xray.modifiedSections(chunk);
+                try {
+                    com.vylorq.anticheat.feature.AntiEsp.hideContainers(chunk, replacements);
+                } catch (Throwable t) {
+                    Ac.LOG.error("Anti-ESP failed for a chunk; containers sent as they are", t);
+                    com.vylorq.anticheat.feature.AntiEsp.HIDDEN_CONTAINERS.remove();
+                }
+                Xray.REPLACEMENTS.set(replacements);
             } catch (Throwable t) {
                 Ac.LOG.error("Anti-xray failed for a chunk; sending it unmodified", t);
                 Xray.REPLACEMENTS.remove();
@@ -33,5 +40,6 @@ public abstract class ChunkDataPacketMixin {
             at = @At("RETURN"))
     private void ac$endChunk(CallbackInfo ci) {
         Xray.REPLACEMENTS.remove();
+        com.vylorq.anticheat.feature.AntiEsp.HIDDEN_CONTAINERS.remove();
     }
 }

@@ -22,6 +22,7 @@ public class AcConfig {
     public Watchlist watchlist = new Watchlist();
     public Exempt exempt = new Exempt();
     public Xray xray = new Xray();
+    public AntiEsp antiEsp = new AntiEsp();
     public IllegalItems illegalItems = new IllegalItems();
     public DupeWatch dupeWatch = new DupeWatch();
     public Chat chat = new Chat();
@@ -184,6 +185,16 @@ public class AcConfig {
     public static class Exempt {
         /** Record flags for exempt players silently. */
         public boolean recordFlags = true;
+    }
+
+    /** Anti-ESP: what players' games aren't told about, so wallhacks have nothing to show. */
+    public static class AntiEsp {
+        /** Don't send players hidden behind solid blocks beyond {@link #playerShowDistance}. */
+        public boolean players = true;
+        public int playerShowDistance = 24;
+        /** Chests, barrels and shulker boxes only appear within this distance. */
+        public boolean containers = true;
+        public int containerShowDistance = 32;
     }
 
     public static class Xray {
@@ -605,6 +616,7 @@ public class AcConfig {
         if (watchlist == null) watchlist = d.watchlist;
         if (exempt == null) exempt = d.exempt;
         if (xray == null) xray = d.xray;
+        if (antiEsp == null) antiEsp = d.antiEsp;
         if (illegalItems == null) illegalItems = d.illegalItems;
         if (dupeWatch == null) dupeWatch = d.dupeWatch;
         if (chat == null) chat = d.chat;

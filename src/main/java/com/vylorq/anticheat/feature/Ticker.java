@@ -44,6 +44,7 @@ public final class Ticker {
                 }
             }
         }
+        AntiEsp.tick(ac.server, ticks);
         Trades.tick();
         BuilderTools.tick();
         Extras.tick();

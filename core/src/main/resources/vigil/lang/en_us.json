@@ -2342,5 +2342,7 @@
   "features.unknown": "§cNo feature called {0}. /features shows them all.",
   "help.features": "Turn any feature or system on or off",
   "build.loaded-spot": "§aLoaded {0} ({1}). It is placed around where you stand: its marked spot goes at your feet. Paste when ready.",
-  "kick.packet-flood": "Disconnected: your game sent far too much data at once. If you're not using cheats or broken mods, just join again."
+  "kick.packet-flood": "Disconnected: your game sent far too much data at once. If you're not using cheats or broken mods, just join again.",
+  "feature.anti-esp": "Anti-ESP",
+  "feature.anti-esp.desc": "Players hidden far behind walls, and far-away chests, aren't sent to games, so wallhacks see nothing."
 }

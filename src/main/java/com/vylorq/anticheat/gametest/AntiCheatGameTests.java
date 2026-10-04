@@ -73,6 +73,46 @@ public final class AntiCheatGameTests {
     };
 
     @GameTest
+    public void antiEspSightAndContainers(TestContext ctx) {
+        var w = ctx.getWorld();
+        BlockPos a = ctx.getAbsolutePos(new BlockPos(0, 2, 1));
+        BlockPos b = ctx.getAbsolutePos(new BlockPos(4, 2, 1));
+        BlockPos mid = ctx.getAbsolutePos(new BlockPos(2, 2, 1));
+        net.minecraft.util.math.Vec3d va = a.toCenterPos();
+        net.minecraft.util.math.Vec3d vb = b.toCenterPos();
+        w.setBlockState(mid, Blocks.AIR.getDefaultState());
+        check(com.vylorq.anticheat.feature.AntiEsp.clear(w, va, vb), "open air blocks the view");
+        w.setBlockState(mid, Blocks.GLASS.getDefaultState());
+        check(com.vylorq.anticheat.feature.AntiEsp.clear(w, va, vb), "glass blocks the view (it shouldn't hide anyone)");
+        w.setBlockState(mid, Blocks.STONE.getDefaultState());
+        check(!com.vylorq.anticheat.feature.AntiEsp.clear(w, va, vb), "a stone wall doesn't hide");
+        w.setBlockState(mid, Blocks.AIR.getDefaultState());
+
+        // A chest is left out of the chunk data as air; a barrel in a wall looks like the wall.
+        BlockPos chest = ctx.getAbsolutePos(new BlockPos(1, 2, 3));
+        BlockPos barrel = ctx.getAbsolutePos(new BlockPos(3, 2, 3));
+        w.setBlockState(chest, Blocks.CHEST.getDefaultState());
+        w.setBlockState(barrel, Blocks.BARREL.getDefaultState());
+        w.setBlockState(barrel.down(), Blocks.STONE_BRICKS.getDefaultState());
+        var chunk = w.getWorldChunk(chest);
+        var out = new java.util.IdentityHashMap<net.minecraft.world.chunk.ChunkSection, net.minecraft.world.chunk.ChunkSection>();
+        com.vylorq.anticheat.feature.AntiEsp.hideContainers(chunk, out);
+        var hidden = com.vylorq.anticheat.feature.AntiEsp.HIDDEN_CONTAINERS.get();
+        com.vylorq.anticheat.feature.AntiEsp.HIDDEN_CONTAINERS.remove();
+        check(hidden != null && hidden.contains(chest), "the chest wasn't left out");
+        var section = chunk.getSectionArray()[chunk.getSectionIndex(chest.getY())];
+        var sent = out.get(section);
+        check(sent != null && sent.getBlockState(chest.getX() & 15, chest.getY() & 15, chest.getZ() & 15).isAir(), "the chest is still in the sent chunk");
+        check(w.getBlockState(chest).isOf(Blocks.CHEST), "the real chest changed");
+        if (w.getWorldChunk(barrel) == chunk) {
+            var bs = out.get(chunk.getSectionArray()[chunk.getSectionIndex(barrel.getY())]);
+            var shown = bs.getBlockState(barrel.getX() & 15, barrel.getY() & 15, barrel.getZ() & 15);
+            check(!shown.isOf(Blocks.BARREL), "the barrel is still in the sent chunk");
+        }
+        ctx.complete();
+    }
+
+    @GameTest
     public void autoTotemCatchesInstantRefillOnly(TestContext ctx) {
         var w = ctx.getWorld();
         var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "TotemTester"));
