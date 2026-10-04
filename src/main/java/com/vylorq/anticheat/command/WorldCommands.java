@@ -90,6 +90,7 @@ final class WorldCommands {
         registerClaims(d);
         registerBarriers(d);
         registerLobby(d);
+        com.vylorq.anticheat.feature.HomeTeleport.registerCommand(d);
         registerJail(d);
         registerWaiting(d);
         registerArenas(d);

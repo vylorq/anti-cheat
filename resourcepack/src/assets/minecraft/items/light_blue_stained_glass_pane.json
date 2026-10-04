@@ -1,0 +1,20 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "vigil:rune_circle",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/rune_circle"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/light_blue_stained_glass_pane"
+    }
+  }
+}

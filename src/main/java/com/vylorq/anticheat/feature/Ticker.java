@@ -47,6 +47,8 @@ public final class Ticker {
         AntiEsp.tick(ac.server, ticks);
         OwnerPowers.tick(ticks);
         OwnerFx.tick(ticks);
+        OwnerCombat.tick(ticks);
+        HomeTeleport.tick(ticks);
         Replay.tick();
         Trades.tick();
         BuilderTools.tick();

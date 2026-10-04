@@ -95,6 +95,9 @@ public final class Protection {
                 Movement.ghostBlock(p);
                 return false;
             }
+            if (!HomeTeleport.breakPad(p, w, pos)) {
+                return false;
+            }
             if (BuilderMode.is(p) && (!BuilderMode.mayBreak(w, pos) || !BuilderMode.mayBuildAt(p, w, pos))) {
                 BuilderMode.denied(p);
                 Movement.ghostBlock(p);
@@ -230,6 +233,10 @@ public final class Protection {
             if (WaitingRoomFeature.waiting(p) || Arenas.isCountdownFrozen(p)) {
                 return false;
             }
+            if (OwnerCombat.dealing()) {
+                // The owner's abilities hit anyone, anywhere (except the lobby's no-PvP rule).
+                return !(LobbyFeature.in(p) && Ac.config().lobby.noPvp);
+            }
             Entity attacker = source.getAttacker();
             if (attacker instanceof ServerPlayerEntity ap && ap != p) {
                 if (ac.shadow.isShadowed(ap.getUuid())) {
@@ -259,6 +266,7 @@ public final class Protection {
         ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {
             if (Ac.running() && entity instanceof ServerPlayerEntity p && taken > 0) {
                 Deaths.onDamage(p, source, taken);
+                HomeTeleport.onDamage(p, source.getAttacker());
             }
         });
         ServerLivingEntityEvents.ALLOW_DEATH.register((entity, source, amount) -> {
@@ -369,6 +377,13 @@ public final class Protection {
         BlockPos pos = hit.getBlockPos();
         ItemStack stack = p.getStackInHand(hand);
         if (OwnerTools.use(p, stack)) {
+            return ActionResult.SUCCESS;
+        }
+        if (HomeTeleport.isItem(stack)) {
+            HomeTeleport.place(p, w, hit, stack);
+            return ActionResult.FAIL;
+        }
+        if (HomeTeleport.click(p, w, pos)) {
             return ActionResult.SUCCESS;
         }
         if (BuilderMode.is(p) && Tools.toolOf(stack) == null && (!BuilderMode.allowed(stack)
@@ -647,6 +662,7 @@ public final class Protection {
         if (!Combat.onAttack(p, entity)) {
             return ActionResult.FAIL;
         }
+        OwnerCombat.onMelee(p, entity);
         return ActionResult.PASS;
     }
 

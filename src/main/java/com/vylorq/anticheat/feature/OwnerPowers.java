@@ -47,7 +47,13 @@ public final class OwnerPowers {
     private OwnerPowers() {
     }
 
-    public enum Power { FLY, GOD, SPEED, NIGHT_VISION, INSTA_BREAK, RADAR, GHOST }
+    public enum Power { FLY, GOD, SPEED, NIGHT_VISION, INSTA_BREAK, RADAR, GHOST,
+        ONE_PUNCH, LIFESTEAL, MEGA_KNOCKBACK, NO_COOLDOWN, FORCE_FIELD }
+
+    /** The combat toggles (shown in the combat menu, not the main one). */
+    public static boolean combat(Power p) {
+        return p.ordinal() >= Power.ONE_PUNCH.ordinal();
+    }
 
     /** Saved in config/vigil/owner.json. */
     public static final class State {
@@ -65,6 +71,13 @@ public final class OwnerPowers {
         public int freezeRadius = 10;
         /** Players the freeze wand froze (so thawing only lets those go). */
         public java.util.Set<String> wandFrozen = new java.util.HashSet<>();
+        public boolean onePunch;
+        public boolean lifesteal;
+        public boolean megaKnockback;
+        public boolean noCooldown;
+        public boolean forceField;
+        /** Mob wipe: how far it reaches. */
+        public int wipeRadius = 32;
     }
 
     public static final class Ghost {
@@ -80,6 +93,7 @@ public final class OwnerPowers {
     private static State state;
     private static long lastToolUse;
     private static final Identifier SPEED_ID = Identifier.of("vigil", "owner_speed");
+    private static final Identifier COOLDOWN_ID = Identifier.of("vigil", "owner_no_cooldown");
 
     // ---------------------------------------------------------------- state
 
@@ -103,6 +117,9 @@ public final class OwnerPowers {
             }
             if (state.freezeRadius <= 0) {
                 state.freezeRadius = 10;
+            }
+            if (state.wipeRadius <= 0) {
+                state.wipeRadius = 32;
             }
         }
         return state;
@@ -144,6 +161,11 @@ public final class OwnerPowers {
             case INSTA_BREAK -> s.instaBreak;
             case RADAR -> s.radar;
             case GHOST -> s.ghost != null;
+            case ONE_PUNCH -> s.onePunch;
+            case LIFESTEAL -> s.lifesteal;
+            case MEGA_KNOCKBACK -> s.megaKnockback;
+            case NO_COOLDOWN -> s.noCooldown;
+            case FORCE_FIELD -> s.forceField;
         };
     }
 
@@ -154,6 +176,7 @@ public final class OwnerPowers {
         }
         State s = state();
         return s.fly || s.god || s.speed > 0 || s.instaBreak || s.ghost != null
+                || s.onePunch || s.lifesteal || s.megaKnockback || s.noCooldown || s.forceField || OwnerCombat.berserk(id)
                 || System.currentTimeMillis() - lastToolUse < 10_000;
     }
 
@@ -194,6 +217,11 @@ public final class OwnerPowers {
                 radarPush(p, now);
             }
             case GHOST -> now = ghost(p);
+            case ONE_PUNCH -> now = s.onePunch = !s.onePunch;
+            case LIFESTEAL -> now = s.lifesteal = !s.lifesteal;
+            case MEGA_KNOCKBACK -> now = s.megaKnockback = !s.megaKnockback;
+            case NO_COOLDOWN -> now = s.noCooldown = !s.noCooldown;
+            case FORCE_FIELD -> now = s.forceField = !s.forceField;
             default -> now = false;
         }
         save();
@@ -286,6 +314,15 @@ public final class OwnerPowers {
         } else if (level == 0 && p.getStatusEffect(StatusEffects.DOLPHINS_GRACE) != null
                 && p.getStatusEffect(StatusEffects.DOLPHINS_GRACE).isInfinite()) {
             p.removeStatusEffect(StatusEffects.DOLPHINS_GRACE);
+        }
+        // No cooldown: attacks recharge instantly (always a full-power hit).
+        EntityAttributeInstance atk = p.getAttributeInstance(EntityAttributes.ATTACK_SPEED);
+        boolean fast = ok && s.noCooldown;
+        if (atk != null && (atk.getModifier(COOLDOWN_ID) != null) != fast) {
+            atk.removeModifier(COOLDOWN_ID);
+            if (fast) {
+                atk.addTemporaryModifier(new EntityAttributeModifier(COOLDOWN_ID, 1000, EntityAttributeModifier.Operation.ADD_VALUE));
+            }
         }
         // Night vision
         var nv = p.getStatusEffect(StatusEffects.NIGHT_VISION);
@@ -457,6 +494,16 @@ public final class OwnerPowers {
         state().freezeRadius = Math.max(1, Math.min(100, radius));
         save();
         Msg.send(p, "owner.freeze-radius-set", state().freezeRadius);
+        sfx(p, "mode", SoundEvents.BLOCK_NOTE_BLOCK_CHIME.value(), 1.4f);
+    }
+
+    public static void setWipeRadius(ServerPlayerEntity p, int radius) {
+        if (!require(p)) {
+            return;
+        }
+        state().wipeRadius = Math.max(4, Math.min(128, radius));
+        save();
+        Msg.send(p, "owner.wipe-radius-set", state().wipeRadius);
         sfx(p, "mode", SoundEvents.BLOCK_NOTE_BLOCK_CHIME.value(), 1.4f);
     }
 

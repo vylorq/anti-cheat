@@ -106,6 +106,17 @@ public final class AdminCommands {
         owner.then(literal("freezeradius").then(CommandManager.argument("blocks", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 100))
                 .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerPowers.setFreezeRadius(p,
                         com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "blocks"))))));
+        owner.then(literal("combat").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::combat)));
+        owner.then(literal("weapons").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerCombat.weapons()
+                .forEach(t -> com.vylorq.anticheat.feature.OwnerTools.give(p, t)))));
+        owner.then(literal("berserk").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerCombat::berserk)));
+        owner.then(literal("mobwipe").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerCombat::mobWipe))
+                .then(CommandManager.argument("blocks", com.mojang.brigadier.arguments.IntegerArgumentType.integer(4, 128))
+                        .executes(ctx -> owner(ctx, p -> {
+                            com.vylorq.anticheat.feature.OwnerPowers.setWipeRadius(p, com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "blocks"));
+                            com.vylorq.anticheat.feature.OwnerCombat.mobWipe(p);
+                        }))));
+        owner.then(literal("smite").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerCombat::smite)));
         owner.then(literal("items").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::items)));
         owner.then(literal("pack").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerPowers::sendPack)));
         owner.then(literal("join").then(literal("normal").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerPowers.setJoinStyle(p, "normal"))))

@@ -44,7 +44,7 @@ public final class OwnerMenu {
             menu.info(Btn.head(p.getUuid(), p.getGameProfile().name()).name(Category.VIGIL, Msg.tr("owner.title"))
                     .desc(Msg.tr("owner.desc")).build());
             int[] slots = {10, 11, 12, 13, 14, 15, 16};
-            for (int i = 0; i < POWERS.length; i++) {
+            for (int i = 0; i < ICONS.length; i++) {
                 Power pw = POWERS[i];
                 boolean on = OwnerPowers.on(p, pw);
                 String name = Msg.tr("owner.power." + pw.name().toLowerCase(Locale.ROOT));
@@ -99,8 +99,79 @@ public final class OwnerMenu {
                 OwnerPowers.setJoinStyle(pl, next);
                 menu.refresh();
             });
+            menu.set(38, Btn.of(icon(Items.BLAZE_POWDER, "icon_berserk")).color(Theme.RED).name(Msg.tr("owner.combat"))
+                    .desc(Msg.tr("owner.combat.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> combat(pl));
             menu.set(40, Btn.of(icon(Items.PAINTING, "icon_pack")).color(Theme.SOFT).name(Msg.tr("owner.pack")).desc(Msg.tr("owner.pack.desc"))
                     .left(Msg.tr("owner.pack-send")).build(), null, (pl, c) -> OwnerPowers.sendPack(pl));
+        });
+        m.open(p);
+    }
+
+    private static final Power[] COMBAT = {Power.ONE_PUNCH, Power.LIFESTEAL, Power.MEGA_KNOCKBACK, Power.NO_COOLDOWN, Power.FORCE_FIELD};
+    private static final Item[] COMBAT_ICONS = {Items.BRICK, Items.RED_DYE, Items.SLIME_BALL, Items.GLOWSTONE_DUST, Items.HEART_OF_THE_SEA};
+    private static final String[] COMBAT_IDS = {"icon_punch", "icon_steal", "icon_knock", "icon_nocool", "icon_field"};
+
+    /** Combat: toggles, weapons and instant actions. */
+    public static void combat(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        Menu m = Menu.std(Category.VIGIL, Msg.trFor(p, "owner.title"), Msg.trFor(p, "owner.combat"));
+        m.renderer(menu -> {
+            menu.info(Btn.head(p.getUuid(), p.getGameProfile().name()).name(Category.VIGIL, Msg.tr("owner.combat"))
+                    .desc(Msg.tr("owner.combat.desc")).build());
+            int[] slots = {11, 12, 13, 14, 15};
+            for (int i = 0; i < COMBAT.length; i++) {
+                Power pw = COMBAT[i];
+                boolean on = OwnerPowers.on(p, pw);
+                String key = "owner.power." + pw.name().toLowerCase(Locale.ROOT);
+                menu.set(slots[i], Btn.of(icon(COMBAT_ICONS[i], COMBAT_IDS[i])).color(on ? Theme.GREEN : Theme.SOFT).name(Msg.tr(key))
+                        .desc(Msg.tr(key + ".desc")).status(on ? Theme.GREEN : Theme.SOFT, Msg.tr(on ? "owner.state-on" : "owner.state-off"))
+                        .left(Msg.tr("owner.toggle")).glint(on).build(), null, (pl, c) -> {
+                    OwnerPowers.toggle(pl, pw);
+                    menu.refresh();
+                });
+            }
+            List<ItemStack> weapons = com.vylorq.anticheat.feature.OwnerCombat.weapons();
+            int[] weaponSlots = {19, 20, 21, 23, 24, 25};
+            for (int i = 0; i < weapons.size(); i++) {
+                ItemStack t = weapons.get(i);
+                menu.set(weaponSlots[i], t.copy(), null, (pl, c) -> OwnerTools.give(pl, t));
+            }
+            menu.set(30, Btn.of(icon(Items.BLAZE_POWDER, "icon_berserk")).color(Theme.RED).name(Msg.tr("owner.berserk"))
+                    .desc(Msg.tr("owner.berserk.desc")).left(Msg.tr("owner.activate")).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                com.vylorq.anticheat.feature.OwnerCombat.berserk(pl);
+            });
+            int r = OwnerPowers.state().wipeRadius;
+            menu.set(31, Btn.of(icon(Items.BONE, "icon_wipe")).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.mobwipe"))
+                    .desc(Msg.tr("owner.mobwipe.desc")).status(Theme.GOLD_LIGHT, Msg.tr("owner.wipe-radius", r))
+                    .left(Msg.tr("owner.activate")).right(Msg.tr("owner.wipe-change")).shift(Msg.tr("owner.type-number")).build(), null, (pl, c) -> {
+                if (c.isShift()) {
+                    Input.text(pl, Msg.trFor(pl, "owner.mobwipe"), String.valueOf(OwnerPowers.state().wipeRadius), t -> {
+                        try {
+                            OwnerPowers.setWipeRadius(pl, Integer.parseInt(t.trim()));
+                        } catch (NumberFormatException e) {
+                            Msg.send(pl, "general.bad-number");
+                        }
+                        combat(pl);
+                    });
+                    return;
+                }
+                if (c.isRight()) {
+                    int cur = OwnerPowers.state().wipeRadius;
+                    OwnerPowers.setWipeRadius(pl, cur >= 128 ? 8 : cur + 8);
+                    menu.refresh();
+                    return;
+                }
+                pl.closeHandledScreen();
+                com.vylorq.anticheat.feature.OwnerCombat.mobWipe(pl);
+            });
+            menu.set(32, Btn.of(icon(Items.GOLD_NUGGET, "icon_smite")).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.smite"))
+                    .desc(Msg.tr("owner.smite.desc")).left(Msg.tr("owner.activate")).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                com.vylorq.anticheat.feature.OwnerCombat.smite(pl);
+            });
         });
         m.open(p);
     }
