@@ -1,0 +1,47 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "LSL",
+    "LEL",
+    "LLL"
+  ],
+  "key": {
+    "L": "minecraft:leather",
+    "S": "minecraft:string",
+    "E": "minecraft:ender_eye"
+  },
+  "result": {
+    "id": "minecraft:rabbit_hide",
+    "count": 1,
+    "components": {
+      "minecraft:item_name": {
+        "text": "Ender Pouch",
+        "color": "#B05CFF"
+      },
+      "minecraft:lore": [
+        {
+          "text": "Right-click: open your ender chest",
+          "color": "gray",
+          "italic": false
+        },
+        {
+          "text": "(not right after a fight)",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:ender_pouch"
+        ]
+      },
+      "minecraft:use_cooldown": {
+        "seconds": 0.05,
+        "cooldown_group": "vigil:ender_pouch"
+      },
+      "minecraft:rarity": "uncommon",
+      "minecraft:max_stack_size": 1
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "SLS",
+    "LCL",
+    "LLL"
+  ],
+  "key": {
+    "S": "minecraft:string",
+    "L": "minecraft:leather",
+    "C": "minecraft:chest"
+  },
+  "result": {
+    "id": "minecraft:leather",
+    "count": 1,
+    "components": {
+      "minecraft:item_name": {
+        "text": "Backpack",
+        "color": "#C8823C"
+      },
+      "minecraft:lore": [
+        {
+          "text": "Right-click: 27 extra slots",
+          "color": "gray",
+          "italic": false
+        },
+        {
+          "text": "(can't hold backpacks or shulker boxes)",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:backpack"
+        ]
+      },
+      "minecraft:use_cooldown": {
+        "seconds": 0.05,
+        "cooldown_group": "vigil:backpack"
+      },
+      "minecraft:rarity": "uncommon",
+      "minecraft:max_stack_size": 1
+    }
+  }
+}

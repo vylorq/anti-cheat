@@ -121,11 +121,17 @@ public final class Protection {
             }
             BlockLog.log(p, null, w, pos, BlockChange.Kind.BREAK, state, w.getBlockState(pos), be);
             watchedBlock(p, "broke", state, pos);
+            if (SecretItems.extraBreak()) {
+                // Hammer / lumber axe extra blocks: logged, but not counted as the player's own breaking.
+                ENCLOSED.set(false);
+                return;
+            }
             PacketChecks.brokeBlock(p, w, pos, state);
             Ac.get().evidence.record(p.getUuid(), EvidenceEvent.Type.BREAK, p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch(),
                     "broke " + Mc.blockId(state.getBlock()).replace("minecraft:", "") + " at " + pos.toShortString());
             Xray.afterBreak(p, w, pos, state, ENCLOSED.get());
             ENCLOSED.set(false);
+            SecretItems.afterBreak(p, w, pos, state);
         });
 
         AttackBlockCallback.EVENT.register((player, world, hand, pos, dir) -> {
@@ -267,6 +273,7 @@ public final class Protection {
             if (Ac.running() && entity instanceof ServerPlayerEntity p && taken > 0) {
                 Deaths.onDamage(p, source, taken);
                 HomeTeleport.onDamage(p, source.getAttacker());
+                SecretItems.onHurt(p);
             }
         });
         ServerLivingEntityEvents.ALLOW_DEATH.register((entity, source, amount) -> {
@@ -275,6 +282,9 @@ public final class Protection {
             }
             ServerPlayerEntity killer = source.getAttacker() instanceof ServerPlayerEntity k ? k : null;
             if (Arenas.onDeath(p, killer)) {
+                return false;
+            }
+            if (SecretItems.phoenix(p, source)) {
                 return false;
             }
             Trades.cancelFor(p, SecureTrade.CancelReason.DIED);
@@ -385,6 +395,15 @@ public final class Protection {
         }
         if (HomeTeleport.click(p, w, pos)) {
             return ActionResult.SUCCESS;
+        }
+        if (w.getBlockState(pos).getBlock() instanceof net.minecraft.block.TrapdoorBlock) {
+            SecretItems.lockFlipped(w, pos);
+        }
+        if (SecretItems.hasUse(stack) && classify(w.getBlockState(pos), w.getBlockEntity(pos)) == null) {
+            ActionResult r = SecretItems.use(p, hand, stack);
+            if (r != null) {
+                return r;
+            }
         }
         if (BuilderMode.is(p) && Tools.toolOf(stack) == null && (!BuilderMode.allowed(stack)
                 || (!BuilderMode.mayUse(w, pos) && !(p.isSneaking() && !stack.isEmpty())))) {
@@ -526,6 +545,12 @@ public final class Protection {
         if (OwnerTools.use(p, p.getStackInHand(hand))) {
             return ActionResult.SUCCESS;
         }
+        if (!ac.staff.isFrozen(p.getUuid()) && !WaitingRoomFeature.waiting(p) && !Jail.isJailed(p)) {
+            ActionResult r = SecretItems.use(p, hand, p.getStackInHand(hand));
+            if (r != null) {
+                return r;
+            }
+        }
         if (ac.staff.isFrozen(p.getUuid()) || WaitingRoomFeature.waiting(p)) {
             return ActionResult.FAIL;
         }
@@ -663,6 +688,7 @@ public final class Protection {
             return ActionResult.FAIL;
         }
         OwnerCombat.onMelee(p, entity);
+        SecretItems.onHit(p, entity);
         return ActionResult.PASS;
     }
 

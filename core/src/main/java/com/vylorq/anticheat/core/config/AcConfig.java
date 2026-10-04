@@ -191,6 +191,10 @@ public class AcConfig {
     /** The owner's texture and sound pack (sent only to the owner). */
     public static class Owner {
         public boolean sendPack = true;
+        /** Send the pack to every Java player (custom items, sounds and structures need it), not only the owner. */
+        public boolean packForEveryone = true;
+        /** Players must accept it: declining (or a failed download) disconnects them with a message to rejoin. */
+        public boolean packRequired = true;
         public String packUrl = "https://raw.githubusercontent.com/vylorq/anti-cheat/main/resourcepack/vigil-owner.zip";
     }
 

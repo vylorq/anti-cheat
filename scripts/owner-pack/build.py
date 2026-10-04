@@ -532,6 +532,248 @@ def orbital_cannon():
     return img
 
 
+# ------------------------------------------------------------------ secret items and new tools (everyone sees these)
+
+def pix(rows, pal, edge="#140f1c"):
+    img = canvas()
+    px = img.load()
+    for y, row in enumerate(rows):
+        for x, ch in enumerate(row[:16]):
+            if ch != "." and ch in pal:
+                px[x, y] = hexc(pal[ch])
+    return outline(img, edge)
+
+
+def sword_art(core, light, dark, guard, gem, grip, pommel, sparkles):
+    img = canvas()
+    px = img.load()
+    for x in range(6, 15):
+        px[x, 15 - x] = hexc(core)
+        px[x, 14 - x] = hexc(light)
+        if x + 1 < 16:
+            px[x + 1, 15 - x] = hexc(dark)
+    px[15, 0] = hexc(light)
+    for (x, y) in [(3, 8), (4, 9), (5, 10), (6, 11), (7, 12)]:
+        px[x, y] = hexc(guard)
+    px[5, 10] = hexc(gem)
+    for x in range(2, 5):
+        px[x, 15 - x] = hexc(grip)
+    for (x, y) in [(0, 15), (1, 15), (0, 14), (1, 14)]:
+        px[x, y] = hexc(pommel)
+    outline(img, "#120a1c")
+    for (x, y, c, a) in sparkles:
+        if px[x, y][3] == 0:
+            px[x, y] = hexc(c, a)
+    return img
+
+
+def voidblade():
+    return sword_art("#e6d4ff", "#b488ff", "#4b1f8a", "#2a2238", "#d65cff", "#3a2a4a", "#6a2bd6",
+                     [(9, 3, "#b488ff", 200), (12, 1, "#d65cff", 170), (6, 5, "#8a5cff", 150), (14, 4, "#b488ff", 140)])
+
+
+def stormbreaker():
+    return pix([
+        "........SSSS....",
+        ".......SLLLSS...",
+        "......SLLYLLSS..",
+        "......SLLYYLLS..",
+        ".......SLYLLWN..",
+        "........SSLWNS..",
+        ".........WNSS...",
+        "........WN......",
+        ".......WN.......",
+        "......WN........",
+        ".....WN.........",
+        "....WN..........",
+        "...WN...........",
+        "..WN............",
+        ".WN.............",
+        "BB.............."], {"S": "#4a6a8a", "L": "#bfe4ff", "Y": "#ffe27a", "W": "#9a6a3a", "N": "#5a3a1a", "B": "#7fd8ff"})
+
+
+def phoenix_feather():
+    return pix([
+        "............RYY.",
+        "...........RYYO.",
+        "..........ROYOR.",
+        ".........ROYOR..",
+        "........ROYOR...",
+        ".......ROYOR....",
+        "......ROYOR.....",
+        ".....ROYWR......",
+        "....ROYWR.......",
+        "...ROYWR........",
+        "...RYWR.........",
+        "..RYW...........",
+        "..YW............",
+        ".W..............",
+        "W..............."], {"R": "#d6301a", "O": "#ff7a1a", "Y": "#ffd23f", "W": "#fff3d0"}, "#3a0e05")
+
+
+def shadow_cloak():
+    return pix([
+        "......DDDD......",
+        ".....DKKKKD.....",
+        "....DKKPPKKD....",
+        "....DKP..PKD....",
+        "....DKP..PKD....",
+        "...DDKKPPKKDD...",
+        "..DKKKKKKKKKKD..",
+        "..DKKKKDDKKKKD..",
+        "..DKKKKDDKKKKD..",
+        ".DKKKKKDDKKKKKD.",
+        ".DKKKKKDDKKKKKD.",
+        ".DKKKKDDDDKKKKD.",
+        "DKKKKDD..DDKKKKD",
+        "DPKPKD....DKPKPD",
+        "DD.DD......DD.DD"], {"D": "#2a2238", "K": "#151020", "P": "#8a73b0"}, "#06040a")
+
+
+def seeker_compass():
+    return pix([
+        ".....GGGGG......",
+        "...GGTTTTTGG....",
+        "..GTTTTWTTTTG...",
+        ".GTTTTTWTTTTTG..",
+        ".GTTTTWCWTTTTG..",
+        "GTTTTTWCWTTTTTG.",
+        "GTTTTTWCWTTTTTG.",
+        "GTTTTTTKTTTTTTG.",
+        "GTTTTTTDTTTTTTG.",
+        "GTTTTTTDTTTTTTG.",
+        ".GTTTTTDTTTTTG..",
+        ".GTTTTTTTTTTTG..",
+        "..GTTTTTTTTTG...",
+        "...GGTTTTTGG....",
+        ".....GGGGG......"], {"G": "#d9a52e", "T": "#1b4a52", "W": "#e8fffb", "C": "#7fffd4", "K": "#ffffff", "D": "#3a8a8a"}, "#2a1a06")
+
+
+def hammer_tool():
+    img = canvas()
+    px = img.load()
+    for x in range(1, 10):
+        px[x, 15 - x] = hexc("#a0703a")
+        px[x, 16 - x] = hexc("#5a3a1a")
+    steel = {9: "#f0f2f5", 8: "#d0d6dd", 7: "#b0b8c2", 6: "#8f99a5", 5: "#6c7684"}
+    for y in range(16):
+        for x in range(16):
+            c, a_ = x - y, x + y
+            if 5 <= c <= 9 and 10 <= a_ <= 20 and not (a_ in (10, 20) and c in (5, 9)):
+                px[x, y] = hexc(steel[c])
+    outline(img, "#1a1d22")
+    return img
+
+
+def lumber_axe():
+    return pix([
+        ".......SSS......",
+        "......SLLLS.....",
+        ".....SLLLLLS....",
+        ".....SLLLLLLS...",
+        "......SLLLLNS...",
+        ".......SSLNWS...",
+        ".........NWSS...",
+        "........NW......",
+        ".......NW.......",
+        "......NW........",
+        ".....NW.........",
+        "....NW..........",
+        "...NW...........",
+        "..NW............",
+        ".NW.............",
+        "NN.............."], {"S": "#6c7684", "L": "#d8dee6", "N": "#5a3a1a", "W": "#b07a40"})
+
+
+def grappling_hook(cast=False):
+    img = canvas()
+    px = img.load()
+    rod(img, 1, 14, 9, 6, hexc("#6b4a2a"), hexc("#9a6e40"), hexc("#3d2814"))
+    px[3, 12] = hexc("#c0c8d0")
+    px[4, 11] = hexc("#c0c8d0")
+    if not cast:
+        for (x, y) in [(10, 5), (11, 4), (12, 3), (13, 2)]:
+            px[x, y] = hexc("#dfe5ea", 200)
+        hook = [(13, 3), (14, 3), (13, 4), (12, 4), (14, 2), (15, 2), (14, 4), (14, 5), (12, 5), (11, 5)]
+        for (x, y) in hook:
+            px[x, y] = hexc("#c0c8d0")
+        px[15, 3] = hexc("#8a96a2")
+        px[10, 6] = hexc("#8a96a2")
+    else:
+        for (x, y) in [(10, 5), (11, 4), (12, 4), (13, 4), (14, 5), (15, 6)]:
+            px[x, y] = hexc("#dfe5ea", 200)
+    return outline(img, "#141414")
+
+
+def magnet_charm():
+    return pix([
+        "................",
+        "................",
+        "....RRRRRRR.....",
+        "...RRLLLLLRR....",
+        "..RRL.....LRR...",
+        "..RR.......RR...",
+        "..RR.......RR...",
+        "..RR.......RR...",
+        "..RR.......RR...",
+        "..RR.......RR...",
+        "..SS.......SS...",
+        "..SW.......SW...",
+        "..SS.......SS..."], {"R": "#d42a2a", "L": "#ff8080", "S": "#b8c0c8", "W": "#ffffff"})
+
+
+def ender_pouch():
+    return pix([
+        "................",
+        ".....S...S......",
+        "......SSS.......",
+        ".....PPPPP......",
+        "....PPDDDPP.....",
+        "...PPPPPPPPP....",
+        "..PPPPGGGPPPP...",
+        "..PPPGCKCGPPP...",
+        "..PPPGCCCGPPP...",
+        "..PPPPGGGPPPP...",
+        "..PPPPPPPPPPP...",
+        "...PPPPPPPPP....",
+        "....DDDDDDD....."], {"P": "#7a3ab0", "D": "#4a1f70", "S": "#d8c8a0", "G": "#e2c050", "C": "#2ad6a0", "K": "#0a3a30"}, "#1a0828")
+
+
+def backpack():
+    return pix([
+        "................",
+        "......NNNN......",
+        ".....N....N.....",
+        "...BBBBBBBBBB...",
+        "..BLLLLLLLLLLB..",
+        "..BLBBBBBBBBLB..",
+        "..BLBGGLLGGBLB..",
+        "..BLBLLLLLLBLB..",
+        "..BLBBBBBBBBLB..",
+        "..BLLLYYYYLLLB..",
+        "..BLLLYLLYLLLB..",
+        "..BLLLYYYYLLLB..",
+        "..BLLLLLLLLLLB..",
+        "...BBBBBBBBBB..."], {"B": "#5a3417", "L": "#a8682e", "N": "#3a2210", "G": "#d0d0d0", "Y": "#7a4a20"}, "#1c0e04")
+
+
+SECRET = {"voidblade": ("diamond_sword", voidblade, "minecraft:item/handheld"),
+          "stormbreaker": ("diamond_axe", stormbreaker, "minecraft:item/handheld"),
+          "phoenix_feather": ("feather", phoenix_feather, "minecraft:item/generated"),
+          "shadow_cloak": ("phantom_membrane", shadow_cloak, "minecraft:item/generated"),
+          "seeker_compass": ("nautilus_shell", seeker_compass, "minecraft:item/generated"),
+          "hammer": ("iron_pickaxe", hammer_tool, "minecraft:item/handheld"),
+          "lumber_axe": ("iron_axe", lumber_axe, "minecraft:item/handheld"),
+          "grappling_hook": ("fishing_rod", grappling_hook, "minecraft:item/handheld_rod"),
+          "magnet_charm": ("iron_nugget", magnet_charm, "minecraft:item/generated"),
+          "ender_pouch": ("rabbit_hide", ender_pouch, "minecraft:item/generated"),
+          "backpack": ("leather", backpack, "minecraft:item/generated")}
+# Item models that aren't one plain model (the grappling hook looks different once cast).
+CASE_MODELS = {"grappling_hook": {"type": "minecraft:condition", "property": "minecraft:fishing_rod/cast",
+                                  "on_false": {"type": "minecraft:model", "model": "vigil:item/grappling_hook"},
+                                  "on_true": {"type": "minecraft:model", "model": "vigil:item/grappling_hook_cast"}}}
+
+
 def pack_icon():
     img = Image.new("RGBA", (64, 64), hexc("#14101f"))
     d = ImageDraw.Draw(img)
@@ -831,8 +1073,36 @@ SOUNDS3 = {
     "home_tp": lambda: mix(1.3, [(0, env(whoosh(0.5, True) * 3, 0.02, 0.2)), (0.25, chord([659.25, 830.61, 987.77, 1318.5], 0.9, 0.01))]),
 }
 
+
+SOUNDS4 = {
+    "voidblade": lambda: mix(0.9, [(0, 0.7 * env(glide(900, 180, 0.6, 0.02), 0.01, 0.3)), (0, 0.5 * env(lowpass(noise(0.6), 25), 0.2, 0.3)),
+                                   (0.05, 0.4 * bell(330, 0.7, 4))]),
+    "stormbreaker": lambda: mix(1.4, [(0, 1.3 * crack(0.12, 28)), (0, 1.4 * boom(0.6, 60, 5)), (0.03, rumble(1.2, 60, 2.2)),
+                                      (0.02, 0.4 * bell(880, 0.6, 6))]),
+    "tidecaller": lambda: mix(1.3, [(0, env(lowpass(noise(1.2), 6) * np.sin(np.linspace(0, np.pi, int(SR * 1.2))) * 5, 0.05, 0.3)),
+                                    (0.1, 0.3 * env(sweep(200, 90, 1.0), 0.05, 0.4)), (0.3, 0.3 * bell(660, 0.6, 5))]),
+    "phoenix": lambda: echo(mix(2.0, [(0, env(lowpass(noise(1.4), 10) * np.linspace(0.3, 3, int(SR * 1.4)), 0.05, 0.3)),
+                                      (0.5, chord([523.25, 659.25, 783.99, 1046.5], 1.2, 0.05)), (0.9, 0.5 * bell(2093, 0.9, 3))]), 0.12, 0.3, 2),
+    "shadow_on": lambda: echo(env(glide(500, 180, 0.6, 0.03) * 0.6 + lowpass(noise(0.6), 12) * 1.5, 0.1, 0.3), 0.15, 0.4, 2),
+    "shadow_off": lambda: env(glide(200, 520, 0.4, 0.02) * 0.6 + lowpass(noise(0.4), 12), 0.02, 0.2),
+    "seeker": lambda: mix(1.2, [(i * 0.12, 0.5 * bell(f, 0.7, 5)) for i, f in enumerate([987.77, 1318.5, 1567.98, 1975.5])]),
+    "magnet_on": lambda: mix(0.4, [(0, 0.5 * env(np.sin(2 * np.pi * 220 * t(0.35)) + 0.5 * np.sin(2 * np.pi * 440 * t(0.35)), 0.02, 0.15)),
+                                   (0, 0.3 * env(sweep(400, 1200, 0.2), 0.005, 0.08))]),
+    "magnet_off": lambda: env(np.sin(2 * np.pi * np.cumsum(np.linspace(440, 120, int(SR * 0.3))) / SR) * 0.6, 0.01, 0.15),
+    "pouch_open": lambda: mix(0.7, [(0, 0.6 * env(lowpass(noise(0.15), 8) * 4, 0.005, 0.08)), (0.08, 0.5 * env(glide(300, 600, 0.4, 0.02), 0.02, 0.2))]),
+    "backpack_open": lambda: mix(0.5, [(0, env(lowpass(noise(0.25), 5) * 5, 0.01, 0.1)), (0.18, 0.4 * env(lowpass(noise(0.12), 4) * 5, 0.005, 0.05))]),
+    "grapple": lambda: mix(0.7, [(0, 0.5 * env(sweep(1400, 2600, 0.12), 0.002, 0.05)), (0.05, env(whoosh(0.5, True) * 3, 0.02, 0.2))]),
+    "hammer": lambda: mix(0.5, [(0, 1.4 * boom(0.3, 90, 12)), (0, 0.7 * crack(0.08, 40)), (0.02, 0.3 * bell(700, 0.3, 12))]),
+    "lumber": lambda: mix(1.2, [(i * 0.07, 0.6 * env(lowpass(hp(noise(0.08)), 3) * 3, 0.002, 0.04)) for i in range(8)]
+                          + [(0.5, 1.0 * boom(0.6, 70, 5))]),
+    "vault_open": lambda: mix(1.6, [(0, 1.2 * boom(0.5, 60, 6)), (0.1, 0.6 * env(sweep(80, 160, 1.0) * 0.8, 0.1, 0.3)),
+                                    (0.6, chord([392, 493.88, 587.33], 0.9, 0.05))]),
+    "vault_wrong": lambda: mix(0.5, [(0, 0.6 * env(saw(np.full(int(SR * 0.3), 110.0), 0.3), 0.005, 0.1)),
+                                     (0, 0.4 * env(saw(np.full(int(SR * 0.3), 116.5), 0.3), 0.005, 0.1))]),
+}
+
 SOUNDS = {"zap": s_zap, "mode": s_mode, "launch": s_launch,
-          "heal": s_heal, "repair": s_repair, "give": s_give, "owner_join": s_owner_join, **SOUNDS2, **SOUNDS3}
+          "heal": s_heal, "repair": s_repair, "give": s_give, "owner_join": s_owner_join, **SOUNDS2, **SOUNDS3, **SOUNDS4}
 
 # ------------------------------------------------------------------ pack
 
@@ -847,6 +1117,9 @@ FLAT = {"home_teleporter": ("echo_shard", home_teleporter), "rune_circle": ("lig
 CUBES = {"meteor": ("magma_block", meteor_texture)}
 # Base items whose own model isn't the plain minecraft:item/<name>.
 FALLBACK = {
+    "fishing_rod": {"type": "minecraft:condition", "property": "minecraft:fishing_rod/cast",
+                    "on_false": {"type": "minecraft:model", "model": "minecraft:item/fishing_rod"},
+                    "on_true": {"type": "minecraft:model", "model": "minecraft:item/fishing_rod_cast"}},
     "magma_block": {"type": "minecraft:model", "model": "minecraft:block/magma_block"},
     "bow": {"type": "minecraft:condition", "property": "minecraft:using_item",
             "on_false": {"type": "minecraft:model", "model": "minecraft:item/bow"},
@@ -861,7 +1134,7 @@ ICON_ITEMS = {**{k: (v[0], (lambda rows=v[1], o=v[2]: grid(rows, o))) for k, v i
 
 def build():
     files["pack.mcmeta"] = json.dumps({"pack": {
-        "description": "§6Vigil owner pack §7(tools and power sounds)",
+        "description": "§6Vigil §7(items, sounds and secret places)",
         "pack_format": 46, "supported_formats": [46, 1000], "min_format": 46, "max_format": 1000}}, indent=2).encode()
     files["pack.png"] = png(pack_icon())
     by_base = {}
@@ -875,6 +1148,14 @@ def build():
         files[f"assets/vigil/models/item/{name}.json"] = json.dumps(
             {"parent": "minecraft:block/cube_all", "textures": {"all": f"vigil:item/{name}"}}, indent=2).encode()
         by_base.setdefault(base, []).append(name)
+    for name, (base, draw, parent) in SECRET.items():
+        files[f"assets/vigil/textures/item/{name}.png"] = png(draw())
+        files[f"assets/vigil/models/item/{name}.json"] = json.dumps(
+            {"parent": parent, "textures": {"layer0": f"vigil:item/{name}"}}, indent=2).encode()
+        by_base.setdefault(base, []).append(name)
+    files["assets/vigil/textures/item/grappling_hook_cast.png"] = png(grappling_hook(True))
+    files["assets/vigil/models/item/grappling_hook_cast.json"] = json.dumps(
+        {"parent": "minecraft:item/handheld_rod", "textures": {"layer0": "vigil:item/grappling_hook_cast"}}, indent=2).encode()
     for icon, (base, draw) in {**ICON_ITEMS, **FLAT}.items():
         files[f"assets/vigil/textures/item/{icon}.png"] = png(draw())
         files[f"assets/vigil/models/item/{icon}.json"] = json.dumps(
@@ -883,7 +1164,7 @@ def build():
     for base, tools in by_base.items():
         files[f"assets/minecraft/items/{base}.json"] = json.dumps({"model": {
             "type": "minecraft:select", "property": "minecraft:custom_model_data", "index": 0,
-            "cases": [{"when": f"vigil:{tl}", "model": {"type": "minecraft:model", "model": f"vigil:item/{tl}"}} for tl in tools],
+            "cases": [{"when": f"vigil:{tl}", "model": CASE_MODELS.get(tl, {"type": "minecraft:model", "model": f"vigil:item/{tl}"})} for tl in tools],
             "fallback": FALLBACK.get(base, {"type": "minecraft:model", "model": f"minecraft:item/{base}"})}}, indent=2).encode()
     sounds = {}
     for name, fn in SOUNDS.items():

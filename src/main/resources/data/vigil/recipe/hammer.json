@@ -1,0 +1,68 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "BBB",
+    " S ",
+    " S "
+  ],
+  "key": {
+    "B": "minecraft:iron_block",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "minecraft:iron_pickaxe",
+    "count": 1,
+    "components": {
+      "minecraft:item_name": {
+        "text": "Hammer",
+        "color": "#E0E0E0"
+      },
+      "minecraft:lore": [
+        {
+          "text": "Mines 3×3 (sneak to mine one block)",
+          "color": "gray",
+          "italic": false
+        },
+        {
+          "text": "A little slower than a pickaxe",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:hammer"
+        ]
+      },
+      "minecraft:use_cooldown": {
+        "seconds": 0.05,
+        "cooldown_group": "vigil:hammer"
+      },
+      "minecraft:rarity": "uncommon",
+      "minecraft:attribute_modifiers": [
+        {
+          "type": "minecraft:attack_damage",
+          "id": "minecraft:base_attack_damage",
+          "amount": 3.0,
+          "operation": "add_value",
+          "slot": "mainhand"
+        },
+        {
+          "type": "minecraft:attack_speed",
+          "id": "minecraft:base_attack_speed",
+          "amount": -2.8,
+          "operation": "add_value",
+          "slot": "mainhand"
+        },
+        {
+          "type": "minecraft:block_break_speed",
+          "id": "vigil:hammer_weight",
+          "amount": -0.35,
+          "operation": "add_multiplied_total",
+          "slot": "mainhand"
+        }
+      ]
+    }
+  }
+}

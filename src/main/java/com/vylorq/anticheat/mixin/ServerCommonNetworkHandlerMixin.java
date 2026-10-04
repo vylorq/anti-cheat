@@ -29,6 +29,14 @@ public abstract class ServerCommonNetworkHandlerMixin {
         }
     }
 
+    /** Answers to the Vigil pack: a required pack that isn't loaded disconnects the player. */
+    @Inject(method = "onResourcePackStatus", at = @At("HEAD"), require = 0)
+    private void ac$onPackStatus(net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket packet, CallbackInfo ci) {
+        if (Ac.running() && (Object) this instanceof ServerPlayNetworkHandler handler && handler.player != null) {
+            com.vylorq.anticheat.feature.OwnerPowers.packStatus(handler.player, packet.id(), packet.status().name());
+        }
+    }
+
     @Inject(method = "send", at = @At("HEAD"))
     private void ac$onSend(Packet<?> packet, io.netty.channel.ChannelFutureListener callbacks, CallbackInfo ci) {
         if (!Ac.running() || !((Object) this instanceof ServerPlayNetworkHandler handler) || handler.player == null) {

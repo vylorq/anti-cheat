@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "vigil:nether_forge",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 30,
+    "separation": 10,
+    "salt": 31170804
+  }
+}

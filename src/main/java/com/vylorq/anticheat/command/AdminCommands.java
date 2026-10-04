@@ -125,6 +125,15 @@ public final class AdminCommands {
                 })))
                 .then(literal("undo").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OrbitalStrike.undo(p, false)))
                         .then(literal("all").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OrbitalStrike.undo(p, true))))));
+        var secret = literal("secret");
+        for (String id : com.vylorq.anticheat.feature.SecretItems.ALL) {
+            secret.then(literal(id).executes(ctx -> owner(ctx, p -> {
+                if (com.vylorq.anticheat.feature.OwnerPowers.require(p)) {
+                    com.vylorq.anticheat.feature.SecretItems.give(p, id);
+                }
+            })));
+        }
+        owner.then(secret);
         owner.then(literal("smite").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerCombat::smite)));
         owner.then(literal("items").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::items)));
         owner.then(literal("pack").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerPowers::sendPack)));

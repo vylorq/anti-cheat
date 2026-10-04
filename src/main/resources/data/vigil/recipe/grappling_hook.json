@@ -1,0 +1,51 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " T ",
+    "IFI",
+    " I "
+  ],
+  "key": {
+    "T": "minecraft:tripwire_hook",
+    "I": "minecraft:iron_ingot",
+    "F": "minecraft:fishing_rod"
+  },
+  "result": {
+    "id": "minecraft:fishing_rod",
+    "count": 1,
+    "components": {
+      "minecraft:item_name": {
+        "text": "Grappling Hook",
+        "color": "#C0C8D0"
+      },
+      "minecraft:lore": [
+        {
+          "text": "Cast at a block, then reel in",
+          "color": "gray",
+          "italic": false
+        },
+        {
+          "text": "to pull yourself there",
+          "color": "gray",
+          "italic": false
+        },
+        {
+          "text": "(every 3 seconds)",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:grappling_hook"
+        ]
+      },
+      "minecraft:use_cooldown": {
+        "seconds": 0.05,
+        "cooldown_group": "vigil:grappling_hook"
+      },
+      "minecraft:rarity": "uncommon"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "R R",
+    "I I",
+    "III"
+  ],
+  "key": {
+    "R": "minecraft:redstone",
+    "I": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "minecraft:iron_nugget",
+    "count": 1,
+    "components": {
+      "minecraft:item_name": {
+        "text": "Magnet Charm",
+        "color": "#FF6060"
+      },
+      "minecraft:lore": [
+        {
+          "text": "Right-click: on / off",
+          "color": "gray",
+          "italic": false
+        },
+        {
+          "text": "Hotbar or off hand: pulls in dropped items",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:magnet_charm"
+        ]
+      },
+      "minecraft:use_cooldown": {
+        "seconds": 0.05,
+        "cooldown_group": "vigil:magnet_charm"
+      },
+      "minecraft:rarity": "uncommon",
+      "minecraft:max_stack_size": 1
+    }
+  }
+}

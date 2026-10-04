@@ -2556,5 +2556,19 @@
   "orbital.cancelled": "§7Cancelled. {0} TNT removed.",
   "orbital.miss": "Too far: look at the ground within 300 blocks.",
   "orbital.fired": "Strike locked: {0} TNT at {1}",
-  "orbital.done": "Strike finished ({0} TNT). /owner orbital undo puts it all back."
+  "orbital.done": "Strike finished ({0} TNT). /owner orbital undo puts it all back.",
+  "secret.cooldown": "Still recharging...",
+  "secret.tide-hit": "The wave pushed back {0}",
+  "secret.phoenix-saved": "§6🔥 The Phoenix Feather burned away and saved your life!",
+  "secret.shadow-on": "You fade into the shadows...",
+  "secret.shadow-off": "You're visible again.",
+  "secret.seeker-none": "§7The compass finds nothing nearby. Try somewhere else (it isn't used up).",
+  "secret.seeker-found": "§b✦ The Seeker Compass locks on: a secret place about {0} blocks away.",
+  "secret.magnet-on": "Magnet: on",
+  "secret.magnet-off": "Magnet: off",
+  "secret.in-fight": "You were just in a fight. Wait a few seconds.",
+  "secret.backpack-main-hand": "Hold the backpack in your main hand to open it.",
+  "pack.prompt": "Vigil needs its pack for the custom items, sounds and secret places. It's required to play here.",
+  "pack.declined": "You need the Vigil pack to play on this server. Rejoin and press \"Yes\".",
+  "pack.failed": "The Vigil pack didn't download. Please rejoin to try again."
 }

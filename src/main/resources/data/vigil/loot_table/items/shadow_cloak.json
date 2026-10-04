@@ -1,0 +1,54 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:phantom_membrane",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Shadow Cloak",
+                  "color": "#8A73B0"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "Off hand: sneak still for 3 seconds to vanish",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "Ends when you attack or get hurt (20s at most)",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "(45 seconds to recharge)",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:shadow_cloak"
+                  ]
+                },
+                "minecraft:use_cooldown": {
+                  "seconds": 0.05,
+                  "cooldown_group": "vigil:shadow_cloak"
+                },
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true,
+                "minecraft:max_stack_size": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:trident",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Tidecaller",
+                  "color": "#3FA8FF"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "Sneak + right-click: a wave pushes",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "everything in front of you back",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "(every 15 seconds)",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:tidecaller"
+                  ]
+                },
+                "minecraft:use_cooldown": {
+                  "seconds": 0.05,
+                  "cooldown_group": "vigil:tidecaller"
+                },
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
