@@ -2409,5 +2409,14 @@
   "owner.healed": "تم علاج {0}",
   "owner.healed-near": "تم علاج {0} لاعب قربك",
   "owner.lightning-real": "البرق: حقيقي (يؤذي ويحرق)",
-  "owner.lightning-harmless": "البرق: غير مؤذٍ (للعرض فقط)"
+  "owner.lightning-harmless": "البرق: غير مؤذٍ (للعرض فقط)",
+  "owner.freeze": "عصا التجميد",
+  "owner.freeze.desc": "انقر يميناً بها: كل لاعب داخل الدائرة يتجمد. انقر مع الانحناء: إذابتهم. تظهر الدائرة على الأرض وأنت تمسكها.",
+  "owner.freeze-radius": "دائرة التجميد: {0} كتلة حولك",
+  "owner.freeze-radius-set": "تم ضبط دائرة التجميد على {0} كتلة حولك.",
+  "owner.bigger": "أكبر بـ 5 كتل",
+  "owner.smaller": "أصغر بـ 5 كتل",
+  "owner.type-number": "اكتب الحجم",
+  "owner.froze": "تم تجميد {0} لاعب ضمن {1} كتلة",
+  "owner.thawed": "تمت إذابة {0} لاعب"
 }

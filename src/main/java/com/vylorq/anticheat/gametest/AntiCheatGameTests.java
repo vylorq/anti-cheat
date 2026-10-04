@@ -112,6 +112,19 @@ public final class AntiCheatGameTests {
             com.vylorq.anticheat.feature.OwnerTools.confiscate(other);
             check(other.getInventory().getStack(0).isEmpty(), "someone else kept an owner tool");
 
+            // Freeze wand: only players inside the circle.
+            var near = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "NearOne"));
+            var far = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "FarOne"));
+            owner.refreshPositionAndAngles(100, 100, 100, 0, 0);
+            near.refreshPositionAndAngles(106, 100, 100, 0, 0);
+            far.refreshPositionAndAngles(130, 100, 100, 0, 0);
+            com.vylorq.anticheat.feature.OwnerPowers.setFreezeRadius(owner, 10);
+            var inside = com.vylorq.anticheat.feature.OwnerTools.inCircle(owner, java.util.List.of(owner, near, far), 10);
+            check(inside.size() == 1 && inside.get(0) == near, "the freeze circle picked the wrong players: " + inside.size());
+            check(com.vylorq.anticheat.feature.OwnerTools.inCircle(owner, java.util.List.of(near, far), 40).size() == 2, "a 40-block circle missed someone");
+            check(com.vylorq.anticheat.feature.OwnerTools.freezeWand().get(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA) != null,
+                    "no custom model on the freeze wand");
+
             // Repair
             var sword = new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD);
             sword.setDamage(500);

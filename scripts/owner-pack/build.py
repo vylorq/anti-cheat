@@ -97,6 +97,119 @@ def heal_wand():
     return img
 
 
+
+PAL = {"K": "#1b1726", "W": "#f4f7ff", "L": "#a9d8ff", "Y": "#ffd23f", "O": "#e8a628", "R": "#ff3d63",
+       "G": "#5dff7a", "D": "#1f8a3a", "S": "#b9bfcc", "N": "#6b4220", "B": "#3d7bff", "C": "#7fe7ff",
+       "M": "#d65cff", "P": "#9b6bff", "T": "#c8823c"}
+
+
+def grid(rows, outline=True):
+    img = canvas()
+    px = img.load()
+    for y, row in enumerate(rows):
+        for x, ch in enumerate(row):
+            if ch != ".":
+                px[x, y] = hexc(PAL[ch])
+    if outline:
+        solid = [(x, y) for y in range(16) for x in range(16) if px[x, y][3] > 0 and px[x, y][:3] != hexc(PAL["K"])[:3]]
+        for x, y in solid:
+            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < 16 and 0 <= ny < 16 and px[nx, ny][3] == 0:
+                    px[nx, ny] = hexc("#1b1726", 200)
+    return img
+
+
+def pad(rows):
+    rows = [r.ljust(16, ".")[:16] for r in rows]
+    return rows + ["." * 16] * (16 - len(rows))
+
+
+ICONS = {
+    "icon_fly": ("feather", pad([
+        "................", "................", ".KK..........KK.", "KWWK........KWWK", "KWWWK......KWWWK", "KLWWWK....KWWWLK",
+        ".KLWWWK..KWWWLK.", ".KLLWWWKKWWWLLK.", "..KLLWWWWWWLLK..", "..KLLLWWWWLLLK..", "...KLLLWWLLLK...",
+        "....KKLLLLKK....", "......KKKK......"]), False),
+    "icon_god": ("totem_of_undying", pad([
+        "................", "....YYYYYYYY....", "...Y........Y...", "....YYYYYYYY....", "................",
+        "..O....OO....O..", "..OO..OOOO..OO..", "..OOOOOOOOOOOO..", "..OYOOORROOOYO..", "..OOOOOOOOOOOO..",
+        "..OOOOOOOOOOOO.."]), True),
+    "icon_speed": ("sugar", pad([
+        "................", ".........YYY....", "........YYY.....", ".......YYY......", ".SS...YYYYYYY...",
+        "......YYYYYY....", ".SSS.....YYY....", "........YYY.....", ".SS....YYY......", "......YY........",
+        ".....Y.........."]), True),
+    "icon_night": ("ender_eye", pad([
+        "................", "................", "................", "................", ".....WWWWWW.....",
+        "...WWWWGGWWWW...", "..WWWGGGGGGWWW..", ".WWWGGDKKDGGWWW.", ".WWWGGDKKDGGWWW.", "..WWWGGGGGGWWW..",
+        "...WWWWGGWWWW...", ".....WWWWWW....."]), True),
+    "icon_break": ("flint", pad([
+        "................", "...SSSSSSS......", "..SS.....SS.....", ".S.....N...S....", ".......N........",
+        "........N.......", ".........N......", "..........N.....", "...........N....", "............N...",
+        "......Y......N..", "....Y.Y.Y.......", ".....YYY........", "....YYRYY.......", ".....YYY........",
+        "......Y........."]), True),
+    "icon_radar": ("amethyst_shard", pad([
+        "................", ".....GGGGGG.....", "...GG......GG...", "..G..........G..", ".G....DDDD....G.",
+        ".G...D....D...G.", "G...D......D...G", "G...D..GG..D.R.G", "G...D..GGG.D...G", "G...D......D...G",
+        ".G...D....D...G.", ".G..R.DDDD....G.", "..G..........G..", "...GG......GG...", ".....GGGGGG....."]), False),
+    "icon_ghost": ("phantom_membrane", pad([
+        "................", "................", ".....WWWWWW.....", "....WWWWWWWW....", "...WWWWWWWWWW...",
+        "...WWKKWWKKWW...", "...WWKKWWKKWW...", "...WWWWWWWWWW...", "...WWWWKKWWWW...", "...WWWWWWWWWW...",
+        "...LWWWWWWWWL...", "...WW.WWWW.WW...", "...W...WW...W..."]), True),
+    "icon_repair": ("iron_nugget", pad([
+        "................", "................", "...SSSSSS.......", "..SSSSSSSS......", "..SSSSSSSS..Y...",
+        "...SSSSSS..YYY..", ".....NN.....Y...", "......NN........", ".......NN.......", "........NN......",
+        ".........NN.....", "..........NN....", "...........NN..."]), True),
+    "icon_items": ("paper", pad([
+        "................", "....Y......Y....", "...YYY....YYY...", "....Y......Y....", "..NNNNNNNNNNNN..",
+        "..NTTTTTTTTTTN..", "..NTTTTTTTTTTN..", "..NNNNNYYNNNNN..", "..NTTTTYYTTTTN..", "..NTTTTTTTTTTN..",
+        "..NTTTTTTTTTTN..", "..NNNNNNNNNNNN.."]), True),
+}
+
+
+def star_icon():
+    img = canvas()
+    px = img.load()
+    cx, cy = 7, 7
+    for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)]:
+        n = 6 if dx == 0 or dy == 0 else 4
+        for i in range(1, n + 1):
+            px[cx + dx * i, cy + dy * i] = hexc(PAL["Y"])
+        px[cx + dx * n, cy + dy * n] = hexc(PAL["R"] if (dx + dy) % 2 else PAL["M"])
+    px[cx, cy] = hexc(PAL["O"])
+    for (x, y) in [(2, 12), (13, 2), (12, 13)]:
+        px[x, y] = hexc(PAL["C"])
+    return img
+
+
+def palette_icon():
+    img = canvas()
+    d = ImageDraw.Draw(img)
+    d.ellipse([1, 3, 14, 13], fill=hexc("#c8823c"), outline=hexc("#6b4220"))
+    px = img.load()
+    for (x, y), c in zip([(4, 6), (7, 5), (10, 6), (5, 9), (11, 9)], ["R", "Y", "G", "B", "M"]):
+        px[x, y] = hexc(PAL[c])
+        px[x + 1, y] = hexc(PAL[c])
+    px[8, 10] = (0, 0, 0, 0)
+    px[9, 10] = (0, 0, 0, 0)
+    return img
+
+
+def freeze_wand():
+    img = canvas()
+    px = img.load()
+    rod(img, 1, 14, 8, 7, hexc("#bdefff"), hexc("#ffffff"), hexc("#4aa6c8"))
+    flake = [(12, y) for y in range(0, 7)] + [(x, 3) for x in range(9, 16)] + \
+            [(10, 1), (11, 2), (13, 4), (14, 5), (14, 1), (13, 2), (11, 4), (10, 5)]
+    for (x, y) in flake:
+        px[x, y] = hexc("#d6f6ff")
+    px[12, 3] = hexc("#ffffff")
+    for (x, y) in [(12, 0), (12, 6), (9, 3), (15, 3)]:
+        px[x, y] = hexc("#7fe7ff")
+    for (x, y) in [(15, 7), (8, 1), (5, 5)]:
+        px[x, y] = hexc("#e6fdff", 170)
+    return img
+
+
 def pack_icon():
     img = Image.new("RGBA", (64, 64), hexc("#14101f"))
     d = ImageDraw.Draw(img)
@@ -235,12 +348,75 @@ def s_owner_join():
     return wet
 
 
-SOUNDS = {"power_on": s_power_on, "power_off": s_power_off, "zap": s_zap, "mode": s_mode, "launch": s_launch,
-          "heal": s_heal, "repair": s_repair, "give": s_give, "owner_join": s_owner_join}
+
+
+def glide(f0, f1, sec, vib=0.0, rate=6.0):
+    tt = t(sec)
+    f = np.linspace(f0, f1, len(tt)) * (1 + vib * np.sin(2 * np.pi * rate * tt))
+    return np.sin(2 * np.pi * np.cumsum(f) / SR)
+
+
+def echo(x, delay, fb, n=3):
+    out = np.concatenate([x, np.zeros(int(SR * delay * n))])
+    d = int(SR * delay)
+    for k in range(1, n + 1):
+        out[k * d:k * d + len(x)] += x * (fb ** k)
+    return out
+
+
+def hp(x):
+    return np.diff(x, prepend=0)
+
+
+def chord(freqs, sec, attack=0.15, vib=0.004):
+    tt = t(sec)
+    x = sum(np.sin(2 * np.pi * f * (1 + vib * np.sin(2 * np.pi * 5 * tt)) * tt) + 0.3 * np.sin(4 * np.pi * f * tt) for f in freqs)
+    return env(x, attack, sec * 0.5)
+
+
+def whoosh(sec, up=True):
+    n = rng.standard_normal(int(SR * sec))
+    shape = np.linspace(0, 1, len(n)) if up else np.linspace(1, 0, len(n))
+    return lowpass(n, 12) * np.sin(np.pi * np.linspace(0, 1, len(n))) * (0.4 + shape)
+
+
+SOUNDS2 = {
+    "fly_on": lambda: mix(0.8, [(0, env(whoosh(0.6, True) * 3, 0.05, 0.2)), (0.25, 0.5 * bell(1568, 0.5, 6))]),
+    "fly_off": lambda: env(whoosh(0.5, False) * 3, 0.02, 0.2),
+    "god_on": lambda: mix(1.4, [(0, chord([523.25, 659.25, 783.99, 1046.5], 1.2)), (0.3, 0.4 * bell(2093, 1.0, 3))]),
+    "god_off": lambda: env(chord([523.25, 659.25, 783.99], 0.8) * np.linspace(1, 0.2, int(SR * 0.8)), 0.05, 0.4),
+    "speed_on": lambda: mix(0.35, [(0, env(sweep(300, 2400, 0.18), 0.005, 0.05)), (0.18, 0.5 * bell(2400, 0.15, 20))]),
+    "speed_off": lambda: env(sweep(2400, 300, 0.2), 0.005, 0.06),
+    "night_on": lambda: mix(1.1, [(0, chord([220, 261.63, 329.63], 1.0, 0.35)), (0.4, 0.3 * bell(1760, 0.6, 5))]),
+    "night_off": lambda: env(chord([329.63, 261.63, 220], 0.7, 0.05) * np.linspace(1, 0, int(SR * 0.7)), 0.02, 0.3),
+    "break_on": lambda: mix(0.6, [(0, env(hp(rng.standard_normal(int(SR * 0.12))) * np.exp(-t(0.12) * 30), 0.001, 0.05)),
+                                  (0.08, 0.6 * bell(2200, 0.45, 8))]),
+    "break_off": lambda: env(np.sin(2 * np.pi * 80 * t(0.3)) * np.exp(-t(0.3) * 12) * 2
+                             + lowpass(rng.standard_normal(int(SR * 0.3)), 30) * np.exp(-t(0.3) * 15), 0.002, 0.1),
+    "radar_on": lambda: echo(env(np.sin(2 * np.pi * 1100 * t(0.25)) * np.exp(-t(0.25) * 10), 0.002, 0.05), 0.22, 0.45, 3),
+    "radar_off": lambda: mix(0.35, [(0, env(np.sin(2 * np.pi * 900 * t(0.08)), 0.003, 0.03)),
+                                    (0.12, env(np.sin(2 * np.pi * 600 * t(0.1)), 0.003, 0.04))]),
+    "radar_ping": lambda: 0.45 * echo(env(np.sin(2 * np.pi * 1300 * t(0.15)) * np.exp(-t(0.15) * 18), 0.002, 0.03), 0.18, 0.35, 2),
+    "ghost_on": lambda: echo(env(glide(300, 700, 0.9, 0.03), 0.15, 0.3), 0.15, 0.4, 3),
+    "ghost_off": lambda: echo(env(glide(700, 250, 0.7, 0.03), 0.05, 0.3), 0.15, 0.35, 2),
+    "freeze": lambda: mix(1.2, [(rng.uniform(0, 0.45), 0.35 * bell(rng.uniform(2000, 5000), 0.6, 8)) for _ in range(14)]
+                          + [(0, 0.6 * hp(rng.standard_normal(int(SR * 0.9))) * np.exp(-t(0.9) * 5)),
+                             (0, 0.8 * hp(rng.standard_normal(int(SR * 0.08))) * np.exp(-t(0.08) * 40))]),
+    "thaw": lambda: mix(1.0, [(k * 0.14, 0.6 * env(glide(1300 - k * 80, 600, 0.1), 0.002, 0.05)) for k in range(6)]
+                        + [(0, 0.25 * lowpass(rng.standard_normal(int(SR * 0.9)), 6) * np.exp(-t(0.9) * 3))]),
+    "insta": lambda: mix(0.2, [(0, env(hp(rng.standard_normal(int(SR * 0.07))) * np.exp(-t(0.07) * 50), 0.001, 0.03)),
+                               (0, 0.4 * env(np.sin(2 * np.pi * 3000 * t(0.05)), 0.001, 0.03))]),
+}
+
+SOUNDS = {"zap": s_zap, "mode": s_mode, "launch": s_launch,
+          "heal": s_heal, "repair": s_repair, "give": s_give, "owner_join": s_owner_join, **SOUNDS2}
 
 # ------------------------------------------------------------------ pack
 
-TOOLS = {"lightning_wand": ("blaze_rod", lightning_wand), "launch_stick": ("stick", launch_stick), "heal_wand": ("ghast_tear", heal_wand)}
+TOOLS = {"lightning_wand": ("blaze_rod", lightning_wand), "launch_stick": ("stick", launch_stick), "heal_wand": ("ghast_tear", heal_wand),
+         "freeze_wand": ("prismarine_shard", freeze_wand)}
+ICON_ITEMS = {**{k: (v[0], (lambda rows=v[1], o=v[2]: grid(rows, o))) for k, v in ICONS.items()},
+              "icon_join": ("nether_star", star_icon), "icon_pack": ("painting", palette_icon)}
 
 
 def build():
@@ -254,6 +430,11 @@ def build():
         files[f"assets/vigil/models/item/{tool}.json"] = json.dumps(
             {"parent": "minecraft:item/handheld", "textures": {"layer0": f"vigil:item/{tool}"}}, indent=2).encode()
         by_base.setdefault(base, []).append(tool)
+    for icon, (base, draw) in ICON_ITEMS.items():
+        files[f"assets/vigil/textures/item/{icon}.png"] = png(draw())
+        files[f"assets/vigil/models/item/{icon}.json"] = json.dumps(
+            {"parent": "minecraft:item/generated", "textures": {"layer0": f"vigil:item/{icon}"}}, indent=2).encode()
+        by_base.setdefault(base, []).append(icon)
     for base, tools in by_base.items():
         files[f"assets/minecraft/items/{base}.json"] = json.dumps({"model": {
             "type": "minecraft:select", "property": "minecraft:custom_model_data", "index": 0,

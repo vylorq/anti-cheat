@@ -1,18 +1,4 @@
 {
-  "power_on": {
-    "sounds": [
-      {
-        "name": "vigil:power_on"
-      }
-    ]
-  },
-  "power_off": {
-    "sounds": [
-      {
-        "name": "vigil:power_off"
-      }
-    ]
-  },
   "zap": {
     "sounds": [
       {
@@ -59,6 +45,132 @@
     "sounds": [
       {
         "name": "vigil:owner_join"
+      }
+    ]
+  },
+  "fly_on": {
+    "sounds": [
+      {
+        "name": "vigil:fly_on"
+      }
+    ]
+  },
+  "fly_off": {
+    "sounds": [
+      {
+        "name": "vigil:fly_off"
+      }
+    ]
+  },
+  "god_on": {
+    "sounds": [
+      {
+        "name": "vigil:god_on"
+      }
+    ]
+  },
+  "god_off": {
+    "sounds": [
+      {
+        "name": "vigil:god_off"
+      }
+    ]
+  },
+  "speed_on": {
+    "sounds": [
+      {
+        "name": "vigil:speed_on"
+      }
+    ]
+  },
+  "speed_off": {
+    "sounds": [
+      {
+        "name": "vigil:speed_off"
+      }
+    ]
+  },
+  "night_on": {
+    "sounds": [
+      {
+        "name": "vigil:night_on"
+      }
+    ]
+  },
+  "night_off": {
+    "sounds": [
+      {
+        "name": "vigil:night_off"
+      }
+    ]
+  },
+  "break_on": {
+    "sounds": [
+      {
+        "name": "vigil:break_on"
+      }
+    ]
+  },
+  "break_off": {
+    "sounds": [
+      {
+        "name": "vigil:break_off"
+      }
+    ]
+  },
+  "radar_on": {
+    "sounds": [
+      {
+        "name": "vigil:radar_on"
+      }
+    ]
+  },
+  "radar_off": {
+    "sounds": [
+      {
+        "name": "vigil:radar_off"
+      }
+    ]
+  },
+  "radar_ping": {
+    "sounds": [
+      {
+        "name": "vigil:radar_ping"
+      }
+    ]
+  },
+  "ghost_on": {
+    "sounds": [
+      {
+        "name": "vigil:ghost_on"
+      }
+    ]
+  },
+  "ghost_off": {
+    "sounds": [
+      {
+        "name": "vigil:ghost_off"
+      }
+    ]
+  },
+  "freeze": {
+    "sounds": [
+      {
+        "name": "vigil:freeze"
+      }
+    ]
+  },
+  "thaw": {
+    "sounds": [
+      {
+        "name": "vigil:thaw"
+      }
+    ]
+  },
+  "insta": {
+    "sounds": [
+      {
+        "name": "vigil:insta"
       }
     ]
   }

@@ -61,6 +61,10 @@ public final class OwnerPowers {
         public boolean realLightning;
         /** normal, grand or silent. */
         public String joinStyle = "normal";
+        /** Freeze wand: how far the circle reaches (blocks from the owner). */
+        public int freezeRadius = 10;
+        /** Players the freeze wand froze (so thawing only lets those go). */
+        public java.util.Set<String> wandFrozen = new java.util.HashSet<>();
     }
 
     public static final class Ghost {
@@ -93,6 +97,12 @@ public final class OwnerPowers {
             }
             if (state == null) {
                 state = new State();
+            }
+            if (state.wandFrozen == null) {
+                state.wandFrozen = new java.util.HashSet<>();
+            }
+            if (state.freezeRadius <= 0) {
+                state.freezeRadius = 10;
             }
         }
         return state;
@@ -193,7 +203,7 @@ public final class OwnerPowers {
             name += s.speed > 0 ? " " + s.speed : "";
         }
         Msg.send(p, now ? "owner.on" : "owner.off", name);
-        sfx(p, now ? "power_on" : "power_off", now ? SoundEvents.BLOCK_BEACON_ACTIVATE : SoundEvents.BLOCK_BEACON_DEACTIVATE, now ? 1.4f : 1.2f);
+        OwnerFx.powerSound(p, power, now);
         ServerWorld w = p.getEntityWorld();
         w.spawnParticles(now ? ParticleTypes.END_ROD : ParticleTypes.SMOKE, p.getX(), p.getY() + 1, p.getZ(), 24, 0.4, 0.6, 0.4, 0.05);
         Staff.log(p, "owner-power", p.getUuid(), p.getGameProfile().name(), power.name().toLowerCase() + (now ? " on" : " off"));
@@ -207,7 +217,7 @@ public final class OwnerPowers {
         save();
         apply(p);
         Msg.send(p, level > 0 ? "owner.on" : "owner.off", Msg.trFor(p, "owner.power.speed") + (level > 0 ? " " + level : ""));
-        sfx(p, level > 0 ? "power_on" : "power_off", SoundEvents.BLOCK_BEACON_POWER_SELECT, 1.5f);
+        OwnerFx.powerSound(p, Power.SPEED, level > 0);
     }
 
     private static boolean ghost(ServerPlayerEntity p) {
@@ -438,6 +448,16 @@ public final class OwnerPowers {
                 w.spawnParticles(ParticleTypes.END_ROD, p.getX(), p.getY() + 1, p.getZ(), 60, 1.2, 1.2, 1.2, 0.05);
             });
         }
+    }
+
+    public static void setFreezeRadius(ServerPlayerEntity p, int radius) {
+        if (!require(p)) {
+            return;
+        }
+        state().freezeRadius = Math.max(1, Math.min(100, radius));
+        save();
+        Msg.send(p, "owner.freeze-radius-set", state().freezeRadius);
+        sfx(p, "mode", SoundEvents.BLOCK_NOTE_BLOCK_CHIME.value(), 1.4f);
     }
 
     public static void setJoinStyle(ServerPlayerEntity p, String style) {
