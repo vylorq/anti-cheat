@@ -1,0 +1,20 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "vigil:icon_steal",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/icon_steal"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/red_dye"
+    }
+  }
+}

@@ -45,7 +45,7 @@ public final class OwnerTools {
     public static final String FREEZE = "freeze_wand";
     public static final String JUDGE = "judge_gavel";
 
-    private static ItemStack make(Item base, String id, String name, String... lore) {
+    static ItemStack make(Item base, String id, String name, String... lore) {
         ItemStack s = Icons.glint(Icons.of(base, name, lore));
         ItemConv.setTag(s, KEY, id);
         s.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(List.of(), List.of(), List.of("vigil:" + id), List.of()));
@@ -228,8 +228,7 @@ public final class OwnerTools {
                 }
                 OwnerPowers.sfx(p, "heal", SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 1.2f);
             }
-            default -> {
-            }
+            default -> OwnerCombat.use(p, tool);
         }
         return true;
     }
@@ -268,10 +267,10 @@ public final class OwnerTools {
         if (!OwnerPowers.require(p)) {
             return true;
         }
-        if (!LAUNCH.equals(tool)) {
+        OwnerPowers.usedTool();
+        if (OwnerCombat.attack(p, tool, target) || !LAUNCH.equals(tool)) {
             return true;
         }
-        OwnerPowers.usedTool();
         ServerWorld w = p.getEntityWorld();
         Vec3d v;
         if (p.isSneaking()) {

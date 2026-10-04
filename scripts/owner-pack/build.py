@@ -250,6 +250,261 @@ def judge_gavel():
     return img
 
 
+# ------------------------------------------------------------------ combat weapons
+
+def outline(img, color="#1b1209", alpha=255):
+    px = img.load()
+    solid = [(x, y) for y in range(img.height) for x in range(img.width) if px[x, y][3] == 255]
+    for x, y in solid:
+        for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < img.width and 0 <= ny < img.height and px[nx, ny][3] == 0:
+                px[nx, ny] = hexc(color, alpha)
+    return img
+
+
+def thor_hammer():
+    """Mjolnir on the 45-degree grid: a wide steel head with a glowing rune, a leather-wrapped handle and a strap loop."""
+    img = canvas()
+    px = img.load()
+    for x in range(2, 9):
+        px[x, 15 - x] = hexc("#8a5a33" if x % 2 else "#5e3b1f")
+        px[x, 16 - x] = hexc("#3d2412")
+    for (x, y) in [(0, 14), (0, 15), (1, 15), (1, 13)]:
+        px[x, y] = hexc("#6b4423")
+    px[1, 14] = hexc("#c8a060")
+    steel = {10: "#f2f6fa", 9: "#d5dde6", 8: "#b8c3cf", 7: "#9aa7b5", 6: "#7c8999", 5: "#5f6b7a", 4: "#465160"}
+    for y in range(16):
+        for x in range(16):
+            c, a_ = x - y, x + y
+            if not (4 <= c <= 10 and 9 <= a_ <= 21):
+                continue
+            if a_ in (9, 21) and c in (4, 10):
+                continue
+            col = steel[c]
+            if a_ in (9, 10, 20, 21):
+                col = steel[min(10, c + 1)] if c < 10 else "#ffffff"
+            px[x, y] = hexc(col)
+    # The rune: a glowing blue mark in the middle of the face.
+    for (x, y) in [(10, 3), (11, 4), (12, 5), (11, 3), (12, 4)]:
+        px[x, y] = hexc("#7fe0ff")
+    px[11, 4] = hexc("#ffffff")
+    outline(img, "#141a24")
+    for (x, y) in [(15, 0), (14, 9), (5, 1)]:
+        px[x, y] = hexc("#9fe8ff", 200)
+    return img
+
+
+def flame_sword():
+    img = canvas()
+    px = img.load()
+    for x in range(6, 15):
+        px[x, 15 - x] = hexc("#fff3b0")
+        px[x, 14 - x] = hexc("#ffb02e")
+        if x + 1 < 16:
+            px[x + 1, 15 - x] = hexc("#e2461b")
+    px[15, 0] = hexc("#fff8d0")
+    for (x, y) in [(3, 8), (4, 9), (5, 10), (6, 11), (7, 12)]:
+        px[x, y] = hexc("#f2c94c")
+    px[5, 10] = hexc("#ff3d1f")
+    for x in range(2, 5):
+        px[x, 15 - x] = hexc("#5a2a12" if x % 2 else "#7a3d1b")
+    px[1, 14] = hexc("#ff7a1a")
+    px[0, 15] = hexc("#b0200c")
+    px[1, 15] = hexc("#b0200c")
+    px[0, 14] = hexc("#b0200c")
+    outline(img, "#2a0d05")
+    for (x, y, c, a) in [(9, 3, "#ffb02e", 220), (11, 1, "#ffd84a", 200), (7, 5, "#ff7a1a", 180), (13, 4, "#ff7a1a", 170),
+                         (12, 0, "#ffe9a0", 150), (5, 7, "#ffb02e", 140)]:
+        if px[x, y][3] == 0:
+            px[x, y] = hexc(c, a)
+    return img
+
+
+def bow_art(limb, limb_light, grip, string, tip, glow):
+    img = canvas()
+    px = img.load()
+    p0, p1, p2 = np.array([2.5, 1.5]), np.array([15.5, -0.5]), np.array([13.5, 12.5])
+    pts = []
+    for i in range(200):
+        tt = i / 199
+        q = (1 - tt) ** 2 * p0 + 2 * (1 - tt) * tt * p1 + tt * tt * p2
+        pts.append((int(q[0]), int(q[1]), tt))
+    for (x, y, tt) in pts:
+        if 0 <= x < 16 and 0 <= y < 16:
+            px[x, y] = hexc(grip if 0.42 < tt < 0.58 else limb)
+    for (x, y, tt) in pts:
+        if 0 <= x - 1 < 16 and 0 <= y < 16 and px[x - 1, y][3] == 0 and not (0.42 < tt < 0.58):
+            px[x - 1, y] = hexc(limb_light)
+    for i in range(11):
+        x, y = 3 + i, 2 + i
+        if px[x, y][3] == 0:
+            px[x, y] = hexc(string, 230)
+    for (x, y) in [(2, 1), (13, 12)]:
+        px[x, y] = hexc(tip)
+    outline(img, "#10141c")
+    for (x, y) in glow:
+        px[x, y] = hexc(tip, 190)
+    return img
+
+
+def frost_bow():
+    return bow_art("#8fdcf5", "#e8fbff", "#3a6f9e", "#ffffff", "#bff4ff", [(1, 0), (14, 14), (15, 11), (0, 3)])
+
+
+def blast_bow():
+    return bow_art("#4a4550", "#ff8a2a", "#7a2a12", "#ffd2a0", "#ffb02e", [(1, 0), (14, 14), (15, 11), (0, 3)])
+
+
+def meteor_staff():
+    img = canvas()
+    px = img.load()
+    rod(img, 1, 14, 8, 7, hexc("#3a2a4a"), hexc("#6a4a80"), hexc("#1c1424"))
+    for (x, y) in [(7, 8), (8, 8), (8, 7)]:
+        px[x, y] = hexc("#f2c94c")
+    cx, cy = 11.5, 3.5
+    for y in range(16):
+        for x in range(16):
+            d = ((x + 0.5 - cx - 0.5) ** 2 + (y + 0.5 - cy - 0.5) ** 2) ** 0.5
+            if d <= 3.6:
+                shade = "#4a3a33" if (x + y) % 3 else "#2b2220"
+                if d < 1.6:
+                    shade = "#ffcf3a"
+                elif (x * 7 + y * 3) % 5 == 0:
+                    shade = "#ff6a00"
+                px[x, y] = hexc(shade)
+    px[12, 4] = hexc("#fff3b0")
+    outline(img, "#1a0c06")
+    for (x, y, c, a) in [(15, 7, "#ff7a1a", 200), (8, 1, "#ffb02e", 190), (15, 0, "#ffd84a", 170), (6, 3, "#ff6a00", 150)]:
+        if px[x, y][3] == 0:
+            px[x, y] = hexc(c, a)
+    return img
+
+
+GLOVE = pad([
+    "................",
+    "......W..W......",
+    ".....WS.WS.W....",
+    ".....WS.WS.WS...",
+    ".....WS.WS.WS...",
+    "..W..WSWWSWWS...",
+    "..WS.WWWWWWWS...",
+    "...WSWWWWWWWS...",
+    "....WWWWWWWWS...",
+    "....WWWWWWWS....",
+    ".....WWWWWWS....",
+    ".....YYYYYYY....",
+    ".....YOOYOOY....",
+    ".....YYYYYYY...."])
+
+
+def disarm_gloves():
+    img = grid(GLOVE, False)
+    outline(img, "#1b1726")
+    return img
+
+
+HOME = pad([
+    ".......W........",
+    "......WCW.......",
+    ".....WCCCW......",
+    "....WCCLCCW.....",
+    "...WCCLWLCCW....",
+    "..WCCLWWWLCCW...",
+    "..WCCWWWWWCCW...",
+    "..WCCWBBBWCCW...",
+    "..WCCWBBBWCCW...",
+    "...WCCCCCCCW....",
+    "....WCCCCCW.....",
+    ".....WCCCW......",
+    "......WCW.......",
+    ".......W........"])
+
+
+def home_teleporter():
+    img = grid(HOME, False)
+    outline(img, "#0c2a30")
+    return img
+
+
+def meteor_texture():
+    img = Image.new("RGBA", (16, 16), hexc("#2b2220"))
+    px = img.load()
+    r = np.random.default_rng(11)
+    for y in range(16):
+        for x in range(16):
+            v = r.integers(0, 4)
+            px[x, y] = hexc(["#2b2220", "#3a2d29", "#4a3a33", "#221a18"][v])
+    # Glowing cracks
+    for start in [(1, 3), (8, 0), (15, 9), (4, 15), (0, 11)]:
+        x, y = start
+        for _ in range(9):
+            if 0 <= x < 16 and 0 <= y < 16:
+                px[x, y] = hexc("#ff6a00")
+                for (nx, ny) in [(x + 1, y), (x, y + 1)]:
+                    if 0 <= nx < 16 and 0 <= ny < 16 and r.random() < 0.3:
+                        px[nx, ny] = hexc("#ffcf3a")
+            x += int(r.integers(-1, 2))
+            y += int(r.integers(-1, 2)) or 1
+    return img
+
+
+def rune_circle():
+    S = 64
+    img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.ellipse([2, 2, S - 3, S - 3], outline=hexc("#7fd8ff", 230), width=2)
+    d.ellipse([7, 7, S - 8, S - 8], outline=hexc("#ffe27a", 200), width=1)
+    d.ellipse([18, 18, S - 19, S - 19], outline=hexc("#7fd8ff", 210), width=2)
+    import math
+    c = S / 2
+    for i in range(8):
+        a = i * math.pi / 4
+        x, y = c + math.cos(a) * 24, c + math.sin(a) * 24
+        d.line([x - 2, y - 3, x + 2, y + 3], fill=hexc("#ffe27a", 230), width=1)
+        d.line([x - 2, y, x + 2, y], fill=hexc("#ffe27a", 230), width=1)
+    pts = [(c + math.cos(i * 4 * math.pi / 5 - math.pi / 2) * 13, c + math.sin(i * 4 * math.pi / 5 - math.pi / 2) * 13) for i in range(5)]
+    d.line(pts + [pts[0]], fill=hexc("#bff4ff", 240), width=1)
+    d.ellipse([c - 3, c - 3, c + 3, c + 3], fill=hexc("#ffffff", 220))
+    return img
+
+
+ICONS.update({
+    "icon_punch": ("brick", pad([
+        "................", "..Y...........Y.", "...Y...WW...Y...", "......WWWW......", ".....WSWWSW.....",
+        "....WSSWSSWW....", "....WSSWSSWSW...", "....WWWWWWWSW...", "....WSSSSSWSW...", "....WWWWWWWW....",
+        ".....WWWWWW.....", "......RRRR......", "......RRRR......", "..Y.........Y...", ".Y...........Y.."]), True),
+    "icon_steal": ("red_dye", pad([
+        "................", "...RR....RR.....", "..RRRR..RRRR....", "..RRRRRRRRRR....", "..RRRRRRRRRR....",
+        "...RRRRRRRR.....", "....RRRRRR......", ".....RRRR.......", "......RR........", "................",
+        "..........M.....", ".........MMM....", "........MMMMM...", "........MMMMM...", ".........MMM...."]), True),
+    "icon_knock": ("slime_ball", pad([
+        "................", "................", "..CCCCCCC.......", ".........CC.....", "...........C....",
+        "..WWWWWWWWWWWW..", "............WWW.", "..WWWWWWWWWWWW..", "...........C....", ".........CC.....",
+        "..CCCCCCC.......", "................"]), True),
+    "icon_nocool": ("glowstone_dust", pad([
+        "..............W.", ".............WSW", "............WSW.", "...........WSW..", "..........WSW...",
+        ".........WSW....", "..Y.....WSW.....", "..YY...WSW......", "...YY.WSW.......", "....YYSW........",
+        "....NYY.........", "...NN.YY........", "..NN............", ".OO.......YYY...", ".OO......Y......", "..........YYY..."]), True),
+    "icon_field": ("heart_of_the_sea", pad([
+        "................", ".....PPPPPP.....", "...PP......PP...", "..P...MMMM...P..", ".P...M....M...P.",
+        ".P..M......M..P.", "P...M..WW..M...P", "P...M.WWWW.M...P", "P...M.WWWW.M...P", "P...M..WW..M...P",
+        ".P..M......M..P.", ".P...M....M...P.", "..P...MMMM...P..", "...PP......PP...", ".....PPPPPP....."]), True),
+    "icon_berserk": ("blaze_powder", pad([
+        "................", "...R...RR...R...", "...RR.RRRR.RR...", "....RRRRRRRR....", "...RRWWRRWWRR...",
+        "...RRKWRRWKRR...", "...RRRRRRRRRR...", "....RRRRRRRR....", "....RKKKKKKR....", ".....RWKWKR.....",
+        "......RRRR......", ".......RR......."]), True),
+    "icon_wipe": ("bone", pad([
+        ".........Y......", "........YY......", ".......YY.......", "......YYYYY.....", "........YY......",
+        ".......YY.......", "...WWWWWWW......", "..WWWWWWWWW.....", "..WKKWWWKKW.....", "..WKKWWWKKW.....",
+        "..WWWWKWWWW.....", "...WWWWWWW......", "...WKWKWKW......", "................"]), True),
+    "icon_smite": ("gold_nugget", pad([
+        "..........YYY...", ".........YYY....", "........YYY.....", ".......YYY......", "......YYYYYYY...",
+        ".........YYY....", "........YYY.....", ".......YYY......", "......YY........", ".....Y..........",
+        "...C...C...C....", "..CCC.CCC.CCC...", "................"]), True),
+})
+
+
 def pack_icon():
     img = Image.new("RGBA", (64, 64), hexc("#14101f"))
     d = ImageDraw.Draw(img)
@@ -454,13 +709,121 @@ SOUNDS2 = {
                                (0, 0.4 * env(np.sin(2 * np.pi * 3000 * t(0.05)), 0.001, 0.03))]),
 }
 
+
+def saw(f, sec, vib=0.0):
+    tt = t(sec)
+    ph = np.cumsum(f * (1 + vib * np.sin(2 * np.pi * 6 * tt))) / SR
+    return 2 * (ph % 1) - 1
+
+
+def noise(sec):
+    return rng.standard_normal(int(SR * sec))
+
+
+def boom(sec, f=45, decay=4.0):
+    return np.sin(2 * np.pi * np.cumsum(np.linspace(f * 1.6, f * 0.6, int(SR * sec))) / SR) * np.exp(-t(sec) * decay)
+
+
+def rumble(sec, k=60, decay=2.0):
+    return lowpass(noise(sec), k) * np.exp(-t(sec) * decay) * 6
+
+
+def crack(sec=0.12, decay=35):
+    return hp(noise(sec)) * np.exp(-t(sec) * decay)
+
+
+def crackle(sec, n=60):
+    out = np.zeros(int(SR * sec))
+    for i in rng.integers(0, len(out) - 200, n):
+        out[i:i + 120] += rng.uniform(-1, 1) * np.exp(-np.arange(120) / 18)
+    return out
+
+
+def tremolo(x, rate, depth=0.5):
+    return x * (1 - depth + depth * np.sin(2 * np.pi * rate * np.arange(len(x)) / SR) ** 2)
+
+
+def toggle_pair(on_fn, off_fn):
+    return on_fn, off_fn
+
+
+SOUNDS3 = {
+    "thor_smash": lambda: echo(mix(2.2, [(0, 1.4 * crack(0.15, 25)), (0, 2.2 * boom(1.2, 45, 3)), (0.05, rumble(2.0, 70, 1.6)),
+                                         (0.02, 0.5 * bell(330, 1.4, 2.5)), (0.02, 0.3 * bell(495, 1.2, 3))]), 0.12, 0.3, 2),
+    "thor_hit": lambda: mix(1.0, [(0, 1.2 * crack(0.1, 30)), (0, 0.8 * bell(620, 0.8, 5)), (0, 1.4 * boom(0.5, 70, 7)), (0.05, 0.5 * rumble(0.9, 60, 3))]),
+    "flame_hit": lambda: mix(0.8, [(0, env(whoosh(0.3, True) * 2.5, 0.01, 0.1)), (0.05, 0.6 * crackle(0.6, 50)), (0.05, 1.2 * boom(0.3, 90, 10))]),
+    "flame_wave": lambda: mix(1.4, [(0, env(tremolo(lowpass(noise(1.3), 8) * 4, 13, 0.4), 0.08, 0.5)),
+                                    (0, 0.25 * env(sweep(180, 420, 1.3), 0.1, 0.5)), (0.1, 0.4 * crackle(1.1, 90))]),
+    "frost_shot": lambda: mix(0.5, [(0, env(sweep(1800, 3600, 0.18), 0.003, 0.08)), (0.05, 0.4 * bell(4200, 0.4, 9)), (0.1, 0.3 * bell(3100, 0.35, 10))]),
+    "frost_hit": lambda: mix(1.1, [(rng.uniform(0, 0.3), 0.35 * bell(rng.uniform(2500, 5500), 0.6, 9)) for _ in range(12)]
+                             + [(0, 0.9 * crack(0.1, 40)), (0, 0.4 * hp(noise(0.8)) * np.exp(-t(0.8) * 6))]),
+    "blast_shot": lambda: mix(0.5, [(0, 1.2 * boom(0.25, 110, 12)), (0, 0.5 * env(sweep(500, 160, 0.3), 0.003, 0.1))]),
+    "blast_boom": lambda: echo(mix(1.6, [(0, 1.3 * crack(0.12, 25)), (0, 2.0 * boom(0.9, 55, 4)), (0.02, 1.2 * rumble(1.5, 40, 2.4)),
+                                         (0.05, 0.4 * crackle(1.0, 80))]), 0.1, 0.25, 2),
+    "meteor_cast": lambda: mix(1.6, [(0, env(saw(np.linspace(70, 150, int(SR * 1.4)), 1.4) * 0.4, 0.2, 0.4)),
+                                     (0, env(lowpass(noise(1.4), 30) * np.linspace(0.2, 2.5, int(SR * 1.4)), 0.1, 0.3)),
+                                     (0.9, 0.5 * bell(220, 0.7, 3))]),
+    "meteor_fall": lambda: mix(2.0, [(0, env(sweep(1700, 260, 1.8) * np.linspace(0.15, 0.6, int(SR * 1.8)), 0.1, 0.2)),
+                                     (0, env(lowpass(noise(1.9), 14) * np.linspace(0.3, 4.0, int(SR * 1.9)), 0.2, 0.15)),
+                                     (0.3, 0.3 * crackle(1.5, 120))]),
+    "meteor_impact": lambda: echo(mix(3.2, [(0, 1.6 * crack(0.2, 15)), (0, 3.0 * boom(2.0, 35, 2.2)), (0.03, 2.0 * rumble(3.0, 90, 1.2)),
+                                            (0.1, 0.6 * crackle(2.4, 160)), (0.05, 0.3 * bell(110, 2.5, 1.5))]), 0.18, 0.35, 3),
+    "disarm": lambda: mix(0.7, [(0, 0.7 * bell(1450, 0.6, 9)), (0.01, 0.5 * bell(2180, 0.5, 11)), (0, 0.9 * crack(0.06, 50)),
+                                (0.02, env(whoosh(0.25, False) * 2, 0.01, 0.1))]),
+    "onepunch_hit": lambda: echo(mix(1.2, [(0, 2.2 * boom(0.7, 70, 6)), (0, 1.6 * crack(0.08, 40)), (0, 0.6 * env(sweep(140, 35, 0.8), 0.002, 0.3))]), 0.15, 0.35, 3),
+    "lifesteal_hit": lambda: mix(0.9, [(0, 0.6 * env(glide(520, 880, 0.6, 0.02), 0.05, 0.3)), (0.15, 0.4 * bell(1320, 0.6, 6)),
+                                       (0, 0.4 * env(lowpass(noise(0.6), 20) * np.linspace(1, 0, int(SR * 0.6)), 0.01, 0.2))]),
+    "mega_hit": lambda: mix(0.9, [(0, 1.6 * boom(0.4, 80, 9)), (0, env(whoosh(0.7, False) * 3.5, 0.005, 0.3)), (0, 0.7 * crack(0.06, 50))]),
+    "field_push": lambda: mix(0.45, [(0, 0.6 * env(np.sin(2 * np.pi * 140 * t(0.4)) + 0.5 * np.sin(2 * np.pi * 280 * t(0.4)), 0.01, 0.2)),
+                                     (0, 0.4 * env(sweep(900, 300, 0.25), 0.005, 0.1))]),
+    "berserk": lambda: mix(1.8, [(0, env(saw(np.full(int(SR * 1.3), 95.0), 1.3, 0.04) * 0.6 + lowpass(noise(1.3), 6) * 2.5, 0.08, 0.5)),
+                                 (0, env(saw(np.full(int(SR * 1.3), 142.5), 1.3, 0.05) * 0.3, 0.08, 0.5)),
+                                 (1.1, 1.4 * boom(0.4, 60, 8)), (1.35, 1.4 * boom(0.4, 60, 8))]),
+    "mobwipe": lambda: echo(mix(2.4, [(0, 1.2 * crack(0.12, 25)), (0.1, 1.6 * rumble(2.2, 80, 1.3)),
+                                      (0.05, 0.6 * chord([110, 130.81, 164.81], 1.8, 0.2)), (0.3, 0.8 * crack(0.1, 30)), (0.6, 0.7 * crack(0.1, 30))]), 0.15, 0.3, 2),
+    "smite": lambda: mix(1.8, [(0, 1.5 * crack(0.15, 22)), (0, 1.8 * boom(0.8, 50, 4)), (0.02, 0.5 * chord([523.25, 659.25, 783.99], 1.3, 0.01)),
+                               (0.05, 1.2 * rumble(1.6, 70, 1.8))]),
+    "punch_on": lambda: mix(0.7, [(0, 1.3 * boom(0.25, 90, 12)), (0.18, 1.6 * boom(0.3, 70, 10)), (0.3, 0.4 * env(sweep(300, 1200, 0.25), 0.01, 0.1))]),
+    "punch_off": lambda: mix(0.5, [(0, 1.2 * boom(0.35, 60, 9)), (0, 0.3 * env(sweep(800, 200, 0.3), 0.01, 0.1))]),
+    "steal_on": lambda: mix(1.1, [(0, chord([220, 261.63, 329.63], 0.9, 0.2)), (0.3, 0.4 * bell(1318.5, 0.7, 5))]),
+    "steal_off": lambda: env(chord([329.63, 261.63, 196], 0.7, 0.05) * np.linspace(1, 0, int(SR * 0.7)), 0.02, 0.3),
+    "knock_on": lambda: mix(0.8, [(0, env(whoosh(0.6, True) * 3.5, 0.02, 0.2)), (0.4, 1.0 * boom(0.3, 90, 10))]),
+    "knock_off": lambda: env(whoosh(0.5, False) * 3, 0.02, 0.25),
+    "nocool_on": lambda: mix(0.9, [(sum(0.12 * 0.75 ** k for k in range(i)), 0.5 * env(np.sin(2 * np.pi * 2000 * t(0.03)), 0.001, 0.02)) for i in range(8)]
+                             + [(0.5, 0.6 * bell(1760, 0.4, 6))]),
+    "nocool_off": lambda: mix(0.8, [(i * 0.13, 0.5 * env(np.sin(2 * np.pi * (1600 - i * 200) * t(0.04)), 0.001, 0.02)) for i in range(5)]),
+    "field_on": lambda: mix(1.2, [(0, env((np.sin(2 * np.pi * np.cumsum(np.linspace(80, 170, int(SR * 1.0))) / SR) * 0.8
+                                           + 0.3 * sweep(160, 340, 1.0)), 0.1, 0.3)), (0.5, 0.4 * bell(1400, 0.6, 5))]),
+    "field_off": lambda: env(np.sin(2 * np.pi * np.cumsum(np.linspace(170, 60, int(SR * 0.8))) / SR), 0.02, 0.3),
+    "home_place": lambda: mix(1.2, [(i * 0.09, 0.6 * bell(f, 0.8, 4)) for i, f in enumerate([659.25, 830.61, 987.77, 1318.5])]),
+    "home_charge": lambda: mix(3.2, [(0, env(tremolo(sweep(220, 880, 3.0), 8, 0.5) * 0.5, 0.2, 0.2))]
+                               + [(0.3 + i * 0.3, 0.25 * bell(1000 + i * 130, 0.5, 7)) for i in range(9)]),
+    "home_tp": lambda: mix(1.3, [(0, env(whoosh(0.5, True) * 3, 0.02, 0.2)), (0.25, chord([659.25, 830.61, 987.77, 1318.5], 0.9, 0.01))]),
+}
+
 SOUNDS = {"zap": s_zap, "mode": s_mode, "launch": s_launch,
-          "heal": s_heal, "repair": s_repair, "give": s_give, "owner_join": s_owner_join, **SOUNDS2}
+          "heal": s_heal, "repair": s_repair, "give": s_give, "owner_join": s_owner_join, **SOUNDS2, **SOUNDS3}
 
 # ------------------------------------------------------------------ pack
 
 TOOLS = {"lightning_wand": ("blaze_rod", lightning_wand), "launch_stick": ("stick", launch_stick), "heal_wand": ("ghast_tear", heal_wand),
-         "freeze_wand": ("prismarine_shard", freeze_wand), "judge_gavel": ("breeze_rod", judge_gavel)}
+         "freeze_wand": ("prismarine_shard", freeze_wand), "judge_gavel": ("breeze_rod", judge_gavel),
+         "thor_hammer": ("mace", thor_hammer), "flame_sword": ("golden_sword", flame_sword), "frost_bow": ("bow", frost_bow),
+         "blast_bow": ("bow", blast_bow), "meteor_staff": ("magma_cream", meteor_staff), "disarm_gloves": ("leather", disarm_gloves)}
+# Plain (not hand-held) items.
+FLAT = {"home_teleporter": ("echo_shard", home_teleporter), "rune_circle": ("light_blue_stained_glass_pane", rune_circle)}
+# Models that are cubes (the meteor flying down).
+CUBES = {"meteor": ("magma_block", meteor_texture)}
+# Base items whose own model isn't the plain minecraft:item/<name>.
+FALLBACK = {
+    "magma_block": {"type": "minecraft:model", "model": "minecraft:block/magma_block"},
+    "bow": {"type": "minecraft:condition", "property": "minecraft:using_item",
+            "on_false": {"type": "minecraft:model", "model": "minecraft:item/bow"},
+            "on_true": {"type": "minecraft:range_dispatch", "property": "minecraft:use_duration", "scale": 0.05,
+                        "entries": [{"threshold": 0.65, "model": {"type": "minecraft:model", "model": "minecraft:item/bow_pulling_1"}},
+                                    {"threshold": 0.9, "model": {"type": "minecraft:model", "model": "minecraft:item/bow_pulling_2"}}],
+                        "fallback": {"type": "minecraft:model", "model": "minecraft:item/bow_pulling_0"}}},
+}
 ICON_ITEMS = {**{k: (v[0], (lambda rows=v[1], o=v[2]: grid(rows, o))) for k, v in ICONS.items()},
               "icon_join": ("nether_star", star_icon), "icon_pack": ("painting", palette_icon)}
 
@@ -474,9 +837,14 @@ def build():
     for tool, (base, draw) in TOOLS.items():
         files[f"assets/vigil/textures/item/{tool}.png"] = png(draw())
         files[f"assets/vigil/models/item/{tool}.json"] = json.dumps(
-            {"parent": "minecraft:item/handheld", "textures": {"layer0": f"vigil:item/{tool}"}}, indent=2).encode()
+            {"parent": "minecraft:item/bow" if base == "bow" else "minecraft:item/handheld", "textures": {"layer0": f"vigil:item/{tool}"}}, indent=2).encode()
         by_base.setdefault(base, []).append(tool)
-    for icon, (base, draw) in ICON_ITEMS.items():
+    for name, (base, draw) in CUBES.items():
+        files[f"assets/vigil/textures/item/{name}.png"] = png(draw())
+        files[f"assets/vigil/models/item/{name}.json"] = json.dumps(
+            {"parent": "minecraft:block/cube_all", "textures": {"all": f"vigil:item/{name}"}}, indent=2).encode()
+        by_base.setdefault(base, []).append(name)
+    for icon, (base, draw) in {**ICON_ITEMS, **FLAT}.items():
         files[f"assets/vigil/textures/item/{icon}.png"] = png(draw())
         files[f"assets/vigil/models/item/{icon}.json"] = json.dumps(
             {"parent": "minecraft:item/generated", "textures": {"layer0": f"vigil:item/{icon}"}}, indent=2).encode()
@@ -485,7 +853,7 @@ def build():
         files[f"assets/minecraft/items/{base}.json"] = json.dumps({"model": {
             "type": "minecraft:select", "property": "minecraft:custom_model_data", "index": 0,
             "cases": [{"when": f"vigil:{tl}", "model": {"type": "minecraft:model", "model": f"vigil:item/{tl}"}} for tl in tools],
-            "fallback": {"type": "minecraft:model", "model": f"minecraft:item/{base}"}}}, indent=2).encode()
+            "fallback": FALLBACK.get(base, {"type": "minecraft:model", "model": f"minecraft:item/{base}"})}}, indent=2).encode()
     sounds = {}
     for name, fn in SOUNDS.items():
         files[f"assets/vigil/sounds/{name}.ogg"] = ogg(fn())

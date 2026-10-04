@@ -53,6 +53,11 @@ public final class OwnerFx {
             case INSTA_BREAK -> "break";
             case RADAR -> "radar";
             case GHOST -> "ghost";
+            case ONE_PUNCH -> "punch";
+            case LIFESTEAL -> "steal";
+            case MEGA_KNOCKBACK -> "knock";
+            case NO_COOLDOWN -> "nocool";
+            case FORCE_FIELD -> "field";
         };
         OwnerPowers.sfx(p, base + (on ? "_on" : "_off"), on ? SoundEvents.BLOCK_BEACON_ACTIVATE : SoundEvents.BLOCK_BEACON_DEACTIVATE, on ? 1.4f : 1.2f);
     }

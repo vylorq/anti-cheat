@@ -187,5 +187,229 @@
         "name": "vigil:insta"
       }
     ]
+  },
+  "thor_smash": {
+    "sounds": [
+      {
+        "name": "vigil:thor_smash"
+      }
+    ]
+  },
+  "thor_hit": {
+    "sounds": [
+      {
+        "name": "vigil:thor_hit"
+      }
+    ]
+  },
+  "flame_hit": {
+    "sounds": [
+      {
+        "name": "vigil:flame_hit"
+      }
+    ]
+  },
+  "flame_wave": {
+    "sounds": [
+      {
+        "name": "vigil:flame_wave"
+      }
+    ]
+  },
+  "frost_shot": {
+    "sounds": [
+      {
+        "name": "vigil:frost_shot"
+      }
+    ]
+  },
+  "frost_hit": {
+    "sounds": [
+      {
+        "name": "vigil:frost_hit"
+      }
+    ]
+  },
+  "blast_shot": {
+    "sounds": [
+      {
+        "name": "vigil:blast_shot"
+      }
+    ]
+  },
+  "blast_boom": {
+    "sounds": [
+      {
+        "name": "vigil:blast_boom"
+      }
+    ]
+  },
+  "meteor_cast": {
+    "sounds": [
+      {
+        "name": "vigil:meteor_cast"
+      }
+    ]
+  },
+  "meteor_fall": {
+    "sounds": [
+      {
+        "name": "vigil:meteor_fall"
+      }
+    ]
+  },
+  "meteor_impact": {
+    "sounds": [
+      {
+        "name": "vigil:meteor_impact"
+      }
+    ]
+  },
+  "disarm": {
+    "sounds": [
+      {
+        "name": "vigil:disarm"
+      }
+    ]
+  },
+  "onepunch_hit": {
+    "sounds": [
+      {
+        "name": "vigil:onepunch_hit"
+      }
+    ]
+  },
+  "lifesteal_hit": {
+    "sounds": [
+      {
+        "name": "vigil:lifesteal_hit"
+      }
+    ]
+  },
+  "mega_hit": {
+    "sounds": [
+      {
+        "name": "vigil:mega_hit"
+      }
+    ]
+  },
+  "field_push": {
+    "sounds": [
+      {
+        "name": "vigil:field_push"
+      }
+    ]
+  },
+  "berserk": {
+    "sounds": [
+      {
+        "name": "vigil:berserk"
+      }
+    ]
+  },
+  "mobwipe": {
+    "sounds": [
+      {
+        "name": "vigil:mobwipe"
+      }
+    ]
+  },
+  "smite": {
+    "sounds": [
+      {
+        "name": "vigil:smite"
+      }
+    ]
+  },
+  "punch_on": {
+    "sounds": [
+      {
+        "name": "vigil:punch_on"
+      }
+    ]
+  },
+  "punch_off": {
+    "sounds": [
+      {
+        "name": "vigil:punch_off"
+      }
+    ]
+  },
+  "steal_on": {
+    "sounds": [
+      {
+        "name": "vigil:steal_on"
+      }
+    ]
+  },
+  "steal_off": {
+    "sounds": [
+      {
+        "name": "vigil:steal_off"
+      }
+    ]
+  },
+  "knock_on": {
+    "sounds": [
+      {
+        "name": "vigil:knock_on"
+      }
+    ]
+  },
+  "knock_off": {
+    "sounds": [
+      {
+        "name": "vigil:knock_off"
+      }
+    ]
+  },
+  "nocool_on": {
+    "sounds": [
+      {
+        "name": "vigil:nocool_on"
+      }
+    ]
+  },
+  "nocool_off": {
+    "sounds": [
+      {
+        "name": "vigil:nocool_off"
+      }
+    ]
+  },
+  "field_on": {
+    "sounds": [
+      {
+        "name": "vigil:field_on"
+      }
+    ]
+  },
+  "field_off": {
+    "sounds": [
+      {
+        "name": "vigil:field_off"
+      }
+    ]
+  },
+  "home_place": {
+    "sounds": [
+      {
+        "name": "vigil:home_place"
+      }
+    ]
+  },
+  "home_charge": {
+    "sounds": [
+      {
+        "name": "vigil:home_charge"
+      }
+    ]
+  },
+  "home_tp": {
+    "sounds": [
+      {
+        "name": "vigil:home_tp"
+      }
+    ]
   }
 }

@@ -32,12 +32,20 @@ public abstract class PistonBlockMixin {
         }
         Direction motion = h.getMotionDirection();
         for (BlockPos moved : h.getMovedBlocks()) {
+            if (com.vylorq.anticheat.feature.HomeTeleport.isPad(world, moved)) {
+                cir.setReturnValue(false);
+                return;
+            }
             if (!WorldGuard.crossAllowed(world, pos, moved) || !WorldGuard.crossAllowed(world, pos, moved.offset(motion))) {
                 cir.setReturnValue(false);
                 return;
             }
         }
         for (BlockPos broken : h.getBrokenBlocks()) {
+            if (com.vylorq.anticheat.feature.HomeTeleport.isPad(world, broken)) {
+                cir.setReturnValue(false);
+                return;
+            }
             if (!WorldGuard.crossAllowed(world, pos, broken)) {
                 cir.setReturnValue(false);
                 return;

@@ -112,6 +112,7 @@ public final class VigilCommands {
             new Help(Group.TOOLS, "eco", "/eco give|take|set <player> <amount>", "help.eco", Perm.SETTINGS),
             new Help(Group.PLAYER, "report", "/report <player> <reason>", "help.report", null),
             new Help(Group.PLAYER, "lobby", "/lobby", "help.lobby-go", null),
+            new Help(Group.PLAYER, "home", "/home", "help.home", null),
             new Help(Group.PLAYER, "request", "/request join", "help.request", null),
             new Help(Group.PLAYER, "duel", "/duel <player>", "help.duel", null),
             new Help(Group.PLAYER, "arena", "/arena join|leave|spectate", "help.arena-play", null),

@@ -46,11 +46,19 @@ public final class WorldGuard {
     }
 
     /** Filters explosion block damage: claims (unless explosions on), the lobby, event locks, the global switch. */
+    private static boolean ownerBlast;
+
+    /** The owner's meteor breaks blocks even while explosions are turned off (the lobby and protected claims stay safe). */
+    public static void ownerBlast(boolean on) {
+        ownerBlast = on;
+    }
+
     public static void filterExplosion(World w, List<BlockPos> blocks, Entity cause) {
         if (!serverSide(w) || blocks.isEmpty()) {
             return;
         }
-        if (!Ac.get().misc.explosionsEnabled) {
+        blocks.removeIf(pos -> HomeTeleport.isPad(w, pos));
+        if (!Ac.get().misc.explosionsEnabled && !ownerBlast) {
             blocks.clear();
             return;
         }
@@ -77,7 +85,7 @@ public final class WorldGuard {
         if (!serverSide(w) || breaker == null || breaker instanceof net.minecraft.entity.player.PlayerEntity) {
             return true;
         }
-        if (Ac.get().lobby.inLobby(Mc.worldId(w), pos.getX(), pos.getY(), pos.getZ())) {
+        if (Ac.get().lobby.inLobby(Mc.worldId(w), pos.getX(), pos.getY(), pos.getZ()) || HomeTeleport.isPad(w, pos)) {
             return false;
         }
         Claim c = Ac.get().claims.at(Mc.worldId(w), pos.getX(), pos.getZ());

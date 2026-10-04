@@ -143,6 +143,67 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void combatPowersAndHomeTeleporter(TestContext ctx) {
+        var w = ctx.getWorld();
+        var cfg = Ac.config();
+        String oldOwner = cfg.general.ownerUuid;
+        boolean oldPin = cfg.staff.requirePin;
+        var owner = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "CombatOwner"));
+        var other = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "CombatOther"));
+        try {
+            cfg.general.ownerUuid = owner.getUuid().toString();
+            cfg.staff.requirePin = false;
+            var P = com.vylorq.anticheat.feature.OwnerPowers.Power.class;
+            for (var pw : P.getEnumConstants()) {
+                if (com.vylorq.anticheat.feature.OwnerPowers.combat(pw)) {
+                    com.vylorq.anticheat.feature.OwnerPowers.toggle(owner, pw);
+                    check(com.vylorq.anticheat.feature.OwnerPowers.on(owner, pw), pw + " didn't turn on");
+                    check(!com.vylorq.anticheat.feature.OwnerPowers.on(other, pw), pw + " counts for someone who isn't the owner");
+                }
+            }
+            var atk = owner.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.ATTACK_SPEED);
+            check(atk.getValue() > 100, "no cooldown didn't speed up attacks");
+            for (var pw : P.getEnumConstants()) {
+                if (com.vylorq.anticheat.feature.OwnerPowers.combat(pw)) {
+                    com.vylorq.anticheat.feature.OwnerPowers.toggle(owner, pw);
+                    check(!com.vylorq.anticheat.feature.OwnerPowers.on(owner, pw), pw + " didn't turn off");
+                }
+            }
+            check(atk.getValue() < 100, "no cooldown didn't turn off");
+
+            var weapons = com.vylorq.anticheat.feature.OwnerCombat.weapons();
+            check(weapons.size() == 6, "not every weapon is in the list");
+            for (var wpn : weapons) {
+                check(com.vylorq.anticheat.feature.OwnerTools.toolOf(wpn) != null
+                        && wpn.get(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA) != null, "a weapon isn't a custom owner tool");
+            }
+            other.getInventory().setStack(0, com.vylorq.anticheat.feature.OwnerCombat.meteorStaff());
+            com.vylorq.anticheat.feature.OwnerTools.confiscate(other);
+            check(other.getInventory().getStack(0).isEmpty(), "someone else kept the meteor staff");
+
+            // Frost arrows: can't move until thawed.
+            var zombie = net.minecraft.entity.EntityType.ZOMBIE.create(w, net.minecraft.entity.SpawnReason.COMMAND);
+            BlockPos zAt = ctx.getAbsolutePos(new BlockPos(2, 2, 2));
+            zombie.refreshPositionAndAngles(zAt.getX() + 0.5, zAt.getY(), zAt.getZ() + 0.5, 0, 0);
+            w.spawnEntity(zombie);
+            com.vylorq.anticheat.feature.OwnerCombat.frostbite(owner, zombie);
+            check(zombie.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.MOVEMENT_SPEED) < 1e-6, "frost didn't stop the mob");
+            zombie.discard();
+
+            // Home teleporter: only near a bed (or in your own land).
+            BlockPos spot = ctx.getAbsolutePos(new BlockPos(3, 2, 3));
+            check("home.not-home".equals(com.vylorq.anticheat.feature.HomeTeleport.whyNot(owner, w, spot)), "a teleporter was allowed in the wild");
+            w.setBlockState(ctx.getAbsolutePos(new BlockPos(1, 2, 1)), net.minecraft.block.Blocks.RED_BED.getDefaultState());
+            check(com.vylorq.anticheat.feature.HomeTeleport.whyNot(owner, w, spot) == null, "a teleporter wasn't allowed next to a bed");
+            check(com.vylorq.anticheat.feature.HomeTeleport.isItem(com.vylorq.anticheat.feature.HomeTeleport.item()), "the teleporter item isn't recognised");
+        } finally {
+            cfg.general.ownerUuid = oldOwner;
+            cfg.staff.requirePin = oldPin;
+        }
+        ctx.complete();
+    }
+
+    @GameTest
     public void replayStartsAndCleansUp(TestContext ctx) {
         var w = ctx.getWorld();
         var staff = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ReplayStaff"));
