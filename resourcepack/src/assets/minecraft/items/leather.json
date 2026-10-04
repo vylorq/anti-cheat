@@ -17,13 +17,6 @@
           "type": "minecraft:model",
           "model": "vigil:item/xa0f447057e"
         }
-      },
-      {
-        "when": "vigil:backpack",
-        "model": {
-          "type": "minecraft:model",
-          "model": "vigil:item/backpack"
-        }
       }
     ],
     "fallback": {
