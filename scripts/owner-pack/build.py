@@ -211,23 +211,42 @@ def freeze_wand():
 
 
 def judge_gavel():
+    """A courtroom gavel, pixel by pixel on the 45-degree grid vanilla tools use: a barrel head lit from the top,
+    lighter striking faces, two gold rings, a straight two-pixel handle with a gold knob, and a solid outline."""
     img = canvas()
     px = img.load()
-    rod(img, 1, 14, 7, 8, hexc("#7a4a24"), hexc("#a46a3a"), hexc("#4a2a12"))
-    # The hammer head, tilted, with gold bands.
-    head = {2: [9, 10, 11], 3: [8, 9, 10, 11, 12], 4: [8, 9, 10, 11, 12, 13], 5: [9, 10, 11, 12, 13, 14],
-            6: [10, 11, 12, 13, 14], 7: [11, 12, 13]}
-    for y, xs in head.items():
-        for x in xs:
-            px[x, y] = hexc("#8b5a2b")
-        px[xs[0], y] = hexc("#5a3517")
-        px[xs[-1], y] = hexc("#b07a45")
-    for (x, y) in [(9, 3), (10, 4), (11, 5), (12, 6)]:
-        px[x, y] = hexc("#ffd23f")
-    for (x, y) in [(8, 7), (9, 8)]:
-        px[x, y] = hexc("#7a4a24")
-    for (x, y) in [(15, 1), (14, 9), (6, 3)]:
-        px[x, y] = hexc("#ffe79a", 170)
+    wood = {9: "#c9743a", 8: "#a4562a", 7: "#82401e", 6: "#622d14", 5: "#45200d"}
+    cap = {9: "#e8a868", 8: "#cc8648", 7: "#a8663a", 6: "#844c2a", 5: "#5e341c"}
+    gold = {9: "#fff6b0", 8: "#ffd94a", 7: "#eeb21e", 6: "#c48a0e", 5: "#8e600a"}
+    # Handle along x + y = 15/16, from the knob up to the head.
+    for x in range(1, 10):
+        px[x, 15 - x] = hexc("#b0683a")
+        px[x, 16 - x] = hexc("#5e2c14")
+    for (x, y) in [(0, 15), (1, 15), (0, 14)]:
+        px[x, y] = hexc("#c48a0e")
+    px[1, 14] = hexc("#ffd94a")
+    # Head: x - y from 5 (shadow side) to 9 (lit side), x + y from 10 to 20 (its length).
+    for y in range(16):
+        for x in range(16):
+            c, a_ = x - y, x + y
+            if not (5 <= c <= 9 and 10 <= a_ <= 20):
+                continue
+            if a_ in (10, 20) and c in (5, 9):
+                continue                       # rounded corners
+            if a_ in (10, 11, 19, 20):
+                col = cap[c]                   # striking faces
+            elif a_ in (12, 13, 17, 18):
+                col = gold[c]                  # gold rings
+            else:
+                col = wood[c]
+            px[x, y] = hexc(col)
+    # Solid outline, like vanilla items.
+    solid = [(x, y) for y in range(16) for x in range(16) if px[x, y][3] == 255]
+    for x, y in solid:
+        for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < 16 and 0 <= ny < 16 and px[nx, ny][3] == 0:
+                px[nx, ny] = hexc("#2a170b")
     return img
 
 
