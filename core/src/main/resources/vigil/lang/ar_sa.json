@@ -2418,5 +2418,14 @@
   "owner.smaller": "أصغر بـ 5 كتل",
   "owner.type-number": "اكتب الحجم",
   "owner.froze": "تم تجميد {0} لاعب ضمن {1} كتلة",
-  "owner.thawed": "تمت إذابة {0} لاعب"
+  "owner.thawed": "تمت إذابة {0} لاعب",
+  "owner.gavel": "مطرقة القاضي",
+  "owner.gavel-players": "المطرقة تعمل على اللاعبين فقط: انظر إلى لاعب وانقر يميناً.",
+  "owner.jail-who": "سجن {0}",
+  "owner.jail-how-long": "لكم من الوقت؟",
+  "owner.jail-why": "لماذا؟",
+  "owner.jail-type": "اكتب السبب",
+  "owner.pick": "اختيار",
+  "owner.jailed": "§aتم سجن {0} لمدة {1}.",
+  "owner.gone": "§cغادر السيرفر."
 }

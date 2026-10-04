@@ -43,6 +43,7 @@ public final class OwnerTools {
     public static final String LAUNCH = "launch_stick";
     public static final String HEAL = "heal_wand";
     public static final String FREEZE = "freeze_wand";
+    public static final String JUDGE = "judge_gavel";
 
     private static ItemStack make(Item base, String id, String name, String... lore) {
         ItemStack s = Icons.glint(Icons.of(base, name, lore));
@@ -74,8 +75,39 @@ public final class OwnerTools {
                 "Change the circle size in /owner", "or with /owner freezeradius <blocks>", "§8Owner only");
     }
 
+    public static ItemStack judgeGavel() {
+        return make(Items.BREEZE_ROD, JUDGE, "§6⚖ Judge's Gavel",
+                "Right-click a player: open their player menu", "Sneak + right-click a player: jail them",
+                "(pick how long and why)", "§8Owner only");
+    }
+
     public static List<ItemStack> all() {
-        return List.of(lightningWand(), launchStick(), healWand(), freezeWand());
+        return List.of(lightningWand(), launchStick(), healWand(), freezeWand(), judgeGavel());
+    }
+
+    /** The gavel on a player: their menu, or (sneaking) the quick jail. */
+    private static long lastJudge;
+
+    static void judge(ServerPlayerEntity p, Entity target) {
+        // Clicking a player sends both "used on a player" and "used the item": only act once.
+        long now = System.currentTimeMillis();
+        if (now - lastJudge < 400) {
+            return;
+        }
+        lastJudge = now;
+        if (!(target instanceof ServerPlayerEntity t)) {
+            Msg.actionBar(p, "§7" + Msg.trFor(p, "owner.gavel-players"));
+            return;
+        }
+        ServerWorld w = p.getEntityWorld();
+        w.spawnParticles(ParticleTypes.CRIT, t.getX(), t.getY() + t.getHeight() + 0.3, t.getZ(), 12, 0.3, 0.2, 0.3, 0.1);
+        if (p.isSneaking()) {
+            OwnerPowers.sfx(p, "gavel", SoundEvents.BLOCK_ANVIL_LAND, 1.6f);
+            com.vylorq.anticheat.gui.OwnerMenu.jail(p, t);
+        } else {
+            OwnerPowers.sfx(p, "gavel_soft", SoundEvents.UI_BUTTON_CLICK.value(), 1.2f);
+            com.vylorq.anticheat.gui.InspectMenu.open(p, t.getUuid());
+        }
     }
 
     /** Players (not the owner, not spectators) within {@code r} blocks around the owner, and not far above or below. */
@@ -171,6 +203,15 @@ public final class OwnerTools {
         switch (tool) {
             case LIGHTNING -> lightning(p);
             case FREEZE -> freeze(p);
+            case JUDGE -> {
+                // Aimed at nobody: look for the player in front (up to 30 blocks), so it works from a distance too.
+                Entity t = lookedAt(p, 30);
+                if (t != null) {
+                    judge(p, t);
+                } else {
+                    Msg.actionBar(p, "§7" + Msg.trFor(p, "owner.gavel-players"));
+                }
+            }
             case HEAL -> {
                 if (p.isSneaking()) {
                     int n = 0;
@@ -195,6 +236,13 @@ public final class OwnerTools {
 
     /** Right-click on an entity with a tool. */
     public static boolean useOn(ServerPlayerEntity p, ItemStack stack, Entity target) {
+        if (JUDGE.equals(toolOf(stack))) {
+            if (OwnerPowers.require(p)) {
+                OwnerPowers.usedTool();
+                judge(p, target);
+            }
+            return true;
+        }
         if (!HEAL.equals(toolOf(stack))) {
             return toolOf(stack) != null && use(p, stack);
         }
@@ -247,6 +295,28 @@ public final class OwnerTools {
         OwnerPowers.sfx(p, "launch", null, 1f);
         OwnerFx.windSpiral(p, target);
         return true;
+    }
+
+    /** The player the owner is looking at, within {@code range} blocks. */
+    static ServerPlayerEntity lookedAt(ServerPlayerEntity p, double range) {
+        Vec3d eye = p.getEyePos();
+        Vec3d look = p.getRotationVec(1f);
+        ServerPlayerEntity best = null;
+        double bestDist = range;
+        for (ServerPlayerEntity o : p.getEntityWorld().getPlayers()) {
+            if (o == p) {
+                continue;
+            }
+            var hit = o.getBoundingBox().expand(0.3).raycast(eye, eye.add(look.multiply(range)));
+            if (hit.isPresent()) {
+                double d = hit.get().distanceTo(eye);
+                if (d < bestDist && com.vylorq.anticheat.feature.Combat.canSee(p, o)) {
+                    bestDist = d;
+                    best = o;
+                }
+            }
+        }
+        return best;
     }
 
     private static void lightning(ServerPlayerEntity p) {

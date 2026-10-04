@@ -124,6 +124,10 @@ public final class AntiCheatGameTests {
             check(com.vylorq.anticheat.feature.OwnerTools.inCircle(owner, java.util.List.of(near, far), 40).size() == 2, "a 40-block circle missed someone");
             check(com.vylorq.anticheat.feature.OwnerTools.freezeWand().get(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA) != null,
                     "no custom model on the freeze wand");
+            var gavel = com.vylorq.anticheat.feature.OwnerTools.judgeGavel();
+            check("judge_gavel".equals(com.vylorq.anticheat.feature.OwnerTools.toolOf(gavel))
+                    && gavel.get(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA) != null, "the gavel isn't an owner tool");
+            check(com.vylorq.anticheat.feature.OwnerTools.all().size() == 5, "not every tool is in the tool list");
 
             // Repair
             var sword = new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD);

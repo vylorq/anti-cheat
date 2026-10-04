@@ -2418,5 +2418,14 @@
   "owner.smaller": "5 blocks smaller",
   "owner.type-number": "Type a size",
   "owner.froze": "Froze {0} player(s) within {1} blocks",
-  "owner.thawed": "Thawed {0} player(s)"
+  "owner.thawed": "Thawed {0} player(s)",
+  "owner.gavel": "Judge's Gavel",
+  "owner.gavel-players": "The gavel only works on players: look at one and right-click.",
+  "owner.jail-who": "Jail {0}",
+  "owner.jail-how-long": "How long?",
+  "owner.jail-why": "Why?",
+  "owner.jail-type": "Type a reason",
+  "owner.pick": "Pick",
+  "owner.jailed": "§a{0} is jailed for {1}.",
+  "owner.gone": "§cThey left the server."
 }
