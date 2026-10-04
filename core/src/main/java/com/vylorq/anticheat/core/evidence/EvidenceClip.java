@@ -11,6 +11,8 @@ public final class EvidenceClip {
     public String playerName;
     public long createdAt;
     public String trigger;
+    /** World it was recorded in (for the in-game replay); null for older clips. */
+    public String world;
     /** Pinned clips (open case / ban) are never deleted by retention. */
     public boolean pinned;
     public List<EvidenceEvent> events = new ArrayList<>();

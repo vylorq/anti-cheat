@@ -45,6 +45,16 @@ public final class AdminCommands {
         return id == null ? 0 : then.run(p, id);
     }
 
+    private static int replay(com.mojang.brigadier.context.CommandContext<ServerCommandSource> ctx,
+                              java.util.function.Consumer<ServerPlayerEntity> action) {
+        ServerPlayerEntity p = ctx.getSource().getPlayer();
+        if (p == null || !Perms.check(ctx.getSource(), Perm.REVIEW)) {
+            return 0;
+        }
+        action.accept(p);
+        return 1;
+    }
+
     public static void register(CommandDispatcher<ServerCommandSource> d) {
         // ---- feature switches ----
         d.register(literal("features").requires(s -> Perms.visible(s, Perm.SETTINGS)).executes(ctx -> {
@@ -68,6 +78,15 @@ public final class AdminCommands {
                     return b.buildFuture();
                 }).then(literal("on").executes(ctx -> feature(ctx, true)))
                         .then(literal("off").executes(ctx -> feature(ctx, false)))));
+
+        // ---- evidence replay ----
+        d.register(literal("replay").requires(s -> Perms.visible(s, Perm.REVIEW))
+                .then(literal("pause").executes(ctx -> replay(ctx, com.vylorq.anticheat.feature.Replay::pause)))
+                .then(literal("restart").executes(ctx -> replay(ctx, com.vylorq.anticheat.feature.Replay::restart)))
+                .then(literal("stop").executes(ctx -> replay(ctx, p -> com.vylorq.anticheat.feature.Replay.stop(p, true))))
+                .then(literal("speed").then(CommandManager.argument("speed", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(0.1, 4))
+                        .executes(ctx -> replay(ctx, p -> com.vylorq.anticheat.feature.Replay.speed(p,
+                                com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(ctx, "speed")))))));
 
         // ---- notes ----
         d.register(literal("note").requires(s -> Perms.visible(s, Perm.INSPECT))

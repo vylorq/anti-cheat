@@ -98,6 +98,21 @@ public final class WatcherFigure {
         return new WatcherFigure(of.getEntityWorld(), new GameProfile(id, "Double", real.properties()), false, 1.0);
     }
 
+    /** A replay ghost of a player: their skin if they're online, translucent so it can't be mistaken for them. */
+    public static WatcherFigure ghost(ServerWorld world, UUID player, String name) {
+        UUID id = UUID.nameUUIDFromBytes(("vigil-replay:" + player + ":" + System.nanoTime()).getBytes(StandardCharsets.UTF_8));
+        ServerPlayerEntity online = Ac.server().getPlayerManager().getPlayer(player);
+        PropertyMap props = online != null ? online.getGameProfile().properties() : PropertyMap.EMPTY;
+        String shown = name.length() > 16 ? name.substring(0, 16) : name;
+        return new WatcherFigure(world, new GameProfile(id, shown, props), false, 1.0);
+    }
+
+    /** Swings its main hand (a hit or a click in a replay). */
+    public void swing(ServerPlayerEntity viewer) {
+        Watcher.send(viewer, new net.minecraft.network.packet.s2c.play.EntityAnimationS2CPacket(fake,
+                net.minecraft.network.packet.s2c.play.EntityAnimationS2CPacket.SWING_MAIN_HAND));
+    }
+
     /** Gives it a face: a dark skull instead of the faceless hood. */
     public WatcherFigure skull() {
         this.skull = true;

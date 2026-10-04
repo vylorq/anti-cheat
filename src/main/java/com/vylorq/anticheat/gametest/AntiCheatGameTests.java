@@ -73,6 +73,39 @@ public final class AntiCheatGameTests {
     };
 
     @GameTest
+    public void replayStartsAndCleansUp(TestContext ctx) {
+        var w = ctx.getWorld();
+        var staff = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ReplayStaff"));
+        var clip = new com.vylorq.anticheat.core.evidence.EvidenceClip();
+        clip.id = "test";
+        clip.player = java.util.UUID.randomUUID();
+        clip.playerName = "Suspect";
+        clip.trigger = "Reach";
+        BlockPos at = ctx.getAbsolutePos(new BlockPos(1, 2, 1));
+        for (int i = 0; i < 40; i++) {
+            clip.events.add(new com.vylorq.anticheat.core.evidence.EvidenceEvent(1000 + i * 50L,
+                    com.vylorq.anticheat.core.evidence.EvidenceEvent.Type.MOVE, at.getX() + i * 0.1, at.getY(), at.getZ(), i * 3f, 0f, null));
+        }
+        clip.events.add(new com.vylorq.anticheat.core.evidence.EvidenceEvent(1500, com.vylorq.anticheat.core.evidence.EvidenceEvent.Type.HIT,
+                at.getX(), at.getY(), at.getZ(), 0f, 0f, "hit Bob from 3.9 blocks"));
+        check(com.vylorq.anticheat.feature.Replay.startOf(clip) != null, "no start position");
+        com.vylorq.anticheat.feature.Replay.start(staff, clip);
+        check(com.vylorq.anticheat.feature.Replay.watching(staff), "the replay didn't start");
+        com.vylorq.anticheat.feature.Replay.pause(staff);
+        com.vylorq.anticheat.feature.Replay.speed(staff, 2);
+        com.vylorq.anticheat.feature.Replay.restart(staff);
+        com.vylorq.anticheat.feature.Replay.stop(staff, true);
+        check(!com.vylorq.anticheat.feature.Replay.watching(staff), "the replay didn't stop");
+        // A clip with no movement can't be replayed, and says so.
+        var empty = new com.vylorq.anticheat.core.evidence.EvidenceClip();
+        empty.player = clip.player;
+        empty.playerName = "Suspect";
+        com.vylorq.anticheat.feature.Replay.start(staff, empty);
+        check(!com.vylorq.anticheat.feature.Replay.watching(staff), "an empty clip started a replay");
+        ctx.complete();
+    }
+
+    @GameTest
     public void antiEspSightAndContainers(TestContext ctx) {
         var w = ctx.getWorld();
         BlockPos a = ctx.getAbsolutePos(new BlockPos(0, 2, 1));

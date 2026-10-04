@@ -73,6 +73,12 @@ public final class DetectionListener implements DetectionEngine.Listener {
 
     @Override
     public void onClip(EvidenceClip clip) {
+        if (clip.world == null) {
+            var p = Ac.server().getPlayerManager().getPlayer(clip.player);
+            if (p != null) {
+                clip.world = com.vylorq.anticheat.util.Mc.worldId(p.getEntityWorld());
+            }
+        }
         try {
             Ac.get().clips.save(clip);
         } catch (Exception e) {

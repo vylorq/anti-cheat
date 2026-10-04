@@ -2344,5 +2344,22 @@
   "build.loaded-spot": "§aLoaded {0} ({1}). It is placed around where you stand: its marked spot goes at your feet. Paste when ready.",
   "kick.packet-flood": "Disconnected: your game sent far too much data at once. If you're not using cheats or broken mods, just join again.",
   "feature.anti-esp": "Anti-ESP",
-  "feature.anti-esp.desc": "Players hidden far behind walls, and far-away chests, aren't sent to games, so wallhacks see nothing."
+  "feature.anti-esp.desc": "Players hidden far behind walls, and far-away chests, aren't sent to games, so wallhacks see nothing.",
+  "rv.action.replay": "Watch replay",
+  "rv.replay": "Watch replay",
+  "rv.replay-desc": "A ghost of the player, only you can see it, does exactly what was recorded.",
+  "rv.replay-go": "Go to where it happened?",
+  "rv.replay-go-detail": "It happened at {0} {1} {2} in {3}. You'll be put a few blocks away, then it plays.",
+  "replay.started": "Replaying {0} ({1} seconds). Only you can see the ghost.",
+  "replay.pause": "Pause",
+  "replay.restart": "Restart",
+  "replay.stop": "Stop",
+  "replay.stopped": "Replay stopped.",
+  "replay.finished": "Replay finished.",
+  "replay.none": "You're not watching a replay.",
+  "replay.paused": "Replay paused. Press pause again to go on.",
+  "replay.resumed": "Replay goes on.",
+  "replay.speed": "Replay speed: x{0}",
+  "replay.restarted": "Replay started again from the beginning.",
+  "replay.empty": "This clip has no movement to replay."
 }

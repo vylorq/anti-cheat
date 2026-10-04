@@ -252,11 +252,41 @@ public final class ReviewMenu {
             menu.list(list, c -> Btn.of(c.pinned ? Items.FILLED_MAP : Items.MAP).name(Category.REVIEW, DATE.format(new Date(c.createdAt)))
                             .line(Msg.tr("rv.trigger", c.trigger)).line(Msg.tr("rv.events", c.events.size()))
                             .lines(List.of(c.pinned ? Theme.Sym.DOT.sp() + Msg.tr("rv.kept") : ""))
-                            .left(Msg.tr("rv.action.timeline")).build(),
-                    c -> (a, cl) -> timeline(a, c, 0), c -> c.trigger,
+                            .left(Msg.tr("rv.action.timeline")).right(Msg.tr("rv.action.replay")).build(),
+                    c -> (a, cl) -> {
+                        if (cl.isRight()) {
+                            replay(a, c);
+                        } else {
+                            timeline(a, c, 0);
+                        }
+                    }, c -> c.trigger,
                     List.of(), Msg.tr("rv.no-clips"), Msg.tr("rv.no-clips-hint"));
         });
         m.open(admin);
+    }
+
+    /** Watch the clip in-game; offers to go to where it happened when that's somewhere else. */
+    public static void replay(ServerPlayerEntity admin, EvidenceClip clip) {
+        net.minecraft.util.math.Vec3d start = com.vylorq.anticheat.feature.Replay.startOf(clip);
+        if (start == null) {
+            Msg.send(admin, "replay.empty");
+            return;
+        }
+        net.minecraft.server.world.ServerWorld w = com.vylorq.anticheat.feature.Replay.worldOf(clip);
+        net.minecraft.server.world.ServerWorld target = w != null ? w : admin.getEntityWorld();
+        boolean far = target != admin.getEntityWorld() || admin.getEntityPos().distanceTo(start) > 48;
+        if (!far) {
+            admin.closeHandledScreen();
+            com.vylorq.anticheat.feature.Replay.start(admin, clip);
+            return;
+        }
+        Confirm.open(admin, Category.REVIEW, Msg.trFor(admin, "rv.replay-go"),
+                Msg.trFor(admin, "rv.replay-go-detail", (int) start.x, (int) start.y, (int) start.z, com.vylorq.anticheat.util.Mc.worldId(target)),
+                new net.minecraft.item.ItemStack(Items.ENDER_PEARL), () -> {
+                    // A few blocks back and up, looking at where it starts.
+                    com.vylorq.anticheat.util.Mc.teleport(admin, target, start.x + 3, start.y + 2, start.z + 3, 135f, 25f);
+                    com.vylorq.anticheat.feature.Replay.start(admin, clip);
+                });
     }
 
     public static void timeline(ServerPlayerEntity admin, EvidenceClip clip, int page) {
@@ -266,6 +296,8 @@ public final class ReviewMenu {
         m.renderer(menu -> {
             menu.info(Btn.of(Items.FILLED_MAP).name(Category.REVIEW, clip.id).line(Msg.tr("rv.trigger", clip.trigger))
                     .line(Msg.tr("rv.events", events.size())).build());
+            menu.set(7, Btn.of(Items.ENDER_EYE).name(Category.REVIEW, Msg.tr("rv.replay")).desc(Msg.tr("rv.replay-desc"))
+                    .left(Msg.tr("rv.action.replay")).build(), (a, c) -> replay(a, clip));
             menu.set(8, Btn.of(Items.WRITABLE_BOOK).name(Category.REVIEW, Msg.tr("rv.export")).desc(Msg.tr("rv.export-desc"))
                     .left(Msg.tr("rv.action.export")).build(), (a, c) -> {
                 try {
