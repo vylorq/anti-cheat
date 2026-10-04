@@ -133,7 +133,7 @@ public final class OwnerMenu {
                 });
             }
             List<ItemStack> weapons = com.vylorq.anticheat.feature.OwnerCombat.weapons();
-            int[] weaponSlots = {19, 20, 21, 23, 24, 25};
+            int[] weaponSlots = {19, 20, 21, 22, 23, 24, 25};
             for (int i = 0; i < weapons.size(); i++) {
                 ItemStack t = weapons.get(i);
                 menu.set(weaponSlots[i], t.copy(), null, (pl, c) -> OwnerTools.give(pl, t));
@@ -167,12 +167,174 @@ public final class OwnerMenu {
                 pl.closeHandledScreen();
                 com.vylorq.anticheat.feature.OwnerCombat.mobWipe(pl);
             });
+            menu.set(40, Btn.of(icon(Items.PRISMARINE_CRYSTALS, "orbital_cannon")).color(Theme.RED).name(Msg.tr("orbital.title"))
+                    .desc(Msg.tr("orbital.desc")).left(Msg.tr("owner.open")).build(), null, (pl, c) -> orbital(pl));
             menu.set(32, Btn.of(icon(Items.GOLD_NUGGET, "icon_smite")).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.smite"))
                     .desc(Msg.tr("owner.smite.desc")).left(Msg.tr("owner.activate")).build(), null, (pl, c) -> {
                 pl.closeHandledScreen();
                 com.vylorq.anticheat.feature.OwnerCombat.smite(pl);
             });
         });
+        m.open(p);
+    }
+
+    // ---------------------------------------------------------------- orbital strike
+
+    private static final String[] PRESETS = {"nuke", "stab", "carpet", "doomsday"};
+
+    private static String next(String[] all, String cur) {
+        int i = java.util.Arrays.asList(all).indexOf(cur);
+        return all[(i + 1) % all.length];
+    }
+
+    /** A number button: left +step, right -step, shift-click to type it. */
+    private static void num(Menu menu, ServerPlayerEntity p, int slot, Item base, String key, String shown, int step,
+                            java.util.function.IntConsumer delta, java.util.function.Consumer<String> typed) {
+        menu.set(slot, Btn.of(base).color(Theme.GOLD_LIGHT).name(Msg.tr("orbital." + key)).desc(Msg.tr("orbital." + key + ".desc"))
+                .status(Theme.GOLD_LIGHT, shown).left("+" + step).right("-" + step).shift(Msg.tr("owner.type-number")).build(), null, (pl, c) -> {
+            if (c.isShift()) {
+                Input.text(pl, Msg.trFor(pl, "orbital." + key), shown, t -> {
+                    try {
+                        typed.accept(t.trim());
+                    } catch (RuntimeException e) {
+                        Msg.send(pl, "general.bad-number");
+                    }
+                    com.vylorq.anticheat.feature.OrbitalStrike.changed();
+                    orbital(pl);
+                });
+                return;
+            }
+            delta.accept(c.isRight() ? -step : step);
+            com.vylorq.anticheat.feature.OrbitalStrike.changed();
+            menu.refresh();
+        });
+    }
+
+    private static void toggle(Menu menu, int slot, Item base, String key, boolean on, Runnable flip) {
+        menu.set(slot, Btn.of(base).color(on ? Theme.GREEN : Theme.SOFT).name(Msg.tr("orbital." + key)).desc(Msg.tr("orbital." + key + ".desc"))
+                .status(on ? Theme.GREEN : Theme.SOFT, Msg.tr(on ? "owner.state-on" : "owner.state-off")).left(Msg.tr("owner.toggle")).glint(on).build(),
+                null, (pl, c) -> {
+                    flip.run();
+                    com.vylorq.anticheat.feature.OrbitalStrike.changed();
+                    menu.refresh();
+                });
+    }
+
+    /** Every setting of the orbital strike. */
+    public static void orbital(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        Menu m = Menu.std(Category.VIGIL, Msg.trFor(p, "owner.title"), Msg.trFor(p, "orbital.title"));
+        m.renderer(menu -> {
+            var s = com.vylorq.anticheat.feature.OrbitalStrike.settings();
+            menu.info(Btn.of(icon(Items.PRISMARINE_CRYSTALS, "orbital_cannon")).color(Theme.RED).name(Msg.tr("orbital.title"))
+                    .desc(Msg.tr("orbital.desc")).build());
+            menu.set(10, Btn.of(Items.TNT).color(Theme.RED).name(Msg.tr("orbital.fire")).desc(Msg.tr("orbital.fire.desc"))
+                    .status(Theme.RED, s.tnt + " TNT, " + Msg.tr("orbital.pattern." + s.pattern) + ", " + com.vylorq.anticheat.feature.OrbitalStrike.describe(p))
+                    .left(Msg.tr("orbital.fire")).glint(true).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                com.vylorq.anticheat.feature.OrbitalStrike.fire(pl);
+            });
+            menu.set(11, Btn.of(Items.NETHER_STAR).color(Theme.GOLD_LIGHT).name(Msg.tr("orbital.preset")).desc(Msg.tr("orbital.preset.desc"))
+                    .left(Msg.tr("orbital.preset.nuke")).right(Msg.tr("orbital.preset.stab")).shift(Msg.tr("orbital.preset.carpet") + " / "
+                            + Msg.tr("orbital.preset.doomsday")).build(), null, (pl, c) -> {
+                String cur = c.isShift() ? (OwnerPowers.state().orbital.tnt >= 400 ? "carpet" : "doomsday") : c.isRight() ? "stab" : "nuke";
+                com.vylorq.anticheat.feature.OrbitalStrike.preset(cur);
+                Msg.actionBar(pl, "§c◎ " + Msg.trFor(pl, "orbital.preset." + cur));
+                menu.refresh();
+            });
+            menu.set(12, Btn.of(Items.COMPASS).color(Theme.GOLD_LIGHT).name(Msg.tr("orbital.pattern")).desc(Msg.tr("orbital.pattern.desc"))
+                    .status(Theme.GOLD_LIGHT, Msg.tr("orbital.pattern." + s.pattern)).left(Msg.tr("owner.next-option")).build(), null, (pl, c) -> {
+                var st = com.vylorq.anticheat.feature.OrbitalStrike.settings();
+                st.pattern = next(com.vylorq.anticheat.feature.OrbitalStrike.PATTERNS, st.pattern);
+                com.vylorq.anticheat.feature.OrbitalStrike.changed();
+                menu.refresh();
+            });
+            menu.set(13, Btn.of(Items.TARGET).color(Theme.GOLD_LIGHT).name(Msg.tr("orbital.target")).desc(Msg.tr("orbital.target.desc"))
+                    .status(Theme.GOLD_LIGHT, com.vylorq.anticheat.feature.OrbitalStrike.describe(p))
+                    .left(Msg.tr("owner.next-option")).right(Msg.tr("orbital.pick-player")).shift(Msg.tr("orbital.type-coords")).build(), null, (pl, c) -> {
+                var st = com.vylorq.anticheat.feature.OrbitalStrike.settings();
+                if (c.isShift()) {
+                    Input.text(pl, Msg.trFor(pl, "orbital.type-coords"), pl.getBlockX() + " " + pl.getBlockZ(), t -> {
+                        String[] parts = t.trim().split("[ ,]+");
+                        try {
+                            if (parts.length == 2) {
+                                st.x = Integer.parseInt(parts[0]);
+                                st.z = Integer.parseInt(parts[1]);
+                                st.y = null;
+                            } else if (parts.length == 3) {
+                                st.x = Integer.parseInt(parts[0]);
+                                st.y = Integer.parseInt(parts[1]);
+                                st.z = Integer.parseInt(parts[2]);
+                            } else {
+                                throw new NumberFormatException();
+                            }
+                            st.target = "coords";
+                        } catch (NumberFormatException e) {
+                            Msg.send(pl, "orbital.bad-coords");
+                        }
+                        com.vylorq.anticheat.feature.OrbitalStrike.changed();
+                        orbital(pl);
+                    });
+                    return;
+                }
+                if (c.isRight()) {
+                    pickTarget(pl);
+                    return;
+                }
+                st.target = next(com.vylorq.anticheat.feature.OrbitalStrike.TARGETS, st.target);
+                com.vylorq.anticheat.feature.OrbitalStrike.changed();
+                menu.refresh();
+            });
+            num(menu, p, 14, Items.TNT, "tnt", String.valueOf(s.tnt), 10, d -> s.tnt += d, t -> s.tnt = Integer.parseInt(t));
+            num(menu, p, 15, Items.SPYGLASS, "radius", s.radius + " " + Msg.tr("orbital.blocks"), 2, d -> s.radius += d, t -> s.radius = Integer.parseInt(t));
+            num(menu, p, 16, Items.FEATHER, "height", s.height + " " + Msg.tr("orbital.blocks"), 10, d -> s.height += d, t -> s.height = Integer.parseInt(t));
+            num(menu, p, 19, Items.GUNPOWDER, "power", com.vylorq.anticheat.feature.OrbitalStrike.fmtPower(s.power), 1,
+                    d -> s.power += d, t -> s.power = Float.parseFloat(t));
+            num(menu, p, 20, Items.CLOCK, "fuse", s.fuse == 0 ? Msg.tr("orbital.on-impact") : s.fuse + " ticks", 10,
+                    d -> s.fuse += d, t -> s.fuse = Integer.parseInt(t));
+            num(menu, p, 21, Items.HOPPER, "per-wave", String.valueOf(s.perWave), 5, d -> s.perWave += d, t -> s.perWave = Integer.parseInt(t));
+            num(menu, p, 22, Items.REPEATER, "wave-ticks", s.waveTicks + " ticks", 1, d -> s.waveTicks += d, t -> s.waveTicks = Integer.parseInt(t));
+            num(menu, p, 23, Items.CLOCK, "delay", s.delay + "s", 5, d -> s.delay += d, t -> s.delay = Integer.parseInt(t));
+            toggle(menu, 24, Items.IRON_PICKAXE, "break-blocks", s.breakBlocks, () -> s.breakBlocks = !s.breakBlocks);
+            toggle(menu, 25, Items.SHIELD, "ignore-claims", s.ignoreClaims, () -> s.ignoreClaims = !s.ignoreClaims);
+            toggle(menu, 28, Items.LEAD, "follow", s.follow, () -> s.follow = !s.follow);
+            menu.set(30, com.vylorq.anticheat.feature.OrbitalStrike.item(), null,
+                    (pl, c) -> OwnerTools.give(pl, com.vylorq.anticheat.feature.OrbitalStrike.item()));
+            int undo = com.vylorq.anticheat.feature.OrbitalStrike.undoable();
+            menu.set(31, Btn.of(Items.RECOVERY_COMPASS).color(undo > 0 ? Theme.GREEN : Theme.SOFT).name(Msg.tr("orbital.undo"))
+                    .desc(Msg.tr("orbital.undo.desc")).status(undo > 0 ? Theme.GREEN : Theme.SOFT, Msg.tr("orbital.undo-count", undo))
+                    .left(Msg.tr("orbital.undo-last")).right(Msg.tr("orbital.undo-all")).build(), null, (pl, c) -> {
+                com.vylorq.anticheat.feature.OrbitalStrike.undo(pl, c.isRight());
+                menu.refresh();
+            });
+            int live = com.vylorq.anticheat.feature.OrbitalStrike.active();
+            menu.set(32, Btn.of(Items.BARRIER).color(live > 0 ? Theme.RED : Theme.SOFT).name(Msg.tr("orbital.cancel"))
+                    .desc(Msg.tr("orbital.cancel.desc")).status(live > 0 ? Theme.RED : Theme.SOFT, Msg.tr("orbital.active", live))
+                    .left(Msg.tr("orbital.cancel")).build(), null, (pl, c) -> {
+                com.vylorq.anticheat.feature.OrbitalStrike.cancelAll(pl);
+                menu.refresh();
+            });
+        });
+        m.open(p);
+    }
+
+    /** Pick the player the strike falls on. */
+    private static void pickTarget(ServerPlayerEntity p) {
+        List<ServerPlayerEntity> players = new ArrayList<>(p.getEntityWorld().getServer().getPlayerManager().getPlayerList());
+        players.remove(p);
+        Menu m = Menu.std(Category.VIGIL, Msg.trFor(p, "orbital.title"), Msg.trFor(p, "orbital.pick-player"));
+        m.renderer(menu -> menu.list(players, t -> Btn.head(t.getUuid(), t.getGameProfile().name()).color(Theme.GOLD_LIGHT)
+                        .name(t.getGameProfile().name()).left(Msg.tr("owner.pick")).build(),
+                t -> (pl, c) -> {
+                    var st = com.vylorq.anticheat.feature.OrbitalStrike.settings();
+                    st.target = "player";
+                    st.targetPlayer = t.getUuid().toString();
+                    st.targetName = t.getGameProfile().name();
+                    com.vylorq.anticheat.feature.OrbitalStrike.changed();
+                    orbital(pl);
+                }, t -> t.getGameProfile().name(), List.of(), Msg.tr("orbital.no-players"), ""));
         m.open(p);
     }
 

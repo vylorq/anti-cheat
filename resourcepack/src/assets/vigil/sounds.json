@@ -405,6 +405,20 @@
       }
     ]
   },
+  "orbital_fire": {
+    "sounds": [
+      {
+        "name": "vigil:orbital_fire"
+      }
+    ]
+  },
+  "orbital_undo": {
+    "sounds": [
+      {
+        "name": "vigil:orbital_undo"
+      }
+    ]
+  },
   "home_tp": {
     "sounds": [
       {

@@ -78,6 +78,8 @@ public final class OwnerPowers {
         public boolean forceField;
         /** Mob wipe: how far it reaches. */
         public int wipeRadius = 32;
+        /** Orbital strike settings. */
+        public OrbitalStrike.Settings orbital = new OrbitalStrike.Settings();
     }
 
     public static final class Ghost {
@@ -125,7 +127,7 @@ public final class OwnerPowers {
         return state;
     }
 
-    static void save() {
+    public static void save() {
         try {
             Files.createDirectories(file().getParent());
             Files.writeString(file(), ConfigManager.GSON.toJson(state()), StandardCharsets.UTF_8);

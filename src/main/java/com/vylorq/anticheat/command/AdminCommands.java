@@ -116,6 +116,15 @@ public final class AdminCommands {
                             com.vylorq.anticheat.feature.OwnerPowers.setWipeRadius(p, com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "blocks"));
                             com.vylorq.anticheat.feature.OwnerCombat.mobWipe(p);
                         }))));
+        owner.then(literal("orbital").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::orbital))
+                .then(literal("fire").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OrbitalStrike::fire)))
+                .then(literal("cancel").executes(ctx -> owner(ctx, p -> {
+                    if (com.vylorq.anticheat.feature.OwnerPowers.require(p)) {
+                        com.vylorq.anticheat.feature.OrbitalStrike.cancelAll(p);
+                    }
+                })))
+                .then(literal("undo").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OrbitalStrike.undo(p, false)))
+                        .then(literal("all").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OrbitalStrike.undo(p, true))))));
         owner.then(literal("smite").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerCombat::smite)));
         owner.then(literal("items").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::items)));
         owner.then(literal("pack").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerPowers::sendPack)));

@@ -106,7 +106,7 @@ public final class OwnerCombat {
     }
 
     public static List<ItemStack> weapons() {
-        return List.of(thorHammer(), flameSword(), frostBow(), blastBow(), meteorStaff(), disarmGloves());
+        return List.of(thorHammer(), flameSword(), frostBow(), blastBow(), meteorStaff(), disarmGloves(), OrbitalStrike.item());
     }
 
     // ---------------------------------------------------------------- helpers
@@ -204,6 +204,10 @@ public final class OwnerCombat {
     static boolean use(ServerPlayerEntity p, String tool) {
         switch (tool) {
             case THOR, FLAME, FROST_BOW, BLAST_BOW, METEOR, DISARM -> {
+            }
+            case OrbitalStrike.TOOL -> {
+                OrbitalStrike.use(p);
+                return true;
             }
             default -> {
                 return false;

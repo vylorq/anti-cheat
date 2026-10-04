@@ -58,18 +58,29 @@ public final class WorldGuard {
             return;
         }
         blocks.removeIf(pos -> HomeTeleport.isPad(w, pos));
-        if (!Ac.get().misc.explosionsEnabled && !ownerBlast) {
+        // The owner's orbital strike: its own block-damage rules inside its area.
+        OrbitalStrike.Zone strike = OrbitalStrike.zoneAt(w, blocks.get(0));
+        if (strike != null && !strike.breakBlocks()) {
+            blocks.clear();
+            return;
+        }
+        if (!Ac.get().misc.explosionsEnabled && !ownerBlast && strike == null) {
             blocks.clear();
             return;
         }
         String world = Mc.worldId(w);
+        boolean ignoreClaims = strike != null && strike.ignoreClaims();
         blocks.removeIf(pos -> {
             if (Ac.get().lobby.inLobby(world, pos.getX(), pos.getY(), pos.getZ())) {
                 return true;
             }
+            if (ignoreClaims) {
+                return false;
+            }
             Claim c = Ac.get().claims.at(world, pos.getX(), pos.getZ());
             return c != null && c.isActive() && (!c.settings.explosions || c.eventLocked);
         });
+        OrbitalStrike.record(w, blocks);
         String by = cause == null ? "explosion" : cause.getName().getString();
         for (BlockPos pos : blocks) {
             BlockState st = w.getBlockState(pos);

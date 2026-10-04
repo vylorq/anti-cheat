@@ -49,6 +49,7 @@ public final class Ticker {
         OwnerFx.tick(ticks);
         OwnerCombat.tick(ticks);
         HomeTeleport.tick(ticks);
+        OrbitalStrike.tick(ticks);
         Replay.tick();
         Trades.tick();
         BuilderTools.tick();
