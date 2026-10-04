@@ -115,6 +115,26 @@ public final class Combat {
         }
 
         // Aim analysis.
+        // Look check: was the target anywhere near where they were looking? Judged with the next rotation packet,
+        // which carries the rotation the game had when it clicked (the server's copy is a tick old at this point).
+        if (!laggy) {
+            double size = Math.max(target.getWidth(), target.getHeight()) * 0.75 + 0.1;
+            s.lookTarget = targetCenter;
+            s.lookTargetRadius = Math.toDegrees(Math.atan2(size, Math.max(0.5, dist)));
+            s.lookYawAtHit = p.getYaw();
+            s.lookPitchAtHit = p.getPitch();
+        }
+
+        // Criticals: the hit counts as critical, but the "fall" was a tiny hop right above the ground.
+        if (!s.bedrock && !laggy && target instanceof LivingEntity && p.getAttackCooldownProgress(0.5f) > 0.9f && p.fallDistance > 0
+                && !p.isOnGround() && !p.isClimbing() && !p.isTouchingWater() && !p.hasVehicle() && !p.isSprinting()
+                && !p.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.BLINDNESS)) {
+            boolean groundClose = !p.getEntityWorld().isSpaceEmpty(p, p.getBoundingBox().offset(0, -0.25, 0));
+            if (s.crits.onCrit(p.fallDistance, groundClose)) {
+                flag(p, CheckType.CRITICALS, 1.5, "critical hits without a real fall (4 of the last 6)");
+            }
+        }
+
         // Bedrock (touch, controller) and Java controller mods don't turn like a mouse, so aim is judged for Java only.
         if (cfg.combat.aimCheck && !s.bedrock) {
             boolean switched = s.combat.switchedTarget(target.getUuid());
@@ -218,6 +238,46 @@ public final class Combat {
         if (s != null) {
             s.lastVelocity = Math.max(magnitude, s.ticksSinceVelocity < 5 ? s.lastVelocity : 0);
             s.ticksSinceVelocity = 0;
+        }
+    }
+
+    /** The server pushed this player (a hit, a fishing rod...): anti-knockback watch. */
+    public static void knockback(ServerPlayerEntity p, Vec3d v) {
+        PlayerSession s = Ac.sessionOrNull(p.getUuid());
+        if (s == null || !Ac.config().combat.enabled || Tps.tps() < Ac.config().general.lagTpsThreshold) {
+            return;
+        }
+        net.minecraft.util.math.Box b = p.getBoundingBox();
+        boolean headBlocked = !p.getEntityWorld().isSpaceEmpty(p, new net.minecraft.util.math.Box(b.minX, b.maxY, b.minZ, b.maxX, b.maxY + 0.6, b.maxZ));
+        boolean excused = headBlocked || p.isTouchingWater() || p.isInLava() || p.isClimbing() || p.hasVehicle() || p.isGliding()
+                || p.isSleeping() || p.isDead() || p.getAbilities().allowFlying || p.isSpectator()
+                || p.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.LEVITATION);
+        s.velocity.onVelocity(System.currentTimeMillis(), v.y, p.networkHandler.getLatency(), s.bedrock, excused);
+    }
+
+    /** Every movement packet: a hit waiting for its look check. */
+    public static void lookCheck(ServerPlayerEntity p, PlayerSession s, float yaw, float pitch) {
+        Vec3 target = s.lookTarget;
+        if (target == null) {
+            return;
+        }
+        s.lookTarget = null;
+        Vec3 eye = Mc.vec(p.getEyePos());
+        double now = CombatTracker.angleTo(eye, Vec3.fromRotation(yaw, pitch), target);
+        double atHit = CombatTracker.angleTo(eye, Vec3.fromRotation(s.lookYawAtHit, s.lookPitchAtHit), target);
+        double off = Math.min(now, atHit) - s.lookTargetRadius;
+        // Java aims with the crosshair; Bedrock touch can hit anything on screen, but nothing behind them.
+        double limit = s.bedrock ? 100 : 45;
+        if (off <= limit) {
+            return;
+        }
+        long t = System.currentTimeMillis();
+        if (t - s.badLookWindow > 20_000) {
+            s.badLookWindow = t;
+            s.badLooks = 0;
+        }
+        if (++s.badLooks == 3) {
+            flag(p, CheckType.AIM, 1.5, String.format(Locale.ROOT, "hit targets %.0f° away from where they were looking (3 times)", off));
         }
     }
 

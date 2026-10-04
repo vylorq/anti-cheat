@@ -34,8 +34,18 @@ public final class Ticker {
             PlayerSession s = Ac.sessionOrNull(pl.getUuid());
             if (s != null) {
                 s.screen(pl.currentScreenHandler);
+                if (s.velocity.pending()) {
+                    if (com.vylorq.anticheat.util.Tps.tps() < Ac.config().general.lagTpsThreshold) {
+                        s.velocity.cancel();
+                    } else if (s.velocity.check(System.currentTimeMillis()) == com.vylorq.anticheat.core.combat.VelocityWatch.Result.FLAG) {
+                        com.vylorq.anticheat.perm.PlayerSessionFlags.flag(pl, com.vylorq.anticheat.core.detect.CheckType.VELOCITY, 2.0,
+                                "didn't rise after being knocked up (3 of the last 5 hits)");
+                    }
+                }
             }
         }
+        AntiEsp.tick(ac.server, ticks);
+        Replay.tick();
         Trades.tick();
         BuilderTools.tick();
         Extras.tick();

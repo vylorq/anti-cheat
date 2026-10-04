@@ -70,6 +70,16 @@ public final class Movement {
             PacketChecks.rotation(p, pitch);
         }
         PacketChecks.sprint(p);
+        // Mining bots: camera snaps with no mouse step (Java only: Bedrock has no mouse).
+        if (!s.bedrock && Ac.config().combat.enabled) {
+            float by = changesLook ? net.minecraft.util.math.MathHelper.wrapDegrees(yaw - s.lastYaw) : 0;
+            float bp = changesLook ? pitch - s.lastPitch : 0;
+            if (s.bot.onMove(System.currentTimeMillis(), by, bp, System.currentTimeMillis() - s.lastBreakMs < 2000)) {
+                ac.engine.flag(p.getUuid(), p.getGameProfile().name(), CheckType.BOT, 1.0,
+                        "turns like a mining bot (instant snaps, no mouse step)", s.bedrock);
+            }
+        }
+        Combat.lookCheck(p, s, yaw, pitch);
         if (changesLook) {
             float dYaw = Math.abs(net.minecraft.util.math.MathHelper.wrapDegrees(yaw - s.lastYaw));
             s.rotationThisTick += dYaw + Math.abs(pitch - s.lastPitch);
@@ -149,6 +159,11 @@ public final class Movement {
         MoveInput in = input(p, s, world, from, to, onGround);
         in.arrivalNanos = arrivalNanos;
         MoveResult r = ac.predictor.process(in, s.move);
+        // Anti-knockback: did a push upwards show up? Ceilings, liquids, ladders, cobwebs and the like excuse it.
+        s.velocity.onMove(in.dy(), in.inWater || in.inLava || in.onClimbable || in.inCobweb || in.inScaffolding
+                || in.inPowderSnow || in.inBubbleColumn || in.levitation >= 0 || in.blockAbove || in.inVehicle || in.gliding
+                || in.flightAllowed || in.creativeOrSpectator || in.touchingHoney || in.ticksSinceGhostBlock < 40 || in.riptiding
+                || in.inBerryBush);
         for (MoveResult.Violation v : r.violations) {
             ac.engine.flag(p.getUuid(), p.getGameProfile().name(), v.check(), v.points(), v.detail(), s.bedrock);
         }
@@ -255,6 +270,7 @@ public final class Movement {
         in.serverOnGround = !w.isSpaceEmpty(p, feetTo);
         in.serverWasOnGround = !w.isSpaceEmpty(p, feetFrom) || p.isOnGround();
         in.nearGround = !w.isSpaceEmpty(p, nearTo);
+        in.groundBelow = !w.isSpaceEmpty(p, new Box(boxTo.minX, boxTo.minY - 2.0, boxTo.minZ, boxTo.maxX, boxTo.minY, boxTo.maxZ));
         // Only blocks count (a boat or another player bumping into you isn't phasing). Bedrock players' hitboxes
         // and some block shapes differ a little from Java, so they get more room.
         double inset = s.bedrock ? 0.2 : 0.08;

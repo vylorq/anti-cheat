@@ -64,6 +64,91 @@ public abstract class ServerPlayNetworkHandlerMixin {
         }
     }
 
+    // ---- Auto-totem: every packet that can move an item into the offhand ----
+
+    @org.spongepowered.asm.mixin.Unique
+    private void ac$invArrived() {
+        if (Ac.running() && ac$offThread()) {
+            var s = Ac.sessionOrNull(player.getUuid());
+            if (s != null) {
+                com.vylorq.anticheat.PlayerSession.arrived(s.invArrivals);
+            }
+        }
+    }
+
+    @org.spongepowered.asm.mixin.Unique
+    private void ac$invBefore() {
+        if (Ac.running()) {
+            var s = Ac.sessionOrNull(player.getUuid());
+            long arrived = s == null ? System.nanoTime() : com.vylorq.anticheat.PlayerSession.arrival(s.invArrivals);
+            com.vylorq.anticheat.feature.AutoTotem.before(player, arrived);
+        }
+    }
+
+    @org.spongepowered.asm.mixin.Unique
+    private void ac$invAfter() {
+        if (Ac.running() && !ac$offThread()) {
+            com.vylorq.anticheat.feature.AutoTotem.after(player);
+        }
+    }
+
+    @Inject(method = "onClickSlot", at = @At("HEAD"))
+    private void ac$clickArrived(ClickSlotC2SPacket packet, CallbackInfo ci) {
+        ac$invArrived();
+    }
+
+    @Inject(method = "onClickSlot", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
+            shift = At.Shift.AFTER))
+    private void ac$clickBefore(ClickSlotC2SPacket packet, CallbackInfo ci) {
+        ac$invBefore();
+        if (Ac.running()) {
+            com.vylorq.anticheat.feature.InventoryChecks.beforeClick(player, packet);
+        }
+    }
+
+    @Inject(method = "onClickSlot", at = @At("RETURN"))
+    private void ac$clickAfter(ClickSlotC2SPacket packet, CallbackInfo ci) {
+        ac$invAfter();
+        if (Ac.running() && !ac$offThread()) {
+            com.vylorq.anticheat.feature.InventoryChecks.afterClick(player);
+        }
+    }
+
+    @Inject(method = "onPlayerAction", at = @At("HEAD"))
+    private void ac$actionArrived(PlayerActionC2SPacket packet, CallbackInfo ci) {
+        ac$invArrived();
+    }
+
+    @Inject(method = "onPlayerAction", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
+            shift = At.Shift.AFTER))
+    private void ac$actionBefore(PlayerActionC2SPacket packet, CallbackInfo ci) {
+        ac$invBefore();
+    }
+
+    @Inject(method = "onPlayerAction", at = @At("RETURN"))
+    private void ac$actionAfter(PlayerActionC2SPacket packet, CallbackInfo ci) {
+        ac$invAfter();
+    }
+
+    @Inject(method = "onUpdateSelectedSlot", at = @At("HEAD"))
+    private void ac$slotArrived(net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket packet, CallbackInfo ci) {
+        ac$invArrived();
+    }
+
+    @Inject(method = "onUpdateSelectedSlot", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
+            shift = At.Shift.AFTER))
+    private void ac$slotBefore(net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket packet, CallbackInfo ci) {
+        ac$invBefore();
+    }
+
+    @Inject(method = "onUpdateSelectedSlot", at = @At("RETURN"))
+    private void ac$slotAfter(net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket packet, CallbackInfo ci) {
+        ac$invAfter();
+    }
+
     /** A block the player tried to place didn't appear: their client briefly shows a ghost block. */
     @Inject(method = "onPlayerInteractBlock", at = @At("TAIL"))
     private void ac$placeRefused(net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket packet, CallbackInfo ci) {

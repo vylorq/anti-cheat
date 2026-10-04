@@ -18,6 +18,8 @@ public final class MoveInput {
     public boolean serverWasOnGround;
     /** Any solid block within 0.6 below the player's feet at {@code to} (loose ground test used by NoFall). */
     public boolean nearGround;
+    /** Anything to stand on within 2 blocks below (blocks or solid entities like boats). */
+    public boolean groundBelow = true;
     /** Player box at {@code to} overlaps a solid block that the box at {@code from} did not. */
     public boolean movedIntoSolid;
     public boolean horizontalCollision;

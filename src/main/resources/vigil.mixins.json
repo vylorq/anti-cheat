@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BlockItemMixin",
+    "ChunkDataMixin",
     "ChunkDataPacketMixin",
     "ChunkSectionMixin",
     "ClientConnectionMixin",
@@ -21,6 +22,7 @@
     "HopperBlockEntityMixin",
     "HungerManagerMixin",
     "ItemEntityMixin",
+    "LivingEntityInvoker",
     "LivingEntityMixin",
     "MinecraftServerMixin",
     "PistonBlockMixin",

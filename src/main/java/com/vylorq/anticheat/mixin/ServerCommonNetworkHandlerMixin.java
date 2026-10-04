@@ -20,6 +20,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(ServerCommonNetworkHandler.class)
 public abstract class ServerCommonNetworkHandlerMixin {
+    /** Answers to our pings (auto-totem timing). Recorded the moment they reach the network thread. */
+    @Inject(method = "onPong", at = @At("HEAD"))
+    private void ac$onPong(net.minecraft.network.packet.c2s.common.CommonPongC2SPacket packet, CallbackInfo ci) {
+        long now = System.nanoTime();
+        if (Ac.running() && (Object) this instanceof ServerPlayNetworkHandler handler && handler.player != null) {
+            com.vylorq.anticheat.feature.AutoTotem.pong(handler.player, packet.getParameter(), now);
+        }
+    }
+
     @Inject(method = "send", at = @At("HEAD"))
     private void ac$onSend(Packet<?> packet, io.netty.channel.ChannelFutureListener callbacks, CallbackInfo ci) {
         if (!Ac.running() || !((Object) this instanceof ServerPlayNetworkHandler handler) || handler.player == null) {
@@ -27,8 +36,15 @@ public abstract class ServerCommonNetworkHandlerMixin {
         }
         if (packet instanceof EntityVelocityUpdateS2CPacket v && v.getEntityId() == handler.player.getId()) {
             Combat.onVelocity(handler.player, v.getVelocity().length());
+            Combat.knockback(handler.player, v.getVelocity());
         } else if (packet instanceof ExplosionS2CPacket e) {
             e.playerKnockback().ifPresent(k -> Combat.onVelocity(handler.player, k.length()));
+        } else if (packet instanceof net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket chunk) {
+            com.vylorq.anticheat.feature.AntiEsp.chunkSent(handler.player, chunk.getChunkX(), chunk.getChunkZ());
+        } else if (packet instanceof net.minecraft.network.packet.s2c.play.PlayerRespawnS2CPacket) {
+            com.vylorq.anticheat.feature.AntiEsp.worldChanged(handler.player);
+        } else if (packet instanceof net.minecraft.network.packet.s2c.play.OpenScreenS2CPacket open) {
+            com.vylorq.anticheat.feature.InventoryChecks.opened(handler.player, open.getSyncId());
         } else if (packet instanceof PlayerPositionLookS2CPacket) {
             Combat.onTeleportPacket(handler.player);
         }

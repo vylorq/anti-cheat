@@ -29,6 +29,7 @@ public final class Features {
         COMBAT_CHECKS("combat-checks", Items.IRON_SWORD, Group.SECURITY, c -> c.combat.enabled, (c, v) -> c.combat.enabled = v),
         WARNINGS("warnings", Items.BELL, Group.SECURITY, c -> c.warnings.enabled, (c, v) -> c.warnings.enabled = v),
         XRAY("xray", Items.DIAMOND_ORE, Group.SECURITY, null, null),
+        ANTI_ESP("anti-esp", Items.ENDER_EYE, Group.SECURITY, null, null),
         ILLEGAL_ITEMS("illegal-items", Items.BARRIER, Group.SECURITY, c -> c.illegalItems.enabled, (c, v) -> c.illegalItems.enabled = v),
         DUPE_WATCH("dupe-watch", Items.CHEST_MINECART, Group.SECURITY, c -> c.dupeWatch.enabled, (c, v) -> c.dupeWatch.enabled = v),
         CHAT_FILTER("chat-filter", Items.OAK_SIGN, Group.SECURITY, c -> c.chat.enabled, (c, v) -> c.chat.enabled = v),

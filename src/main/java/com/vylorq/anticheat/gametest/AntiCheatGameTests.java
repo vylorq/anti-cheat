@@ -73,6 +73,127 @@ public final class AntiCheatGameTests {
     };
 
     @GameTest
+    public void replayStartsAndCleansUp(TestContext ctx) {
+        var w = ctx.getWorld();
+        var staff = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ReplayStaff"));
+        var clip = new com.vylorq.anticheat.core.evidence.EvidenceClip();
+        clip.id = "test";
+        clip.player = java.util.UUID.randomUUID();
+        clip.playerName = "Suspect";
+        clip.trigger = "Reach";
+        BlockPos at = ctx.getAbsolutePos(new BlockPos(1, 2, 1));
+        for (int i = 0; i < 40; i++) {
+            clip.events.add(new com.vylorq.anticheat.core.evidence.EvidenceEvent(1000 + i * 50L,
+                    com.vylorq.anticheat.core.evidence.EvidenceEvent.Type.MOVE, at.getX() + i * 0.1, at.getY(), at.getZ(), i * 3f, 0f, null));
+        }
+        clip.events.add(new com.vylorq.anticheat.core.evidence.EvidenceEvent(1500, com.vylorq.anticheat.core.evidence.EvidenceEvent.Type.HIT,
+                at.getX(), at.getY(), at.getZ(), 0f, 0f, "hit Bob from 3.9 blocks"));
+        check(com.vylorq.anticheat.feature.Replay.startOf(clip) != null, "no start position");
+        com.vylorq.anticheat.feature.Replay.start(staff, clip);
+        check(com.vylorq.anticheat.feature.Replay.watching(staff), "the replay didn't start");
+        com.vylorq.anticheat.feature.Replay.pause(staff);
+        com.vylorq.anticheat.feature.Replay.speed(staff, 2);
+        com.vylorq.anticheat.feature.Replay.restart(staff);
+        com.vylorq.anticheat.feature.Replay.stop(staff, true);
+        check(!com.vylorq.anticheat.feature.Replay.watching(staff), "the replay didn't stop");
+        // A clip with no movement can't be replayed, and says so.
+        var empty = new com.vylorq.anticheat.core.evidence.EvidenceClip();
+        empty.player = clip.player;
+        empty.playerName = "Suspect";
+        com.vylorq.anticheat.feature.Replay.start(staff, empty);
+        check(!com.vylorq.anticheat.feature.Replay.watching(staff), "an empty clip started a replay");
+        ctx.complete();
+    }
+
+    @GameTest
+    public void antiEspSightAndContainers(TestContext ctx) {
+        var w = ctx.getWorld();
+        BlockPos a = ctx.getAbsolutePos(new BlockPos(0, 2, 1));
+        BlockPos b = ctx.getAbsolutePos(new BlockPos(4, 2, 1));
+        BlockPos mid = ctx.getAbsolutePos(new BlockPos(2, 2, 1));
+        net.minecraft.util.math.Vec3d va = a.toCenterPos();
+        net.minecraft.util.math.Vec3d vb = b.toCenterPos();
+        w.setBlockState(mid, Blocks.AIR.getDefaultState());
+        check(com.vylorq.anticheat.feature.AntiEsp.clear(w, va, vb), "open air blocks the view");
+        w.setBlockState(mid, Blocks.GLASS.getDefaultState());
+        check(com.vylorq.anticheat.feature.AntiEsp.clear(w, va, vb), "glass blocks the view (it shouldn't hide anyone)");
+        w.setBlockState(mid, Blocks.STONE.getDefaultState());
+        check(!com.vylorq.anticheat.feature.AntiEsp.clear(w, va, vb), "a stone wall doesn't hide");
+        w.setBlockState(mid, Blocks.AIR.getDefaultState());
+
+        // A chest is left out of the chunk data as air; a barrel in a wall looks like the wall.
+        BlockPos chest = ctx.getAbsolutePos(new BlockPos(1, 2, 3));
+        BlockPos barrel = ctx.getAbsolutePos(new BlockPos(3, 2, 3));
+        w.setBlockState(chest, Blocks.CHEST.getDefaultState());
+        w.setBlockState(barrel, Blocks.BARREL.getDefaultState());
+        w.setBlockState(barrel.down(), Blocks.STONE_BRICKS.getDefaultState());
+        var chunk = w.getWorldChunk(chest);
+        var out = new java.util.IdentityHashMap<net.minecraft.world.chunk.ChunkSection, net.minecraft.world.chunk.ChunkSection>();
+        com.vylorq.anticheat.feature.AntiEsp.hideContainers(chunk, out);
+        var hidden = com.vylorq.anticheat.feature.AntiEsp.HIDDEN_CONTAINERS.get();
+        com.vylorq.anticheat.feature.AntiEsp.HIDDEN_CONTAINERS.remove();
+        check(hidden != null && hidden.contains(chest), "the chest wasn't left out");
+        var section = chunk.getSectionArray()[chunk.getSectionIndex(chest.getY())];
+        var sent = out.get(section);
+        check(sent != null && sent.getBlockState(chest.getX() & 15, chest.getY() & 15, chest.getZ() & 15).isAir(), "the chest is still in the sent chunk");
+        check(w.getBlockState(chest).isOf(Blocks.CHEST), "the real chest changed");
+        if (w.getWorldChunk(barrel) == chunk) {
+            var bs = out.get(chunk.getSectionArray()[chunk.getSectionIndex(barrel.getY())]);
+            var shown = bs.getBlockState(barrel.getX() & 15, barrel.getY() & 15, barrel.getZ() & 15);
+            check(!shown.isOf(Blocks.BARREL), "the barrel is still in the sent chunk");
+        }
+        ctx.complete();
+    }
+
+    @GameTest
+    public void autoTotemCatchesInstantRefillOnly(TestContext ctx) {
+        var w = ctx.getWorld();
+        var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "TotemTester"));
+        var ac = Ac.get();
+        var s = Ac.session(fake);
+        java.util.UUID id = fake.getUuid();
+        ac.engine.violations().reset(id);
+
+        // A real pop: the totem in the offhand saves the player, and the watch starts.
+        fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.TOTEM_OF_UNDYING));
+        boolean saved = ((com.vylorq.anticheat.mixin.LivingEntityInvoker) fake).ac$tryUseDeathProtector(w.getDamageSources().generic());
+        check(saved, "the totem didn't pop");
+        check(fake.getOffHandStack().isEmpty(), "the popped totem is still in the offhand");
+        long pop = System.nanoTime();
+        check(s.totemWatch.watching(pop), "the pop wasn't noticed");
+
+        // Auto-totem: the game answers the ping 40 ms later and a new totem is in the offhand 20 ms after that.
+        com.vylorq.anticheat.feature.AutoTotem.pong(fake, s.totemPingId, pop + 40_000_000L);
+        com.vylorq.anticheat.feature.AutoTotem.before(fake, pop + 60_000_000L);
+        fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.TOTEM_OF_UNDYING));
+        com.vylorq.anticheat.feature.AutoTotem.after(fake);
+        // Counted in flags (points slowly fade, so they aren't compared).
+        java.util.function.IntSupplier flags = () -> ac.engine.violations().flagCounts(id)
+                .getOrDefault(com.vylorq.anticheat.core.detect.CheckType.AUTO_TOTEM, 0);
+        int caught = flags.getAsInt();
+        check(caught == 1, "an instant totem refill wasn't flagged");
+
+        // A person: same lag, but the totem goes in 450 ms after the game saw the pop.
+        boolean saved2 = ((com.vylorq.anticheat.mixin.LivingEntityInvoker) fake).ac$tryUseDeathProtector(w.getDamageSources().generic());
+        check(saved2, "the second totem didn't pop");
+        long pop2 = System.nanoTime();
+        com.vylorq.anticheat.feature.AutoTotem.pong(fake, s.totemPingId, pop2 + 40_000_000L);
+        com.vylorq.anticheat.feature.AutoTotem.before(fake, pop2 + 490_000_000L);
+        fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.TOTEM_OF_UNDYING));
+        com.vylorq.anticheat.feature.AutoTotem.after(fake);
+        check(flags.getAsInt() == caught, "a human-speed totem refill was flagged");
+
+        // Totems moved around with no pop going on (sorting the inventory) never count.
+        fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, net.minecraft.item.ItemStack.EMPTY);
+        com.vylorq.anticheat.feature.AutoTotem.before(fake, System.nanoTime());
+        fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.TOTEM_OF_UNDYING));
+        com.vylorq.anticheat.feature.AutoTotem.after(fake);
+        check(flags.getAsInt() == caught, "a totem moved without a pop was flagged");
+        ac.engine.violations().reset(id);
+        ctx.complete();
+    }
+
+    @GameTest
     public void allMixinsApply(TestContext ctx) {
         ClassLoader loader = AntiCheatGameTests.class.getClassLoader();
         StringBuilder failed = new StringBuilder();

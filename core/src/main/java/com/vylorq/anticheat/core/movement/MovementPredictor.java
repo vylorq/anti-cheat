@@ -130,6 +130,21 @@ public final class MovementPredictor {
             relax(st, CheckType.STEP);
         }
 
+        // ---- Hovering: floating in place far above the ground (works the same for Bedrock) ----
+        if (!vertExempt && !in.groundBelow && !in.onLiquidSurfaceOnly && Math.abs(dy) < 0.02) {
+            st.hoverTicks++;
+            if (st.hoverTicks >= 40) {
+                st.hoverTicks = 0;
+                r.failed.add(CheckType.FLY);
+                r.violations.add(new MoveResult.Violation(CheckType.FLY, 1.5, "hovering in the air for 2 seconds"));
+                if (s.setbacks) {
+                    r.setbackTo = st.lastLegit != null ? st.lastLegit : in.from;
+                }
+            }
+        } else {
+            st.hoverTicks = 0;
+        }
+
         // ---- Liquid walking ----
         if (in.clientOnGround && in.onLiquidSurfaceOnly && !skipAll) {
             fail(r, st, CheckType.JESUS, 1.0, "standing on liquid", false, in);

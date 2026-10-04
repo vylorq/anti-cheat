@@ -40,6 +40,33 @@ public final class PlayerSession {
     /** When the server opened or closed a screen for this player. */
     public int ticksSinceScreenChange = 1000;
     public Object lastScreen;
+    // Auto-totem.
+    public final com.vylorq.anticheat.core.combat.TotemWatch totemWatch = new com.vylorq.anticheat.core.combat.TotemWatch();
+    public int totemPingId;
+    public long invPacketArrival;
+    public boolean offhandWasTotem;
+    /** Network-thread arrival times of inventory clicks, hand actions and hotbar changes. */
+    public final java.util.concurrent.ConcurrentLinkedDeque<Long> invArrivals = new java.util.concurrent.ConcurrentLinkedDeque<>();
+    // Knockback, look, criticals, containers, armor, bots, mining time.
+    public final com.vylorq.anticheat.core.combat.VelocityWatch velocity = new com.vylorq.anticheat.core.combat.VelocityWatch();
+    public final com.vylorq.anticheat.core.combat.CritWatch crits = new com.vylorq.anticheat.core.combat.CritWatch();
+    public final com.vylorq.anticheat.core.combat.ReactionWatch container = new com.vylorq.anticheat.core.combat.ReactionWatch();
+    public int containerSyncId = -1;
+    public int containerPingId;
+    public final com.vylorq.anticheat.core.combat.ArmorWatch armor = new com.vylorq.anticheat.core.combat.ArmorWatch();
+    public final com.vylorq.anticheat.core.combat.BotPattern bot = new com.vylorq.anticheat.core.combat.BotPattern();
+    public final com.vylorq.anticheat.core.packets.MiningTime miningTime = new com.vylorq.anticheat.core.packets.MiningTime();
+    public long lastBreakMs;
+    /** A hit waiting for the next rotation packet: where the target was. */
+    public com.vylorq.anticheat.core.util.Vec3 lookTarget;
+    public double lookTargetRadius;
+    public float lookYawAtHit;
+    public float lookPitchAtHit;
+    public long badLookWindow;
+    public int badLooks;
+    public int armorBefore;
+    public int clickTakeSlot = -1;
+    public int clickTakeCount;
     // Packet checks.
     public long lastBadRotationFlag;
     public long badClickWindow;
@@ -138,6 +165,8 @@ public final class PlayerSession {
 
     public void teleported() {
         ticksSinceTeleport = 0;
+        velocity.cancel();
+        lookTarget = null;
         move.resetMotion(null);
     }
 }

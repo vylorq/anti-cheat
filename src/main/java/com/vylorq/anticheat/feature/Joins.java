@@ -170,6 +170,7 @@ public final class Joins {
         if (ac == null) {
             return;
         }
+        AntiEsp.forget(p.getUuid());
         long now = System.currentTimeMillis();
         String name = p.getGameProfile().name();
         PlayerSession s = Ac.sessionOrNull(p.getUuid());
