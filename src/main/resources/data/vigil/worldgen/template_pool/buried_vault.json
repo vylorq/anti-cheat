@@ -5,7 +5,7 @@
       "weight": 1,
       "element": {
         "element_type": "minecraft:single_pool_element",
-        "location": "vigil:sky_altar",
+        "location": "vigil:buried_vault",
         "processors": "minecraft:empty",
         "projection": "rigid"
       }

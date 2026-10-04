@@ -7,7 +7,7 @@
   "start_pool": "vigil:nether_forge",
   "size": 1,
   "start_height": {
-    "absolute": 40
+    "absolute": 45
   },
   "max_distance_from_center": 80,
   "use_expansion_hack": false

@@ -1,14 +1,14 @@
 {
   "structures": [
     {
-      "structure": "vigil:buried_shrine",
+      "structure": "vigil:frozen_bastion",
       "weight": 1
     }
   ],
   "placement": {
     "type": "minecraft:random_spread",
-    "spacing": 36,
-    "separation": 12,
-    "salt": 31170802
+    "spacing": 110,
+    "separation": 50,
+    "salt": 31170807
   }
 }

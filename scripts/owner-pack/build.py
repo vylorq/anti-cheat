@@ -757,6 +757,77 @@ def backpack():
         "...BBBBBBBBBB..."], {"B": "#5a3417", "L": "#a8682e", "N": "#3a2210", "G": "#d0d0d0", "Y": "#7a4a20"}, "#1c0e04")
 
 
+
+# ------------------------------------------------------------------ boss weapons
+
+def storm_fang():
+    return sword_art("#f2fbff", "#b8e8ff", "#3a7ab0", "#e2e8f0", "#ffe27a", "#2a3a5a", "#7fd8ff",
+                     [(10, 2, "#ffe27a", 220), (13, 3, "#b8e8ff", 170), (7, 4, "#ffffff", 150), (15, 5, "#ffe27a", 140)])
+
+
+def dune_blade():
+    return sword_art("#fff1c8", "#e8c77a", "#9a6a2a", "#c48a0e", "#2ad6a0", "#6b4a20", "#e2b23a",
+                     [(9, 3, "#e8c77a", 170), (12, 1, "#fff1c8", 140), (6, 5, "#e8c77a", 120)])
+
+
+def thornspine():
+    return sword_art("#d8ffc8", "#6fd05a", "#2a6a1a", "#3a5a20", "#d6301a", "#2a3a14", "#6fd05a",
+                     [(8, 3, "#6fd05a", 200), (11, 2, "#a8f080", 160), (13, 5, "#6fd05a", 150), (6, 6, "#4a9a30", 140)])
+
+
+def hollow_edge():
+    return sword_art("#e2d4ff", "#9a7bd0", "#2a1a4a", "#15101c", "#d65cff", "#1a1426", "#6a2bd6",
+                     [(9, 3, "#9a7bd0", 200), (12, 1, "#d65cff", 170), (14, 4, "#6a2bd6", 160), (6, 5, "#9a7bd0", 130)])
+
+
+def axe_art(head, edge, shine, handle, handle_dark, accent):
+    return pix([
+        "........SSSS....",
+        ".......SLLLSS...",
+        "......SLLALLSS..",
+        "......SLLAALLS..",
+        ".......SLALLWN..",
+        "........SSLWNS..",
+        ".........WNSS...",
+        "........WN......",
+        ".......WN.......",
+        "......WN........",
+        ".....WN.........",
+        "....WN..........",
+        "...WN...........",
+        "..WN............",
+        ".WN.............",
+        "BB.............."], {"S": head, "L": edge, "A": accent, "W": handle, "N": handle_dark, "B": shine})
+
+
+def forge_cleaver():
+    return axe_art("#3a2a2a", "#ff9a3a", "#ffd23f", "#4a3a3a", "#1a1010", "#fff3b0")
+
+
+def glacier_axe():
+    return axe_art("#4a8ab0", "#e8fbff", "#bff4ff", "#6a9ab8", "#2a4a60", "#7fe7ff")
+
+
+def colossus_maul():
+    return pix([
+        "........SSSSS...",
+        ".......SLLLLLS..",
+        "......SLLDLLLS..",
+        "......SLDDDLLS..",
+        "......SLLDLLLS..",
+        ".......SLLLLWS..",
+        "........SSSWNS..",
+        ".........WN.....",
+        "........WN......",
+        ".......WN.......",
+        "......WN........",
+        ".....WN.........",
+        "....WN..........",
+        "...WN...........",
+        "..WN............",
+        ".BB............."], {"S": "#3a3f48", "L": "#6c7684", "D": "#9fe8ff", "W": "#5a4a3a", "N": "#2a2018", "B": "#8a93a6"})
+
+
 SECRET = {"voidblade": ("diamond_sword", voidblade, "minecraft:item/handheld"),
           "stormbreaker": ("diamond_axe", stormbreaker, "minecraft:item/handheld"),
           "phoenix_feather": ("feather", phoenix_feather, "minecraft:item/generated"),
@@ -767,7 +838,14 @@ SECRET = {"voidblade": ("diamond_sword", voidblade, "minecraft:item/handheld"),
           "grappling_hook": ("fishing_rod", grappling_hook, "minecraft:item/handheld_rod"),
           "magnet_charm": ("iron_nugget", magnet_charm, "minecraft:item/generated"),
           "ender_pouch": ("rabbit_hide", ender_pouch, "minecraft:item/generated"),
-          "backpack": ("leather", backpack, "minecraft:item/generated")}
+          "backpack": ("leather", backpack, "minecraft:item/generated"),
+          "storm_fang": ("diamond_sword", storm_fang, "minecraft:item/handheld"),
+          "dune_blade": ("diamond_sword", dune_blade, "minecraft:item/handheld"),
+          "thornspine": ("diamond_sword", thornspine, "minecraft:item/handheld"),
+          "hollow_edge": ("netherite_sword", hollow_edge, "minecraft:item/handheld"),
+          "forge_cleaver": ("netherite_axe", forge_cleaver, "minecraft:item/handheld"),
+          "glacier_axe": ("diamond_axe", glacier_axe, "minecraft:item/handheld"),
+          "colossus_maul": ("mace", colossus_maul, "minecraft:item/handheld")}
 MODELS3D = {"drowned_warden": "nautilus_shell"}
 # Item models that aren't one plain model (the grappling hook looks different once cast).
 CASE_MODELS = {"grappling_hook": {"type": "minecraft:condition", "property": "minecraft:fishing_rod/cast",

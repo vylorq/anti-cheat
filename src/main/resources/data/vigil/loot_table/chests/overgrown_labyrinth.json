@@ -7,12 +7,17 @@
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/voidblade",
-          "weight": 3
+          "weight": 2
+        },
+        {
+          "type": "minecraft:loot_table",
+          "value": "vigil:items/phoenix_feather",
+          "weight": 2
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/shadow_cloak",
-          "weight": 2
+          "weight": 1
         }
       ]
     },
@@ -25,30 +30,45 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:amethyst_shard",
-          "weight": 10,
+          "name": "minecraft:cocoa_beans",
+          "weight": 8,
           "functions": [
             {
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
                 "min": 2,
-                "max": 6
+                "max": 8
               }
             }
           ]
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:iron_ingot",
-          "weight": 10,
+          "name": "minecraft:bamboo",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 12
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:emerald",
+          "weight": 8,
           "functions": [
             {
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
                 "min": 2,
-                "max": 6
+                "max": 5
               }
             }
           ]
@@ -70,15 +90,15 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:echo_shard",
-          "weight": 2,
+          "name": "minecraft:iron_ingot",
+          "weight": 6,
           "functions": [
             {
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 1,
-                "max": 2
+                "min": 2,
+                "max": 5
               }
             }
           ]
@@ -100,15 +120,15 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:candle",
-          "weight": 6,
+          "name": "minecraft:melon_seeds",
+          "weight": 5,
           "functions": [
             {
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 1,
-                "max": 4
+                "min": 2,
+                "max": 6
               }
             }
           ]

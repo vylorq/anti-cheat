@@ -1,0 +1,53 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_axe",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Forge Cleaver",
+                  "color": "#FF8A2E"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "Forgemaster's cleaver",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "Hits set the target ablaze for 4 seconds",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "(every 5 seconds)",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:x4d678e25c6"
+                  ]
+                },
+                "minecraft:use_cooldown": {
+                  "seconds": 0.05,
+                  "cooldown_group": "vigil:forge_cleaver"
+                },
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

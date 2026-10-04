@@ -17,6 +17,8 @@ import trimesh
 from PIL import Image
 from scipy import ndimage
 
+PAL_SIDE = 32
+PAL_N = PAL_SIDE * PAL_SIDE
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "built")
 
 
@@ -50,16 +52,28 @@ def sample(meshes, n):
     return np.concatenate(pts), np.concatenate(cols).astype(float)
 
 
-def kmeans(cols, k, iters=12):
+def nearest(cols, c, chunk=4096):
+    out = np.empty(len(cols), int)
+    cn = (c ** 2).sum(1)
+    for i in range(0, len(cols), chunk):
+        x = cols[i:i + chunk]
+        d = cn[None, :] - 2 * x @ c.T
+        out[i:i + chunk] = d.argmin(1)
+    return out
+
+
+def kmeans(cols, k, iters=10):
     rng = np.random.default_rng(3)
-    c = cols[rng.choice(len(cols), k, replace=False)]
+    k = min(k, len(cols))
+    c = cols[rng.choice(len(cols), k, replace=False)].copy()
+    lab = None
     for _ in range(iters):
-        d = ((cols[:, None, :] - c[None]) ** 2).sum(-1)
-        lab = d.argmin(1)
-        for i in range(k):
-            sel = cols[lab == i]
-            if len(sel):
-                c[i] = sel.mean(0)
+        lab = nearest(cols, c)
+        sums = np.zeros_like(c)
+        cnt = np.bincount(lab, minlength=k).astype(float)
+        np.add.at(sums, lab, cols)
+        nz = cnt > 0
+        c[nz] = sums[nz] / cnt[nz][:, None]
     return c, lab
 
 
@@ -87,11 +101,17 @@ def build(path, name, height):
     # Inside voxels take the color of the nearest surface voxel
     _, (ix, iy, iz) = ndimage.distance_transform_edt(~surface, return_indices=True)
     color = color[ix, iy, iz]
-    # Palette (256 colors) from the visible voxels
+    # Baked shading: voxels in creases (many solid neighbours) get darker, edges a little lighter, and the
+    # lower body a touch darker, so it reads as a solid, lit shape instead of flat colour.
+    occ = ndimage.uniform_filter(solid.astype(float), size=5, mode="constant")
+    light = np.clip(1.35 - occ * 0.75, 0.62, 1.12)
+    height_fade = 0.82 + 0.18 * (np.arange(dims[1]) / max(1, dims[1] - 1))
+    color = color * light[..., None] * height_fade[None, :, None, None]
+    color = np.clip(color, 0, 255)
+    # Palette (up to 1024 colours) from the visible voxels
     vis = color[surface]
-    pal, _ = kmeans(vis[np.random.default_rng(0).choice(len(vis), min(len(vis), 60000), replace=False)], 256)
-    d = ((color.reshape(-1, 3)[:, None, :] - pal[None]) ** 2).sum(-1)
-    lab = d.argmin(1).reshape(dims)
+    pal, _ = kmeans(vis[np.random.default_rng(0).choice(len(vis), min(len(vis), 120000), replace=False)], PAL_N)
+    lab = nearest(color.reshape(-1, 3), pal).reshape(dims)
 
     # Greedy-merge visible faces per direction into rectangles of one color.
     X, Y, Z = dims
@@ -131,17 +151,21 @@ def build(path, name, height):
                     frm[a1], to[a1] = u, u + h
                     frm[a2], to[a2] = v, v + w
                     elements.append((face, frm, to, col))
-    # Center: x/z around 8, feet at y=0 shifted so it fits Minecraft's -16..32 range.
-    off = np.array([8 - X / 2, min(0, 32 - Y), 8 - Z / 2])
+    # Minecraft models must fit in -16..32 (48 units): big grids use voxels smaller than one unit.
+    unit = min(1.0, 47.0 / max(X, Y, Z))
+    off = np.array([8 - X * unit / 2, min(0.0, 32.0 - Y * unit), 8 - Z * unit / 2])
+    side = PAL_SIDE
+    cell = 16.0 / side
     els = []
     for face, frm, to, col in elements:
-        f = (np.array(frm) + off).round(3).tolist()
-        t = (np.array(to) + off).round(3).tolist()
-        u, v = col % 16, col // 16
-        els.append({"from": f, "to": t, "faces": {face: {"uv": [u + 0.25, v + 0.25, u + 0.75, v + 0.75], "texture": "#p"}}})
-    pal_img = Image.new("RGB", (16, 16))
+        f = (np.array(frm) * unit + off).round(3).tolist()
+        t = (np.array(to) * unit + off).round(3).tolist()
+        u, v = (col % side) * cell, (col // side) * cell
+        els.append({"from": f, "to": t, "faces": {face: {"uv": [round(u + cell * 0.25, 4), round(v + cell * 0.25, 4),
+                                                              round(u + cell * 0.75, 4), round(v + cell * 0.75, 4)], "texture": "#p"}}})
+    pal_img = Image.new("RGB", (side, side))
     for i, c in enumerate(pal):
-        pal_img.putpixel((i % 16, i // 16), tuple(int(x) for x in c))
+        pal_img.putpixel((i % side, i // side), tuple(int(x) for x in c))
     os.makedirs(OUT, exist_ok=True)
     pal_img.save(os.path.join(OUT, name + ".png"))
     model = {"textures": {"p": "vigil:item/" + name, "particle": "vigil:item/" + name}, "elements": els,

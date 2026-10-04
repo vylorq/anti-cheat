@@ -136,7 +136,7 @@ public final class AdminCommands {
         owner.then(secret);
         var boss = literal("boss");
         var bossSpawn = literal("spawn");
-        for (String id : java.util.List.of(com.vylorq.anticheat.feature.Bosses.DROWNED_WARDEN)) {
+        for (String id : com.vylorq.anticheat.feature.Bosses.kinds()) {
             bossSpawn.then(literal(id).executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.Bosses.ownerSpawn(p, id))));
         }
         boss.then(bossSpawn);

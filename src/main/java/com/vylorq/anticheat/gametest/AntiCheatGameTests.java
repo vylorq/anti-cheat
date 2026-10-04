@@ -250,7 +250,7 @@ public final class AntiCheatGameTests {
                     net.minecraft.util.Identifier.of("vigil", id))).isPresent(), "no recipe for " + id);
         }
         var structures = w.getRegistryManager().getOrThrow(net.minecraft.registry.RegistryKeys.STRUCTURE);
-        for (String n : java.util.List.of("sunken_vault", "buried_shrine", "sky_altar", "nether_forge", "desert_tomb", "watchers_hollow")) {
+        for (String n : java.util.List.of("sunken_vault", "buried_vault", "sky_citadel", "nether_forge", "desert_tomb", "frozen_bastion", "overgrown_labyrinth", "watchers_hollow")) {
             var id = net.minecraft.util.Identifier.of("vigil", n);
             check(structures.containsId(id), "structure " + n + " isn't registered");
             var tpl = w.getStructureTemplateManager().getTemplate(id);
@@ -273,7 +273,7 @@ public final class AntiCheatGameTests {
         check(boss != null, "the boss didn't spawn");
         check(com.vylorq.anticheat.feature.Bosses.isBoss(boss), "the boss isn't tracked");
         check(boss.isInvisible(), "the boss mob should be invisible (its model shows instead)");
-        check(boss.getMaxHealth() >= 150, "the boss has too little health: " + boss.getMaxHealth());
+        check(boss.getMaxHealth() >= 600, "the boss has too little health: " + boss.getMaxHealth());
         check(boss.getCustomName() != null && boss.getCustomName().getString().contains("Drowned Warden"), "no health name tag");
         com.vylorq.anticheat.feature.Bosses.tick(1);
         var models = w.getEntitiesByClass(net.minecraft.entity.decoration.DisplayEntity.ItemDisplayEntity.class,
@@ -281,6 +281,18 @@ public final class AntiCheatGameTests {
         check(models.size() == 1, "the boss has " + models.size() + " models instead of 1");
         boss.discard();
         models.forEach(net.minecraft.entity.Entity::discard);
+        // Every boss spawns as a real, visible (for Bedrock) mob with its health in its name.
+        for (String kind : com.vylorq.anticheat.feature.Bosses.kinds()) {
+            var b = com.vylorq.anticheat.feature.Bosses.spawn(w, at.add(0, 0, 3), kind);
+            check(b != null && com.vylorq.anticheat.feature.Bosses.isBoss(b), kind + " didn't spawn");
+            check(b.getMaxHealth() >= 600, kind + " is too weak: " + b.getMaxHealth());
+            check(b.getCustomName() != null && b.getCustomName().getString().contains("❤"), kind + " has no health tag");
+            b.discard();
+        }
+        for (var e : w.getEntitiesByClass(net.minecraft.entity.mob.MobEntity.class, new net.minecraft.util.math.Box(at, at).expand(12),
+                e -> e.getCommandTags().contains(com.vylorq.anticheat.feature.Bosses.GUARD_TAG))) {
+            e.discard();
+        }
         ctx.complete();
     }
 
