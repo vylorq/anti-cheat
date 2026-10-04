@@ -31,7 +31,7 @@ public final class OwnerMenu {
     static ItemStack icon(Item base, String id) {
         ItemStack s = new ItemStack(base);
         s.set(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA,
-                new net.minecraft.component.type.CustomModelDataComponent(List.of(), List.of(), List.of("vigil:" + id), List.of()));
+                new net.minecraft.component.type.CustomModelDataComponent(List.of(), List.of(), List.of(com.vylorq.anticheat.util.PackIds.model(id)), List.of()));
         return s;
     }
 

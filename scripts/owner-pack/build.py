@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Builds the owner pack (resourcepack/vigil-owner.zip): tool textures, power sounds and item model overrides.
+"""Builds the server pack (resourcepack/pack.zip): tool textures, power sounds and item model overrides.
 
 Needs pillow, numpy and soundfile:  pip install pillow numpy soundfile
 Run from the repo root:             python3 scripts/owner-pack/build.py
@@ -1132,9 +1132,49 @@ ICON_ITEMS = {**{k: (v[0], (lambda rows=v[1], o=v[2]: grid(rows, o))) for k, v i
               "icon_join": ("nether_star", star_icon), "icon_pack": ("painting", palette_icon)}
 
 
+def code(name):
+    """Coded pack names (opening the pack shouldn't reveal the items or secrets). Same as PackIds.code in the mod."""
+    return "x" + hashlib.sha256(("vigil-pack:" + name).encode()).hexdigest()[:10]
+
+
+def obfuscate():
+    """Renames every texture, model and sound in the pack to its code, and points every reference at the codes."""
+    names = set()
+    for path in files:
+        for prefix in ("assets/vigil/textures/item/", "assets/vigil/models/item/", "assets/vigil/sounds/"):
+            if path.startswith(prefix):
+                names.add(path[len(prefix):].rsplit(".", 1)[0])
+
+    def fix(v):
+        if isinstance(v, str):
+            if v.startswith("vigil:item/") and v[11:] in names:
+                return "vigil:item/" + code(v[11:])
+            if v.startswith("vigil:") and v[6:] in names:
+                return "vigil:" + code(v[6:])
+            return v
+        if isinstance(v, list):
+            return [fix(x) for x in v]
+        if isinstance(v, dict):
+            return {(code(k) if k in names else k): fix(x) for k, x in v.items()}
+        return v
+
+    out = {}
+    for path, data in files.items():
+        new = path
+        for prefix in ("assets/vigil/textures/item/", "assets/vigil/models/item/", "assets/vigil/sounds/"):
+            if path.startswith(prefix):
+                stem, ext = path[len(prefix):].rsplit(".", 1)
+                new = prefix + code(stem) + "." + ext
+        if path.endswith(".json"):
+            data = json.dumps(fix(json.loads(data)), indent=2).encode()
+        out[new] = data
+    files.clear()
+    files.update(out)
+
+
 def build():
     files["pack.mcmeta"] = json.dumps({"pack": {
-        "description": "§6Vigil §7(items, sounds and secret places)",
+        "description": "§7Server resources",
         "pack_format": 46, "supported_formats": [46, 1000], "min_format": 46, "max_format": 1000}}, indent=2).encode()
     files["pack.png"] = png(pack_icon())
     by_base = {}
@@ -1172,13 +1212,19 @@ def build():
         sounds[name] = {"sounds": [{"name": f"vigil:{name}"}]}
     files["assets/vigil/sounds.json"] = json.dumps(sounds, indent=2).encode()
 
-    # Readable copies of the source files next to the zip, then the zip itself (fixed timestamps: same input, same zip).
+    obfuscate()
+    # Copies of the files next to the zip, then the zip itself (fixed timestamps: same input, same zip).
+    import shutil
+    shutil.rmtree(os.path.join(OUT, "src"), ignore_errors=True)
     for path, data in files.items():
         full = os.path.join(OUT, "src", path)
         os.makedirs(os.path.dirname(full), exist_ok=True)
         with open(full, "wb") as f:
             f.write(data)
-    zpath = os.path.join(OUT, "vigil-owner.zip")
+    zpath = os.path.join(OUT, "pack.zip")
+    old = os.path.join(OUT, "vigil-owner.zip")
+    if os.path.exists(old):
+        os.remove(old)
     with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
         for path in sorted(files):
             info = zipfile.ZipInfo(path, date_time=(2026, 1, 1, 0, 0, 0))

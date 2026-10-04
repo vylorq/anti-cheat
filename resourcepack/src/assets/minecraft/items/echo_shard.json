@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:home_teleporter",
+        "when": "vigil:x0617a7a8b1",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/home_teleporter"
+          "model": "vigil:item/x0617a7a8b1"
         }
       }
     ],

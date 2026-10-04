@@ -1,540 +1,540 @@
 {
-  "zap": {
+  "x2d235ff669": {
     "sounds": [
       {
-        "name": "vigil:zap"
+        "name": "vigil:x2d235ff669"
       }
     ]
   },
-  "mode": {
+  "x0d74beccf2": {
     "sounds": [
       {
-        "name": "vigil:mode"
+        "name": "vigil:x0d74beccf2"
       }
     ]
   },
-  "launch": {
+  "x5cd481d8ad": {
     "sounds": [
       {
-        "name": "vigil:launch"
+        "name": "vigil:x5cd481d8ad"
       }
     ]
   },
-  "heal": {
+  "xccb2e3abbb": {
     "sounds": [
       {
-        "name": "vigil:heal"
+        "name": "vigil:xccb2e3abbb"
       }
     ]
   },
-  "repair": {
+  "xca91e54d37": {
     "sounds": [
       {
-        "name": "vigil:repair"
+        "name": "vigil:xca91e54d37"
       }
     ]
   },
-  "give": {
+  "x17b8551905": {
     "sounds": [
       {
-        "name": "vigil:give"
+        "name": "vigil:x17b8551905"
       }
     ]
   },
-  "owner_join": {
+  "xa908c7ac27": {
     "sounds": [
       {
-        "name": "vigil:owner_join"
+        "name": "vigil:xa908c7ac27"
       }
     ]
   },
-  "fly_on": {
+  "xad05c64bdc": {
     "sounds": [
       {
-        "name": "vigil:fly_on"
+        "name": "vigil:xad05c64bdc"
       }
     ]
   },
-  "fly_off": {
+  "xf5614f8ca3": {
     "sounds": [
       {
-        "name": "vigil:fly_off"
+        "name": "vigil:xf5614f8ca3"
       }
     ]
   },
-  "god_on": {
+  "x12c967983f": {
     "sounds": [
       {
-        "name": "vigil:god_on"
+        "name": "vigil:x12c967983f"
       }
     ]
   },
-  "god_off": {
+  "x1ab46b062a": {
     "sounds": [
       {
-        "name": "vigil:god_off"
+        "name": "vigil:x1ab46b062a"
       }
     ]
   },
-  "speed_on": {
+  "x4a23ec42b1": {
     "sounds": [
       {
-        "name": "vigil:speed_on"
+        "name": "vigil:x4a23ec42b1"
       }
     ]
   },
-  "speed_off": {
+  "x1c2c26b92a": {
     "sounds": [
       {
-        "name": "vigil:speed_off"
+        "name": "vigil:x1c2c26b92a"
       }
     ]
   },
-  "night_on": {
+  "xfbd34f44ca": {
     "sounds": [
       {
-        "name": "vigil:night_on"
+        "name": "vigil:xfbd34f44ca"
       }
     ]
   },
-  "night_off": {
+  "x442a2fcdcd": {
     "sounds": [
       {
-        "name": "vigil:night_off"
+        "name": "vigil:x442a2fcdcd"
       }
     ]
   },
-  "break_on": {
+  "x9bded95295": {
     "sounds": [
       {
-        "name": "vigil:break_on"
+        "name": "vigil:x9bded95295"
       }
     ]
   },
-  "break_off": {
+  "xe564f5c595": {
     "sounds": [
       {
-        "name": "vigil:break_off"
+        "name": "vigil:xe564f5c595"
       }
     ]
   },
-  "radar_on": {
+  "x373befb5f1": {
     "sounds": [
       {
-        "name": "vigil:radar_on"
+        "name": "vigil:x373befb5f1"
       }
     ]
   },
-  "radar_off": {
+  "x9c82e31661": {
     "sounds": [
       {
-        "name": "vigil:radar_off"
+        "name": "vigil:x9c82e31661"
       }
     ]
   },
-  "radar_ping": {
+  "x1c403ca287": {
     "sounds": [
       {
-        "name": "vigil:radar_ping"
+        "name": "vigil:x1c403ca287"
       }
     ]
   },
-  "ghost_on": {
+  "x174bf87da7": {
     "sounds": [
       {
-        "name": "vigil:ghost_on"
+        "name": "vigil:x174bf87da7"
       }
     ]
   },
-  "ghost_off": {
+  "x1979f8182a": {
     "sounds": [
       {
-        "name": "vigil:ghost_off"
+        "name": "vigil:x1979f8182a"
       }
     ]
   },
-  "freeze": {
+  "xf17ce93429": {
     "sounds": [
       {
-        "name": "vigil:freeze"
+        "name": "vigil:xf17ce93429"
       }
     ]
   },
-  "thaw": {
+  "x934caa1b24": {
     "sounds": [
       {
-        "name": "vigil:thaw"
+        "name": "vigil:x934caa1b24"
       }
     ]
   },
-  "gavel": {
+  "xcd58fe016f": {
     "sounds": [
       {
-        "name": "vigil:gavel"
+        "name": "vigil:xcd58fe016f"
       }
     ]
   },
-  "gavel_soft": {
+  "x0c3a18a53e": {
     "sounds": [
       {
-        "name": "vigil:gavel_soft"
+        "name": "vigil:x0c3a18a53e"
       }
     ]
   },
-  "insta": {
+  "xeadcaa539b": {
     "sounds": [
       {
-        "name": "vigil:insta"
+        "name": "vigil:xeadcaa539b"
       }
     ]
   },
-  "thor_smash": {
+  "xbbbf7af8a9": {
     "sounds": [
       {
-        "name": "vigil:thor_smash"
+        "name": "vigil:xbbbf7af8a9"
       }
     ]
   },
-  "thor_hit": {
+  "xe973222475": {
     "sounds": [
       {
-        "name": "vigil:thor_hit"
+        "name": "vigil:xe973222475"
       }
     ]
   },
-  "flame_hit": {
+  "x3845ac9053": {
     "sounds": [
       {
-        "name": "vigil:flame_hit"
+        "name": "vigil:x3845ac9053"
       }
     ]
   },
-  "flame_wave": {
+  "x87590bb4e7": {
     "sounds": [
       {
-        "name": "vigil:flame_wave"
+        "name": "vigil:x87590bb4e7"
       }
     ]
   },
-  "frost_shot": {
+  "xd6af6a3cec": {
     "sounds": [
       {
-        "name": "vigil:frost_shot"
+        "name": "vigil:xd6af6a3cec"
       }
     ]
   },
-  "frost_hit": {
+  "x0bbfae3fb2": {
     "sounds": [
       {
-        "name": "vigil:frost_hit"
+        "name": "vigil:x0bbfae3fb2"
       }
     ]
   },
-  "blast_shot": {
+  "xdaf88b9d3a": {
     "sounds": [
       {
-        "name": "vigil:blast_shot"
+        "name": "vigil:xdaf88b9d3a"
       }
     ]
   },
-  "blast_boom": {
+  "x6e231aa6c5": {
     "sounds": [
       {
-        "name": "vigil:blast_boom"
+        "name": "vigil:x6e231aa6c5"
       }
     ]
   },
-  "meteor_cast": {
+  "xa6193a2ba9": {
     "sounds": [
       {
-        "name": "vigil:meteor_cast"
+        "name": "vigil:xa6193a2ba9"
       }
     ]
   },
-  "meteor_fall": {
+  "xa909de3650": {
     "sounds": [
       {
-        "name": "vigil:meteor_fall"
+        "name": "vigil:xa909de3650"
       }
     ]
   },
-  "meteor_impact": {
+  "x716f7d4b17": {
     "sounds": [
       {
-        "name": "vigil:meteor_impact"
+        "name": "vigil:x716f7d4b17"
       }
     ]
   },
-  "disarm": {
+  "x7bc89276a0": {
     "sounds": [
       {
-        "name": "vigil:disarm"
+        "name": "vigil:x7bc89276a0"
       }
     ]
   },
-  "onepunch_hit": {
+  "x7fa1893199": {
     "sounds": [
       {
-        "name": "vigil:onepunch_hit"
+        "name": "vigil:x7fa1893199"
       }
     ]
   },
-  "lifesteal_hit": {
+  "xd717d86a9f": {
     "sounds": [
       {
-        "name": "vigil:lifesteal_hit"
+        "name": "vigil:xd717d86a9f"
       }
     ]
   },
-  "mega_hit": {
+  "xbf32943de4": {
     "sounds": [
       {
-        "name": "vigil:mega_hit"
+        "name": "vigil:xbf32943de4"
       }
     ]
   },
-  "field_push": {
+  "xf5cadb76c6": {
     "sounds": [
       {
-        "name": "vigil:field_push"
+        "name": "vigil:xf5cadb76c6"
       }
     ]
   },
-  "berserk": {
+  "x6c42294219": {
     "sounds": [
       {
-        "name": "vigil:berserk"
+        "name": "vigil:x6c42294219"
       }
     ]
   },
-  "mobwipe": {
+  "xae5140b8c6": {
     "sounds": [
       {
-        "name": "vigil:mobwipe"
+        "name": "vigil:xae5140b8c6"
       }
     ]
   },
-  "smite": {
+  "x7ab39db787": {
     "sounds": [
       {
-        "name": "vigil:smite"
+        "name": "vigil:x7ab39db787"
       }
     ]
   },
-  "punch_on": {
+  "x4f67e26fb3": {
     "sounds": [
       {
-        "name": "vigil:punch_on"
+        "name": "vigil:x4f67e26fb3"
       }
     ]
   },
-  "punch_off": {
+  "x4d2298422a": {
     "sounds": [
       {
-        "name": "vigil:punch_off"
+        "name": "vigil:x4d2298422a"
       }
     ]
   },
-  "steal_on": {
+  "x63c5c4db98": {
     "sounds": [
       {
-        "name": "vigil:steal_on"
+        "name": "vigil:x63c5c4db98"
       }
     ]
   },
-  "steal_off": {
+  "x3a47f86a5b": {
     "sounds": [
       {
-        "name": "vigil:steal_off"
+        "name": "vigil:x3a47f86a5b"
       }
     ]
   },
-  "knock_on": {
+  "x2810543500": {
     "sounds": [
       {
-        "name": "vigil:knock_on"
+        "name": "vigil:x2810543500"
       }
     ]
   },
-  "knock_off": {
+  "xba7ac9c0a9": {
     "sounds": [
       {
-        "name": "vigil:knock_off"
+        "name": "vigil:xba7ac9c0a9"
       }
     ]
   },
-  "nocool_on": {
+  "xd804a4fb83": {
     "sounds": [
       {
-        "name": "vigil:nocool_on"
+        "name": "vigil:xd804a4fb83"
       }
     ]
   },
-  "nocool_off": {
+  "x736906c658": {
     "sounds": [
       {
-        "name": "vigil:nocool_off"
+        "name": "vigil:x736906c658"
       }
     ]
   },
-  "field_on": {
+  "xb861601343": {
     "sounds": [
       {
-        "name": "vigil:field_on"
+        "name": "vigil:xb861601343"
       }
     ]
   },
-  "field_off": {
+  "x85f2709815": {
     "sounds": [
       {
-        "name": "vigil:field_off"
+        "name": "vigil:x85f2709815"
       }
     ]
   },
-  "home_place": {
+  "x23b46f53af": {
     "sounds": [
       {
-        "name": "vigil:home_place"
+        "name": "vigil:x23b46f53af"
       }
     ]
   },
-  "home_charge": {
+  "x73c37cc958": {
     "sounds": [
       {
-        "name": "vigil:home_charge"
+        "name": "vigil:x73c37cc958"
       }
     ]
   },
-  "orbital_fire": {
+  "xfe285d7a4d": {
     "sounds": [
       {
-        "name": "vigil:orbital_fire"
+        "name": "vigil:xfe285d7a4d"
       }
     ]
   },
-  "orbital_undo": {
+  "xd3f50f7e09": {
     "sounds": [
       {
-        "name": "vigil:orbital_undo"
+        "name": "vigil:xd3f50f7e09"
       }
     ]
   },
-  "home_tp": {
+  "x8ff47bd913": {
     "sounds": [
       {
-        "name": "vigil:home_tp"
+        "name": "vigil:x8ff47bd913"
       }
     ]
   },
-  "voidblade": {
+  "x2c7067b20d": {
     "sounds": [
       {
-        "name": "vigil:voidblade"
+        "name": "vigil:x2c7067b20d"
       }
     ]
   },
-  "stormbreaker": {
+  "x87165e2164": {
     "sounds": [
       {
-        "name": "vigil:stormbreaker"
+        "name": "vigil:x87165e2164"
       }
     ]
   },
-  "tidecaller": {
+  "xe44016eaf4": {
     "sounds": [
       {
-        "name": "vigil:tidecaller"
+        "name": "vigil:xe44016eaf4"
       }
     ]
   },
-  "phoenix": {
+  "x190740644e": {
     "sounds": [
       {
-        "name": "vigil:phoenix"
+        "name": "vigil:x190740644e"
       }
     ]
   },
-  "shadow_on": {
+  "x3073c5465a": {
     "sounds": [
       {
-        "name": "vigil:shadow_on"
+        "name": "vigil:x3073c5465a"
       }
     ]
   },
-  "shadow_off": {
+  "x04891357e8": {
     "sounds": [
       {
-        "name": "vigil:shadow_off"
+        "name": "vigil:x04891357e8"
       }
     ]
   },
-  "seeker": {
+  "x45986bcbee": {
     "sounds": [
       {
-        "name": "vigil:seeker"
+        "name": "vigil:x45986bcbee"
       }
     ]
   },
-  "magnet_on": {
+  "x5028ff3d5d": {
     "sounds": [
       {
-        "name": "vigil:magnet_on"
+        "name": "vigil:x5028ff3d5d"
       }
     ]
   },
-  "magnet_off": {
+  "x0fc2f62104": {
     "sounds": [
       {
-        "name": "vigil:magnet_off"
+        "name": "vigil:x0fc2f62104"
       }
     ]
   },
-  "pouch_open": {
+  "x55e3b370a6": {
     "sounds": [
       {
-        "name": "vigil:pouch_open"
+        "name": "vigil:x55e3b370a6"
       }
     ]
   },
-  "backpack_open": {
+  "xa54b139a42": {
     "sounds": [
       {
-        "name": "vigil:backpack_open"
+        "name": "vigil:xa54b139a42"
       }
     ]
   },
-  "grapple": {
+  "x3b58725579": {
     "sounds": [
       {
-        "name": "vigil:grapple"
+        "name": "vigil:x3b58725579"
       }
     ]
   },
-  "hammer": {
+  "x41e51e1db6": {
     "sounds": [
       {
-        "name": "vigil:hammer"
+        "name": "vigil:x41e51e1db6"
       }
     ]
   },
-  "lumber": {
+  "xefb6d39e93": {
     "sounds": [
       {
-        "name": "vigil:lumber"
+        "name": "vigil:xefb6d39e93"
       }
     ]
   },
-  "vault_open": {
+  "xaeb61dfd63": {
     "sounds": [
       {
-        "name": "vigil:vault_open"
+        "name": "vigil:xaeb61dfd63"
       }
     ]
   },
-  "vault_wrong": {
+  "x51126c9e18": {
     "sounds": [
       {
-        "name": "vigil:vault_wrong"
+        "name": "vigil:x51126c9e18"
       }
     ]
   }

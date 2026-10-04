@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:judge_gavel",
+        "when": "vigil:x2dd6ddcbee",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/judge_gavel"
+          "model": "vigil:item/x2dd6ddcbee"
         }
       }
     ],

@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:icon_smite",
+        "when": "vigil:x65bd9953cd",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/icon_smite"
+          "model": "vigil:item/x65bd9953cd"
         }
       }
     ],

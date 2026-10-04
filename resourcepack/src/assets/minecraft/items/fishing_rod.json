@@ -5,17 +5,17 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:grappling_hook",
+        "when": "vigil:x9c840dc0df",
         "model": {
           "type": "minecraft:condition",
           "property": "minecraft:fishing_rod/cast",
           "on_false": {
             "type": "minecraft:model",
-            "model": "vigil:item/grappling_hook"
+            "model": "vigil:item/x9c840dc0df"
           },
           "on_true": {
             "type": "minecraft:model",
-            "model": "vigil:item/grappling_hook_cast"
+            "model": "vigil:item/x7d8e3b60b4"
           }
         }
       }

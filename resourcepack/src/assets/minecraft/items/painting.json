@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:icon_pack",
+        "when": "vigil:x23d6d78ac6",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/icon_pack"
+          "model": "vigil:item/x23d6d78ac6"
         }
       }
     ],

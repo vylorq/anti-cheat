@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:freeze_wand",
+        "when": "vigil:xf693965a0c",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/freeze_wand"
+          "model": "vigil:item/xf693965a0c"
         }
       }
     ],

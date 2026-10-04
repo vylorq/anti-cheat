@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:seeker_compass",
+        "when": "vigil:xfc3a0b8c8a",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/seeker_compass"
+          "model": "vigil:item/xfc3a0b8c8a"
         }
       }
     ],

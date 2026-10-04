@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:voidblade",
+        "when": "vigil:x2c7067b20d",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/voidblade"
+          "model": "vigil:item/x2c7067b20d"
         }
       }
     ],

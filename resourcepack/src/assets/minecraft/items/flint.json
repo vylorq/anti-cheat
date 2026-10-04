@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:icon_break",
+        "when": "vigil:xc11b3f4781",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/icon_break"
+          "model": "vigil:item/xc11b3f4781"
         }
       }
     ],

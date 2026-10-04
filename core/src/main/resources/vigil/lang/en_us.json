@@ -2405,7 +2405,7 @@
   "owner.pack": "Owner textures and sounds",
   "owner.pack.desc": "The pack with your tools' textures and the power sounds. Sent when you join.",
   "owner.pack-send": "Send it again",
-  "owner.pack-prompt": "Vigil owner pack: textures for your owner tools and sounds for your powers.",
+  "owner.pack-prompt": "This server uses its own resource pack.",
   "owner.healed": "Healed {0}",
   "owner.healed-near": "Healed {0} player(s) near you",
   "owner.lightning-real": "Lightning: real (it hurts and burns)",
@@ -2568,7 +2568,7 @@
   "secret.magnet-off": "Magnet: off",
   "secret.in-fight": "You were just in a fight. Wait a few seconds.",
   "secret.backpack-main-hand": "Hold the backpack in your main hand to open it.",
-  "pack.prompt": "Vigil needs its pack for the custom items, sounds and secret places. It's required to play here.",
-  "pack.declined": "You need the Vigil pack to play on this server. Rejoin and press \"Yes\".",
-  "pack.failed": "The Vigil pack didn't download. Please rejoin to try again."
+  "pack.prompt": "This server needs its resource pack to play.",
+  "pack.declined": "You need the server's resource pack to play here. Rejoin and press \"Yes\".",
+  "pack.failed": "The server's resource pack didn't download. Please rejoin to try again."
 }

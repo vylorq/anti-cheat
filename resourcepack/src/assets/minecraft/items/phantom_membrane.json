@@ -5,17 +5,17 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:shadow_cloak",
+        "when": "vigil:xb41da33d39",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/shadow_cloak"
+          "model": "vigil:item/xb41da33d39"
         }
       },
       {
-        "when": "vigil:icon_ghost",
+        "when": "vigil:xfe71ca4d83",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/icon_ghost"
+          "model": "vigil:item/xfe71ca4d83"
         }
       }
     ],

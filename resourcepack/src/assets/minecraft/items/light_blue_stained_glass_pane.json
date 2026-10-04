@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:rune_circle",
+        "when": "vigil:xa7dce037a5",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/rune_circle"
+          "model": "vigil:item/xa7dce037a5"
         }
       }
     ],

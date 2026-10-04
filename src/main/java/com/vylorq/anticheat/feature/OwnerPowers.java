@@ -190,7 +190,7 @@ public final class OwnerPowers {
 
     /** A sound from the owner pack (silent without it), plus a vanilla one everyone hears. */
     public static void sfx(ServerPlayerEntity p, String custom, SoundEvent vanilla, float pitch) {
-        p.networkHandler.sendPacket(new PlaySoundS2CPacket(RegistryEntry.of(SoundEvent.of(Identifier.of("vigil", custom))),
+        p.networkHandler.sendPacket(new PlaySoundS2CPacket(RegistryEntry.of(SoundEvent.of(com.vylorq.anticheat.util.PackIds.sound(custom))),
                 SoundCategory.PLAYERS, p.getX(), p.getY(), p.getZ(), 1f, 1f, p.getRandom().nextLong()));
         if (vanilla != null) {
             p.getEntityWorld().playSound(null, p.getX(), p.getY(), p.getZ(), vanilla, SoundCategory.PLAYERS, 0.7f, pitch);
@@ -449,6 +449,10 @@ public final class OwnerPowers {
         if (cfg.packUrl == null || cfg.packUrl.isBlank()) {
             return;
         }
+        if (cfg.packUrl.endsWith("/resourcepack/vigil-owner.zip")) {
+            // The pack was renamed.
+            cfg.packUrl = cfg.packUrl.replace("/resourcepack/vigil-owner.zip", "/resourcepack/pack.zip");
+        }
         boolean required = cfg.packRequired && cfg.packForEveryone;
         p.networkHandler.sendPacket(new ResourcePackSendS2CPacket(PACK_ID, cfg.packUrl, packHash(), required,
                 Optional.of(Text.literal(Msg.trFor(p, Perms.isOwner(p.getUuid()) ? "owner.pack-prompt" : "pack.prompt")))));
@@ -500,7 +504,7 @@ public final class OwnerPowers {
                     o.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 50, 20));
                     o.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("§6✦ " + name + " ✦")));
                     o.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("§e" + Msg.trFor(o, "owner.arrived"))));
-                    o.networkHandler.sendPacket(new PlaySoundS2CPacket(RegistryEntry.of(SoundEvent.of(Identifier.of("vigil", "owner_join"))),
+                    o.networkHandler.sendPacket(new PlaySoundS2CPacket(RegistryEntry.of(SoundEvent.of(com.vylorq.anticheat.util.PackIds.sound("owner_join"))),
                             SoundCategory.MASTER, o.getX(), o.getY(), o.getZ(), 1f, 1f, 0));
                     Mc.sound(o, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 0.6f, 1f);
                 }
