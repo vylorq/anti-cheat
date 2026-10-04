@@ -5,6 +5,13 @@
     "index": 0,
     "cases": [
       {
+        "when": "vigil:phoenix_feather",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/phoenix_feather"
+        }
+      },
+      {
         "when": "vigil:icon_fly",
         "model": {
           "type": "minecraft:model",

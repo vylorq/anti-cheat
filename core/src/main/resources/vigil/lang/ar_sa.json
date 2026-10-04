@@ -2556,5 +2556,19 @@
   "orbital.cancelled": "§7أُلغيت. أُزيل {0} TNT.",
   "orbital.miss": "بعيد جداً: انظر إلى الأرض ضمن 300 بلوك.",
   "orbital.fired": "تم تثبيت الضربة: {0} TNT عند {1}",
-  "orbital.done": "انتهت الضربة ({0} TNT). /owner orbital undo يعيد كل شيء."
+  "orbital.done": "انتهت الضربة ({0} TNT). /owner orbital undo يعيد كل شيء.",
+  "secret.cooldown": "ما زال يُعاد شحنه...",
+  "secret.tide-hit": "دفعت الموجة {0}",
+  "secret.phoenix-saved": "§6🔥 احترقت ريشة العنقاء وأنقذت حياتك!",
+  "secret.shadow-on": "تختفي في الظلال...",
+  "secret.shadow-off": "أصبحت مرئياً من جديد.",
+  "secret.seeker-none": "§7لم تجد البوصلة شيئاً قريباً. جرّب مكاناً آخر (لم تُستهلك).",
+  "secret.seeker-found": "§b✦ ثبتت بوصلة الباحث: مكان سري على بعد {0} بلوك تقريباً.",
+  "secret.magnet-on": "المغناطيس: يعمل",
+  "secret.magnet-off": "المغناطيس: متوقف",
+  "secret.in-fight": "كنت في قتال للتو. انتظر بضع ثوانٍ.",
+  "secret.backpack-main-hand": "أمسك الحقيبة بيدك الرئيسية لفتحها.",
+  "pack.prompt": "يحتاج Vigil حزمته للأغراض والأصوات والأماكن السرية. هي مطلوبة للعب هنا.",
+  "pack.declined": "تحتاج حزمة Vigil للعب في هذا السيرفر. ادخل مجدداً واضغط \"نعم\".",
+  "pack.failed": "لم تُحمّل حزمة Vigil. ادخل مجدداً للمحاولة مرة أخرى."
 }

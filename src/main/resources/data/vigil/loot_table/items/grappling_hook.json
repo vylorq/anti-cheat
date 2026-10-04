@@ -1,0 +1,52 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:fishing_rod",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Grappling Hook",
+                  "color": "#C0C8D0"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "Cast at a block, then reel in",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "to pull yourself there",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "(every 3 seconds)",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:grappling_hook"
+                  ]
+                },
+                "minecraft:use_cooldown": {
+                  "seconds": 0.05,
+                  "cooldown_group": "vigil:grappling_hook"
+                },
+                "minecraft:rarity": "uncommon"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

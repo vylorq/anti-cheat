@@ -5,6 +5,13 @@
     "index": 0,
     "cases": [
       {
+        "when": "vigil:shadow_cloak",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/shadow_cloak"
+        }
+      },
+      {
         "when": "vigil:icon_ghost",
         "model": {
           "type": "minecraft:model",

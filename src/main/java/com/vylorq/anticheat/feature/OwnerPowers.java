@@ -443,14 +443,33 @@ public final class OwnerPowers {
         }
     }
 
-    /** Sends the owner's texture and sound pack (only to the owner). */
+    /** Sends the Vigil texture and sound pack (required for everyone unless turned off in the config). */
     public static void sendPack(ServerPlayerEntity p) {
         var cfg = Ac.config().owner;
         if (cfg.packUrl == null || cfg.packUrl.isBlank()) {
             return;
         }
-        p.networkHandler.sendPacket(new ResourcePackSendS2CPacket(PACK_ID, cfg.packUrl, packHash(), false,
-                Optional.of(Text.literal(Msg.trFor(p, "owner.pack-prompt")))));
+        boolean required = cfg.packRequired && cfg.packForEveryone;
+        p.networkHandler.sendPacket(new ResourcePackSendS2CPacket(PACK_ID, cfg.packUrl, packHash(), required,
+                Optional.of(Text.literal(Msg.trFor(p, Perms.isOwner(p.getUuid()) ? "owner.pack-prompt" : "pack.prompt")))));
+    }
+
+    /** The player's answer to the pack. Declining or failing to load it disconnects them when it's required. */
+    public static void packStatus(ServerPlayerEntity p, UUID id, String status) {
+        var cfg = Ac.config().owner;
+        if (!PACK_ID.equals(id) || !cfg.packRequired || !cfg.packForEveryone || com.vylorq.anticheat.ui.Viewer.isBedrock(p)) {
+            return;
+        }
+        switch (status) {
+            case "DECLINED", "FAILED_DOWNLOAD", "INVALID_URL", "FAILED_RELOAD", "DISCARDED" -> Ac.server().execute(() -> {
+                if (!p.isDisconnected()) {
+                    Ac.LOG.info("{} didn't load the Vigil pack ({}): disconnecting", p.getGameProfile().name(), status);
+                    p.networkHandler.disconnect(Text.literal(Msg.trFor(p, "DECLINED".equals(status) ? "pack.declined" : "pack.failed")));
+                }
+            });
+            default -> {
+            }
+        }
     }
 
     /** Join message: a silent owner is only shown to staff. */
@@ -459,12 +478,15 @@ public final class OwnerPowers {
     }
 
     public static void onJoin(ServerPlayerEntity p) {
-        if (!Perms.isOwner(p.getUuid())) {
+        var cfg = Ac.config().owner;
+        boolean owner = Perms.isOwner(p.getUuid());
+        // Bedrock players can't load Java packs (Geyser shows them the normal items).
+        if (cfg.sendPack && (owner || cfg.packForEveryone) && !com.vylorq.anticheat.ui.Viewer.isBedrock(p)) {
+            sendPack(p);
+        }
+        if (!owner) {
             OwnerTools.confiscate(p);
             return;
-        }
-        if (Ac.config().owner.sendPack) {
-            sendPack(p);
         }
         if ("grand".equals(state().joinStyle)) {
             var server = Ac.server();

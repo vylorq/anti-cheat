@@ -222,6 +222,50 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void secretItemsAndStructures(TestContext ctx) {
+        var w = ctx.getWorld();
+        var server = w.getServer();
+        // Every item comes out of its loot table with its model and its own cooldown group.
+        BlockPos at = ctx.getAbsolutePos(new BlockPos(1, 2, 1));
+        var src = server.getCommandSource().withWorld(w).withSilent();
+        for (String id : com.vylorq.anticheat.feature.SecretItems.ALL) {
+            server.getCommandManager().parseAndExecute(src, "loot spawn " + at.getX() + " " + at.getY() + " " + at.getZ() + " loot vigil:items/" + id);
+        }
+        java.util.Set<String> got = new java.util.HashSet<>();
+        net.minecraft.item.ItemStack feather = null;
+        for (var e : w.getEntitiesByClass(net.minecraft.entity.ItemEntity.class, new net.minecraft.util.math.Box(at).expand(4), e -> true)) {
+            String id = com.vylorq.anticheat.feature.SecretItems.idOf(e.getStack());
+            if (id != null) {
+                got.add(id);
+                check(e.getStack().get(net.minecraft.component.DataComponentTypes.USE_COOLDOWN) != null, id + " has no cooldown");
+                if (id.equals(com.vylorq.anticheat.feature.SecretItems.PHOENIX)) {
+                    feather = e.getStack().copy();
+                }
+            }
+            e.discard();
+        }
+        check(got.size() == com.vylorq.anticheat.feature.SecretItems.ALL.size(), "items missing from their loot tables: only " + got);
+        for (String id : com.vylorq.anticheat.feature.SecretItems.CRAFTABLE) {
+            check(server.getRecipeManager().get(net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.RECIPE,
+                    net.minecraft.util.Identifier.of("vigil", id))).isPresent(), "no recipe for " + id);
+        }
+        var structures = w.getRegistryManager().getOrThrow(net.minecraft.registry.RegistryKeys.STRUCTURE);
+        for (String n : java.util.List.of("sunken_vault", "buried_shrine", "sky_altar", "nether_forge", "desert_tomb", "watchers_hollow")) {
+            var id = net.minecraft.util.Identifier.of("vigil", n);
+            check(structures.containsId(id), "structure " + n + " isn't registered");
+            var tpl = w.getStructureTemplateManager().getTemplate(id);
+            check(tpl.isPresent() && tpl.get().getSize().getX() > 0, "structure " + n + " has no template");
+        }
+        // The phoenix feather saves its holder once, then it's gone.
+        var hero = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "PhoenixTester"));
+        hero.setStackInHand(net.minecraft.util.Hand.OFF_HAND, feather);
+        check(com.vylorq.anticheat.feature.SecretItems.phoenix(hero, w.getDamageSources().generic()), "the phoenix feather didn't save");
+        check(hero.getOffHandStack().isEmpty(), "the phoenix feather wasn't used up");
+        check(!com.vylorq.anticheat.feature.SecretItems.phoenix(hero, w.getDamageSources().generic()), "saved twice without a feather");
+        ctx.complete();
+    }
+
+    @GameTest
     public void replayStartsAndCleansUp(TestContext ctx) {
         var w = ctx.getWorld();
         var staff = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ReplayStaff"));

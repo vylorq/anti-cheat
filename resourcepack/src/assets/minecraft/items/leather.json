@@ -10,6 +10,13 @@
           "type": "minecraft:model",
           "model": "vigil:item/disarm_gloves"
         }
+      },
+      {
+        "when": "vigil:backpack",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/backpack"
+        }
       }
     ],
     "fallback": {

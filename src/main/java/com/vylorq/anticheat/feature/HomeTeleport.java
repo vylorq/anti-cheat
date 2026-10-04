@@ -403,6 +403,12 @@ public final class HomeTeleport {
                 SoundCategory.PLAYERS, p.getX(), p.getY(), p.getZ(), 1f, 1f, p.getRandom().nextLong()));
     }
 
+    /** Fought another player in the last 15 seconds. */
+    public static boolean inFight(ServerPlayerEntity p) {
+        Long f = FIGHT.get(p.getUuid());
+        return f != null && System.currentTimeMillis() - f < 15_000;
+    }
+
     /** Getting hurt cancels a charge; fighting another player blocks travel for 15 seconds. */
     public static void onDamage(ServerPlayerEntity p, Entity attacker) {
         if (CHARGING.remove(p.getUuid()) != null) {
