@@ -211,23 +211,53 @@ def freeze_wand():
 
 
 def judge_gavel():
+    """A courtroom gavel: a round wooden mallet head with light end caps and a gold band, on a handle meeting its middle."""
     img = canvas()
     px = img.load()
-    rod(img, 1, 14, 7, 8, hexc("#7a4a24"), hexc("#a46a3a"), hexc("#4a2a12"))
-    # The hammer head, tilted, with gold bands.
-    head = {2: [9, 10, 11], 3: [8, 9, 10, 11, 12], 4: [8, 9, 10, 11, 12, 13], 5: [9, 10, 11, 12, 13, 14],
-            6: [10, 11, 12, 13, 14], 7: [11, 12, 13]}
-    for y, xs in head.items():
-        for x in xs:
-            px[x, y] = hexc("#8b5a2b")
-        px[xs[0], y] = hexc("#5a3517")
-        px[xs[-1], y] = hexc("#b07a45")
-    for (x, y) in [(9, 3), (10, 4), (11, 5), (12, 6)]:
-        px[x, y] = hexc("#ffd23f")
-    for (x, y) in [(8, 7), (9, 8)]:
-        px[x, y] = hexc("#7a4a24")
-    for (x, y) in [(15, 1), (14, 9), (6, 3)]:
-        px[x, y] = hexc("#ffe79a", 170)
+
+    def seg(px_, py_, ax, ay, bx, by):
+        # (distance from the segment, position along it 0..1, which side)
+        dx, dy = bx - ax, by - ay
+        L2 = dx * dx + dy * dy or 1e-9
+        tt = max(0.0, min(1.0, ((px_ - ax) * dx + (py_ - ay) * dy) / L2))
+        cx, cy = ax + tt * dx, ay + tt * dy
+        side = (px_ - cx) * dy - (py_ - cy) * dx
+        return ((px_ - cx) ** 2 + (py_ - cy) ** 2) ** 0.5, tt, side
+
+    # Handle first (head drawn over it).
+    for y in range(16):
+        for x in range(16):
+            d, tt, side = seg(x + 0.5, y + 0.5, 2.3, 13.7, 10.2, 5.8)
+            if d <= 0.8:
+                px[x, y] = hexc("#b07a45") if side > 0.15 else hexc("#6b4220") if side < -0.15 else hexc("#8b5a2b")
+            # A small knob at the end of the handle.
+            dk, _, sk = seg(x + 0.5, y + 0.5, 1.8, 14.2, 1.8, 14.2)
+            if dk <= 1.25:
+                px[x, y] = hexc("#5a3517") if sk < 0 else hexc("#7a4a24")
+    # Head: a fat rounded cylinder across the top of the handle.
+    for y in range(16):
+        for x in range(16):
+            d, tt, side = seg(x + 0.5, y + 0.5, 8.6, 1.6, 14.4, 7.4)
+            if d > 2.05:
+                continue
+            if tt < 0.13 or tt > 0.87:
+                c = "#d79257" if side > 0 else "#a8622f"        # end caps (the striking faces)
+            elif 0.42 <= tt <= 0.58:
+                c = "#ffe066" if side > 0 else "#d4a017"        # gold band
+            elif side > 0.6:
+                c = "#a8572e"                                    # light side
+            elif side < -0.6:
+                c = "#4a200e"                                    # shadow side
+            else:
+                c = "#7a3b1f"                                    # mahogany
+            px[x, y] = hexc(c)
+    # A thin dark outline so it reads at any size.
+    solid = [(x, y) for y in range(16) for x in range(16) if px[x, y][3] == 255]
+    for x, y in solid:
+        for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < 16 and 0 <= ny < 16 and px[nx, ny][3] == 0:
+                px[nx, ny] = hexc("#1b1210", 210)
     return img
 
 
