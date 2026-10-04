@@ -2570,5 +2570,9 @@
   "secret.backpack-main-hand": "Hold the backpack in your main hand to open it.",
   "pack.prompt": "This server needs its resource pack to play.",
   "pack.declined": "You need the server's resource pack to play here. Rejoin and press \"Yes\".",
-  "pack.failed": "The server's resource pack didn't download. Please rejoin to try again."
+  "pack.failed": "The server's resource pack didn't download. Please rejoin to try again.",
+  "boss.defeated": "has been defeated!",
+  "boss.defeated-by": "defeated by {0}!",
+  "boss.rotated": "§aBoss models turned around.",
+  "boss.removed": "§7Removed {0} boss(es)."
 }

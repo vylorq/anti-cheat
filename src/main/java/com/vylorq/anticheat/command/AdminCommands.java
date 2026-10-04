@@ -134,6 +134,15 @@ public final class AdminCommands {
             })));
         }
         owner.then(secret);
+        var boss = literal("boss");
+        var bossSpawn = literal("spawn");
+        for (String id : java.util.List.of(com.vylorq.anticheat.feature.Bosses.DROWNED_WARDEN)) {
+            bossSpawn.then(literal(id).executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.Bosses.ownerSpawn(p, id))));
+        }
+        boss.then(bossSpawn);
+        boss.then(literal("rotate").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.Bosses::ownerRotate)));
+        boss.then(literal("removeall").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.Bosses::ownerKillAll)));
+        owner.then(boss);
         owner.then(literal("smite").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerCombat::smite)));
         owner.then(literal("items").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::items)));
         owner.then(literal("pack").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerPowers::sendPack)));

@@ -870,7 +870,7 @@ public final class OwnerCombat {
             return "[I;" + (int) (m >> 32) + "," + (int) m + "," + (int) (l >> 32) + "," + (int) l + "]";
         }
 
-        private static UUID summon(ServerWorld w, Vec3d at, String base, String model, String transform) {
+        static UUID summon(ServerWorld w, Vec3d at, String base, String model, String transform) {
             UUID id = UUID.randomUUID();
             String cmd = String.format(java.util.Locale.ROOT,
                     "summon minecraft:item_display %.3f %.3f %.3f {UUID:%s,teleport_duration:1,brightness:{sky:15,block:15},"

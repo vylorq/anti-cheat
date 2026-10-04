@@ -51,6 +51,7 @@ public final class Ticker {
         HomeTeleport.tick(ticks);
         OrbitalStrike.tick(ticks);
         SecretItems.tick(ticks);
+        Bosses.tick(ticks);
         Replay.tick();
         Trades.tick();
         BuilderTools.tick();
