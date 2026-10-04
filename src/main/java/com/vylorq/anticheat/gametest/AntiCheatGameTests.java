@@ -172,7 +172,7 @@ public final class AntiCheatGameTests {
             check(atk.getValue() < 100, "no cooldown didn't turn off");
 
             var weapons = com.vylorq.anticheat.feature.OwnerCombat.weapons();
-            check(weapons.size() == 6, "not every weapon is in the list");
+            check(weapons.size() == 7, "not every weapon is in the list");
             for (var wpn : weapons) {
                 check(com.vylorq.anticheat.feature.OwnerTools.toolOf(wpn) != null
                         && wpn.get(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA) != null, "a weapon isn't a custom owner tool");
@@ -189,6 +189,24 @@ public final class AntiCheatGameTests {
             com.vylorq.anticheat.feature.OwnerCombat.frostbite(owner, zombie);
             check(zombie.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.MOVEMENT_SPEED) < 1e-6, "frost didn't stop the mob");
             zombie.discard();
+
+            // Orbital strike: every pattern drops exactly the TNT asked for, inside the radius.
+            var rnd = new java.util.Random(1);
+            for (String pat : com.vylorq.anticheat.feature.OrbitalStrike.PATTERNS) {
+                for (int n : new int[]{1, 7, 150}) {
+                    var spots = com.vylorq.anticheat.feature.OrbitalStrike.layout(pat, n, 14, 30, rnd);
+                    check(spots.size() == n, pat + " dropped " + spots.size() + " instead of " + n);
+                    for (double[] o : spots) {
+                        check(Math.hypot(o[0], o[2]) <= 14.5, pat + " fell outside the radius");
+                    }
+                }
+            }
+            com.vylorq.anticheat.feature.OrbitalStrike.preset("stab");
+            check("column".equals(com.vylorq.anticheat.feature.OrbitalStrike.settings().pattern), "the stab preset isn't a column");
+            com.vylorq.anticheat.feature.OrbitalStrike.settings().tnt = 99999;
+            com.vylorq.anticheat.feature.OrbitalStrike.changed();
+            check(com.vylorq.anticheat.feature.OrbitalStrike.settings().tnt == com.vylorq.anticheat.feature.OrbitalStrike.MAX_TNT, "TNT count isn't capped");
+            com.vylorq.anticheat.feature.OrbitalStrike.preset("nuke");
 
             // Home teleporter: only near a bed (or in your own land).
             BlockPos spot = ctx.getAbsolutePos(new BlockPos(3, 2, 3));

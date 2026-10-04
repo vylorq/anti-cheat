@@ -505,6 +505,33 @@ ICONS.update({
 })
 
 
+CANNON = pad([
+    "............R...",
+    "...........RWR..",
+    "..........SRRRS.",
+    ".........SSKKSS.",
+    "........SSKRKSS.",
+    ".......SSSKKSSS.",
+    "......SSSSSSSS..",
+    ".....SSLSSSSS...",
+    "....SSLSSSSS....",
+    "...KSSSSSSS.....",
+    "..KKKSSSSS......",
+    ".KKYKKSSS.......",
+    "KKKKKKSS........",
+    "KKKKKK..........",
+    ".KKK............"])
+
+
+def orbital_cannon():
+    img = grid(CANNON, False)
+    outline(img, "#0e0f16")
+    px = img.load()
+    for (x, y) in [(14, 0), (15, 2), (10, 1)]:
+        px[x, y] = hexc("#ff3d3d", 170)
+    return img
+
+
 def pack_icon():
     img = Image.new("RGBA", (64, 64), hexc("#14101f"))
     d = ImageDraw.Draw(img)
@@ -798,6 +825,9 @@ SOUNDS3 = {
     "home_place": lambda: mix(1.2, [(i * 0.09, 0.6 * bell(f, 0.8, 4)) for i, f in enumerate([659.25, 830.61, 987.77, 1318.5])]),
     "home_charge": lambda: mix(3.2, [(0, env(tremolo(sweep(220, 880, 3.0), 8, 0.5) * 0.5, 0.2, 0.2))]
                                + [(0.3 + i * 0.3, 0.25 * bell(1000 + i * 130, 0.5, 7)) for i in range(9)]),
+    "orbital_fire": lambda: mix(1.4, [(0, 0.7 * env(sweep(2400, 600, 0.35), 0.002, 0.1)), (0.05, 0.5 * echo(env(np.sin(2 * np.pi * 880 * t(0.08)), 0.002, 0.04), 0.12, 0.5, 3)),
+                                      (0.3, 0.6 * env(lowpass(noise(0.9), 10) * np.linspace(1, 0, int(SR * 0.9)), 0.05, 0.3))]),
+    "orbital_undo": lambda: mix(1.2, [(0, 0.6 * env(sweep(300, 1200, 0.6), 0.02, 0.2)), (0.4, chord([523.25, 659.25, 783.99], 0.7, 0.01))]),
     "home_tp": lambda: mix(1.3, [(0, env(whoosh(0.5, True) * 3, 0.02, 0.2)), (0.25, chord([659.25, 830.61, 987.77, 1318.5], 0.9, 0.01))]),
 }
 
@@ -809,7 +839,8 @@ SOUNDS = {"zap": s_zap, "mode": s_mode, "launch": s_launch,
 TOOLS = {"lightning_wand": ("blaze_rod", lightning_wand), "launch_stick": ("stick", launch_stick), "heal_wand": ("ghast_tear", heal_wand),
          "freeze_wand": ("prismarine_shard", freeze_wand), "judge_gavel": ("breeze_rod", judge_gavel),
          "thor_hammer": ("mace", thor_hammer), "flame_sword": ("golden_sword", flame_sword), "frost_bow": ("bow", frost_bow),
-         "blast_bow": ("bow", blast_bow), "meteor_staff": ("magma_cream", meteor_staff), "disarm_gloves": ("leather", disarm_gloves)}
+         "blast_bow": ("bow", blast_bow), "meteor_staff": ("magma_cream", meteor_staff), "disarm_gloves": ("leather", disarm_gloves),
+         "orbital_cannon": ("prismarine_crystals", orbital_cannon)}
 # Plain (not hand-held) items.
 FLAT = {"home_teleporter": ("echo_shard", home_teleporter), "rune_circle": ("light_blue_stained_glass_pane", rune_circle)}
 # Models that are cubes (the meteor flying down).
