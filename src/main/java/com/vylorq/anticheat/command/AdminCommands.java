@@ -45,6 +45,16 @@ public final class AdminCommands {
         return id == null ? 0 : then.run(p, id);
     }
 
+    private static int owner(com.mojang.brigadier.context.CommandContext<ServerCommandSource> ctx,
+                             java.util.function.Consumer<ServerPlayerEntity> action) {
+        ServerPlayerEntity p = ctx.getSource().getPlayer();
+        if (p == null) {
+            return 0;
+        }
+        action.accept(p);
+        return 1;
+    }
+
     private static int replay(com.mojang.brigadier.context.CommandContext<ServerCommandSource> ctx,
                               java.util.function.Consumer<ServerPlayerEntity> action) {
         ServerPlayerEntity p = ctx.getSource().getPlayer();
@@ -78,6 +88,35 @@ public final class AdminCommands {
                     return b.buildFuture();
                 }).then(literal("on").executes(ctx -> feature(ctx, true)))
                         .then(literal("off").executes(ctx -> feature(ctx, false)))));
+
+        // ---- owner powers (only the owner sees these commands) ----
+        java.util.function.Predicate<ServerCommandSource> ownerOnly = s -> s.getPlayer() != null
+                && com.vylorq.anticheat.perm.Perms.isOwner(s.getPlayer().getUuid());
+        com.mojang.brigadier.builder.LiteralArgumentBuilder<ServerCommandSource> owner = literal("owner").requires(ownerOnly)
+                .executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::open));
+        for (var pw : com.vylorq.anticheat.feature.OwnerPowers.Power.values()) {
+            String name = pw.name().toLowerCase(java.util.Locale.ROOT).replace("_", "");
+            owner.then(literal(name).executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerPowers.toggle(p, pw))));
+        }
+        owner.then(literal("speed").then(CommandManager.argument("level", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 3))
+                .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerPowers.setSpeed(p,
+                        com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "level"))))));
+        owner.then(literal("tools").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerTools.all()
+                .forEach(t -> com.vylorq.anticheat.feature.OwnerTools.give(p, t)))));
+        owner.then(literal("items").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::items)));
+        owner.then(literal("pack").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerPowers::sendPack)));
+        owner.then(literal("join").then(literal("normal").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerPowers.setJoinStyle(p, "normal"))))
+                .then(literal("grand").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerPowers.setJoinStyle(p, "grand"))))
+                .then(literal("silent").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerPowers.setJoinStyle(p, "silent")))));
+        owner.then(literal("repair").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerTools.repair(p, false)))
+                .then(literal("all").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerTools.repair(p, true)))));
+        d.register(owner);
+        d.register(literal("fly").requires(ownerOnly).executes(ctx -> owner(ctx,
+                p -> com.vylorq.anticheat.feature.OwnerPowers.toggle(p, com.vylorq.anticheat.feature.OwnerPowers.Power.FLY))));
+        d.register(literal("god").requires(ownerOnly).executes(ctx -> owner(ctx,
+                p -> com.vylorq.anticheat.feature.OwnerPowers.toggle(p, com.vylorq.anticheat.feature.OwnerPowers.Power.GOD))));
+        d.register(literal("repair").requires(ownerOnly).executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerTools.repair(p, false)))
+                .then(literal("all").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerTools.repair(p, true)))));
 
         // ---- evidence replay ----
         d.register(literal("replay").requires(s -> Perms.visible(s, Perm.REVIEW))

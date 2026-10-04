@@ -305,7 +305,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
     @WrapOperation(method = {"onDisconnected", "cleanUp"}, require = 0,
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
     private void ac$silentLeave(PlayerManager manager, Text message, boolean overlay, Operation<Void> original) {
-        if (Ac.running() && StaffTools.isVanished(player.getUuid())) {
+        if (Ac.running() && (StaffTools.isVanished(player.getUuid()) || com.vylorq.anticheat.feature.OwnerPowers.silentJoin(player))) {
             for (ServerPlayerEntity p : Staff.online()) {
                 if (p != player) {
                     p.sendMessage(Text.literal("§8[vanished] ").append(message));

@@ -84,6 +84,13 @@ public final class DetectionEngine {
         this.listener = listener;
     }
 
+    /** Players the engine leaves alone for now (the owner while using owner powers). */
+    private java.util.function.Predicate<UUID> ignore = id -> false;
+
+    public void setIgnore(java.util.function.Predicate<UUID> ignore) {
+        this.ignore = ignore;
+    }
+
     public ViolationTracker violations() {
         return violations;
     }
@@ -91,7 +98,7 @@ public final class DetectionEngine {
     public Outcome flag(UUID player, String name, CheckType check, double basePoints, String detail, boolean bedrock) {
         AcConfig cfg = config.get();
         double sensitivity = cfg.sensitivity(check.id());
-        if (sensitivity <= 0 || basePoints <= 0) {
+        if (sensitivity <= 0 || basePoints <= 0 || ignore.test(player)) {
             return Outcome.IGNORED;
         }
         long now = clock.nowMillis();

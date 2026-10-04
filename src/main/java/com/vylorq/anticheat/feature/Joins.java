@@ -73,6 +73,7 @@ public final class Joins {
         PlayerSession s = Ac.session(p);
         s.name = name;
         s.bedrock = Floodgate.isBedrock(p.getUuid());
+        OwnerPowers.onJoin(p);
         s.ip = p.getIp();
         s.ticksSinceJoin = 0;
         s.teleported();

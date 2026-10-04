@@ -23,6 +23,7 @@ public class AcConfig {
     public Exempt exempt = new Exempt();
     public Xray xray = new Xray();
     public AntiEsp antiEsp = new AntiEsp();
+    public Owner owner = new Owner();
     public IllegalItems illegalItems = new IllegalItems();
     public DupeWatch dupeWatch = new DupeWatch();
     public Chat chat = new Chat();
@@ -185,6 +186,12 @@ public class AcConfig {
     public static class Exempt {
         /** Record flags for exempt players silently. */
         public boolean recordFlags = true;
+    }
+
+    /** The owner's texture and sound pack (sent only to the owner). */
+    public static class Owner {
+        public boolean sendPack = true;
+        public String packUrl = "https://raw.githubusercontent.com/vylorq/anti-cheat/main/resourcepack/vigil-owner.zip";
     }
 
     /** Anti-ESP: what players' games aren't told about, so wallhacks have nothing to show. */
@@ -617,6 +624,7 @@ public class AcConfig {
         if (exempt == null) exempt = d.exempt;
         if (xray == null) xray = d.xray;
         if (antiEsp == null) antiEsp = d.antiEsp;
+        if (owner == null) owner = d.owner;
         if (illegalItems == null) illegalItems = d.illegalItems;
         if (dupeWatch == null) dupeWatch = d.dupeWatch;
         if (chat == null) chat = d.chat;

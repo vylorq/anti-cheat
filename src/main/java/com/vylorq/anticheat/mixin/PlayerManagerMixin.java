@@ -33,7 +33,7 @@ public abstract class PlayerManagerMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
     private void ac$silentJoin(PlayerManager manager, Text message, boolean overlay, Operation<Void> original,
                                @Local(argsOnly = true) ServerPlayerEntity player) {
-        if (Ac.running() && StaffTools.isVanished(player.getUuid())) {
+        if (Ac.running() && (StaffTools.isVanished(player.getUuid()) || com.vylorq.anticheat.feature.OwnerPowers.silentJoin(player))) {
             for (ServerPlayerEntity p : Staff.online()) {
                 if (p != player) {
                     p.sendMessage(Text.literal("§8[vanished] ").append(message));
