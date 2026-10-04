@@ -94,8 +94,11 @@ public final class AntiCheatGameTests {
         com.vylorq.anticheat.feature.AutoTotem.before(fake, pop + 60_000_000L);
         fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.TOTEM_OF_UNDYING));
         com.vylorq.anticheat.feature.AutoTotem.after(fake);
-        double caught = ac.engine.violations().points(id, com.vylorq.anticheat.core.detect.CheckType.AUTO_TOTEM);
-        check(caught > 0, "an instant totem refill wasn't flagged");
+        // Counted in flags (points slowly fade, so they aren't compared).
+        java.util.function.IntSupplier flags = () -> ac.engine.violations().flagCounts(id)
+                .getOrDefault(com.vylorq.anticheat.core.detect.CheckType.AUTO_TOTEM, 0);
+        int caught = flags.getAsInt();
+        check(caught == 1, "an instant totem refill wasn't flagged");
 
         // A person: same lag, but the totem goes in 450 ms after the game saw the pop.
         boolean saved2 = ((com.vylorq.anticheat.mixin.LivingEntityInvoker) fake).ac$tryUseDeathProtector(w.getDamageSources().generic());
@@ -105,16 +108,14 @@ public final class AntiCheatGameTests {
         com.vylorq.anticheat.feature.AutoTotem.before(fake, pop2 + 490_000_000L);
         fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.TOTEM_OF_UNDYING));
         com.vylorq.anticheat.feature.AutoTotem.after(fake);
-        check(ac.engine.violations().points(id, com.vylorq.anticheat.core.detect.CheckType.AUTO_TOTEM) == caught,
-                "a human-speed totem refill was flagged");
+        check(flags.getAsInt() == caught, "a human-speed totem refill was flagged");
 
         // Totems moved around with no pop going on (sorting the inventory) never count.
         fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, net.minecraft.item.ItemStack.EMPTY);
         com.vylorq.anticheat.feature.AutoTotem.before(fake, System.nanoTime());
         fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.TOTEM_OF_UNDYING));
         com.vylorq.anticheat.feature.AutoTotem.after(fake);
-        check(ac.engine.violations().points(id, com.vylorq.anticheat.core.detect.CheckType.AUTO_TOTEM) == caught,
-                "a totem moved without a pop was flagged");
+        check(flags.getAsInt() == caught, "a totem moved without a pop was flagged");
         ac.engine.violations().reset(id);
         ctx.complete();
     }

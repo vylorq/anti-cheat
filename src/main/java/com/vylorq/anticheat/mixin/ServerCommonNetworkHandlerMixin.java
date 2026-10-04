@@ -36,8 +36,11 @@ public abstract class ServerCommonNetworkHandlerMixin {
         }
         if (packet instanceof EntityVelocityUpdateS2CPacket v && v.getEntityId() == handler.player.getId()) {
             Combat.onVelocity(handler.player, v.getVelocity().length());
+            Combat.knockback(handler.player, v.getVelocity());
         } else if (packet instanceof ExplosionS2CPacket e) {
             e.playerKnockback().ifPresent(k -> Combat.onVelocity(handler.player, k.length()));
+        } else if (packet instanceof net.minecraft.network.packet.s2c.play.OpenScreenS2CPacket open) {
+            com.vylorq.anticheat.feature.InventoryChecks.opened(handler.player, open.getSyncId());
         } else if (packet instanceof PlayerPositionLookS2CPacket) {
             Combat.onTeleportPacket(handler.player);
         }

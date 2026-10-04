@@ -15,6 +15,8 @@ public final class MoveState {
     double pendingFriction = 0.91;
     public boolean lastClientOnGround = true;
     public int airTicks;
+    /** Movement packets in a row spent floating without rising or falling, far from the ground. */
+    public int hoverTicks;
     /** Fastest fall speed in the last few ticks (for slime and bed bounces). */
     public double recentFallSpeed;
     public int ticksSinceFall = 1000;
@@ -36,6 +38,7 @@ public final class MoveState {
         lastHorizontal = 0;
         lastFriction = 0.91;
         airTicks = 0;
+        hoverTicks = 0;
         recentFallSpeed = 0;
         timerBalanceMs = 0;
         lastArrivalNanos = 0;

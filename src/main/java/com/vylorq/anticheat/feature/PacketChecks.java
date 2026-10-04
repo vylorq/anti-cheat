@@ -84,6 +84,21 @@ public final class PacketChecks {
         }
     }
 
+    /** A block was broken: nuker check (more mining time than has passed). Works for Java and Bedrock. */
+    public static void brokeBlock(ServerPlayerEntity p, net.minecraft.server.world.ServerWorld w, BlockPos pos, BlockState state) {
+        PlayerSession s = Ac.sessionOrNull(p.getUuid());
+        if (s == null || p.isCreative() || p.isSpectator() || Tps.tps() < Ac.config().general.lagTpsThreshold) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        s.lastBreakMs = now;
+        int needed = s.miningTime.onBreak(now, state.calcBlockBreakingDelta(p, w, pos));
+        if (needed > 0) {
+            PlayerSessionFlags.flag(p, CheckType.FAST_BREAK, 2.0,
+                    "broke blocks needing " + needed + " ticks of mining in 10 seconds (200 passed)");
+        }
+    }
+
     /** Every movement packet: a real client stops sprinting when food is 3 drumsticks or less. */
     public static void sprint(ServerPlayerEntity p) {
         PlayerSession s = Ac.sessionOrNull(p.getUuid());

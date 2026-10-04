@@ -118,6 +118,7 @@ public final class Protection {
             }
             BlockLog.log(p, null, w, pos, BlockChange.Kind.BREAK, state, w.getBlockState(pos), be);
             watchedBlock(p, "broke", state, pos);
+            PacketChecks.brokeBlock(p, w, pos, state);
             Ac.get().evidence.record(p.getUuid(), EvidenceEvent.Type.BREAK, p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch(),
                     "broke " + Mc.blockId(state.getBlock()).replace("minecraft:", "") + " at " + pos.toShortString());
             Xray.afterBreak(p, w, pos, state, ENCLOSED.get());

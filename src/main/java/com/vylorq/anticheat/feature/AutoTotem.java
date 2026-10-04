@@ -40,6 +40,7 @@ public final class AutoTotem {
         PlayerSession s = Ac.running() ? Ac.sessionOrNull(p.getUuid()) : null;
         if (s != null) {
             s.totemWatch.onPong(arrivedAt, id);
+            InventoryChecks.pong(s, id, arrivedAt);
         }
     }
 

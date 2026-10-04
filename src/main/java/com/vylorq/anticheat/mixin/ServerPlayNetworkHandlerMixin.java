@@ -102,11 +102,17 @@ public abstract class ServerPlayNetworkHandlerMixin {
             shift = At.Shift.AFTER))
     private void ac$clickBefore(ClickSlotC2SPacket packet, CallbackInfo ci) {
         ac$invBefore();
+        if (Ac.running()) {
+            com.vylorq.anticheat.feature.InventoryChecks.beforeClick(player, packet);
+        }
     }
 
     @Inject(method = "onClickSlot", at = @At("RETURN"))
     private void ac$clickAfter(ClickSlotC2SPacket packet, CallbackInfo ci) {
         ac$invAfter();
+        if (Ac.running() && !ac$offThread()) {
+            com.vylorq.anticheat.feature.InventoryChecks.afterClick(player);
+        }
     }
 
     @Inject(method = "onPlayerAction", at = @At("HEAD"))
