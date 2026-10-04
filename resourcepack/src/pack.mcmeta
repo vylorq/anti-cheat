@@ -1,0 +1,12 @@
+{
+  "pack": {
+    "description": "\u00a76Vigil owner pack \u00a77(tools and power sounds)",
+    "pack_format": 46,
+    "supported_formats": [
+      46,
+      1000
+    ],
+    "min_format": 46,
+    "max_format": 1000
+  }
+}

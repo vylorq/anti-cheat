@@ -1,0 +1,65 @@
+{
+  "power_on": {
+    "sounds": [
+      {
+        "name": "vigil:power_on"
+      }
+    ]
+  },
+  "power_off": {
+    "sounds": [
+      {
+        "name": "vigil:power_off"
+      }
+    ]
+  },
+  "zap": {
+    "sounds": [
+      {
+        "name": "vigil:zap"
+      }
+    ]
+  },
+  "mode": {
+    "sounds": [
+      {
+        "name": "vigil:mode"
+      }
+    ]
+  },
+  "launch": {
+    "sounds": [
+      {
+        "name": "vigil:launch"
+      }
+    ]
+  },
+  "heal": {
+    "sounds": [
+      {
+        "name": "vigil:heal"
+      }
+    ]
+  },
+  "repair": {
+    "sounds": [
+      {
+        "name": "vigil:repair"
+      }
+    ]
+  },
+  "give": {
+    "sounds": [
+      {
+        "name": "vigil:give"
+      }
+    ]
+  },
+  "owner_join": {
+    "sounds": [
+      {
+        "name": "vigil:owner_join"
+      }
+    ]
+  }
+}

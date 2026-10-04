@@ -73,6 +73,59 @@ public final class AntiCheatGameTests {
     };
 
     @GameTest
+    public void ownerPowersAreOwnerOnly(TestContext ctx) {
+        var w = ctx.getWorld();
+        var cfg = Ac.config();
+        String oldOwner = cfg.general.ownerUuid;
+        boolean oldPin = cfg.staff.requirePin;
+        var owner = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "OwnerTester"));
+        var other = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "NotOwner"));
+        try {
+            cfg.general.ownerUuid = owner.getUuid().toString();
+            cfg.staff.requirePin = false;
+            check(!com.vylorq.anticheat.feature.OwnerPowers.owner(other), "someone else counts as the owner");
+
+            com.vylorq.anticheat.feature.OwnerPowers.toggle(owner, com.vylorq.anticheat.feature.OwnerPowers.Power.FLY);
+            check(owner.getAbilities().allowFlying, "fly didn't turn on");
+            check(com.vylorq.anticheat.feature.OwnerPowers.exempt(owner.getUuid()), "the anti-cheat doesn't leave the owner alone while flying");
+            com.vylorq.anticheat.feature.OwnerPowers.toggle(owner, com.vylorq.anticheat.feature.OwnerPowers.Power.FLY);
+            check(!owner.getAbilities().allowFlying, "fly didn't turn off");
+
+            com.vylorq.anticheat.feature.OwnerPowers.toggle(owner, com.vylorq.anticheat.feature.OwnerPowers.Power.GOD);
+            check(com.vylorq.anticheat.feature.OwnerPowers.blocksDamage(owner), "god mode doesn't block damage");
+            com.vylorq.anticheat.feature.OwnerPowers.toggle(owner, com.vylorq.anticheat.feature.OwnerPowers.Power.GOD);
+            check(!com.vylorq.anticheat.feature.OwnerPowers.blocksDamage(owner), "god mode didn't turn off");
+
+            com.vylorq.anticheat.feature.OwnerPowers.setSpeed(owner, 2);
+            var speed = owner.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.MOVEMENT_SPEED);
+            check(speed.getValue() > speed.getBaseValue() * 1.5, "speed 2 isn't faster");
+            com.vylorq.anticheat.feature.OwnerPowers.setSpeed(owner, 0);
+            check(Math.abs(speed.getValue() - speed.getBaseValue()) < 1e-6, "speed didn't go back to normal");
+
+            // Tools carry the custom model and only work for the owner.
+            var wand = com.vylorq.anticheat.feature.OwnerTools.healWand();
+            check(wand.get(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA) != null, "no custom model on the heal wand");
+            other.setHealth(4);
+            check(com.vylorq.anticheat.feature.OwnerTools.useOn(owner, wand, other), "the heal wand did nothing");
+            check(other.getHealth() == other.getMaxHealth(), "the heal wand didn't heal");
+            other.getInventory().setStack(0, com.vylorq.anticheat.feature.OwnerTools.lightningWand());
+            com.vylorq.anticheat.feature.OwnerTools.confiscate(other);
+            check(other.getInventory().getStack(0).isEmpty(), "someone else kept an owner tool");
+
+            // Repair
+            var sword = new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD);
+            sword.setDamage(500);
+            owner.setStackInHand(net.minecraft.util.Hand.MAIN_HAND, sword);
+            com.vylorq.anticheat.feature.OwnerTools.repair(owner, false);
+            check(owner.getMainHandStack().getDamage() == 0, "repair didn't fix the sword");
+        } finally {
+            cfg.general.ownerUuid = oldOwner;
+            cfg.staff.requirePin = oldPin;
+        }
+        ctx.complete();
+    }
+
+    @GameTest
     public void replayStartsAndCleansUp(TestContext ctx) {
         var w = ctx.getWorld();
         var staff = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ReplayStaff"));

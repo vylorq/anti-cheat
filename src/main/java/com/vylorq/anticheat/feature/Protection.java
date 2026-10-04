@@ -142,6 +142,15 @@ public final class Protection {
             if (Tools.is(p.getMainHandStack(), Tools.CLAIM_STICK) || Tools.is(p.getMainHandStack(), Tools.TRADER_STICK)) {
                 return ActionResult.FAIL;
             }
+            if (OwnerTools.toolOf(p.getMainHandStack()) != null) {
+                return ActionResult.FAIL;
+            }
+            // Owner instant break: one hit breaks the block (not unbreakable ones like bedrock).
+            if (OwnerPowers.on(p, OwnerPowers.Power.INSTA_BREAK) && !p.isCreative() && !p.isSpectator()
+                    && w.getBlockState(pos).getHardness(w, pos) >= 0) {
+                p.interactionManager.tryBreakBlock(pos);
+                return ActionResult.FAIL;
+            }
             return ActionResult.PASS;
         });
 
@@ -207,6 +216,9 @@ public final class Protection {
             }
             if (!(entity instanceof ServerPlayerEntity p)) {
                 return true;
+            }
+            if (OwnerPowers.blocksDamage(p)) {
+                return false;
             }
             if (BuilderMode.is(p) || ScareWarning.pending(p)) {
                 // Builders can't die (dying would drop their items); nobody is hurt while reading the warning.
@@ -354,6 +366,9 @@ public final class Protection {
         Ac ac = Ac.get();
         BlockPos pos = hit.getBlockPos();
         ItemStack stack = p.getStackInHand(hand);
+        if (OwnerTools.use(p, stack)) {
+            return ActionResult.SUCCESS;
+        }
         if (BuilderMode.is(p) && Tools.toolOf(stack) == null && (!BuilderMode.allowed(stack)
                 || (!BuilderMode.mayUse(w, pos) && !(p.isSneaking() && !stack.isEmpty())))) {
             // Builders place blocks; they don't open containers or menus (sneaking places against them instead).
@@ -491,6 +506,9 @@ public final class Protection {
 
     private static ActionResult useItem(ServerPlayerEntity p, ServerWorld w, Hand hand) {
         Ac ac = Ac.get();
+        if (OwnerTools.use(p, p.getStackInHand(hand))) {
+            return ActionResult.SUCCESS;
+        }
         if (ac.staff.isFrozen(p.getUuid()) || WaitingRoomFeature.waiting(p)) {
             return ActionResult.FAIL;
         }
@@ -533,6 +551,10 @@ public final class Protection {
 
     private static ActionResult useEntity(ServerPlayerEntity p, Hand hand, Entity entity) {
         Ac ac = Ac.get();
+        if (hand == Hand.MAIN_HAND && OwnerTools.toolOf(p.getMainHandStack()) != null) {
+            OwnerTools.useOn(p, p.getMainHandStack(), entity);
+            return ActionResult.SUCCESS;
+        }
         if (Traders.isTrader(entity)) {
             if (hand == Hand.MAIN_HAND) {
                 if (Tools.is(p.getMainHandStack(), Tools.TRADER_STICK)) {
@@ -576,6 +598,9 @@ public final class Protection {
 
     private static ActionResult attackEntity(ServerPlayerEntity p, Entity entity) {
         Ac ac = Ac.get();
+        if (OwnerTools.attack(p, p.getMainHandStack(), entity)) {
+            return ActionResult.FAIL;
+        }
         if (Traders.isTrader(entity)) {
             return ActionResult.FAIL;
         }

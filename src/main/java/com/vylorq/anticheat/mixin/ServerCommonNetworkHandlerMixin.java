@@ -51,6 +51,16 @@ public abstract class ServerCommonNetworkHandlerMixin {
     }
 
     /** Bedrock chat can't be clicked: chat buttons also show their command, so Bedrock players can type it. */
+    /** Owner radar: other players glow on the owner's screen only. */
+    @ModifyVariable(method = "send", at = @At("HEAD"), argsOnly = true)
+    private Packet<?> ac$ownerRadar(Packet<?> packet) {
+        if (Ac.running() && (Object) this instanceof ServerPlayNetworkHandler handler && handler.player != null
+                && packet instanceof net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket) {
+            return com.vylorq.anticheat.feature.OwnerPowers.radarRewrite(handler.player, packet);
+        }
+        return packet;
+    }
+
     @ModifyVariable(method = "send", at = @At("HEAD"), argsOnly = true)
     private Packet<?> ac$bedrockButtons(Packet<?> packet) {
         if (!Ac.running() || !(packet instanceof net.minecraft.network.packet.s2c.play.GameMessageS2CPacket msg) || msg.overlay()

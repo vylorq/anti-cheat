@@ -25,6 +25,7 @@ public final class AntiCheatMod implements ModInitializer {
             com.vylorq.anticheat.ui.BossBars.reset();
             Ac.start(server);
             Ac.get().engine.setListener(new DetectionListener());
+            Ac.get().engine.setIgnore(com.vylorq.anticheat.feature.OwnerPowers::exempt);
             Xray.reloadLists();
         });
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
