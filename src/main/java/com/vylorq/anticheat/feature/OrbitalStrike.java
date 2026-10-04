@@ -445,7 +445,7 @@ public final class OrbitalStrike {
         now = ticks;
         if (STRIKES.isEmpty()) {
             if (!ZONES.isEmpty() && ticks % 100 == 0) {
-                ZONES.removeIf(z -> System.currentTimeMillis() > z.until());
+                ZONES.removeIf(z -> System.currentTimeMillis() > z.until);
             }
             return;
         }
