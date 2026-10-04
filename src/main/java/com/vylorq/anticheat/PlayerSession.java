@@ -40,6 +40,13 @@ public final class PlayerSession {
     /** When the server opened or closed a screen for this player. */
     public int ticksSinceScreenChange = 1000;
     public Object lastScreen;
+    // Auto-totem.
+    public final com.vylorq.anticheat.core.combat.TotemWatch totemWatch = new com.vylorq.anticheat.core.combat.TotemWatch();
+    public int totemPingId;
+    public long invPacketArrival;
+    public boolean offhandWasTotem;
+    /** Network-thread arrival times of inventory clicks, hand actions and hotbar changes. */
+    public final java.util.concurrent.ConcurrentLinkedDeque<Long> invArrivals = new java.util.concurrent.ConcurrentLinkedDeque<>();
     // Packet checks.
     public long lastBadRotationFlag;
     public long badClickWindow;

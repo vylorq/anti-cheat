@@ -34,7 +34,13 @@ public enum CheckType {
     BAD_PACKET(Category.PACKET, 2.0),
     UNAUTHORIZED(Category.PACKET, 3.0),
     TRADE_MACRO(Category.PACKET, 1.5),
-    BARRIER_ESCAPE(Category.PACKET, 3.0);
+    BARRIER_ESCAPE(Category.PACKET, 3.0),
+    // Added later (kept at the end so saved data stays in order)
+    AUTO_TOTEM(Category.COMBAT, 2.0),
+    VELOCITY(Category.COMBAT, 1.5),
+    CRITICALS(Category.COMBAT, 1.5),
+    INVENTORY(Category.WORLD, 1.5),
+    BOT(Category.PACKET, 1.0);
 
     public enum Category { MOVEMENT, COMBAT, WORLD, PACKET }
 

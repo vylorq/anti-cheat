@@ -21,6 +21,7 @@
     "HopperBlockEntityMixin",
     "HungerManagerMixin",
     "ItemEntityMixin",
+    "LivingEntityInvoker",
     "LivingEntityMixin",
     "MinecraftServerMixin",
     "PistonBlockMixin",

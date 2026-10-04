@@ -73,6 +73,53 @@ public final class AntiCheatGameTests {
     };
 
     @GameTest
+    public void autoTotemCatchesInstantRefillOnly(TestContext ctx) {
+        var w = ctx.getWorld();
+        var fake = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "TotemTester"));
+        var ac = Ac.get();
+        var s = Ac.session(fake);
+        java.util.UUID id = fake.getUuid();
+        ac.engine.violations().reset(id);
+
+        // A real pop: the totem in the offhand saves the player, and the watch starts.
+        fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.TOTEM_OF_UNDYING));
+        boolean saved = ((com.vylorq.anticheat.mixin.LivingEntityInvoker) fake).ac$tryUseDeathProtector(w.getDamageSources().generic());
+        check(saved, "the totem didn't pop");
+        check(fake.getOffHandStack().isEmpty(), "the popped totem is still in the offhand");
+        long pop = System.nanoTime();
+        check(s.totemWatch.watching(pop), "the pop wasn't noticed");
+
+        // Auto-totem: the game answers the ping 40 ms later and a new totem is in the offhand 20 ms after that.
+        com.vylorq.anticheat.feature.AutoTotem.pong(fake, s.totemPingId, pop + 40_000_000L);
+        com.vylorq.anticheat.feature.AutoTotem.before(fake, pop + 60_000_000L);
+        fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.TOTEM_OF_UNDYING));
+        com.vylorq.anticheat.feature.AutoTotem.after(fake);
+        double caught = ac.engine.violations().points(id, com.vylorq.anticheat.core.detect.CheckType.AUTO_TOTEM);
+        check(caught > 0, "an instant totem refill wasn't flagged");
+
+        // A person: same lag, but the totem goes in 450 ms after the game saw the pop.
+        boolean saved2 = ((com.vylorq.anticheat.mixin.LivingEntityInvoker) fake).ac$tryUseDeathProtector(w.getDamageSources().generic());
+        check(saved2, "the second totem didn't pop");
+        long pop2 = System.nanoTime();
+        com.vylorq.anticheat.feature.AutoTotem.pong(fake, s.totemPingId, pop2 + 40_000_000L);
+        com.vylorq.anticheat.feature.AutoTotem.before(fake, pop2 + 490_000_000L);
+        fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.TOTEM_OF_UNDYING));
+        com.vylorq.anticheat.feature.AutoTotem.after(fake);
+        check(ac.engine.violations().points(id, com.vylorq.anticheat.core.detect.CheckType.AUTO_TOTEM) == caught,
+                "a human-speed totem refill was flagged");
+
+        // Totems moved around with no pop going on (sorting the inventory) never count.
+        fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, net.minecraft.item.ItemStack.EMPTY);
+        com.vylorq.anticheat.feature.AutoTotem.before(fake, System.nanoTime());
+        fake.setStackInHand(net.minecraft.util.Hand.OFF_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.TOTEM_OF_UNDYING));
+        com.vylorq.anticheat.feature.AutoTotem.after(fake);
+        check(ac.engine.violations().points(id, com.vylorq.anticheat.core.detect.CheckType.AUTO_TOTEM) == caught,
+                "a totem moved without a pop was flagged");
+        ac.engine.violations().reset(id);
+        ctx.complete();
+    }
+
+    @GameTest
     public void allMixinsApply(TestContext ctx) {
         ClassLoader loader = AntiCheatGameTests.class.getClassLoader();
         StringBuilder failed = new StringBuilder();
