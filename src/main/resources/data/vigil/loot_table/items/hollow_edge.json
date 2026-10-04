@@ -1,0 +1,53 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_sword",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Hollow Edge",
+                  "color": "#9A7BD0"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "The Hollow Watcher's blade",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "Hits drain life: heal 3 hearts",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "(every 10 seconds)",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:xd4c079c7f9"
+                  ]
+                },
+                "minecraft:use_cooldown": {
+                  "seconds": 0.05,
+                  "cooldown_group": "vigil:hollow_edge"
+                },
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

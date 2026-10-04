@@ -1,14 +1,14 @@
 {
   "structures": [
     {
-      "structure": "vigil:sky_altar",
+      "structure": "vigil:overgrown_labyrinth",
       "weight": 1
     }
   ],
   "placement": {
     "type": "minecraft:random_spread",
-    "spacing": 48,
-    "separation": 16,
-    "salt": 31170803
+    "spacing": 110,
+    "separation": 50,
+    "salt": 31170808
   }
 }

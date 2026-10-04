@@ -2574,5 +2574,8 @@
   "boss.defeated": "تمت هزيمته!",
   "boss.defeated-by": "هزمه {0}!",
   "boss.rotated": "§aتم تدوير نماذج الزعماء.",
-  "boss.removed": "§7تمت إزالة {0} زعيم."
+  "boss.removed": "§7تمت إزالة {0} زعيم.",
+  "boss.awakens": "استيقظ...",
+  "boss.phase2": "يزداد غضباً!",
+  "boss.phase3": "في ذروة غضبه!"
 }

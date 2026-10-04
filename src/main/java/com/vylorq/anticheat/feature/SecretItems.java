@@ -90,8 +90,12 @@ public final class SecretItems {
     public static final String POUCH = "ender_pouch";
     public static final String BACKPACK = "backpack";
 
-    public static final List<String> ALL = List.of(VOIDBLADE, STORMBREAKER, TIDECALLER, PHOENIX, SHADOW, SEEKER,
-            HAMMER, LUMBER, GRAPPLE, MAGNET, POUCH, BACKPACK);
+    // Boss weapons (each boss drops its own)
+    public static final List<String> BOSS_WEAPONS = List.of("tide_trident", "colossus_maul", "storm_fang", "forge_cleaver",
+            "dune_blade", "glacier_axe", "thornspine", "hollow_edge");
+
+    public static final List<String> ALL = java.util.stream.Stream.concat(List.of(VOIDBLADE, STORMBREAKER, TIDECALLER, PHOENIX, SHADOW, SEEKER,
+            HAMMER, LUMBER, GRAPPLE, MAGNET, POUCH, BACKPACK).stream(), BOSS_WEAPONS.stream()).toList();
     public static final List<String> CRAFTABLE = List.of(HAMMER, LUMBER, GRAPPLE, MAGNET, POUCH, BACKPACK);
 
     public static final TagKey<Structure> SECRET_STRUCTURES = TagKey.of(RegistryKeys.STRUCTURE, Identifier.of("vigil", "secret"));
@@ -256,6 +260,8 @@ public final class SecretItems {
                 w.spawnParticles(ParticleTypes.REVERSE_PORTAL, e.getX(), e.getY() + 1, e.getZ(), 20, 0.3, 0.5, 0.3, 0.05);
                 sound(w, e.getEntityPos(), "voidblade", 1f);
             });
+        } else if (BOSS_WEAPONS.contains(id)) {
+            bossWeaponHit(p, s, id, e, w);
         } else if (STORMBREAKER.equals(id) && p.getRandom().nextFloat() < 0.25f) {
             // One hit in four calls a small lightning strike (no fire on blocks); then 20 seconds to recharge.
             cool(p, s, 400);
@@ -269,6 +275,89 @@ public final class SecretItems {
             e.setFireTicks(Math.max(e.getFireTicks(), 40));
             w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, e.getX(), e.getY() + 1, e.getZ(), 30, 0.3, 0.6, 0.3, 0.3);
             sound(w, e.getEntityPos(), "stormbreaker", 1.5f);
+        }
+    }
+
+    private static final DustParticleEffect SAND = new DustParticleEffect(0xE8C77A, 1.4f);
+    private static final DustParticleEffect THORN = new DustParticleEffect(0x6FD05A, 1.2f);
+    private static final DustParticleEffect STONE = new DustParticleEffect(0x6C7684, 1.6f);
+
+    /** The bosses' weapons: each hit effect has its own recharge. */
+    private static void bossWeaponHit(ServerPlayerEntity p, ItemStack s, String id, LivingEntity e, ServerWorld w) {
+        double x = e.getX();
+        double y = e.getY() + e.getHeight() / 2;
+        double z = e.getZ();
+        switch (id) {
+            case "tide_trident" -> {
+                cool(p, s, 160);
+                e.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 1));
+                w.spawnParticles(ParticleTypes.SPLASH, x, y, z, 30, 0.4, 0.5, 0.4, 0.2);
+                w.spawnParticles(TIDE, x, y, z, 16, 0.4, 0.5, 0.4, 0);
+                sound(w, e.getEntityPos(), "tidecaller", 0.8f);
+            }
+            case "colossus_maul" -> {
+                cool(p, s, 200);
+                e.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 20, 6));
+                w.spawnParticles(STONE, x, y, z, 24, 0.4, 0.5, 0.4, 0);
+                w.spawnParticles(ParticleTypes.CRIT, x, y, z, 20, 0.3, 0.4, 0.3, 0.3);
+                sound(w, e.getEntityPos(), "hammer", 1.2f);
+            }
+            case "storm_fang" -> {
+                cool(p, s, 120);
+                int n = 0;
+                for (Entity o : w.getOtherEntities(e, e.getBoundingBox().expand(4))) {
+                    if (n >= 3 || o == p || !(o instanceof LivingEntity l) || !l.isAlive() || o.isSpectator()) {
+                        continue;
+                    }
+                    if (o instanceof ServerPlayerEntity op && (!Protection.pvpAllowed(p, op) || LobbyFeature.in(op))) {
+                        continue;
+                    }
+                    l.damage(w, p.getDamageSources().playerAttack(p), 3f);
+                    Vec3d a = e.getEntityPos().add(0, 1, 0);
+                    Vec3d b = l.getEntityPos().add(0, 1, 0);
+                    for (int i = 0; i <= 8; i++) {
+                        Vec3d c = a.lerp(b, i / 8.0);
+                        w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, c.x, c.y, c.z, 1, 0.05, 0.05, 0.05, 0);
+                    }
+                    n++;
+                }
+                w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, x, y, z, 20, 0.3, 0.5, 0.3, 0.3);
+                sound(w, e.getEntityPos(), "stormbreaker", 0.7f);
+            }
+            case "forge_cleaver" -> {
+                cool(p, s, 100);
+                e.setFireTicks(Math.max(e.getFireTicks(), 80));
+                w.spawnParticles(ParticleTypes.FLAME, x, y, z, 24, 0.3, 0.5, 0.3, 0.05);
+                sound(w, e.getEntityPos(), "flame_hit", 0.9f);
+            }
+            case "dune_blade" -> {
+                cool(p, s, 240);
+                e.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 40, 0));
+                w.spawnParticles(SAND, x, y + 0.5, z, 30, 0.4, 0.4, 0.4, 0);
+                sound(w, e.getEntityPos(), "shadow_on", 0.8f);
+            }
+            case "glacier_axe" -> {
+                cool(p, s, 200);
+                e.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 40, 2));
+                e.setFrozenTicks(Math.max(e.getFrozenTicks(), e.getMinFreezeDamageTicks() - 1));
+                w.spawnParticles(ParticleTypes.SNOWFLAKE, x, y, z, 30, 0.4, 0.5, 0.4, 0.05);
+                sound(w, e.getEntityPos(), "frost_hit", 0.9f);
+            }
+            case "thornspine" -> {
+                cool(p, s, 160);
+                e.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 60, 1));
+                w.spawnParticles(THORN, x, y, z, 24, 0.4, 0.5, 0.4, 0);
+                sound(w, e.getEntityPos(), "voidblade", 0.7f);
+            }
+            case "hollow_edge" -> {
+                cool(p, s, 200);
+                p.heal(6f);
+                w.spawnParticles(VOID, x, y, z, 20, 0.3, 0.5, 0.3, 0);
+                w.spawnParticles(ParticleTypes.HEART, p.getX(), p.getY() + 2.1, p.getZ(), 3, 0.3, 0.1, 0.3, 0);
+                sound(w, e.getEntityPos(), "lifesteal_hit", 1f);
+            }
+            default -> {
+            }
         }
     }
 
@@ -432,7 +521,7 @@ public final class SecretItems {
 
     private static void seek(ServerPlayerEntity p, Hand hand, ItemStack s) {
         ServerWorld w = p.getEntityWorld();
-        BlockPos found = w.locateStructure(SECRET_STRUCTURES, p.getBlockPos(), 100, true);
+        BlockPos found = w.locateStructure(SECRET_STRUCTURES, p.getBlockPos(), 300, true);
         if (found == null) {
             cool(p, s, 200);
             Msg.send(p, "secret.seeker-none");

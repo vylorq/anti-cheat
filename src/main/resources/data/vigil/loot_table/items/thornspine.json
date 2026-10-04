@@ -1,0 +1,53 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_sword",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Thornspine",
+                  "color": "#6FD05A"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "Thornback Beast's spine",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "Hits poison the target (Poison II, 3s)",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "(every 8 seconds)",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:x7994264f68"
+                  ]
+                },
+                "minecraft:use_cooldown": {
+                  "seconds": 0.05,
+                  "cooldown_group": "vigil:thornspine"
+                },
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

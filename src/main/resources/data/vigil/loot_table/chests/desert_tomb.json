@@ -106,7 +106,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:diamond",
-          "weight": 1,
+          "weight": 2,
           "functions": [
             {
               "function": "minecraft:set_count",

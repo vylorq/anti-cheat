@@ -1,0 +1,53 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_sword",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Dune Blade",
+                  "color": "#E8C77A"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "Sand Colossus's blade",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "Hits blind the target for 2 seconds",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "(every 12 seconds)",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:x6a7114d16c"
+                  ]
+                },
+                "minecraft:use_cooldown": {
+                  "seconds": 0.05,
+                  "cooldown_group": "vigil:dune_blade"
+                },
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

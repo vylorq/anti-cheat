@@ -2574,5 +2574,8 @@
   "boss.defeated": "has been defeated!",
   "boss.defeated-by": "defeated by {0}!",
   "boss.rotated": "§aBoss models turned around.",
-  "boss.removed": "§7Removed {0} boss(es)."
+  "boss.removed": "§7Removed {0} boss(es).",
+  "boss.awakens": "has awakened...",
+  "boss.phase2": "grows angrier!",
+  "boss.phase3": "is enraged!"
 }

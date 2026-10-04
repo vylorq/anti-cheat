@@ -10,6 +10,13 @@
           "type": "minecraft:model",
           "model": "vigil:item/xd09a38cb60"
         }
+      },
+      {
+        "when": "vigil:xb4bfd1074a",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xb4bfd1074a"
+        }
       }
     ],
     "fallback": {

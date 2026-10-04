@@ -1,0 +1,53 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:trident",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Warden's Tide",
+                  "color": "#3FD0FF"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "Drowned Warden's trident",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "Hits soak the target: Slowness II for 3s",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "(every 8 seconds)",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:x549abbf707"
+                  ]
+                },
+                "minecraft:use_cooldown": {
+                  "seconds": 0.05,
+                  "cooldown_group": "vigil:tide_trident"
+                },
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

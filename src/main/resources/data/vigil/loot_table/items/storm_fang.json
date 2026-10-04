@@ -1,0 +1,53 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_sword",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Storm Fang",
+                  "color": "#B8E8FF"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "Storm Phantom's fang",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "Hits jolt up to 3 enemies near the target",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "(every 6 seconds)",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:x4182ff2655"
+                  ]
+                },
+                "minecraft:use_cooldown": {
+                  "seconds": 0.05,
+                  "cooldown_group": "vigil:storm_fang"
+                },
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
