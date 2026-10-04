@@ -148,7 +148,9 @@ public final class Protection {
             // Owner instant break: one hit breaks the block (not unbreakable ones like bedrock).
             if (OwnerPowers.on(p, OwnerPowers.Power.INSTA_BREAK) && !p.isCreative() && !p.isSpectator()
                     && w.getBlockState(pos).getHardness(w, pos) >= 0) {
-                p.interactionManager.tryBreakBlock(pos);
+                if (p.interactionManager.tryBreakBlock(pos)) {
+                    OwnerFx.breakBurst(p, pos);
+                }
                 return ActionResult.FAIL;
             }
             return ActionResult.PASS;

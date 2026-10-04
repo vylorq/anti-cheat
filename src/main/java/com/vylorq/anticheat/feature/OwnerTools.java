@@ -42,6 +42,7 @@ public final class OwnerTools {
     public static final String LIGHTNING = "lightning_wand";
     public static final String LAUNCH = "launch_stick";
     public static final String HEAL = "heal_wand";
+    public static final String FREEZE = "freeze_wand";
 
     private static ItemStack make(Item base, String id, String name, String... lore) {
         ItemStack s = Icons.glint(Icons.of(base, name, lore));
@@ -67,8 +68,72 @@ public final class OwnerTools {
                 "Sneak + right-click: heal everyone near you", "§8Owner only");
     }
 
+    public static ItemStack freezeWand() {
+        return make(Items.PRISMARINE_SHARD, FREEZE, "§b❄ Freeze Wand",
+                "Right-click: freeze every player in your circle", "Sneak + right-click: thaw everyone it froze",
+                "Change the circle size in /owner", "or with /owner freezeradius <blocks>", "§8Owner only");
+    }
+
     public static List<ItemStack> all() {
-        return List.of(lightningWand(), launchStick(), healWand());
+        return List.of(lightningWand(), launchStick(), healWand(), freezeWand());
+    }
+
+    /** Players (not the owner, not spectators) within {@code r} blocks around the owner, and not far above or below. */
+    public static List<ServerPlayerEntity> inCircle(ServerPlayerEntity p, java.util.Collection<ServerPlayerEntity> all, int r) {
+        List<ServerPlayerEntity> out = new ArrayList<>();
+        for (ServerPlayerEntity o : all) {
+            if (o == p || o.isSpectator() || com.vylorq.anticheat.perm.Perms.isOwner(o.getUuid()) || o.getEntityWorld() != p.getEntityWorld()) {
+                continue;
+            }
+            double dx = o.getX() - p.getX();
+            double dz = o.getZ() - p.getZ();
+            if (dx * dx + dz * dz <= (double) r * r && Math.abs(o.getY() - p.getY()) <= Math.max(16, r)) {
+                out.add(o);
+            }
+        }
+        return out;
+    }
+
+    /** Freeze wand: everyone (but the owner) within the circle can't move until thawed. */
+    static void freeze(ServerPlayerEntity p) {
+        var st = OwnerPowers.state();
+        if (p.isSneaking()) {
+            int n = 0;
+            for (String s : new java.util.ArrayList<>(st.wandFrozen)) {
+                ServerPlayerEntity f = Ac.server().getPlayerManager().getPlayer(java.util.UUID.fromString(s));
+                if (f != null) {
+                    StaffTools.setFrozen(p, f, false);
+                    f.setFrozenTicks(0);
+                    f.getEntityWorld().spawnParticles(ParticleTypes.DRIPPING_WATER, f.getX(), f.getY() + 1, f.getZ(), 20, 0.4, 0.6, 0.4, 0);
+                    f.getEntityWorld().playSound(null, f.getX(), f.getY(), f.getZ(), SoundEvents.BLOCK_POWDER_SNOW_BREAK, SoundCategory.PLAYERS, 1f, 1f);
+                    n++;
+                } else {
+                    // Offline: thaw them in the saved list (they come back unfrozen).
+                    Ac.get().staff.setFrozen(java.util.UUID.fromString(s), false);
+                    Ac.markDirty("staff");
+                }
+                st.wandFrozen.remove(s);
+            }
+            OwnerPowers.save();
+            Msg.actionBar(p, "§b" + Msg.trFor(p, "owner.thawed", n));
+            OwnerPowers.sfx(p, "thaw", SoundEvents.BLOCK_POWDER_SNOW_BREAK, 1f);
+            return;
+        }
+        int r = st.freezeRadius;
+        int n = 0;
+        for (ServerPlayerEntity o : inCircle(p, p.getEntityWorld().getPlayers(), r)) {
+            if (!StaffTools.isFrozen(o)) {
+                StaffTools.setFrozen(p, o, true);
+                st.wandFrozen.add(o.getUuid().toString());
+                o.getEntityWorld().playSound(null, o.getX(), o.getY(), o.getZ(), SoundEvents.ENTITY_PLAYER_HURT_FREEZE, SoundCategory.PLAYERS, 1f, 0.8f);
+                o.getEntityWorld().spawnParticles(ParticleTypes.SNOWFLAKE, o.getX(), o.getY() + 1, o.getZ(), 40, 0.4, 0.8, 0.4, 0.05);
+                n++;
+            }
+        }
+        OwnerPowers.save();
+        OwnerFx.freezeWave(p, r);
+        Msg.actionBar(p, "§b" + Msg.trFor(p, "owner.froze", n, r));
+        OwnerPowers.sfx(p, "freeze", SoundEvents.BLOCK_GLASS_BREAK, 0.6f);
     }
 
     public static String toolOf(ItemStack s) {
@@ -105,6 +170,7 @@ public final class OwnerTools {
         OwnerPowers.usedTool();
         switch (tool) {
             case LIGHTNING -> lightning(p);
+            case FREEZE -> freeze(p);
             case HEAL -> {
                 if (p.isSneaking()) {
                     int n = 0;
@@ -117,6 +183,7 @@ public final class OwnerTools {
                     Msg.actionBar(p, "§d" + Msg.trFor(p, "owner.healed-near", n));
                 } else {
                     heal(p);
+                    OwnerFx.heartRing(p, p);
                 }
                 OwnerPowers.sfx(p, "heal", SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 1.2f);
             }
@@ -137,6 +204,7 @@ public final class OwnerTools {
         OwnerPowers.usedTool();
         if (target instanceof LivingEntity l) {
             heal(l);
+            OwnerFx.heartRing(p, l);
             OwnerPowers.sfx(p, "heal", SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 1.2f);
             Msg.actionBar(p, "§d" + Msg.trFor(p, "owner.healed", target.getName().getString()));
         }
@@ -177,6 +245,7 @@ public final class OwnerTools {
         w.spawnParticles(ParticleTypes.CLOUD, target.getX(), target.getY() + 0.2, target.getZ(), 30, 0.4, 0.2, 0.4, 0.15);
         w.playSound(null, target.getX(), target.getY(), target.getZ(), SoundEvents.ENTITY_WIND_CHARGE_WIND_BURST, SoundCategory.PLAYERS, 1f, 1f);
         OwnerPowers.sfx(p, "launch", null, 1f);
+        OwnerFx.windSpiral(p, target);
         return true;
     }
 
@@ -200,6 +269,7 @@ public final class OwnerTools {
         bolt.setCosmetic(!st.realLightning);
         w.spawnEntity(bolt);
         w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, at.x, at.y + 0.5, at.z, 40, 0.5, 1.0, 0.5, 0.2);
+        OwnerFx.shockwave(p, at);
         OwnerPowers.sfx(p, "zap", null, 1f);
     }
 

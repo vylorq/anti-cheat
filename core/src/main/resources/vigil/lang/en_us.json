@@ -2409,5 +2409,14 @@
   "owner.healed": "Healed {0}",
   "owner.healed-near": "Healed {0} player(s) near you",
   "owner.lightning-real": "Lightning: real (it hurts and burns)",
-  "owner.lightning-harmless": "Lightning: harmless (just for show)"
+  "owner.lightning-harmless": "Lightning: harmless (just for show)",
+  "owner.freeze": "Freeze wand",
+  "owner.freeze.desc": "Right-click with it: every player within the circle is frozen. Sneak + right-click: thaw them. The circle shows on the ground while you hold it.",
+  "owner.freeze-radius": "Freeze circle: {0} blocks around you",
+  "owner.freeze-radius-set": "Freeze circle set to {0} blocks around you.",
+  "owner.bigger": "5 blocks bigger",
+  "owner.smaller": "5 blocks smaller",
+  "owner.type-number": "Type a size",
+  "owner.froze": "Froze {0} player(s) within {1} blocks",
+  "owner.thawed": "Thawed {0} player(s)"
 }

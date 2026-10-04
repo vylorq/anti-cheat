@@ -23,8 +23,17 @@ public final class OwnerMenu {
     }
 
     private static final Power[] POWERS = Power.values();
-    private static final Item[] ICONS = {Items.ELYTRA, Items.TOTEM_OF_UNDYING, Items.SUGAR, Items.GOLDEN_CARROT,
-            Items.NETHERITE_PICKAXE, Items.SPYGLASS, Items.PHANTOM_MEMBRANE};
+    /** Base items for the icons: the owner pack draws custom icons over them (plain items without the pack). */
+    private static final Item[] ICONS = {Items.FEATHER, Items.TOTEM_OF_UNDYING, Items.SUGAR, Items.ENDER_EYE,
+            Items.FLINT, Items.AMETHYST_SHARD, Items.PHANTOM_MEMBRANE};
+    private static final String[] ICON_IDS = {"icon_fly", "icon_god", "icon_speed", "icon_night", "icon_break", "icon_radar", "icon_ghost"};
+
+    static ItemStack icon(Item base, String id) {
+        ItemStack s = new ItemStack(base);
+        s.set(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA,
+                new net.minecraft.component.type.CustomModelDataComponent(List.of(), List.of(), List.of("vigil:" + id), List.of()));
+        return s;
+    }
 
     public static void open(ServerPlayerEntity p) {
         if (!OwnerPowers.require(p)) {
@@ -39,7 +48,7 @@ public final class OwnerMenu {
                 Power pw = POWERS[i];
                 boolean on = OwnerPowers.on(p, pw);
                 String name = Msg.tr("owner.power." + pw.name().toLowerCase(Locale.ROOT));
-                Btn b = Btn.of(ICONS[i]).color(on ? Theme.GREEN : Theme.SOFT).name(name)
+                Btn b = Btn.of(icon(ICONS[i], ICON_IDS[i])).color(on ? Theme.GREEN : Theme.SOFT).name(name)
                         .desc(Msg.tr("owner.power." + pw.name().toLowerCase(Locale.ROOT) + ".desc"))
                         .status(on ? Theme.GREEN : Theme.SOFT, Msg.tr(on ? "owner.state-on" : "owner.state-off")
                                 + (pw == Power.SPEED && on ? " (" + OwnerPowers.state().speed + "/3)" : ""))
@@ -50,18 +59,36 @@ public final class OwnerMenu {
                 });
             }
             List<ItemStack> tools = OwnerTools.all();
-            int[] toolSlots = {20, 22, 24};
+            int[] toolSlots = {19, 21, 23, 25};
             for (int i = 0; i < tools.size(); i++) {
                 ItemStack t = tools.get(i);
                 menu.set(toolSlots[i], t.copy(), null, (pl, c) -> OwnerTools.give(pl, t));
             }
-            menu.set(29, Btn.of(Items.ANVIL).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.repair")).desc(Msg.tr("owner.repair.desc"))
+            menu.set(28, Btn.of(icon(Items.PRISMARINE_SHARD, "freeze_wand")).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.freeze"))
+                    .desc(Msg.tr("owner.freeze.desc")).status(Theme.GOLD_LIGHT, Msg.tr("owner.freeze-radius", OwnerPowers.state().freezeRadius))
+                    .left(Msg.tr("owner.bigger")).right(Msg.tr("owner.smaller")).shift(Msg.tr("owner.type-number")).build(), null, (pl, c) -> {
+                if (c.isShift()) {
+                    Input.text(pl, Msg.trFor(pl, "owner.freeze"), String.valueOf(OwnerPowers.state().freezeRadius), t -> {
+                        try {
+                            OwnerPowers.setFreezeRadius(pl, Integer.parseInt(t.trim()));
+                        } catch (NumberFormatException e) {
+                            Msg.send(pl, "general.bad-number");
+                        }
+                        open(pl);
+                    });
+                    return;
+                }
+                int r = OwnerPowers.state().freezeRadius;
+                OwnerPowers.setFreezeRadius(pl, c.isRight() ? r - 5 : r + 5);
+                menu.refresh();
+            });
+            menu.set(29, Btn.of(icon(Items.IRON_NUGGET, "icon_repair")).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.repair")).desc(Msg.tr("owner.repair.desc"))
                     .left(Msg.tr("owner.repair-hand")).right(Msg.tr("owner.repair-all")).build(), null,
                     (pl, c) -> OwnerTools.repair(pl, c.isRight()));
-            menu.set(31, Btn.of(Items.CHEST).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.items")).desc(Msg.tr("owner.items.desc"))
+            menu.set(31, Btn.of(icon(Items.PAPER, "icon_items")).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.items")).desc(Msg.tr("owner.items.desc"))
                     .left(Msg.tr("owner.open")).build(), null, (pl, c) -> items(pl));
             String style = OwnerPowers.state().joinStyle;
-            menu.set(33, Btn.of(Items.FIREWORK_ROCKET).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.join"))
+            menu.set(33, Btn.of(icon(Items.NETHER_STAR, "icon_join")).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.join"))
                     .desc(Msg.tr("owner.join.desc")).status(Theme.GOLD_LIGHT, Msg.tr("owner.join." + style))
                     .left(Msg.tr("owner.next-option")).build(), null, (pl, c) -> {
                 String next = switch (style) {
@@ -72,7 +99,7 @@ public final class OwnerMenu {
                 OwnerPowers.setJoinStyle(pl, next);
                 menu.refresh();
             });
-            menu.set(40, Btn.of(Items.PAINTING).color(Theme.SOFT).name(Msg.tr("owner.pack")).desc(Msg.tr("owner.pack.desc"))
+            menu.set(40, Btn.of(icon(Items.PAINTING, "icon_pack")).color(Theme.SOFT).name(Msg.tr("owner.pack")).desc(Msg.tr("owner.pack.desc"))
                     .left(Msg.tr("owner.pack-send")).build(), null, (pl, c) -> OwnerPowers.sendPack(pl));
         });
         m.open(p);

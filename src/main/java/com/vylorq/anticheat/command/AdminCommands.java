@@ -103,6 +103,9 @@ public final class AdminCommands {
                         com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "level"))))));
         owner.then(literal("tools").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerTools.all()
                 .forEach(t -> com.vylorq.anticheat.feature.OwnerTools.give(p, t)))));
+        owner.then(literal("freezeradius").then(CommandManager.argument("blocks", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 100))
+                .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerPowers.setFreezeRadius(p,
+                        com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "blocks"))))));
         owner.then(literal("items").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::items)));
         owner.then(literal("pack").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerPowers::sendPack)));
         owner.then(literal("join").then(literal("normal").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerPowers.setJoinStyle(p, "normal"))))
