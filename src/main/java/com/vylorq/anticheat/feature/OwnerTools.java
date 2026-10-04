@@ -168,8 +168,8 @@ public final class OwnerTools {
                 l.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, 200, 0, false, true, true));
             }
         }
-        target.setVelocity(v);
-        target.velocityModified = true;
+        target.setVelocity(Vec3d.ZERO);
+        target.addVelocity(v);
         if (target instanceof ServerPlayerEntity sp) {
             sp.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(sp));
         }
