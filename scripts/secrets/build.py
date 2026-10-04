@@ -28,6 +28,12 @@ def write(rel, content):
 
 # ------------------------------------------------------------------ items
 
+def code(name):
+    """The pack's coded name for a model (same as PackIds.code in the mod and code() in the pack builder)."""
+    import hashlib
+    return "x" + hashlib.sha256(("vigil-pack:" + name).encode()).hexdigest()[:10]
+
+
 def text(t, color, italic=None):
     d = {"text": t, "color": color}
     if italic is not None:
@@ -85,7 +91,7 @@ def components(item_id):
     c = {
         "minecraft:item_name": text(name, color),
         "minecraft:lore": [text(line, "gray", False) for line in lore],
-        "minecraft:custom_model_data": {"strings": [f"vigil:{item_id}"]},
+        "minecraft:custom_model_data": {"strings": ["vigil:" + code(item_id)]},
         "minecraft:use_cooldown": {"seconds": 0.05, "cooldown_group": f"vigil:{item_id}"},
         "minecraft:rarity": rarity,
     }

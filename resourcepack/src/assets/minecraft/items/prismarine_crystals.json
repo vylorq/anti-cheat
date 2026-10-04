@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:orbital_cannon",
+        "when": "vigil:xf151f202de",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/orbital_cannon"
+          "model": "vigil:item/xf151f202de"
         }
       }
     ],

@@ -5,17 +5,17 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:disarm_gloves",
+        "when": "vigil:x69abae1b40",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/disarm_gloves"
+          "model": "vigil:item/x69abae1b40"
         }
       },
       {
-        "when": "vigil:backpack",
+        "when": "vigil:xa0f447057e",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/backpack"
+          "model": "vigil:item/xa0f447057e"
         }
       }
     ],

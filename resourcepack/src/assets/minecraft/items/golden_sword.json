@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:flame_sword",
+        "when": "vigil:x2979dcc715",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/flame_sword"
+          "model": "vigil:item/x2979dcc715"
         }
       }
     ],

@@ -195,7 +195,7 @@ public class AcConfig {
         public boolean packForEveryone = true;
         /** Players must accept it: declining (or a failed download) disconnects them with a message to rejoin. */
         public boolean packRequired = true;
-        public String packUrl = "https://raw.githubusercontent.com/vylorq/anti-cheat/main/resourcepack/vigil-owner.zip";
+        public String packUrl = "https://raw.githubusercontent.com/vylorq/anti-cheat/main/resourcepack/pack.zip";
     }
 
     /** Anti-ESP: what players' games aren't told about, so wallhacks have nothing to show. */

@@ -181,7 +181,7 @@ public final class OwnerCombat {
 
     /** A custom (owner pack) sound everyone nearby hears if they have the pack. */
     static void sound(ServerWorld w, Vec3d at, String name, float volume) {
-        var entry = RegistryEntry.of(SoundEvent.of(Identifier.of("vigil", name)));
+        var entry = RegistryEntry.of(SoundEvent.of(com.vylorq.anticheat.util.PackIds.sound(name)));
         for (ServerPlayerEntity o : w.getPlayers()) {
             if (o.squaredDistanceTo(at) < 96 * 96) {
                 o.networkHandler.sendPacket(new PlaySoundS2CPacket(entry, SoundCategory.PLAYERS, at.x, at.y, at.z, volume, 1f, o.getRandom().nextLong()));
@@ -874,8 +874,8 @@ public final class OwnerCombat {
             UUID id = UUID.randomUUID();
             String cmd = String.format(java.util.Locale.ROOT,
                     "summon minecraft:item_display %.3f %.3f %.3f {UUID:%s,teleport_duration:1,brightness:{sky:15,block:15},"
-                            + "item:{id:\"%s\",count:1,components:{\"minecraft:custom_model_data\":{strings:[\"vigil:%s\"]}}},transformation:%s}",
-                    at.x, at.y, at.z, uuidNbt(id), base, model, transform);
+                            + "item:{id:\"%s\",count:1,components:{\"minecraft:custom_model_data\":{strings:[\"%s\"]}}},transformation:%s}",
+                    at.x, at.y, at.z, uuidNbt(id), base, com.vylorq.anticheat.util.PackIds.model(model), transform);
             try {
                 var src = Ac.server().getCommandSource().withWorld(w).withSilent();
                 Ac.server().getCommandManager().parseAndExecute(src, cmd);

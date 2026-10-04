@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:thor_hammer",
+        "when": "vigil:xd09a38cb60",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/thor_hammer"
+          "model": "vigil:item/xd09a38cb60"
         }
       }
     ],

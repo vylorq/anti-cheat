@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:stormbreaker",
+        "when": "vigil:x87165e2164",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/stormbreaker"
+          "model": "vigil:item/x87165e2164"
         }
       }
     ],

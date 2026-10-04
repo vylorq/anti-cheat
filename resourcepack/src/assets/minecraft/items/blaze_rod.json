@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:lightning_wand",
+        "when": "vigil:x0271298b51",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/lightning_wand"
+          "model": "vigil:item/x0271298b51"
         }
       }
     ],

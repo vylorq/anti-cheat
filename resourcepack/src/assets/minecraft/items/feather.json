@@ -5,17 +5,17 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:phoenix_feather",
+        "when": "vigil:xe941643924",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/phoenix_feather"
+          "model": "vigil:item/xe941643924"
         }
       },
       {
-        "when": "vigil:icon_fly",
+        "when": "vigil:x33a3dfe5c6",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/icon_fly"
+          "model": "vigil:item/x33a3dfe5c6"
         }
       }
     ],

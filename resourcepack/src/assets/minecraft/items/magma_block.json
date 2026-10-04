@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:meteor",
+        "when": "vigil:x3ba950b4e0",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/meteor"
+          "model": "vigil:item/x3ba950b4e0"
         }
       }
     ],

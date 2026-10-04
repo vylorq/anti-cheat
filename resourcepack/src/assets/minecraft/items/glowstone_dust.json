@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:icon_nocool",
+        "when": "vigil:x132d4360f9",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/icon_nocool"
+          "model": "vigil:item/x132d4360f9"
         }
       }
     ],

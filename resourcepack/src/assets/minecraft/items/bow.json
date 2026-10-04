@@ -5,17 +5,17 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:frost_bow",
+        "when": "vigil:x411e4e59ce",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/frost_bow"
+          "model": "vigil:item/x411e4e59ce"
         }
       },
       {
-        "when": "vigil:blast_bow",
+        "when": "vigil:x860464487c",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/blast_bow"
+          "model": "vigil:item/x860464487c"
         }
       }
     ],

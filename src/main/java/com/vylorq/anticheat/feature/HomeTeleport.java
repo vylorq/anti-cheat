@@ -155,7 +155,7 @@ public final class HomeTeleport {
                 "Right-click a block at your home to place it", "(your team's land, a claim you're in, or near your bed)",
                 "Use it: go to the lobby", "In the lobby: /home brings you back", "One per player"));
         ItemConv.setTag(s, KEY, "1");
-        s.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(List.of(), List.of(), List.of("vigil:home_teleporter"), List.of()));
+        s.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(List.of(), List.of(), List.of(com.vylorq.anticheat.util.PackIds.model("home_teleporter")), List.of()));
         s.set(DataComponentTypes.MAX_STACK_SIZE, 1);
         return s;
     }
@@ -399,7 +399,7 @@ public final class HomeTeleport {
     }
 
     private static void sound(ServerPlayerEntity p, String name) {
-        p.networkHandler.sendPacket(new PlaySoundS2CPacket(RegistryEntry.of(SoundEvent.of(Identifier.of("vigil", name))),
+        p.networkHandler.sendPacket(new PlaySoundS2CPacket(RegistryEntry.of(SoundEvent.of(com.vylorq.anticheat.util.PackIds.sound(name))),
                 SoundCategory.PLAYERS, p.getX(), p.getY(), p.getZ(), 1f, 1f, p.getRandom().nextLong()));
     }
 

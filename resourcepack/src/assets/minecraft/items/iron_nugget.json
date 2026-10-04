@@ -5,17 +5,17 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:magnet_charm",
+        "when": "vigil:x6ec9054e9e",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/magnet_charm"
+          "model": "vigil:item/x6ec9054e9e"
         }
       },
       {
-        "when": "vigil:icon_repair",
+        "when": "vigil:xa390ebb80c",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/icon_repair"
+          "model": "vigil:item/xa390ebb80c"
         }
       }
     ],

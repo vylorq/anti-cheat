@@ -112,12 +112,15 @@ public final class SecretItems {
         if (cmd == null || cmd.strings().isEmpty()) {
             return null;
         }
-        String v = cmd.strings().get(0);
-        if (!v.startsWith("vigil:")) {
-            return null;
+        return BY_MODEL.get(cmd.strings().get(0));
+    }
+
+    private static final Map<String, String> BY_MODEL = new java.util.HashMap<>();
+
+    static {
+        for (String id : ALL) {
+            BY_MODEL.put(com.vylorq.anticheat.util.PackIds.model(id), id);
         }
-        String id = v.substring(6);
-        return ALL.contains(id) ? id : null;
     }
 
     static boolean is(ItemStack s, String id) {
@@ -146,7 +149,7 @@ public final class SecretItems {
 
     /** A pack sound for everyone near (they all have the pack), plus a quiet vanilla layer. */
     static void sound(ServerWorld w, Vec3d at, String name, float volume) {
-        var entry = RegistryEntry.of(SoundEvent.of(Identifier.of("vigil", name)));
+        var entry = RegistryEntry.of(SoundEvent.of(com.vylorq.anticheat.util.PackIds.sound(name)));
         for (ServerPlayerEntity o : w.getPlayers()) {
             if (o.squaredDistanceTo(at) < 40 * 40) {
                 o.networkHandler.sendPacket(new PlaySoundS2CPacket(entry, SoundCategory.PLAYERS, at.x, at.y, at.z, volume, 1f, o.getRandom().nextLong()));

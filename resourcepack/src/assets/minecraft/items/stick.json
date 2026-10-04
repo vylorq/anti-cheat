@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:launch_stick",
+        "when": "vigil:x5fde273a75",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/launch_stick"
+          "model": "vigil:item/x5fde273a75"
         }
       }
     ],

@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:ender_pouch",
+        "when": "vigil:x1d876e2bd4",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/ender_pouch"
+          "model": "vigil:item/x1d876e2bd4"
         }
       }
     ],

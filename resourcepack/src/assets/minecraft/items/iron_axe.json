@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:lumber_axe",
+        "when": "vigil:x24eaa81c2b",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/lumber_axe"
+          "model": "vigil:item/x24eaa81c2b"
         }
       }
     ],

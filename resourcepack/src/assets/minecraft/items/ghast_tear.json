@@ -5,10 +5,10 @@
     "index": 0,
     "cases": [
       {
-        "when": "vigil:heal_wand",
+        "when": "vigil:xab308af3c6",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/heal_wand"
+          "model": "vigil:item/xab308af3c6"
         }
       }
     ],
