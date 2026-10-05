@@ -62,8 +62,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 /**
- * Structure bosses. Each secret structure has one: it rises the first time a player walks in, never comes back once
- * spawned there, and fights in three phases (new attacks unlock as its health drops, its guards join at each phase).
+ * Structure bosses. Each secret structure has one: it rises the first time a player reaches its arena (the piece in
+ * the middle, past the rooms around it), never comes back once spawned there, and fights in three phases (new attacks unlock as its health drops, its guards join at each phase).
  *
  * <p>Every boss is a real, scaled-up mob with its own gear, so Java and Bedrock players both see it and its real
  * animations. A boss with a custom 3D model (the Drowned Warden) wears it on Java (with sway / lean animation);
@@ -111,7 +111,7 @@ public final class Bosses {
     }
 
     static {
-        add(new Kind(DROWNED_WARDEN, "Drowned Warden", "§3", "sunken_vault", 1, EntityType.DROWNED, 900, 14, 16, 1.7f,
+        add(new Kind(DROWNED_WARDEN, "Drowned Warden", "§3", "sunken_vault", 2, EntityType.DROWNED, 900, 14, 16, 1.7f,
                 List.of(Ability.SHOCKWAVE, Ability.TRIDENTS, Ability.LEAP), 0x3FA8FF,
                 List.of(new Guard(EntityType.DROWNED, "§3Vault Drowned", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.TRIDENT)))),
                 m -> { }, "tide_trident", "drowned_warden", 1.15f, 1.6f));
@@ -120,7 +120,7 @@ public final class Bosses {
                 List.of(new Guard(EntityType.SILVERFISH, "§7Stone Crawler", 4, m -> { }),
                         new Guard(EntityType.CAVE_SPIDER, "§2Sculk Lurker", 2, m -> { })),
                 m -> { }, "colossus_maul", null, 0, 0));
-        add(new Kind("storm_phantom", "Storm Phantom", "§b", "sky_citadel", 5, EntityType.PHANTOM, 700, 12, 10, 2.0f,
+        add(new Kind("storm_phantom", "Storm Phantom", "§b", "sky_citadel", 7, EntityType.PHANTOM, 700, 12, 10, 2.0f,
                 List.of(Ability.LIGHTNING, Ability.SHOCKWAVE, Ability.LIGHTNING), 0xB8E8FF,
                 List.of(new Guard(EntityType.PHANTOM, "§bGale Phantom", 3, m -> { }),
                         new Guard(EntityType.SKELETON, "§fSky Sentry", 2, m -> wear(m, EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET)))),
@@ -408,13 +408,17 @@ public final class Bosses {
                 if (start == null || !start.hasChildren()) {
                     continue;
                 }
+                // The boss waits in the arena (the first piece, in the middle): the rooms around it come first.
+                var box = start.getChildren().get(0).getBoundingBox();
+                if (!box.expand(1).contains(p.getBlockPos())) {
+                    continue;
+                }
                 String key = k.structure() + "@" + start.getPos().x + "," + start.getPos().z;
                 if (state().spawned.contains(key)) {
                     continue;
                 }
                 state().spawned.add(key);
                 save();
-                var box = start.getBoundingBox();
                 Vec3d at = new Vec3d(box.getCenter().getX() + 0.5, box.getMinY() + k.floor(), box.getCenter().getZ() + 0.5);
                 spawn(w, at, k.id());
                 Ac.LOG.info("{} rose at {} ({})", k.name(), BlockPos.ofFloored(at).toShortString(), key);

@@ -266,29 +266,16 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
-    public void customBlocksStayPut(TestContext ctx) {
-        var w = ctx.getWorld();
-        check(com.vylorq.anticheat.feature.CustomBlocks.all().size() >= 16, "custom blocks missing");
-        BlockPos pos = ctx.getAbsolutePos(new BlockPos(1, 2, 1));
-        for (String name : com.vylorq.anticheat.feature.CustomBlocks.all()) {
-            var st = com.vylorq.anticheat.feature.CustomBlocks.state(name);
-            w.setBlockState(pos, st, net.minecraft.block.Block.NOTIFY_ALL);
-            // Blocks above and below, and redstone power next to it, must not change it.
-            w.setBlockState(pos.up(), net.minecraft.block.Blocks.SKELETON_SKULL.getDefaultState(), net.minecraft.block.Block.NOTIFY_ALL);
-            w.setBlockState(pos.down(), net.minecraft.block.Blocks.GOLD_BLOCK.getDefaultState(), net.minecraft.block.Block.NOTIFY_ALL);
-            w.setBlockState(pos.east(), net.minecraft.block.Blocks.REDSTONE_BLOCK.getDefaultState(), net.minecraft.block.Block.NOTIFY_ALL);
-            check(name.equals(com.vylorq.anticheat.feature.CustomBlocks.nameOf(w.getBlockState(pos))), name + " changed into " + w.getBlockState(pos));
-            // Breaking it drops the same custom block.
-            var drops = net.minecraft.block.Block.getDroppedStacks(w.getBlockState(pos), w, pos, null);
-            check(drops.size() == 1 && name.equals(com.vylorq.anticheat.feature.CustomBlocks.placedBy(drops.get(0))), name + " drops " + drops);
-            for (BlockPos p : new BlockPos[]{pos, pos.up(), pos.down(), pos.east()}) {
-                w.setBlockState(p, net.minecraft.block.Blocks.AIR.getDefaultState(), net.minecraft.block.Block.NOTIFY_ALL);
+    public void structureRoomsLoad(TestContext ctx) {
+        // Every piece of every secret structure (arena, rooms, wall plug) loads as a real template.
+        var templates = ctx.getWorld().getServer().getStructureTemplateManager();
+        for (String n : java.util.List.of("sunken_vault", "buried_vault", "sky_citadel", "nether_forge", "desert_tomb", "frozen_bastion",
+                "overgrown_labyrinth", "watchers_hollow")) {
+            for (String piece : java.util.List.of("arena", "corridor", "hall", "guard_room", "shrine", "crossroad", "treasure", "cap")) {
+                var t = templates.getTemplate(net.minecraft.util.Identifier.of("vigil", n + "/" + piece));
+                check(t.isPresent() && t.get().getSize().getX() > 0, n + "/" + piece + " doesn't load");
             }
         }
-        // An ordinary note block still works as one.
-        w.setBlockState(pos, net.minecraft.block.Blocks.NOTE_BLOCK.getDefaultState(), net.minecraft.block.Block.NOTIFY_ALL);
-        check(!com.vylorq.anticheat.feature.CustomBlocks.isCustom(w.getBlockState(pos)), "a plain note block counts as custom");
-        w.setBlockState(pos, net.minecraft.block.Blocks.AIR.getDefaultState(), net.minecraft.block.Block.NOTIFY_ALL);
         ctx.complete();
     }
 

@@ -11,8 +11,8 @@
   "step": "surface_structures",
   "spawn_overrides": {},
   "terrain_adaptation": "beard_thin",
-  "start_pool": "vigil:frozen_bastion",
-  "size": 1,
+  "start_pool": "vigil:frozen_bastion/start",
+  "size": 7,
   "start_height": {
     "absolute": 0
   },
