@@ -2577,5 +2577,10 @@
   "boss.removed": "§7تمت إزالة {0} زعيم.",
   "boss.awakens": "استيقظ...",
   "boss.phase2": "يزداد غضباً!",
-  "boss.phase3": "في ذروة غضبه!"
+  "boss.phase3": "في ذروة غضبه!",
+  "teststructure.placed": "§aتم وضع {0} (#{1})، بين الارتفاعين {2} و{3}. §7أزله بـ /owner structure remove",
+  "teststructure.removed": "§aتمت إزالة {0} (#{1}): عادت المنطقة كما كانت.",
+  "teststructure.failed": "§cتعذر فعل ذلك مع {0} هنا.",
+  "teststructure.none": "§7لا توجد هياكل تجريبية موضوعة.",
+  "teststructure.entry": "§7#{0} §f{1} §7قرب {2}، {3}"
 }
