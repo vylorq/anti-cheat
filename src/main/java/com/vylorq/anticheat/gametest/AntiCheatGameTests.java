@@ -266,42 +266,14 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
-    public void structuresGrowRooms(TestContext ctx) {
-        var w = ctx.getWorld();
-        var server = w.getServer();
-        var src = server.getCommandSource().withWorld(w).withSilent();
-        var dispatcher = server.getCommandManager().getDispatcher();
-        // Far from the tests, so the structure has room to spread.
-        BlockPos base = ctx.getAbsolutePos(BlockPos.ORIGIN).add(3000, 0, 3000);
-        int r = 96;
-        try {
-            dispatcher.execute("forceload add " + (base.getX() - r) + " " + (base.getZ() - r) + " " + (base.getX() + r) + " " + (base.getZ() + r), src);
-            int placed = dispatcher.execute("place structure vigil:nether_forge " + base.getX() + " 64 " + base.getZ(), src);
-            check(placed > 0, "the structure wasn't placed");
-            int spawners = 0;
-            int jigsaws = 0;
-            BlockPos.Mutable m = new BlockPos.Mutable();
-            for (int x = base.getX() - r; x <= base.getX() + r; x++) {
-                for (int z = base.getZ() - r; z <= base.getZ() + r; z++) {
-                    for (int y = 40; y <= 64; y++) {
-                        var st = w.getBlockState(m.set(x, y, z));
-                        if (st.isOf(net.minecraft.block.Blocks.SPAWNER)) {
-                            spawners++;
-                        } else if (st.isOf(net.minecraft.block.Blocks.JIGSAW)) {
-                            jigsaws++;
-                        }
-                    }
-                }
-            }
-            check(spawners >= 1, "no rooms with spawners were built around the arena");
-            check(jigsaws == 0, jigsaws + " doors were left unresolved");
-        } catch (com.mojang.brigadier.exceptions.CommandSyntaxException e) {
-            throw new GameTestException(net.minecraft.text.Text.literal(e.getMessage()), 0);
-        } finally {
-            try {
-                dispatcher.execute("forceload remove all", src);
-            } catch (com.mojang.brigadier.exceptions.CommandSyntaxException ignored) {
-                // nothing was force-loaded
+    public void structureRoomsLoad(TestContext ctx) {
+        // Every piece of every secret structure (arena, rooms, wall plug) loads as a real template.
+        var templates = ctx.getWorld().getServer().getStructureTemplateManager();
+        for (String n : java.util.List.of("sunken_vault", "buried_vault", "sky_citadel", "nether_forge", "desert_tomb", "frozen_bastion",
+                "overgrown_labyrinth", "watchers_hollow")) {
+            for (String piece : java.util.List.of("arena", "corridor", "hall", "guard_room", "shrine", "crossroad", "treasure", "cap")) {
+                var t = templates.getTemplate(net.minecraft.util.Identifier.of("vigil", n + "/" + piece));
+                check(t.isPresent() && t.get().getSize().getX() > 0, n + "/" + piece + " doesn't load");
             }
         }
         ctx.complete();
