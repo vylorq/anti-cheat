@@ -114,6 +114,91 @@
           ]
         }
       ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 2
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:note_block",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Sculk Bricks",
+                  "color": "#C9B6FF"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "A block from the Watchers Hollow",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:x4233834cc7"
+                  ]
+                },
+                "minecraft:custom_data": {
+                  "vigil_block": "sculk_bricks"
+                }
+              }
+            },
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 16
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:note_block",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Watcher Eye",
+                  "color": "#C9B6FF"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "A block from the Watchers Hollow",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:xe9e2f7aa3a"
+                  ]
+                },
+                "minecraft:custom_data": {
+                  "vigil_block": "watcher_eye"
+                }
+              }
+            },
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 16
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

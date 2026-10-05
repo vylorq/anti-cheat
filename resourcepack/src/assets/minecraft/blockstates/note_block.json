@@ -1,0 +1,182 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "OR": [
+          {
+            "instrument": "!custom_head"
+          },
+          {
+            "powered": "true"
+          },
+          {
+            "note": "0|17|18|19|20|21|22|23|24"
+          }
+        ]
+      },
+      "apply": {
+        "model": "minecraft:block/note_block"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "1",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/abyssal_bricks"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "2",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/tide_rune"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "3",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/vault_stone"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "4",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/vault_lock"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "5",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/cloud_marble"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "6",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/sky_rune"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "7",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/forge_bricks"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "8",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/molten_core"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "9",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/cursed_sandstone"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "10",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/scarab_tile"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "11",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/frost_bricks"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "12",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/rune_ice"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "13",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/mossy_ruin"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "14",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/thorn_vines"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "15",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/sculk_bricks"
+      }
+    },
+    {
+      "when": {
+        "instrument": "custom_head",
+        "note": "16",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/watcher_eye"
+      }
+    }
+  ]
+}

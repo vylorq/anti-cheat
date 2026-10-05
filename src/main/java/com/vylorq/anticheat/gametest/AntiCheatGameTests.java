@@ -266,6 +266,33 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void customBlocksStayPut(TestContext ctx) {
+        var w = ctx.getWorld();
+        check(com.vylorq.anticheat.feature.CustomBlocks.all().size() >= 16, "custom blocks missing");
+        BlockPos pos = ctx.getAbsolutePos(new BlockPos(1, 2, 1));
+        for (String name : com.vylorq.anticheat.feature.CustomBlocks.all()) {
+            var st = com.vylorq.anticheat.feature.CustomBlocks.state(name);
+            w.setBlockState(pos, st, net.minecraft.block.Block.NOTIFY_ALL);
+            // Blocks above and below, and redstone power next to it, must not change it.
+            w.setBlockState(pos.up(), net.minecraft.block.Blocks.SKELETON_SKULL.getDefaultState(), net.minecraft.block.Block.NOTIFY_ALL);
+            w.setBlockState(pos.down(), net.minecraft.block.Blocks.GOLD_BLOCK.getDefaultState(), net.minecraft.block.Block.NOTIFY_ALL);
+            w.setBlockState(pos.east(), net.minecraft.block.Blocks.REDSTONE_BLOCK.getDefaultState(), net.minecraft.block.Block.NOTIFY_ALL);
+            check(name.equals(com.vylorq.anticheat.feature.CustomBlocks.nameOf(w.getBlockState(pos))), name + " changed into " + w.getBlockState(pos));
+            // Breaking it drops the same custom block.
+            var drops = net.minecraft.block.Block.getDroppedStacks(w.getBlockState(pos), w, pos, null);
+            check(drops.size() == 1 && name.equals(com.vylorq.anticheat.feature.CustomBlocks.placedBy(drops.get(0))), name + " drops " + drops);
+            for (BlockPos p : new BlockPos[]{pos, pos.up(), pos.down(), pos.east()}) {
+                w.setBlockState(p, net.minecraft.block.Blocks.AIR.getDefaultState(), net.minecraft.block.Block.NOTIFY_ALL);
+            }
+        }
+        // An ordinary note block still works as one.
+        w.setBlockState(pos, net.minecraft.block.Blocks.NOTE_BLOCK.getDefaultState(), net.minecraft.block.Block.NOTIFY_ALL);
+        check(!com.vylorq.anticheat.feature.CustomBlocks.isCustom(w.getBlockState(pos)), "a plain note block counts as custom");
+        w.setBlockState(pos, net.minecraft.block.Blocks.AIR.getDefaultState(), net.minecraft.block.Block.NOTIFY_ALL);
+        ctx.complete();
+    }
+
+    @GameTest
     public void drownedWardenBoss(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));

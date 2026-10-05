@@ -16,6 +16,8 @@ import struct
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA = os.path.join(ROOT, "src", "main", "resources", "data", "vigil")
 DATA_VERSION = 3953  # 1.21: the game upgrades older templates when it loads them
+# The custom blocks (made by scripts/blocks/build.py): a block "vigil:<name>" is a frozen note block state.
+BLOCKS = json.load(open(os.path.join(ROOT, "src", "main", "resources", "vigil", "blocks.json")))
 
 
 def write(rel, content):
@@ -155,6 +157,24 @@ def filler(entries, rolls=(4, 7)):
     return {"rolls": {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]}, "entries": out}
 
 
+def block_components(name):
+    b = BLOCKS[name]
+    place = b["structure"].replace("_", " ").title()
+    return {"minecraft:item_name": text(b["display"], "#C9B6FF"),
+            "minecraft:lore": [text(f"A block from the {place}", "gray", False)],
+            "minecraft:custom_model_data": {"strings": ["vigil:" + code(name + "_block")]},
+            "minecraft:custom_data": {"vigil_block": name}}
+
+
+def block_pool(structure):
+    """A stack or two of the structure's own custom blocks."""
+    return {"rolls": {"type": "minecraft:uniform", "min": 1, "max": 2}, "entries": [
+        {"type": "minecraft:item", "name": "minecraft:note_block", "functions": [
+            {"function": "minecraft:set_components", "components": block_components(n)},
+            {"function": "minecraft:set_count", "count": {"type": "minecraft:uniform", "min": 6, "max": 16}}]}
+        for n, b in BLOCKS.items() if b["structure"] == structure]}
+
+
 def secret(weights, rolls=1):
     return {"rolls": rolls, "entries": [{"type": "minecraft:loot_table", "value": f"vigil:items/{i}", "weight": w} for i, w in weights]}
 
@@ -256,6 +276,9 @@ class Template:
         self.nbt = {}
 
     def set(self, x, y, z, block, **props):
+        if block.startswith("vigil:"):
+            props = {"instrument": "custom_head", "note": BLOCKS[block[6:]]["note"], "powered": False}
+            block = "note_block"
         if 0 <= x < self.size[0] and 0 <= y < self.size[1] and 0 <= z < self.size[2]:
             self.blocks[(x, y, z)] = (block, tuple(sorted((k, str(v).lower()) for k, v in props.items())))
             self.nbt.pop((x, y, z), None)
@@ -332,15 +355,17 @@ def sunken_vault():
             t.set(x, y, z, "prismarine_bricks")
         t.set(x, h, z, "prismarine_brick_slab", type="bottom", waterlogged=True)
     # The vault: a big sealed hall, dry inside.
-    t.shell(3, 0, 3, 17, 11, 17, "dark_prismarine")
+    t.shell(3, 0, 3, 17, 11, 17, "vigil:abyssal_bricks")
     t.fill(4, 0, 4, 16, 0, 16, "prismarine_bricks")
     for x in range(4, 17):
         for z in range(4, 17):
             if (x + z) % 4 == 0:
                 t.set(x, 0, z, "sea_lantern")
     for (x, z) in [(5, 5), (15, 5), (5, 15), (15, 15)]:
-        t.fill(x, 1, z, x, 10, z, "prismarine_bricks")
+        t.fill(x, 1, z, x, 10, z, "vigil:abyssal_bricks")
         t.set(x, 5, z, "sea_lantern")
+        t.set(x, 3, z, "vigil:tide_rune")
+        t.set(x, 8, z, "vigil:tide_rune")
     t.chest(10, 1, 4, "sunken_vault", facing="south")
     t.chest(9, 1, 4, "sunken_vault", facing="south")
     t.set(11, 1, 4, "conduit", waterlogged=False)
@@ -357,7 +382,7 @@ def sunken_vault():
 def buried_vault():
     r = random.Random(2)
     t = Template(23, 12, 23)
-    t.shell(0, 0, 0, 22, 11, 22, "deepslate_bricks")
+    t.shell(0, 0, 0, 22, 11, 22, "vigil:vault_stone")
     for x in range(1, 22):
         for z in range(1, 22):
             t.set(x, 0, z, "polished_deepslate" if (x // 2 + z // 2) % 2 else "deepslate_tiles")
@@ -369,7 +394,9 @@ def buried_vault():
         t.set(x, 10, z, "chiseled_deepslate")
     t.fill(9, 0, 9, 13, 0, 13, "chiseled_deepslate")
     t.set(11, 0, 11, "crying_obsidian")
-    t.set(11, 1, 20, "polished_blackstone")
+    t.set(11, 1, 20, "vigil:vault_lock")
+    for (x, y) in [(10, 1), (12, 1), (10, 2), (12, 2), (11, 3)]:
+        t.set(x, y, 21, "vigil:vault_lock")
     t.chest(11, 2, 20, "buried_vault", facing="north")
     for (x, z) in [(7, 7), (15, 7), (7, 15), (15, 15), (11, 11)]:
         t.set(x, 10, z, "chain", axis="y")
@@ -390,8 +417,8 @@ def sky_citadel():
                 if d <= rad + r.random() * 0.8:
                     block = "grass_block" if y == 4 else ("dirt" if y == 3 else r.choice(["stone", "andesite", "stone", "calcite"]))
                     t.set(x, y, z, block)
-    disc(t, 12, 12, 8.5, 4, lambda x, z: "smooth_quartz" if (x + z) % 3 else "calcite")
-    disc(t, 12, 12, 3.2, 4, "chiseled_quartz_block")
+    disc(t, 12, 12, 8.5, 4, lambda x, z: "vigil:cloud_marble" if (x + z) % 3 else "smooth_quartz")
+    disc(t, 12, 12, 3.2, 4, "vigil:sky_rune")
     for i in range(8):
         import math
         a = i * math.pi / 4
@@ -401,7 +428,7 @@ def sky_citadel():
             t.set(x, y, z, "quartz_pillar", axis="y")
         t.set(x, 5 + h, z, "end_rod", facing="up")
     t.chest(12, 5, 20, "sky_citadel", facing="north")
-    t.set(12, 4, 20, "chiseled_quartz_block")
+    t.set(12, 4, 20, "vigil:sky_rune")
     for _ in range(14):
         x, z = r.randint(1, 23), r.randint(1, 23)
         if t.blocks.get((x, 4, z), ("",))[0] == "grass_block" and (x, 5, z) not in t.blocks:
@@ -411,7 +438,7 @@ def sky_citadel():
 
 def nether_forge():
     t = Template(23, 12, 23)
-    t.shell(0, 0, 0, 22, 11, 22, "polished_blackstone_bricks")
+    t.shell(0, 0, 0, 22, 11, 22, "vigil:forge_bricks")
     for x in range(23):
         for z in range(23):
             if (x + z) % 4 == 0:
@@ -425,10 +452,12 @@ def nether_forge():
             t.set(x, 1, z, "iron_bars", east=(x == 1), west=(x == 21), north=False, south=False, waterlogged=False)
     for (x, z) in [(5, 5), (17, 5), (5, 17), (17, 17)]:
         t.fill(x, 1, z, x, 10, z, "gilded_blackstone")
+        t.set(x, 5, z, "vigil:molten_core")
     t.set(11, 1, 19, "anvil", facing="east")
     t.set(8, 1, 20, "blast_furnace", facing="north", lit=True)
     t.set(14, 1, 20, "blast_furnace", facing="north", lit=True)
     t.set(11, 1, 21, "smithing_table")
+    t.fill(10, 0, 10, 12, 0, 12, "vigil:molten_core")
     t.set(6, 1, 11, "lava_cauldron")
     t.set(16, 1, 11, "lava_cauldron")
     t.chest(11, 1, 20, "nether_forge", facing="north")
@@ -465,13 +494,14 @@ def desert_tomb():
     t.dispenser(10, 1, 5, "east")
     t.dispenser(12, 1, 6, "west")
     # The burial hall (the boss arena)
-    t.shell(2, 0, 7, 20, 9, 22, "sandstone")
+    t.shell(2, 0, 7, 20, 9, 22, "vigil:cursed_sandstone")
     t.set(11, 1, 7, "air")
     t.set(11, 2, 7, "air")
     for x in range(3, 20):
         for z in range(8, 22):
             t.set(x, 0, z, "orange_terracotta" if (x + z) % 2 else "smooth_sandstone")
     t.fill(9, 0, 13, 13, 0, 17, "blue_terracotta")
+    t.fill(10, 0, 14, 12, 0, 16, "vigil:scarab_tile")
     t.chest(11, 1, 21, "desert_tomb", facing="north")
     for (x, z) in [(4, 9), (18, 9), (4, 20), (18, 20), (4, 15), (18, 15)]:
         t.fill(x, 1, z, x, 8, z, "chiseled_sandstone")
@@ -490,7 +520,7 @@ def frozen_bastion():
             edge = x in (0, 20) or z in (0, 20)
             if edge:
                 for y in range(1, 9):
-                    t.set(x, y, z, "packed_ice" if y % 3 else "blue_ice")
+                    t.set(x, y, z, "vigil:frost_bricks" if y % 3 else "blue_ice")
                 if (x + z) % 2 == 0:
                     t.set(x, 9, z, "snow_block")
             else:
@@ -506,7 +536,7 @@ def frozen_bastion():
     t.fill(9, 1, 0, 11, 4, 0, "air")
     for (x, z) in [(5, 5), (15, 5), (5, 15), (15, 15)]:
         for y in range(1, 6):
-            t.set(x, y, z, "blue_ice")
+            t.set(x, y, z, "vigil:rune_ice" if y in (2, 4) else "blue_ice")
         t.set(x, 6, z, "sea_lantern")
     t.chest(10, 1, 19, "frozen_bastion", facing="north")
     t.set(10, 1, 18, "powder_snow")
@@ -559,8 +589,11 @@ def overgrown_labyrinth():
         for z in range(size):
             if walls[x][z]:
                 for y in range(1, 6):
-                    t.set(x, y, z, r.choice(["mossy_stone_bricks", "mossy_stone_bricks", "cracked_stone_bricks", "stone_bricks"]))
-                t.set(x, 6, z, "jungle_leaves", persistent=True, distance=1)
+                    t.set(x, y, z, r.choice(["vigil:mossy_ruin", "vigil:mossy_ruin", "mossy_stone_bricks", "cracked_stone_bricks"]))
+                if r.random() < 0.3:
+                    t.set(x, 6, z, "vigil:thorn_vines")
+                else:
+                    t.set(x, 6, z, "jungle_leaves", persistent=True, distance=1)
             else:
                 for y in range(1, 7):
                     t.set(x, y, z, "air")
@@ -589,8 +622,12 @@ def watchers_hollow():
                 elif y == 10 and d <= 8.0:
                     t.set(x, y, z, "dark_oak_leaves", persistent=True, distance=1)
     t.fill(8, 1, 0, 8, 2, 1, "air")
-    for y in (1, 2, 3, 4):
-        t.set(8, y, 14, "black_concrete")
+    for y in (1, 2, 3):
+        t.set(8, y, 14, "vigil:sculk_bricks")
+    t.set(8, 4, 14, "vigil:watcher_eye")
+    for (x, z) in [(3, 3), (13, 3), (3, 13), (13, 13)]:
+        t.set(x, 1, z, "vigil:sculk_bricks")
+        t.set(x, 2, z, "vigil:watcher_eye")
     t.set(8, 5, 14, "wither_skeleton_skull", rotation=0)
     t.set(6, 1, 14, "soul_lantern", hanging=False)
     t.set(10, 1, 14, "soul_lantern", hanging=False)
@@ -620,7 +657,21 @@ def build():
     for item_id in RECIPES:
         write(f"recipe/{item_id}.json", recipe(item_id))
     for name, pools in CHESTS.items():
-        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools})
+        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [block_pool(name)]})
+    # A broken (or blown up) custom block drops itself; every other note block drops a note block as usual.
+    drops = [{"type": "minecraft:item", "name": "minecraft:note_block",
+              "conditions": [{"condition": "minecraft:block_state_property", "block": "minecraft:note_block",
+                              "properties": {"instrument": "custom_head", "note": str(b["note"]), "powered": "false"}}],
+              "functions": [{"function": "minecraft:set_components", "components": block_components(name)}]}
+             for name, b in BLOCKS.items()]
+    drops.append({"type": "minecraft:item", "name": "minecraft:note_block"})
+    path = os.path.join(os.path.dirname(DATA), "minecraft", "loot_table", "blocks", "note_block.json")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump({"type": "minecraft:block", "random_sequence": "minecraft:blocks/note_block", "pools": [{
+            "rolls": 1, "bonus_rolls": 0, "conditions": [{"condition": "minecraft:survives_explosion"}],
+            "entries": [{"type": "minecraft:alternatives", "children": drops}]}]}, f, indent=2)
+        f.write("\n")
     for name, (fn, biomes, step, height, heightmap, spacing, sep, salt, terrain) in STRUCTURES.items():
         write(f"structure/{name}.nbt", fn().to_nbt())
         s = {"type": "minecraft:jigsaw", "biomes": biomes, "step": step, "spawn_overrides": {}, "terrain_adaptation": terrain,

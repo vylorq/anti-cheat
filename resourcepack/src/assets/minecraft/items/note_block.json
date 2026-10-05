@@ -1,0 +1,125 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "vigil:xe9c4452467",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xe9c4452467"
+        }
+      },
+      {
+        "when": "vigil:x6090b2593d",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x6090b2593d"
+        }
+      },
+      {
+        "when": "vigil:xaf777fa017",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xaf777fa017"
+        }
+      },
+      {
+        "when": "vigil:xc5078ee163",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xc5078ee163"
+        }
+      },
+      {
+        "when": "vigil:x36d00b8f28",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x36d00b8f28"
+        }
+      },
+      {
+        "when": "vigil:xbeedada7fc",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xbeedada7fc"
+        }
+      },
+      {
+        "when": "vigil:x8b5da46387",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x8b5da46387"
+        }
+      },
+      {
+        "when": "vigil:x3e93c6d7ed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x3e93c6d7ed"
+        }
+      },
+      {
+        "when": "vigil:xe7163f81d6",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xe7163f81d6"
+        }
+      },
+      {
+        "when": "vigil:x7aea5ac8a8",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x7aea5ac8a8"
+        }
+      },
+      {
+        "when": "vigil:x2fe7b8cbec",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x2fe7b8cbec"
+        }
+      },
+      {
+        "when": "vigil:x44d19c8ed3",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x44d19c8ed3"
+        }
+      },
+      {
+        "when": "vigil:x75ab5c53c0",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x75ab5c53c0"
+        }
+      },
+      {
+        "when": "vigil:x6dd368290a",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x6dd368290a"
+        }
+      },
+      {
+        "when": "vigil:x4233834cc7",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x4233834cc7"
+        }
+      },
+      {
+        "when": "vigil:xe9e2f7aa3a",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xe9e2f7aa3a"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/note_block"
+    }
+  }
+}
