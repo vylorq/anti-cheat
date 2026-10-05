@@ -2577,5 +2577,10 @@
   "boss.removed": "§7Removed {0} boss(es).",
   "boss.awakens": "has awakened...",
   "boss.phase2": "grows angrier!",
-  "boss.phase3": "is enraged!"
+  "boss.phase3": "is enraged!",
+  "teststructure.placed": "§aPlaced the {0} (#{1}), between heights {2} and {3}. §7Remove it with /owner structure remove",
+  "teststructure.removed": "§aRemoved the {0} (#{1}): the area is back as it was.",
+  "teststructure.failed": "§cCouldn't do that with the {0} here.",
+  "teststructure.none": "§7No placed test structures.",
+  "teststructure.entry": "§7#{0} §f{1} §7around {2}, {3}"
 }

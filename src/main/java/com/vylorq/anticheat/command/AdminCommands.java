@@ -143,6 +143,18 @@ public final class AdminCommands {
         boss.then(literal("rotate").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.Bosses::ownerRotate)));
         boss.then(literal("removeall").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.Bosses::ownerKillAll)));
         owner.then(boss);
+        var structure = literal("structure");
+        var structurePlace = literal("place");
+        for (String n : com.vylorq.anticheat.feature.TestStructures.NAMES) {
+            structurePlace.then(literal(n).executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.TestStructures.place(p, n))));
+        }
+        structure.then(structurePlace);
+        structure.then(literal("remove").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.TestStructures.remove(p, null)))
+                .then(CommandManager.argument("number", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1))
+                        .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.TestStructures.remove(p,
+                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "number"))))));
+        structure.then(literal("list").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TestStructures::list)));
+        owner.then(structure);
         owner.then(literal("smite").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerCombat::smite)));
         owner.then(literal("items").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::items)));
         owner.then(literal("pack").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerPowers::sendPack)));
