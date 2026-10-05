@@ -12,157 +12,1207 @@
         }
       },
       {
-        "when": "vigil:x957078aad2",
+        "when": "vigil:x7df1e46532",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/x957078aad2"
+          "model": "vigil:item/x7df1e46532"
         }
       },
       {
-        "when": "vigil:xea0fb1683a",
+        "when": "vigil:x56d28dd146",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/xea0fb1683a"
+          "model": "vigil:item/x56d28dd146"
         }
       },
       {
-        "when": "vigil:x50c00c9356",
+        "when": "vigil:x7810d8aed7",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/x50c00c9356"
+          "model": "vigil:item/x7810d8aed7"
         }
       },
       {
-        "when": "vigil:xe81531e8f1",
+        "when": "vigil:xee09f6834d",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/xe81531e8f1"
+          "model": "vigil:item/xee09f6834d"
         }
       },
       {
-        "when": "vigil:x0c3016be35",
+        "when": "vigil:x95ca368a14",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/x0c3016be35"
+          "model": "vigil:item/x95ca368a14"
         }
       },
       {
-        "when": "vigil:x5adeced8ce",
+        "when": "vigil:x882359c118",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/x5adeced8ce"
+          "model": "vigil:item/x882359c118"
         }
       },
       {
-        "when": "vigil:xe0a73ebe1f",
+        "when": "vigil:xbaeb93ab83",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/xe0a73ebe1f"
+          "model": "vigil:item/xbaeb93ab83"
         }
       },
       {
-        "when": "vigil:x39cc89659c",
+        "when": "vigil:x64c9f2dc81",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/x39cc89659c"
+          "model": "vigil:item/x64c9f2dc81"
         }
       },
       {
-        "when": "vigil:xbd2f1ccf64",
+        "when": "vigil:x036bd39f20",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/xbd2f1ccf64"
+          "model": "vigil:item/x036bd39f20"
         }
       },
       {
-        "when": "vigil:x17e2401503",
+        "when": "vigil:x475527071b",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/x17e2401503"
+          "model": "vigil:item/x475527071b"
         }
       },
       {
-        "when": "vigil:xe6a3b6fb05",
+        "when": "vigil:x01b9b323f4",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/xe6a3b6fb05"
+          "model": "vigil:item/x01b9b323f4"
         }
       },
       {
-        "when": "vigil:xcd30462b4f",
+        "when": "vigil:x1451baaf43",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/xcd30462b4f"
+          "model": "vigil:item/x1451baaf43"
         }
       },
       {
-        "when": "vigil:x2988b08abf",
+        "when": "vigil:xb67c24d504",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/x2988b08abf"
+          "model": "vigil:item/xb67c24d504"
         }
       },
       {
-        "when": "vigil:xa4abc7aabc",
+        "when": "vigil:xbace2783c7",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/xa4abc7aabc"
+          "model": "vigil:item/xbace2783c7"
         }
       },
       {
-        "when": "vigil:xf23a7ed420",
+        "when": "vigil:x1ae2e8d91b",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/xf23a7ed420"
+          "model": "vigil:item/x1ae2e8d91b"
         }
       },
       {
-        "when": "vigil:x78243b1ebd",
+        "when": "vigil:x04c69b89e5",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/x78243b1ebd"
+          "model": "vigil:item/x04c69b89e5"
         }
       },
       {
-        "when": "vigil:x1f1c8121d2",
+        "when": "vigil:x138d00a90d",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/x1f1c8121d2"
+          "model": "vigil:item/x138d00a90d"
         }
       },
       {
-        "when": "vigil:x3335913d92",
+        "when": "vigil:xd6501f9bcd",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/x3335913d92"
+          "model": "vigil:item/xd6501f9bcd"
         }
       },
       {
-        "when": "vigil:x21b0718c2e",
+        "when": "vigil:xb2793eb076",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/x21b0718c2e"
+          "model": "vigil:item/xb2793eb076"
         }
       },
       {
-        "when": "vigil:xf4840ffe90",
+        "when": "vigil:x7bfe3ccc91",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/xf4840ffe90"
+          "model": "vigil:item/x7bfe3ccc91"
         }
       },
       {
-        "when": "vigil:x7a45315691",
+        "when": "vigil:x6d19420e03",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/x7a45315691"
+          "model": "vigil:item/x6d19420e03"
         }
       },
       {
-        "when": "vigil:xb170712f06",
+        "when": "vigil:xed4973766e",
         "model": {
           "type": "minecraft:model",
-          "model": "vigil:item/xb170712f06"
+          "model": "vigil:item/xed4973766e"
+        }
+      },
+      {
+        "when": "vigil:x394e84d67a",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x394e84d67a"
+        }
+      },
+      {
+        "when": "vigil:x0e17611bec",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x0e17611bec"
+        }
+      },
+      {
+        "when": "vigil:x511a13cd83",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x511a13cd83"
+        }
+      },
+      {
+        "when": "vigil:x29a1e6228e",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x29a1e6228e"
+        }
+      },
+      {
+        "when": "vigil:x79d63c920c",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x79d63c920c"
+        }
+      },
+      {
+        "when": "vigil:xc5c084c799",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xc5c084c799"
+        }
+      },
+      {
+        "when": "vigil:x49a5dee59d",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x49a5dee59d"
+        }
+      },
+      {
+        "when": "vigil:x972a901ab6",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x972a901ab6"
+        }
+      },
+      {
+        "when": "vigil:x87d8c351dc",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x87d8c351dc"
+        }
+      },
+      {
+        "when": "vigil:xb194de8a56",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xb194de8a56"
+        }
+      },
+      {
+        "when": "vigil:xea5477b2e9",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xea5477b2e9"
+        }
+      },
+      {
+        "when": "vigil:x359723a30c",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x359723a30c"
+        }
+      },
+      {
+        "when": "vigil:x4c53c23036",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x4c53c23036"
+        }
+      },
+      {
+        "when": "vigil:xbb7ca72ebb",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xbb7ca72ebb"
+        }
+      },
+      {
+        "when": "vigil:x2224878c5e",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x2224878c5e"
+        }
+      },
+      {
+        "when": "vigil:xdc07589fd3",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xdc07589fd3"
+        }
+      },
+      {
+        "when": "vigil:x15568034f8",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x15568034f8"
+        }
+      },
+      {
+        "when": "vigil:xb809388850",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xb809388850"
+        }
+      },
+      {
+        "when": "vigil:xa944bdec1a",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xa944bdec1a"
+        }
+      },
+      {
+        "when": "vigil:xc58debb25e",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xc58debb25e"
+        }
+      },
+      {
+        "when": "vigil:xc16826cabb",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xc16826cabb"
+        }
+      },
+      {
+        "when": "vigil:x3afe3f6b05",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x3afe3f6b05"
+        }
+      },
+      {
+        "when": "vigil:x49b7ac22e4",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x49b7ac22e4"
+        }
+      },
+      {
+        "when": "vigil:x2a98ffcb61",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x2a98ffcb61"
+        }
+      },
+      {
+        "when": "vigil:x65d3cdbfc4",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x65d3cdbfc4"
+        }
+      },
+      {
+        "when": "vigil:xebba053d41",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xebba053d41"
+        }
+      },
+      {
+        "when": "vigil:xcb6fe9d92a",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xcb6fe9d92a"
+        }
+      },
+      {
+        "when": "vigil:x325e3dae4a",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x325e3dae4a"
+        }
+      },
+      {
+        "when": "vigil:x9aaa97aea8",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x9aaa97aea8"
+        }
+      },
+      {
+        "when": "vigil:x1bfe5f5eff",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x1bfe5f5eff"
+        }
+      },
+      {
+        "when": "vigil:x84d8bc0c33",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x84d8bc0c33"
+        }
+      },
+      {
+        "when": "vigil:xbc100d2ec5",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xbc100d2ec5"
+        }
+      },
+      {
+        "when": "vigil:xdb07ef23c3",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xdb07ef23c3"
+        }
+      },
+      {
+        "when": "vigil:xf8798c808d",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xf8798c808d"
+        }
+      },
+      {
+        "when": "vigil:xb7607c6099",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xb7607c6099"
+        }
+      },
+      {
+        "when": "vigil:xa5f0390503",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xa5f0390503"
+        }
+      },
+      {
+        "when": "vigil:xfa8160392b",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xfa8160392b"
+        }
+      },
+      {
+        "when": "vigil:xc72c8c3efd",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xc72c8c3efd"
+        }
+      },
+      {
+        "when": "vigil:x900c5b889d",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x900c5b889d"
+        }
+      },
+      {
+        "when": "vigil:x5285ad617d",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x5285ad617d"
+        }
+      },
+      {
+        "when": "vigil:xcd51c0adfe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xcd51c0adfe"
+        }
+      },
+      {
+        "when": "vigil:xf927407b1f",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xf927407b1f"
+        }
+      },
+      {
+        "when": "vigil:x3b081d8c20",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x3b081d8c20"
+        }
+      },
+      {
+        "when": "vigil:x41d54a968f",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x41d54a968f"
+        }
+      },
+      {
+        "when": "vigil:xa476cad7d7",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xa476cad7d7"
+        }
+      },
+      {
+        "when": "vigil:x6694a2f7b0",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x6694a2f7b0"
+        }
+      },
+      {
+        "when": "vigil:x63fb5a2a27",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x63fb5a2a27"
+        }
+      },
+      {
+        "when": "vigil:xfa109ce910",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xfa109ce910"
+        }
+      },
+      {
+        "when": "vigil:x3d22336c9b",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x3d22336c9b"
+        }
+      },
+      {
+        "when": "vigil:xd875f746fb",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xd875f746fb"
+        }
+      },
+      {
+        "when": "vigil:x6b215222a2",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x6b215222a2"
+        }
+      },
+      {
+        "when": "vigil:x77bba5bf4e",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x77bba5bf4e"
+        }
+      },
+      {
+        "when": "vigil:xd8530f344b",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xd8530f344b"
+        }
+      },
+      {
+        "when": "vigil:xbe71221466",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xbe71221466"
+        }
+      },
+      {
+        "when": "vigil:x91df116a8d",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x91df116a8d"
+        }
+      },
+      {
+        "when": "vigil:x28eab73155",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x28eab73155"
+        }
+      },
+      {
+        "when": "vigil:xe0b0ae3c8c",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xe0b0ae3c8c"
+        }
+      },
+      {
+        "when": "vigil:x4747438b9c",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x4747438b9c"
+        }
+      },
+      {
+        "when": "vigil:x59398421aa",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x59398421aa"
+        }
+      },
+      {
+        "when": "vigil:x9ec0f7da2f",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x9ec0f7da2f"
+        }
+      },
+      {
+        "when": "vigil:x09d25961ca",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x09d25961ca"
+        }
+      },
+      {
+        "when": "vigil:x0b5d18ebff",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x0b5d18ebff"
+        }
+      },
+      {
+        "when": "vigil:x3b11819775",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x3b11819775"
+        }
+      },
+      {
+        "when": "vigil:xec4590ca88",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xec4590ca88"
+        }
+      },
+      {
+        "when": "vigil:x6d1b3d9df1",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x6d1b3d9df1"
+        }
+      },
+      {
+        "when": "vigil:x9a8fe57ff1",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x9a8fe57ff1"
+        }
+      },
+      {
+        "when": "vigil:xe923484b92",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xe923484b92"
+        }
+      },
+      {
+        "when": "vigil:xa9d9e3a601",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xa9d9e3a601"
+        }
+      },
+      {
+        "when": "vigil:xaaf533ddd6",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xaaf533ddd6"
+        }
+      },
+      {
+        "when": "vigil:xf9fa383354",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xf9fa383354"
+        }
+      },
+      {
+        "when": "vigil:xfdcf108bf0",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xfdcf108bf0"
+        }
+      },
+      {
+        "when": "vigil:xe9a18f04fe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xe9a18f04fe"
+        }
+      },
+      {
+        "when": "vigil:x6dfdd8508e",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x6dfdd8508e"
+        }
+      },
+      {
+        "when": "vigil:x7df2f8d1d5",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x7df2f8d1d5"
+        }
+      },
+      {
+        "when": "vigil:x023db7d551",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x023db7d551"
+        }
+      },
+      {
+        "when": "vigil:x4bb0932a92",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x4bb0932a92"
+        }
+      },
+      {
+        "when": "vigil:x8d7c7580a0",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x8d7c7580a0"
+        }
+      },
+      {
+        "when": "vigil:xbca0be822c",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xbca0be822c"
+        }
+      },
+      {
+        "when": "vigil:x1b29f4d696",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x1b29f4d696"
+        }
+      },
+      {
+        "when": "vigil:xd4a8c9f739",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xd4a8c9f739"
+        }
+      },
+      {
+        "when": "vigil:xb6ed273955",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xb6ed273955"
+        }
+      },
+      {
+        "when": "vigil:xc6481be5b2",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xc6481be5b2"
+        }
+      },
+      {
+        "when": "vigil:xa9cbaf56cb",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xa9cbaf56cb"
+        }
+      },
+      {
+        "when": "vigil:x2f3136f920",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x2f3136f920"
+        }
+      },
+      {
+        "when": "vigil:xe21d8a591e",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xe21d8a591e"
+        }
+      },
+      {
+        "when": "vigil:x8fd0308219",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x8fd0308219"
+        }
+      },
+      {
+        "when": "vigil:xedb1b93d72",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xedb1b93d72"
+        }
+      },
+      {
+        "when": "vigil:x273471c1b7",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x273471c1b7"
+        }
+      },
+      {
+        "when": "vigil:xdba426cf64",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xdba426cf64"
+        }
+      },
+      {
+        "when": "vigil:x229d8495b4",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x229d8495b4"
+        }
+      },
+      {
+        "when": "vigil:x3e50aa28a9",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x3e50aa28a9"
+        }
+      },
+      {
+        "when": "vigil:x4f71ec4380",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x4f71ec4380"
+        }
+      },
+      {
+        "when": "vigil:xa5216be07c",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xa5216be07c"
+        }
+      },
+      {
+        "when": "vigil:x5cdf9a72d8",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x5cdf9a72d8"
+        }
+      },
+      {
+        "when": "vigil:xfc6b1c7866",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xfc6b1c7866"
+        }
+      },
+      {
+        "when": "vigil:xc774527668",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xc774527668"
+        }
+      },
+      {
+        "when": "vigil:xcc855a2e85",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xcc855a2e85"
+        }
+      },
+      {
+        "when": "vigil:xcdfd2f85f1",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xcdfd2f85f1"
+        }
+      },
+      {
+        "when": "vigil:xffaf3929ce",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xffaf3929ce"
+        }
+      },
+      {
+        "when": "vigil:x099104d91d",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x099104d91d"
+        }
+      },
+      {
+        "when": "vigil:xbea5aca9fb",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xbea5aca9fb"
+        }
+      },
+      {
+        "when": "vigil:x43f6e8f0d7",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x43f6e8f0d7"
+        }
+      },
+      {
+        "when": "vigil:x626bee609b",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x626bee609b"
+        }
+      },
+      {
+        "when": "vigil:x7b4dccb17a",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x7b4dccb17a"
+        }
+      },
+      {
+        "when": "vigil:x0d74b10db0",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x0d74b10db0"
+        }
+      },
+      {
+        "when": "vigil:xe2791cf9a4",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xe2791cf9a4"
+        }
+      },
+      {
+        "when": "vigil:xdd3d657294",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xdd3d657294"
+        }
+      },
+      {
+        "when": "vigil:xa9f95eef24",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xa9f95eef24"
+        }
+      },
+      {
+        "when": "vigil:xe612063c64",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xe612063c64"
+        }
+      },
+      {
+        "when": "vigil:xb363060430",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xb363060430"
+        }
+      },
+      {
+        "when": "vigil:xfde1b98e14",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xfde1b98e14"
+        }
+      },
+      {
+        "when": "vigil:xd2110df154",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xd2110df154"
+        }
+      },
+      {
+        "when": "vigil:xf80b91134f",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xf80b91134f"
+        }
+      },
+      {
+        "when": "vigil:x1b85b7753f",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x1b85b7753f"
+        }
+      },
+      {
+        "when": "vigil:x77adaf8f19",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x77adaf8f19"
+        }
+      },
+      {
+        "when": "vigil:x2fe5972bee",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x2fe5972bee"
+        }
+      },
+      {
+        "when": "vigil:xebd6c5367a",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xebd6c5367a"
+        }
+      },
+      {
+        "when": "vigil:xdc3454819f",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xdc3454819f"
+        }
+      },
+      {
+        "when": "vigil:x543e5826d4",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x543e5826d4"
+        }
+      },
+      {
+        "when": "vigil:x556917befa",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x556917befa"
+        }
+      },
+      {
+        "when": "vigil:x90e6096e86",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x90e6096e86"
+        }
+      },
+      {
+        "when": "vigil:x794031b0c3",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x794031b0c3"
+        }
+      },
+      {
+        "when": "vigil:x6b05ee9f0f",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x6b05ee9f0f"
+        }
+      },
+      {
+        "when": "vigil:x4aacc296d4",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x4aacc296d4"
+        }
+      },
+      {
+        "when": "vigil:x427fb8748f",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x427fb8748f"
+        }
+      },
+      {
+        "when": "vigil:x87f62349c2",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x87f62349c2"
+        }
+      },
+      {
+        "when": "vigil:xe3a2ebf842",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xe3a2ebf842"
+        }
+      },
+      {
+        "when": "vigil:x8f77e5a3c9",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x8f77e5a3c9"
+        }
+      },
+      {
+        "when": "vigil:x439fce72a6",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x439fce72a6"
+        }
+      },
+      {
+        "when": "vigil:x9d3b5aca3c",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x9d3b5aca3c"
+        }
+      },
+      {
+        "when": "vigil:xd9546932f0",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xd9546932f0"
+        }
+      },
+      {
+        "when": "vigil:xc62117a126",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xc62117a126"
+        }
+      },
+      {
+        "when": "vigil:xc1ae956977",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xc1ae956977"
+        }
+      },
+      {
+        "when": "vigil:xd46ed2bd22",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xd46ed2bd22"
+        }
+      },
+      {
+        "when": "vigil:xe311a7e509",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xe311a7e509"
+        }
+      },
+      {
+        "when": "vigil:xdf71f70c64",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xdf71f70c64"
+        }
+      },
+      {
+        "when": "vigil:x8c923d4699",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x8c923d4699"
+        }
+      },
+      {
+        "when": "vigil:xfdfef2c172",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xfdfef2c172"
+        }
+      },
+      {
+        "when": "vigil:x799924cfe4",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x799924cfe4"
+        }
+      },
+      {
+        "when": "vigil:x66a6b3c6c5",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x66a6b3c6c5"
+        }
+      },
+      {
+        "when": "vigil:x47192f1528",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x47192f1528"
+        }
+      },
+      {
+        "when": "vigil:xcbe47f4468",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xcbe47f4468"
+        }
+      },
+      {
+        "when": "vigil:xbcdd833451",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xbcdd833451"
+        }
+      },
+      {
+        "when": "vigil:x6191776416",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x6191776416"
+        }
+      },
+      {
+        "when": "vigil:x8cd0be56a2",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x8cd0be56a2"
+        }
+      },
+      {
+        "when": "vigil:xb5d3c9f95d",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xb5d3c9f95d"
+        }
+      },
+      {
+        "when": "vigil:x9a7440e247",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x9a7440e247"
+        }
+      },
+      {
+        "when": "vigil:x0cd1d88fe6",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x0cd1d88fe6"
+        }
+      },
+      {
+        "when": "vigil:xfb8c1a1c4d",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/xfb8c1a1c4d"
+        }
+      },
+      {
+        "when": "vigil:x0e53cced41",
+        "model": {
+          "type": "minecraft:model",
+          "model": "vigil:item/x0e53cced41"
         }
       }
     ],
