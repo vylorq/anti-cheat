@@ -808,7 +808,7 @@ def frozen_bastion():
                     if d <= 1.5:
                         t.set(x, 16, z, "blue_ice")
                     if d <= 0.5:
-                        t.set(x, 17, z, "ice")
+                        t.set(x, 17, z, "packed_ice")
                         t.set(x, 18, z, "lantern", hanging=False, waterlogged=False)
         for y in (4, 8, 12):
             for (dx, dz) in [(3, 0), (-3, 0), (0, 3), (0, -3)]:
@@ -827,8 +827,8 @@ def frozen_bastion():
         t.set(x, 5, S - 1, "spruce_fence", waterlogged=False)
     # Ice spikes and lantern posts in the courtyard corners.
     for (x, z) in corners(c, c, 7):
-        column(t, x, z, 1, 5, "packed_ice")
-        t.set(x, 6, z, "ice")
+        column(t, x, z, 1, 6, "packed_ice")
+        t.set(x, 7, z, "blue_ice")
     for (x, z) in [(c - 4, c - 8), (c + 4, c - 8), (c - 4, c + 8), (c + 4, c + 8)]:
         column(t, x, z, 1, 2, "spruce_fence", waterlogged=False)
         t.set(x, 3, z, "lantern", hanging=False, waterlogged=False)
@@ -1002,6 +1002,315 @@ def watchers_hollow():
     return t
 
 
+# ------------------------------------------------------------------ rooms (jigsaw pieces)
+# Each structure is its boss arena (the start piece, in the middle) plus a random spread of rooms joined by doors.
+# Every door is a jigsaw block named vigil:door in the floor at the middle of a 3-wide doorway on the edge of a
+# piece; any door can join any other. When the spread stops (too deep, or no room fits), the door gets a wall plug
+# (the fallback "caps" pool). Guard and treasure rooms have spawners of the structure's own mobs that work in any
+# light, so the way to the boss is always fought through.
+
+THEMES = {
+    "sunken_vault": dict(wall="prismarine_bricks", accent="dark_prismarine", floor=("prismarine_bricks", "dark_prismarine"),
+                         light="sea_lantern", ceil="prismarine_bricks", trim="dark_prismarine", decor=["prismarine", "sea_lantern"],
+                         mobs=[("drowned", 3), ("zombie", 1)], lantern="sea_lantern"),
+    "buried_vault": dict(wall="deepslate_bricks", accent="polished_deepslate", floor=("deepslate_tiles", "polished_deepslate"),
+                         light="pearlescent_froglight", ceil="deepslate_bricks", trim="deepslate_brick", decor=["bookshelf", "chiseled_deepslate"],
+                         mobs=[("zombie", 3), ("skeleton", 2), ("cave_spider", 1)], lantern="soul_lantern"),
+    "sky_citadel": dict(wall="quartz_bricks", accent="quartz_pillar", floor=("smooth_quartz", "quartz_bricks"),
+                        light="sea_lantern", ceil=None, trim="quartz", decor=["flowering_azalea", "gold_block"],
+                        mobs=[("skeleton", 3), ("stray", 1)], lantern="lantern", open=True),
+    "nether_forge": dict(wall="polished_blackstone_bricks", accent="chiseled_polished_blackstone",
+                         floor=("polished_blackstone", "blackstone"), light="shroomlight", ceil="polished_blackstone_bricks",
+                         trim="polished_blackstone_brick", decor=["gilded_blackstone", "blast_furnace"],
+                         mobs=[("blaze", 2), ("wither_skeleton", 2), ("magma_cube", 1)], lantern="lantern"),
+    "desert_tomb": dict(wall="cut_sandstone", accent="chiseled_sandstone", floor=("smooth_sandstone", "orange_terracotta"),
+                        light="glowstone", ceil="smooth_sandstone", trim="sandstone", decor=["bookshelf", "chiseled_sandstone"],
+                        mobs=[("husk", 3), ("skeleton", 1), ("spider", 1)], lantern="lantern"),
+    "frozen_bastion": dict(wall="packed_ice", accent="blue_ice", floor=("snow_block", "packed_ice"), light="sea_lantern",
+                           ceil="packed_ice", trim="spruce", decor=["blue_ice", "spruce_planks"],
+                           mobs=[("stray", 3), ("skeleton", 1)], lantern="lantern"),
+    "overgrown_labyrinth": dict(wall="mossy_stone_bricks", accent="chiseled_stone_bricks", floor=("moss_block", "mossy_cobblestone"),
+                                light="lantern", ceil="jungle_leaves", trim="mossy_stone_brick", decor=["mossy_cobblestone", "moss_block"],
+                                mobs=[("spider", 2), ("cave_spider", 2), ("zombie", 1)], lantern="lantern"),
+    "watchers_hollow": dict(wall="dark_oak_planks", accent="dark_oak_log", floor=("deepslate_tiles", "mud_bricks"),
+                            light="ochre_froglight", ceil="dark_oak_planks", trim="dark_oak", decor=["bookshelf", "dark_oak_log"],
+                            mobs=[("wither_skeleton", 2), ("skeleton", 2), ("zombie", 1)], lantern="soul_lantern"),
+}
+
+LIGHT_ANY = {"block_light_limit": {"min_inclusive": 0, "max_inclusive": 15},
+             "sky_light_limit": {"min_inclusive": 0, "max_inclusive": 15}}
+
+
+def _range(d):
+    return C({k: C({"min_inclusive": I(v["min_inclusive"]), "max_inclusive": I(v["max_inclusive"])}) for k, v in d.items()})
+
+
+def mob_spawner(t, x, y, z, mobs):
+    """A spawner of the structure's mobs (weighted), in any light, a few at a time."""
+    t.set(x, y, z, "spawner")
+    entries = [C({"weight": I(w), "data": C({"entity": C({"id": S(f"minecraft:{m}")}), "custom_spawn_rules": _range(LIGHT_ANY)})})
+               for m, w in mobs]
+    t.nbt[(x, y, z)] = {"id": S("minecraft:mob_spawner"),
+                        "SpawnData": C({"entity": C({"id": S(f"minecraft:{mobs[0][0]}")}), "custom_spawn_rules": _range(LIGHT_ANY)}),
+                        "SpawnPotentials": L(10, entries), "SpawnCount": Tag(2, 3), "MaxNearbyEntities": Tag(2, 6),
+                        "RequiredPlayerRange": Tag(2, 18), "MinSpawnDelay": Tag(2, 160), "MaxSpawnDelay": Tag(2, 400),
+                        "SpawnRange": Tag(2, 4), "Delay": Tag(2, 20)}
+
+
+def door(t, x, y, z, facing, structure, final):
+    """A jigsaw door in the floor on the edge of a piece, facing out."""
+    t.set(x, y, z, "jigsaw", orientation=f"{facing}_up")
+    t.nbt[(x, y, z)] = {"id": S("minecraft:jigsaw"), "name": S("vigil:door"), "target": S("vigil:door"),
+                        "pool": S(f"vigil:{structure}/rooms"), "final_state": S(f"minecraft:{final}"),
+                        "joint": S("rollable"), "placement_priority": I(0), "selection_priority": I(0)}
+
+
+def _put(t, x, y, z, block):
+    if block == "dark_oak_log" or block == "quartz_pillar":
+        t.set(x, y, z, block, axis="y")
+    elif block in ("jungle_leaves",):
+        t.set(x, y, z, block, persistent=True, distance=1, waterlogged=False)
+    else:
+        t.set(x, y, z, block)
+
+
+SIDES_AT = {
+    "n": lambda w, d: (w // 2, 0, "north", (1, 0)),
+    "s": lambda w, d: (w // 2, d - 1, "south", (1, 0)),
+    "w": lambda w, d: (0, d // 2, "west", (0, 1)),
+    "e": lambda w, d: (w - 1, d // 2, "east", (0, 1)),
+}
+
+ROOMS = {
+    # kind: (width, depth, doors, weight)
+    "corridor": (7, 11, "ns", 5),
+    "hall": (13, 13, "nsew", 2),
+    "guard_room": (15, 15, "nwe", 3),
+    "shrine": (11, 15, "ns", 2),
+    "crossroad": (9, 9, "nsew", 2),
+    "treasure": (11, 11, "n", 2),
+}
+H = 9  # floor y0, air 1..7, ceiling y8
+
+
+def room(structure, kind):
+    th = THEMES[structure]
+    w, d, doors, _ = ROOMS[kind]
+    t = Template(w, H, d)
+    open_air = th.get("open", False)
+    fa, fb = th["floor"]
+    cx, cz = w // 2, d // 2
+    if open_air:
+        _floating_platform(t, th, w, d)
+    else:
+        t.fill(0, 0, 0, w - 1, H - 1, d - 1, th["wall"])
+        t.fill(1, 1, 1, w - 2, H - 2, d - 2, "air")
+        for x in range(w):
+            for z in range(d):
+                if x in (0, w - 1) or z in (0, d - 1):
+                    _put(t, x, H - 1, z, th["wall"])
+                else:
+                    _put(t, x, H - 1, z, th["ceil"])
+    # Floor: a border, a checked field and a centre stone.
+    for x in range(1, w - 1):
+        for z in range(1, d - 1):
+            edge = x in (1, w - 2) or z in (1, d - 2)
+            t.set(x, 0, z, th["accent"] if edge and th["accent"] not in ("dark_oak_log", "quartz_pillar") else (fa if (x + z) % 2 else fb))
+            if edge and th["accent"] in ("dark_oak_log", "quartz_pillar"):
+                t.set(x, 0, z, fb)
+    t.set(cx, 0, cz, th["light"] if not open_air else "gold_block")
+    # Pilasters with lights along the walls.
+    if not open_air:
+        for x in range(2, w - 2, 3):
+            for z in (1, d - 2):
+                for y in range(1, H - 1):
+                    _put(t, x, y, z, th["accent"])
+                t.set(x, 4, z, th["light"])
+        for z in range(2, d - 2, 3):
+            for x in (1, w - 2):
+                for y in range(1, H - 1):
+                    _put(t, x, y, z, th["accent"])
+                t.set(x, 4, z, th["light"])
+        for x in range(2, w - 2, 4):
+            for z in range(2, d - 2, 4):
+                if th["ceil"] != "jungle_leaves":
+                    t.set(x, H - 1, z, th["light"])
+                else:
+                    t.set(x, H - 2, z, "lantern", hanging=True, waterlogged=False)
+    # Doorways.
+    for side in doors:
+        x, z, facing, (ax, az) = SIDES_AT[side](w, d)
+        for k in (-1, 0, 1):
+            for y in range(1, 5):
+                xx, zz = x + ax * k, z + az * k
+                t.set(xx, y, zz, "air")
+                # through the pilaster row behind the wall too
+                ix, iz = xx + (1 if facing == "west" else -1 if facing == "east" else 0), zz + (1 if facing == "north" else -1 if facing == "south" else 0)
+                t.set(ix, y, iz, "air")
+        door(t, x, 0, z, facing, structure, fa)
+    _furnish(t, th, structure, kind, w, d)
+    if open_air:
+        t = _lift_onto_rock(t, 4)
+    return t
+
+
+def _lift_onto_rock(t, lift):
+    """Moves a sky room up and hangs an upside-down cone of rock under its floor."""
+    import random as _r
+    w, h, d = t.size
+    out = Template(w, h + lift, d)
+    for (x, y, z), (b, props) in t.blocks.items():
+        out.blocks[(x, y + lift, z)] = (b, props)
+    for (x, y, z), n in t.nbt.items():
+        out.nbt[(x, y + lift, z)] = n
+    r = _r.Random(w * 31 + d)
+    cx, cz = (w - 1) / 2, (d - 1) / 2
+    for x in range(w):
+        for z in range(d):
+            e = max(abs(x - cx) / (w / 2), abs(z - cz) / (d / 2))
+            depth = int((1 - e) * (lift + 1)) + r.randint(0, 1)
+            for k in range(1, min(depth, lift) + 1):
+                out.set(x, lift - k, z, r.choice(["stone", "andesite", "calcite", "tuff"]))
+    return out
+
+
+def _floating_platform(t, th, w, d):
+    """Sky rooms: an island with a railing and no roof."""
+    for x in range(w):
+        for z in range(d):
+            t.set(x, 0, z, th["floor"][0])
+    for x in range(w):
+        for z in range(d):
+            if x in (0, w - 1) or z in (0, d - 1):
+                t.set(x, 1, z, "diorite_wall", up=True, waterlogged=False)
+    for (x, z) in [(0, 0), (w - 1, 0), (0, d - 1), (w - 1, d - 1)]:
+        t.set(x, 1, z, "quartz_pillar", axis="y")
+        t.set(x, 2, z, "quartz_pillar", axis="y")
+        t.set(x, 3, z, "lantern", hanging=False, waterlogged=False)
+
+
+def _furnish(t, th, structure, kind, w, d):
+    cx, cz = w // 2, d // 2
+    mobs = th["mobs"]
+    acc = th["accent"]
+    if kind == "corridor":
+        if not th.get("open"):
+            for z in (3, d - 4):
+                t.set(cx, H - 2, z, th["lantern"], hanging=True, waterlogged=False)
+    elif kind == "hall":
+        for y in range(1, H - 1):
+            _put(t, cx, y, cz, acc)
+        for (x, z) in [(cx - 1, cz), (cx + 1, cz), (cx, cz - 1), (cx, cz + 1)]:
+            stairs(t, x, 1, z, th["trim"], {(cx - 1, cz): "east", (cx + 1, cz): "west", (cx, cz - 1): "south", (cx, cz + 1): "north"}[(x, z)])
+        t.set(cx, 4, cz, th["light"])
+        for (x, z) in corners(cx, cz, 4):
+            _put(t, x, 1, z, acc)
+            t.set(x, 2, z, th["lantern"], hanging=False, waterlogged=False)
+        mob_spawner(t, cx, 1, cz + 3, mobs)
+    elif kind == "guard_room":
+        for x in (cx - 4, cx + 4):
+            _put(t, x, 1, cz, acc)
+            mob_spawner(t, x, 2, cz, mobs)
+            for (dx, dz) in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                t.set(x + dx, 1, cz + dz, th["light"])
+        for x in range(2, w - 2, 2):
+            t.set(x, 1, d - 3, "barrel", facing="up", open=False)
+        t.chest(cx, 1, d - 3, f"{structure}_room", facing="north")
+    elif kind == "shrine":
+        for z in range(3, d - 3):
+            if z != cz:
+                for x in (2, w - 3):
+                    for y in (1, 2, 3):
+                        _put(t, x, y, z, th["decor"][0] if y < 3 else th["decor"][1])
+        for z in (4, d - 5):
+            _put(t, cx, 1, z, acc)
+            t.set(cx, 2, z, th["lantern"], hanging=False, waterlogged=False)
+        mob_spawner(t, cx, 1, cz, mobs)
+    elif kind == "crossroad":
+        _put(t, cx, 1, cz, acc)
+        t.set(cx, 2, cz, th["light"])
+        _put(t, cx, 3, cz, acc)
+    elif kind == "treasure":
+        for x in range(cx - 2, cx + 3):
+            for z in range(d - 4, d - 1):
+                _put(t, x, 1, z, acc)
+        t.chest(cx, 2, d - 3, f"{structure}_room", facing="north")
+        for x in (cx - 2, cx + 2):
+            t.set(x, 2, d - 3, "gold_block")
+            t.set(x, 3, d - 3, th["lantern"], hanging=False, waterlogged=False)
+        mob_spawner(t, cx - 3, 1, cz - 1, mobs)
+        mob_spawner(t, cx + 3, 1, cz - 1, mobs)
+
+
+def cap(structure):
+    """The wall plug a door gets when nothing more is built behind it."""
+    th = THEMES[structure]
+    t = Template(5, 6, 1)
+    if th.get("open"):
+        for x in range(5):
+            t.set(x, 0, 0, th["floor"][0])
+            t.set(x, 1, 0, "diorite_wall", up=True, waterlogged=False)
+        t.set(2, 2, 0, "lantern", hanging=False, waterlogged=False)
+    else:
+        for x in range(5):
+            for y in range(6):
+                _put(t, x, y, 0, th["wall"] if th["wall"] != "dark_oak_log" else "dark_oak_planks")
+        _put(t, 2, 2, 0, th["accent"])
+    door(t, 2, 0, 0, "north", structure, th["floor"][0])
+    return t
+
+
+# The ways out of each arena: (side, centre along that side, floor y, how deep to dig in, sealed tunnel?).
+ARENA_DOORS = {
+    "sunken_vault": [("w", 14, 1, 6, True), ("e", 14, 1, 6, True)],
+    "buried_vault": [("w", 15, 0, 2, True), ("e", 15, 0, 2, True), ("n", 12, 0, 2, True)],
+    "sky_citadel": [("w", 15, 6, 7, False), ("e", 15, 6, 7, False), ("n", 15, 6, 7, False)],
+    "nether_forge": [("w", 13, 0, 4, False), ("e", 13, 0, 4, False)],
+    "desert_tomb": [("w", 15, 0, 3, True), ("e", 15, 0, 3, True)],
+    "frozen_bastion": [("w", 12, 0, 2, False), ("e", 12, 0, 2, False), ("n", 7, 0, 2, False)],
+    "overgrown_labyrinth": [("e", 14, 0, 1, False), ("n", 14, 0, 1, False), ("s", 14, 0, 1, False)],
+    "watchers_hollow": [("w", 11, 0, 3, False), ("e", 11, 0, 3, False), ("n", 11, 0, 3, False)],
+}
+
+
+def arena_doors(structure, t):
+    th = THEMES[structure]
+    X, _, Z = t.size
+    for side, along, fy, depth, sealed in ARENA_DOORS[structure]:
+        for k in range(depth):
+            if side == "w":
+                cells = [(k, along + j) for j in (-1, 0, 1)]
+                wallc = [(k, along - 2), (k, along + 2)]
+            elif side == "e":
+                cells = [(X - 1 - k, along + j) for j in (-1, 0, 1)]
+                wallc = [(X - 1 - k, along - 2), (X - 1 - k, along + 2)]
+            elif side == "n":
+                cells = [(along + j, k) for j in (-1, 0, 1)]
+                wallc = [(along - 2, k), (along + 2, k)]
+            else:
+                cells = [(along + j, Z - 1 - k) for j in (-1, 0, 1)]
+                wallc = [(along - 2, Z - 1 - k), (along + 2, Z - 1 - k)]
+            for (x, z) in cells:
+                t.set(x, fy, z, th["floor"][1] if th["floor"][1] != "mud_bricks" else "deepslate_tiles")
+                for y in range(fy + 1, fy + 5):
+                    t.set(x, y, z, "air")
+                if sealed:
+                    _put(t, x, fy + 5, z, th["wall"])
+            if sealed:
+                for (x, z) in wallc:
+                    for y in range(fy, fy + 6):
+                        _put(t, x, y, z, th["wall"])
+        if side == "w":
+            door(t, 0, fy, along, "west", structure, th["floor"][0])
+        elif side == "e":
+            door(t, X - 1, fy, along, "east", structure, th["floor"][0])
+        elif side == "n":
+            door(t, along, fy, 0, "north", structure, th["floor"][0])
+        else:
+            door(t, along, fy, Z - 1, "south", structure, th["floor"][0])
+    return t
+
+
 STRUCTURES = {
     # name: (builder, biomes, step, start_height, heightmap, spacing, separation, salt, terrain)
     "sunken_vault": (sunken_vault, "#minecraft:is_ocean", "surface_structures", 0, "OCEAN_FLOOR_WG", 110, 50, 31170801, "none"),
@@ -1016,6 +1325,15 @@ STRUCTURES = {
 }
 
 
+def pool(locations, fallback="minecraft:empty"):
+    elements = []
+    for loc in locations:
+        loc, weight = loc if isinstance(loc, tuple) else (loc, 1)
+        elements.append({"weight": weight, "element": {"element_type": "minecraft:single_pool_element", "location": f"vigil:{loc}",
+                                                       "processors": "minecraft:empty", "projection": "rigid"}})
+    return {"fallback": fallback, "elements": elements}
+
+
 def build():
     for item_id in ITEMS:
         write(f"loot_table/items/{item_id}.json", item_loot(item_id))
@@ -1024,16 +1342,27 @@ def build():
     for name, pools in CHESTS.items():
         write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools})
     for name, (fn, biomes, step, height, heightmap, spacing, sep, salt, terrain) in STRUCTURES.items():
-        write(f"structure/{name}.nbt", fn().to_nbt())
+        arena = arena_doors(name, fn())
+        # The old single-piece name stays, so structures generated before still find their template.
+        write(f"structure/{name}.nbt", arena.to_nbt())
+        write(f"worldgen/template_pool/{name}.json", pool([name]))
+        write(f"structure/{name}/arena.nbt", arena.to_nbt())
+        for kind in ROOMS:
+            write(f"structure/{name}/{kind}.nbt", room(name, kind).to_nbt())
+        write(f"structure/{name}/cap.nbt", cap(name).to_nbt())
+        write(f"worldgen/template_pool/{name}/start.json", pool([f"{name}/arena"]))
+        write(f"worldgen/template_pool/{name}/rooms.json",
+              pool([(f"{name}/{k}", ROOMS[k][3]) for k in ROOMS], fallback=f"vigil:{name}/caps"))
+        write(f"worldgen/template_pool/{name}/caps.json", pool([f"{name}/cap"]))
+        # Room chests: the structure's everyday loot, now and then one of its secret items.
+        write(f"loot_table/chests/{name}_room.json", {"type": "minecraft:chest", "pools": [
+            CHESTS[name][-1], {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": 12}] + CHESTS[name][0]["entries"]}]})
         s = {"type": "minecraft:jigsaw", "biomes": biomes, "step": step, "spawn_overrides": {}, "terrain_adaptation": terrain,
-             "start_pool": f"vigil:{name}", "size": 1, "start_height": {"absolute": height}, "max_distance_from_center": 80,
+             "start_pool": f"vigil:{name}/start", "size": 7, "start_height": {"absolute": height}, "max_distance_from_center": 80,
              "use_expansion_hack": False}
         if heightmap:
             s["project_start_to_heightmap"] = heightmap
         write(f"worldgen/structure/{name}.json", s)
-        write(f"worldgen/template_pool/{name}.json", {"fallback": "minecraft:empty", "elements": [{"weight": 1, "element": {
-            "element_type": "minecraft:single_pool_element", "location": f"vigil:{name}", "processors": "minecraft:empty",
-            "projection": "rigid"}}]})
         write(f"worldgen/structure_set/{name}.json", {"structures": [{"structure": f"vigil:{name}", "weight": 1}],
                                                       "placement": {"type": "minecraft:random_spread", "spacing": spacing,
                                                                     "separation": sep, "salt": salt}})

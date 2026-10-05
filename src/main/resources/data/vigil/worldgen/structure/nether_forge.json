@@ -4,8 +4,8 @@
   "step": "surface_structures",
   "spawn_overrides": {},
   "terrain_adaptation": "beard_box",
-  "start_pool": "vigil:nether_forge",
-  "size": 1,
+  "start_pool": "vigil:nether_forge/start",
+  "size": 7,
   "start_height": {
     "absolute": 45
   },

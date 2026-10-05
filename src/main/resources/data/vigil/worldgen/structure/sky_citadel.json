@@ -4,8 +4,8 @@
   "step": "surface_structures",
   "spawn_overrides": {},
   "terrain_adaptation": "none",
-  "start_pool": "vigil:sky_citadel",
-  "size": 1,
+  "start_pool": "vigil:sky_citadel/start",
+  "size": 7,
   "start_height": {
     "absolute": 210
   },

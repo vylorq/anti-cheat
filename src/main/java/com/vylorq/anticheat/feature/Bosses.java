@@ -62,8 +62,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 /**
- * Structure bosses. Each secret structure has one: it rises the first time a player walks in, never comes back once
- * spawned there, and fights in three phases (new attacks unlock as its health drops, its guards join at each phase).
+ * Structure bosses. Each secret structure has one: it rises the first time a player reaches its arena (the piece in
+ * the middle, past the rooms around it), never comes back once spawned there, and fights in three phases (new attacks unlock as its health drops, its guards join at each phase).
  *
  * <p>Every boss is a real, scaled-up mob with its own gear, so Java and Bedrock players both see it and its real
  * animations. A boss with a custom 3D model (the Drowned Warden) wears it on Java (with sway / lean animation);
@@ -408,13 +408,17 @@ public final class Bosses {
                 if (start == null || !start.hasChildren()) {
                     continue;
                 }
+                // The boss waits in the arena (the first piece, in the middle): the rooms around it come first.
+                var box = start.getChildren().get(0).getBoundingBox();
+                if (!box.expand(1).contains(p.getBlockPos())) {
+                    continue;
+                }
                 String key = k.structure() + "@" + start.getPos().x + "," + start.getPos().z;
                 if (state().spawned.contains(key)) {
                     continue;
                 }
                 state().spawned.add(key);
                 save();
-                var box = start.getBoundingBox();
                 Vec3d at = new Vec3d(box.getCenter().getX() + 0.5, box.getMinY() + k.floor(), box.getCenter().getZ() + 0.5);
                 spawn(w, at, k.id());
                 Ac.LOG.info("{} rose at {} ({})", k.name(), BlockPos.ofFloored(at).toShortString(), key);
