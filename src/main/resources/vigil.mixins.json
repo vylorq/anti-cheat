@@ -25,6 +25,7 @@
     "LivingEntityInvoker",
     "LivingEntityMixin",
     "MinecraftServerMixin",
+    "NoteBlockMixin",
     "PistonBlockMixin",
     "PlayerEntityAccessor",
     "PlayerManagerMixin",

@@ -104,6 +104,91 @@
           "weight": 2
         }
       ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 2
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:note_block",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Forge Bricks",
+                  "color": "#C9B6FF"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "A block from the Nether Forge",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:x8b5da46387"
+                  ]
+                },
+                "minecraft:custom_data": {
+                  "vigil_block": "forge_bricks"
+                }
+              }
+            },
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 16
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:note_block",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Molten Core",
+                  "color": "#C9B6FF"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "A block from the Nether Forge",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:x3e93c6d7ed"
+                  ]
+                },
+                "minecraft:custom_data": {
+                  "vigil_block": "molten_core"
+                }
+              }
+            },
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 16
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

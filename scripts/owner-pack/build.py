@@ -1290,6 +1290,24 @@ def build():
         for part in parts:
             files[f"assets/vigil/models/item/{part}.json"] = open(os.path.join(mdir, part + ".json"), "rb").read()
             by_base.setdefault("nautilus_shell", []).append(part)
+    # Custom blocks (scripts/blocks/build.py): frozen note block states (instrument custom_head, note 1+, unpowered).
+    blocks = json.load(open(os.path.join(ROOT, "src", "main", "resources", "vigil", "blocks.json")))
+    bdir = os.path.join(ROOT, "scripts", "blocks", "built")
+    ours = {b["note"] for b in blocks.values()}
+    parts = [{"when": {"OR": [{"instrument": "!custom_head"}, {"powered": "true"},
+                              {"note": "|".join(str(n) for n in range(25) if n not in ours)}]},
+              "apply": {"model": "minecraft:block/note_block"}}]
+    for bname, b in blocks.items():
+        for tex in [bname] + ([bname + "_top"] if b["top"] else []):
+            files[f"assets/vigil/textures/block/{tex}.png"] = open(os.path.join(bdir, tex + ".png"), "rb").read()
+        model = ({"parent": "minecraft:block/cube_column", "textures": {"side": f"vigil:block/{bname}", "end": f"vigil:block/{bname}_top"}}
+                 if b["top"] else {"parent": "minecraft:block/cube_all", "textures": {"all": f"vigil:block/{bname}"}})
+        files[f"assets/vigil/models/block/{bname}.json"] = json.dumps(model, indent=2).encode()
+        parts.append({"when": {"instrument": "custom_head", "note": str(b["note"]), "powered": "false"},
+                      "apply": {"model": f"vigil:block/{bname}"}})
+        files[f"assets/vigil/models/item/{bname}_block.json"] = json.dumps({"parent": f"vigil:block/{bname}"}, indent=2).encode()
+        by_base.setdefault("note_block", []).append(bname + "_block")
+    files["assets/minecraft/blockstates/note_block.json"] = json.dumps({"multipart": parts}, indent=2).encode()
     files["assets/vigil/textures/item/grappling_hook_cast.png"] = png(grappling_hook(True))
     files["assets/vigil/models/item/grappling_hook_cast.json"] = json.dumps(
         {"parent": "minecraft:item/handheld_rod", "textures": {"layer0": "vigil:item/grappling_hook_cast"}}, indent=2).encode()

@@ -114,6 +114,91 @@
           ]
         }
       ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 2
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:note_block",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Vault Stone",
+                  "color": "#C9B6FF"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "A block from the Buried Vault",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:xaf777fa017"
+                  ]
+                },
+                "minecraft:custom_data": {
+                  "vigil_block": "vault_stone"
+                }
+              }
+            },
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 16
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:note_block",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Ancient Lock",
+                  "color": "#C9B6FF"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "A block from the Buried Vault",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:xc5078ee163"
+                  ]
+                },
+                "minecraft:custom_data": {
+                  "vigil_block": "vault_lock"
+                }
+              }
+            },
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 16
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }
