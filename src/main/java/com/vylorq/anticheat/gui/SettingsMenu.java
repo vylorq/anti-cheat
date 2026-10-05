@@ -737,6 +737,9 @@ public final class SettingsMenu {
         l.add(new Num("legendary-cap", Page.TRADERS, Items.NETHER_STAR, c -> c.traders.weeklyLegendaryCap, (c, v) -> c.traders.weeklyLegendaryCap = v, 0, 50, 1));
         l.add(new Num("player-rare-cap", Page.TRADERS, Items.DIAMOND, c -> c.traders.perPlayerRarePerWeek, (c, v) -> c.traders.perPlayerRarePerWeek = v, 0, 50, 1));
         l.add(new Num("player-legendary-cap", Page.TRADERS, Items.NETHER_STAR, c -> c.traders.perPlayerLegendaryPerWeek, (c, v) -> c.traders.perPlayerLegendaryPerWeek = v, 0, 20, 1));
+        l.add(new Num("rare-odds", Page.TRADERS, Items.DIAMOND, c -> c.traders.rareOdds, (c, v) -> c.traders.rareOdds = v, 1, 100_000, 100));
+        l.add(new Num("legendary-odds", Page.TRADERS, Items.NETHER_STAR, c -> c.traders.legendaryOdds, (c, v) -> c.traders.legendaryOdds = v, 1, 100_000, 100));
+        l.add(new Num("buys-per-day", Page.TRADERS, Items.EMERALD, c -> c.traders.buysPerDay, (c, v) -> c.traders.buysPerDay = v, 0, 1000, 1));
         l.add(new Num("sell-cap", Page.TRADERS, Items.WHEAT, c -> c.traders.sellDailyCapPerPlayer, (c, v) -> c.traders.sellDailyCapPerPlayer = v, 16, 10_000, 16));
         l.add(new ListS("never-sell", Page.TRADERS, Items.BARRIER, c -> c.traders.neverSell, (c, v) -> c.traders.neverSell = v));
         l.add(new Choice("trader-payment", Page.TRADERS, Items.GOLD_INGOT, List.of("items", "emeralds", "cash"), v -> Msg.tr("tr.pay." + v),

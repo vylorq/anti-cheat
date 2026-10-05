@@ -156,8 +156,18 @@ def filler(entries, rolls=(4, 7)):
     return {"rolls": {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]}, "entries": out}
 
 
+# How rare each secret item is in a structure chest: 1 in this many per roll, the stronger the rarer.
+SECRET_ODDS = {"seeker_compass": 5000, "shadow_cloak": 8000, "tidecaller": 12000,
+               "phoenix_feather": 20000, "voidblade": 30000, "stormbreaker": 50000}
+SECRET_SCALE = 1_000_000  # loot weights are whole numbers, so odds are spread over this many
+
+
 def secret(weights, rolls=1):
-    return {"rolls": rolls, "entries": [{"type": "minecraft:loot_table", "value": f"vigil:items/{i}", "weight": w} for i, w in weights]}
+    """The structure's secret items, each only once in SECRET_ODDS[item] rolls; otherwise nothing."""
+    entries = [{"type": "minecraft:loot_table", "value": f"vigil:items/{i}", "weight": SECRET_SCALE // SECRET_ODDS[i]}
+               for i, _ in weights]
+    empty = SECRET_SCALE - sum(e["weight"] for e in entries)
+    return {"rolls": rolls, "entries": [{"type": "minecraft:empty", "weight": empty}] + entries}
 
 
 CHESTS = {
@@ -1048,13 +1058,16 @@ def _range(d):
     return C({k: C({"min_inclusive": I(v["min_inclusive"]), "max_inclusive": I(v["max_inclusive"])}) for k, v in d.items()})
 
 
-def mob_spawner(t, x, y, z, mobs):
-    """A spawner of the structure's mobs (weighted), in any light, a few at a time."""
+def mob_spawner(t, x, y, z, mobs, structure):
+    """A spawner of the structure's mobs (weighted), in any light, a few at a time. Each mob is tagged with the
+    structure, so the mod gives it that structure's armour and weapons (StructureMobs.java)."""
     t.set(x, y, z, "spawner")
-    entries = [C({"weight": I(w), "data": C({"entity": C({"id": S(f"minecraft:{m}")}), "custom_spawn_rules": _range(LIGHT_ANY)})})
-               for m, w in mobs]
+
+    def entity(m):
+        return C({"id": S(f"minecraft:{m}"), "Tags": L(8, [S(f"vigil_structure_mob:{structure}")])})
+    entries = [C({"weight": I(w), "data": C({"entity": entity(m), "custom_spawn_rules": _range(LIGHT_ANY)})}) for m, w in mobs]
     t.nbt[(x, y, z)] = {"id": S("minecraft:mob_spawner"),
-                        "SpawnData": C({"entity": C({"id": S(f"minecraft:{mobs[0][0]}")}), "custom_spawn_rules": _range(LIGHT_ANY)}),
+                        "SpawnData": C({"entity": entity(mobs[0][0]), "custom_spawn_rules": _range(LIGHT_ANY)}),
                         "SpawnPotentials": L(10, entries), "SpawnCount": Tag(2, 3), "MaxNearbyEntities": Tag(2, 6),
                         "RequiredPlayerRange": Tag(2, 18), "MinSpawnDelay": Tag(2, 160), "MaxSpawnDelay": Tag(2, 400),
                         "SpawnRange": Tag(2, 4), "Delay": Tag(2, 20)}
@@ -1209,11 +1222,11 @@ def _furnish(t, th, structure, kind, w, d):
         for (x, z) in corners(cx, cz, 4):
             _put(t, x, 1, z, acc)
             t.set(x, 2, z, th["lantern"], hanging=False, waterlogged=False)
-        mob_spawner(t, cx, 1, cz + 3, mobs)
+        mob_spawner(t, cx, 1, cz + 3, mobs, structure)
     elif kind == "guard_room":
         for x in (cx - 4, cx + 4):
             _put(t, x, 1, cz, acc)
-            mob_spawner(t, x, 2, cz, mobs)
+            mob_spawner(t, x, 2, cz, mobs, structure)
             for (dx, dz) in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 t.set(x + dx, 1, cz + dz, th["light"])
         for x in range(2, w - 2, 2):
@@ -1228,7 +1241,7 @@ def _furnish(t, th, structure, kind, w, d):
         for z in (4, d - 5):
             _put(t, cx, 1, z, acc)
             t.set(cx, 2, z, th["lantern"], hanging=False, waterlogged=False)
-        mob_spawner(t, cx, 1, cz, mobs)
+        mob_spawner(t, cx, 1, cz, mobs, structure)
     elif kind == "crossroad":
         _put(t, cx, 1, cz, acc)
         t.set(cx, 2, cz, th["light"])
@@ -1241,8 +1254,8 @@ def _furnish(t, th, structure, kind, w, d):
         for x in (cx - 2, cx + 2):
             t.set(x, 2, d - 3, "gold_block")
             t.set(x, 3, d - 3, th["lantern"], hanging=False, waterlogged=False)
-        mob_spawner(t, cx - 3, 1, cz - 1, mobs)
-        mob_spawner(t, cx + 3, 1, cz - 1, mobs)
+        mob_spawner(t, cx - 3, 1, cz - 1, mobs, structure)
+        mob_spawner(t, cx + 3, 1, cz - 1, mobs, structure)
 
 
 def cap(structure):
@@ -1359,7 +1372,7 @@ def build():
         write(f"worldgen/template_pool/{name}/caps.json", pool([f"{name}/cap"]))
         # Room chests: the structure's everyday loot, now and then one of its secret items.
         write(f"loot_table/chests/{name}_room.json", {"type": "minecraft:chest", "pools": [
-            CHESTS[name][-1], {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": 12}] + CHESTS[name][0]["entries"]}]})
+            CHESTS[name][-1], CHESTS[name][0]]})
         s = {"type": "minecraft:jigsaw", "biomes": biomes, "step": step, "spawn_overrides": {}, "terrain_adaptation": terrain,
              "start_pool": f"vigil:{name}/start", "size": 7, "start_height": {"absolute": height}, "max_distance_from_center": 80,
              "use_expansion_hack": False}
