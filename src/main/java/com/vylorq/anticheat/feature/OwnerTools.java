@@ -6,7 +6,6 @@ import com.vylorq.anticheat.util.ItemConv;
 import com.vylorq.anticheat.util.Mc;
 import com.vylorq.anticheat.util.Msg;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LightningEntity;
@@ -48,7 +47,7 @@ public final class OwnerTools {
     static ItemStack make(Item base, String id, String name, String... lore) {
         ItemStack s = Icons.glint(Icons.of(base, name, lore));
         ItemConv.setTag(s, KEY, id);
-        s.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(List.of(), List.of(), List.of(com.vylorq.anticheat.util.PackIds.model(id)), List.of()));
+        com.vylorq.anticheat.util.PackIds.apply(s, id);
         s.set(DataComponentTypes.MAX_STACK_SIZE, 1);
         return s;
     }

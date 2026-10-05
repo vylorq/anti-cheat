@@ -37,6 +37,7 @@
                     "vigil:xb4bfd1074a"
                   ]
                 },
+                "minecraft:item_model": "vigil:xb4bfd1074a",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:colossus_maul"

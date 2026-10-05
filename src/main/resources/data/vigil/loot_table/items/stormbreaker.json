@@ -32,6 +32,7 @@
                     "vigil:x87165e2164"
                   ]
                 },
+                "minecraft:item_model": "vigil:x87165e2164",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:stormbreaker"

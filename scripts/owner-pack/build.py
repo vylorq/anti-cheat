@@ -1251,7 +1251,7 @@ def obfuscate():
     out = {}
     for path, data in files.items():
         new = path
-        for prefix in ("assets/vigil/textures/item/", "assets/vigil/models/item/", "assets/vigil/sounds/"):
+        for prefix in ("assets/vigil/textures/item/", "assets/vigil/models/item/", "assets/vigil/sounds/", "assets/vigil/items/"):
             if path.startswith(prefix):
                 stem, ext = path[len(prefix):].rsplit(".", 1)
                 new = prefix + code(stem) + "." + ext
@@ -1299,6 +1299,12 @@ def build():
             {"parent": "minecraft:item/generated", "textures": {"layer0": f"vigil:item/{icon}"}}, indent=2).encode()
         by_base.setdefault(base, []).append(icon)
     for base, tools in by_base.items():
+        # Each custom item also gets its own item definition, which the mod points at with the item_model component:
+        # newer game versions (reached through ViaVersion) show items this way even when the custom_model_data
+        # select on the base item doesn't come through.
+        for tl in tools:
+            files[f"assets/vigil/items/{tl}.json"] = json.dumps({"model": CASE_MODELS.get(
+                tl, {"type": "minecraft:model", "model": f"vigil:item/{tl}"})}, indent=2).encode()
         files[f"assets/minecraft/items/{base}.json"] = json.dumps({"model": {
             "type": "minecraft:select", "property": "minecraft:custom_model_data", "index": 0,
             "cases": [{"when": f"vigil:{tl}", "model": CASE_MODELS.get(tl, {"type": "minecraft:model", "model": f"vigil:item/{tl}"})} for tl in tools],

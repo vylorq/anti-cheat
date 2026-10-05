@@ -37,6 +37,7 @@
                     "vigil:xd4c079c7f9"
                   ]
                 },
+                "minecraft:item_model": "vigil:xd4c079c7f9",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:hollow_edge"

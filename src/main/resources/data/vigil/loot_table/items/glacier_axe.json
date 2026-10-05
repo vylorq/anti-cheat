@@ -37,6 +37,7 @@
                     "vigil:xca42b034f6"
                   ]
                 },
+                "minecraft:item_model": "vigil:xca42b034f6",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:glacier_axe"

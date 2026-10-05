@@ -874,8 +874,10 @@ public final class OwnerCombat {
             UUID id = UUID.randomUUID();
             String cmd = String.format(java.util.Locale.ROOT,
                     "summon minecraft:item_display %.3f %.3f %.3f {UUID:%s,teleport_duration:1,brightness:{sky:15,block:15},"
-                            + "item:{id:\"%s\",count:1,components:{\"minecraft:custom_model_data\":{strings:[\"%s\"]}}},transformation:%s}",
-                    at.x, at.y, at.z, uuidNbt(id), base, com.vylorq.anticheat.util.PackIds.model(model), transform);
+                            + "item:{id:\"%s\",count:1,components:{\"minecraft:custom_model_data\":{strings:[\"%s\"]},"
+                            + "\"minecraft:item_model\":\"%s\"}},transformation:%s}",
+                    at.x, at.y, at.z, uuidNbt(id), base, com.vylorq.anticheat.util.PackIds.model(model),
+                    com.vylorq.anticheat.util.PackIds.itemModel(model), transform);
             try {
                 var src = Ac.server().getCommandSource().withWorld(w).withSilent();
                 Ac.server().getCommandManager().parseAndExecute(src, cmd);

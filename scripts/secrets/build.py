@@ -109,6 +109,7 @@ def components(item_id):
         "minecraft:item_name": text(name, color),
         "minecraft:lore": [text(line, "gray", False) for line in lore],
         "minecraft:custom_model_data": {"strings": ["vigil:" + code(item_id)]},
+        "minecraft:item_model": "vigil:" + code(item_id),
         "minecraft:use_cooldown": {"seconds": 0.05, "cooldown_group": f"vigil:{item_id}"},
         "minecraft:rarity": rarity,
     }

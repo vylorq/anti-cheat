@@ -28,6 +28,22 @@ public final class PackIds {
         return "vigil:" + code(name);
     }
 
+    /** The pack's own item definition for a model (the item_model component). */
+    public static Identifier itemModel(String name) {
+        return Identifier.of("vigil", code(name));
+    }
+
+    /**
+     * Gives an item a pack model: custom_model_data (read by the base item's definition) and item_model (the item's
+     * own definition, which also works on newer clients joining through ViaVersion).
+     */
+    public static void apply(net.minecraft.item.ItemStack s, String name) {
+        s.set(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA,
+                new net.minecraft.component.type.CustomModelDataComponent(java.util.List.of(), java.util.List.of(),
+                        java.util.List.of(model(name)), java.util.List.of()));
+        s.set(net.minecraft.component.DataComponentTypes.ITEM_MODEL, itemModel(name));
+    }
+
     /** A pack sound. */
     public static Identifier sound(String name) {
         return Identifier.of("vigil", code(name));
