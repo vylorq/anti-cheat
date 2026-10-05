@@ -208,17 +208,6 @@ else
   echo "  Geyser did not create its settings yet. Check: journalctl -u geyser -n 50"
 fi
 
-# Custom blocks on Bedrock: Geyser's block mappings plus a Bedrock pack with their textures (made by
-# scripts/blocks/build.py). Geyser reads them when it starts, so it restarts once more.
-say "Adding the custom blocks for Bedrock players"
-mkdir -p "$GEYSER_DIR/custom_mappings" "$GEYSER_DIR/packs"
-cp "$SRC_DIR/resourcepack/bedrock/vigil_blocks_mappings.json" "$GEYSER_DIR/custom_mappings/"
-cp "$SRC_DIR/resourcepack/bedrock/vigil_blocks.mcpack" "$GEYSER_DIR/packs/"
-if [ -f "$GEYSER_CFG" ]; then
-  sed -i 's/enable-custom-content: false/enable-custom-content: true/' "$GEYSER_CFG"
-fi
-sudo systemctl restart geyser
-
 # Make OWNER the server owner (full access to every staff tool).
 ANTI_CFG="$SERVER_DIR/config/vigil/config.json"
 if [ -n "$OWNER" ]; then
