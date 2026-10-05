@@ -1353,6 +1353,30 @@ public final class Traders {
                     Msg.send(pl, "general.error");
                 }
             });
+            menu.set(29, Btn.of(Items.BARREL).name(cat, Msg.tr("tr.stock-menu")).desc(Msg.tr("tr.stock-menu-desc"))
+                    .line(Msg.tr("tr.stock-menu-count", t.pinned.size(), t.blocked.size()))
+                    .left(Msg.tr("ui.action.open")).build(), (pl, c) -> openStock(pl, t));
+            menu.set(33, Btn.of(Items.COMPARATOR).name(cat, Msg.tr("tr.rules")).desc(Msg.tr("tr.rules-desc"))
+                    .line(Msg.tr("tr.rules-odds", Ac.config().traders.rareOdds, Ac.config().traders.legendaryOdds))
+                    .line(Msg.tr("tr.rules-buys", Ac.config().traders.buysPerDay == 0 ? Msg.tr("tr.no-limit") : String.valueOf(Ac.config().traders.buysPerDay)))
+                    .left(Msg.tr("ui.action.open")).build(), (pl, c) -> {
+                if (Perms.require(pl, Perm.SETTINGS)) {
+                    com.vylorq.anticheat.gui.SettingsMenu.page(pl, com.vylorq.anticheat.gui.SettingsMenu.Page.TRADERS);
+                }
+            });
+            menu.set(34, Btn.of(Items.CLOCK).name(cat, Msg.tr("tr.reset-obtained")).desc(Msg.tr("tr.reset-obtained-desc"))
+                    .line(Msg.tr("tr.obtained-count", Ac.get().economy.data().obtained.size()))
+                    .shift(Msg.tr("panel.action.do")).build(), (pl, c) -> {
+                if (!c.isShift()) {
+                    Msg.warn(pl, "cm.delete-shift");
+                    return;
+                }
+                Confirm.open(pl, cat, Msg.tr("tr.reset-obtained"), Msg.tr("tr.reset-obtained-desc"),
+                        Btn.of(Items.CLOCK).name(cat, Msg.tr("tr.reset-obtained")).build(), () -> {
+                            resetObtained(pl);
+                            openEdit(pl, t);
+                        });
+            });
             menu.set(32, Btn.of(Items.TNT).name(Theme.Category.PUNISHMENTS, Msg.tr("tr.remove")).desc(Msg.tr("tr.remove-desc"))
                     .shift(Msg.tr("panel.action.delete")).build(), (pl, c) -> {
                 if (!c.isShift()) {
@@ -1363,6 +1387,120 @@ public final class Traders {
             });
         });
         m.open(admin);
+    }
+
+    /** One line of the stock menu: an offer on sale now, or an item taken off this trader. */
+    private record StockRow(String id, TraderOffer offer) {
+    }
+
+    /** The owner's stock menu: see what's on sale, keep items always in stock, take items off, add the held item. */
+    public static void openStock(ServerPlayerEntity admin, Trader t) {
+        Theme.Category cat = Theme.Category.TRADERS;
+        Menu m = Menu.std(cat, Msg.trFor(admin, "cat.traders"), t.name, Msg.trFor(admin, "tr.stock-menu")).perm(Perm.TRADER_ADMIN);
+        m.renderer(menu -> {
+            menu.info(Btn.of(Items.BARREL).name(cat, Msg.tr("tr.stock-menu")).desc(Msg.tr("tr.stock-menu-help")).build());
+            List<StockRow> rows = new ArrayList<>();
+            for (TraderOffer o : t.offers) {
+                rows.add(new StockRow(o.id, o));
+            }
+            for (String b : t.blocked) {
+                if (!t.pinned.containsKey(b)) {
+                    rows.add(new StockRow(b, null));
+                }
+            }
+            menu.list(rows, r -> stockIcon(t, r), r -> (pl, c) -> {
+                if (r.offer() == null) {
+                    t.blocked.remove(r.id());
+                    rotate(t);
+                    Msg.send(pl, "trader.stock-allowed", r.id().replace("minecraft:", ""));
+                    menu.refresh();
+                } else if (c.isShift()) {
+                    if (t.pinned.remove(r.id()) != null) {
+                        rotate(t);
+                    }
+                    menu.refresh();
+                } else if (c.isRight()) {
+                    stockRemove(pl, t, r.id());
+                    menu.refresh();
+                } else {
+                    askAmount(pl, t, r.id(), t.pinned.getOrDefault(r.id(), r.offer().maxStock));
+                }
+            }, null, List.of(), Msg.tr("tr.no-offers"), Msg.tr("tr.stock-menu-help"));
+            menu.set(Menu.SEARCH, Btn.of(Items.HOPPER).name(cat, Msg.tr("tr.stock-add-held")).desc(Msg.tr("tr.stock-add-held-desc"))
+                    .left(Msg.tr("panel.action.do")).build(), (pl, c) -> {
+                ItemStack held = pl.getMainHandStack();
+                if (held.isEmpty()) {
+                    Msg.warn(pl, "tr.stock-hold-item");
+                    return;
+                }
+                askAmount(pl, t, Mc.itemId(held.getItem()), Math.max(1, held.getCount()));
+            });
+            menu.set(Menu.FILTER, Btn.of(Items.EMERALD).name(cat, Msg.tr("tr.restock-now")).desc(Msg.tr("tr.restock-now-desc"))
+                    .left(Msg.tr("panel.action.do")).build(), (pl, c) -> {
+                rotate(t);
+                Msg.send(pl, "trader.restocked");
+                menu.refresh();
+            });
+            menu.set(46, Btn.of(Items.LAVA_BUCKET).name(cat, Msg.tr("tr.stock-clear")).desc(Msg.tr("tr.stock-clear-desc"))
+                    .shift(Msg.tr("panel.action.do")).build(), (pl, c) -> {
+                if (!c.isShift()) {
+                    Msg.warn(pl, "cm.delete-shift");
+                    return;
+                }
+                stockClear(pl, t);
+                menu.refresh();
+            });
+        });
+        m.open(admin);
+    }
+
+    private static ItemStack stockIcon(Trader t, StockRow r) {
+        if (r.offer() == null) {
+            ItemStack s = stackFor(blockedOffer(r.id()));
+            return Btn.of(s).color(Theme.RED).name(s.getName().getString())
+                    .status(Theme.RED, Theme.Sym.CROSS.sp() + Msg.tr("tr.stock-never"))
+                    .left(Msg.tr("tr.stock-allow")).build();
+        }
+        TraderOffer o = r.offer();
+        ItemStack s = stackFor(o);
+        boolean pinned = t.pinned.containsKey(o.id);
+        Btn b = Btn.of(s).color(rarityColor(o.rarity)).name(s.getName().getString())
+                .status(rarityColor(o.rarity), Theme.Sym.DOT.sp() + Msg.tr("tr.rarity." + o.rarity.name().toLowerCase(java.util.Locale.ROOT)))
+                .line(Msg.tr("tr.stock", o.stock + "/" + o.maxStock));
+        if (pinned) {
+            b.status(Theme.GOLD_LIGHT, Theme.Sym.ARROW.sp() + Msg.tr("tr.stock-always")).glint(true);
+        }
+        b.left(Msg.tr(pinned ? "tr.stock-change-amount" : "tr.stock-keep")).right(Msg.tr("tr.stock-take-off"));
+        if (pinned) {
+            b.shift(Msg.tr("tr.stock-unkeep"));
+        }
+        return b.build();
+    }
+
+    private static TraderOffer blockedOffer(String id) {
+        TraderOffer o = new TraderOffer();
+        o.id = id;
+        o.rarity = TraderEconomy.rarityOf(id);
+        return o;
+    }
+
+    /** Asks how many of an item to keep in stock, then keeps it always on the trader. */
+    private static void askAmount(ServerPlayerEntity admin, Trader t, String id, int current) {
+        Input.text(admin, Msg.trFor(admin, "tr.stock-amount"), String.valueOf(current), txt -> {
+            if (txt != null) {
+                try {
+                    int n = Integer.parseInt(txt.trim());
+                    if (n >= 1 && n <= 1000) {
+                        stockAdd(admin, t, id, n);
+                    } else {
+                        Msg.send(admin, "general.bad-number");
+                    }
+                } catch (NumberFormatException e) {
+                    Msg.send(admin, "general.bad-number");
+                }
+            }
+            openStock(admin, t);
+        });
     }
 
     public static void confirmRemove(ServerPlayerEntity admin, Trader t) {
