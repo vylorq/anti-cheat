@@ -112,6 +112,12 @@ public final class ModelMobs {
         return WORN.containsKey(e.getUuid());
     }
 
+    /** The model display following this mob, or null. */
+    public static Entity displayOf(Entity e) {
+        Worn x = WORN.get(e.getUuid());
+        return x == null || x.display == null || !(e.getEntityWorld() instanceof ServerWorld w) ? null : w.getEntity(x.display);
+    }
+
     public static void register() {
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, w) -> {
             if (!Ac.running()) {
@@ -121,7 +127,13 @@ public final class ModelMobs {
                 // A model left over from before a restart: a fresh one is made for its mob.
                 boolean owned = WORN.values().stream().anyMatch(x -> e.getUuid().equals(x.display));
                 if (!owned) {
-                    e.discard();
+                    // Not while the world is loading entities: a tick later.
+                    OwnerPowers.later(1, () -> {
+                        boolean claimed = WORN.values().stream().anyMatch(x -> e.getUuid().equals(x.display));
+                        if (!claimed && !e.isRemoved()) {
+                            e.discard();
+                        }
+                    });
                 }
                 return;
             }
@@ -131,7 +143,13 @@ public final class ModelMobs {
                 IDS.add(e.getId());
             }
         });
-        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((e, w) -> drop(e, w));
+        // Unloading: just forget it (its model is saved with the chunk and cleaned up when the chunk loads again;
+        // removing entities while the world is unloading them isn't allowed).
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((e, w) -> {
+            if (WORN.remove(e.getUuid()) != null) {
+                IDS.remove(e.getId());
+            }
+        });
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((e, source) -> {
             if (e.getEntityWorld() instanceof ServerWorld w) {
                 drop(e, w);

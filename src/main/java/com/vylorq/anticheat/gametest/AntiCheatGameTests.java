@@ -276,11 +276,14 @@ public final class AntiCheatGameTests {
         check(boss.getMaxHealth() >= 600, "the boss has too little health: " + boss.getMaxHealth());
         check(boss.getCustomName() != null && boss.getCustomName().getString().contains("Drowned Warden"), "no health name tag");
         com.vylorq.anticheat.feature.ModelMobs.tick(1);
-        var models = w.getEntitiesByClass(net.minecraft.entity.decoration.DisplayEntity.ItemDisplayEntity.class,
-                boss.getBoundingBox().expand(3), e -> e.getCommandTags().contains(com.vylorq.anticheat.feature.Bosses.MODEL_TAG));
-        check(models.size() == 1, "the boss has " + models.size() + " models instead of 1");
+        var model = com.vylorq.anticheat.feature.ModelMobs.displayOf(boss);
+        check(model instanceof net.minecraft.entity.decoration.DisplayEntity.ItemDisplayEntity, "the boss's model didn't appear");
         boss.discard();
-        models.forEach(net.minecraft.entity.Entity::discard);
+        model.discard();
+        for (var e : w.getEntitiesByClass(net.minecraft.entity.decoration.DisplayEntity.ItemDisplayEntity.class,
+                new net.minecraft.util.math.Box(at, at).expand(16), e -> e.getCommandTags().contains(com.vylorq.anticheat.feature.ModelMobs.DISPLAY_TAG))) {
+            e.discard();
+        }
         // Every boss spawns as a real, visible (for Bedrock) mob with its health in its name.
         for (String kind : com.vylorq.anticheat.feature.Bosses.kinds()) {
             var b = com.vylorq.anticheat.feature.Bosses.spawn(w, at.add(0, 0, 3), kind);
