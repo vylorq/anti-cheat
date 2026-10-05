@@ -219,6 +219,8 @@ def _payload(t, out):
     k, v = t.kind, t.value
     if k == 1:
         out.write(struct.pack(">b", v))
+    elif k == 2:
+        out.write(struct.pack(">h", v))
     elif k == 3:
         out.write(struct.pack(">i", v))
     elif k == 8:
