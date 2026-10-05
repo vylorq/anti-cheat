@@ -846,7 +846,8 @@ SECRET = {"voidblade": ("diamond_sword", voidblade, "minecraft:item/handheld"),
           "forge_cleaver": ("netherite_axe", forge_cleaver, "minecraft:item/handheld"),
           "glacier_axe": ("diamond_axe", glacier_axe, "minecraft:item/handheld"),
           "colossus_maul": ("mace", colossus_maul, "minecraft:item/handheld")}
-MODELS3D = {"drowned_warden": "nautilus_shell"}
+# Every boss / guard model listed in src/main/resources/vigil/models.json (shown on item displays of a nautilus shell).
+MODELS3D = {name: "nautilus_shell" for name in json.load(open(os.path.join(ROOT, "src", "main", "resources", "vigil", "models.json")))}
 # Item models that aren't one plain model (the grappling hook looks different once cast).
 CASE_MODELS = {"grappling_hook": {"type": "minecraft:condition", "property": "minecraft:fishing_rod/cast",
                                   "on_false": {"type": "minecraft:model", "model": "vigil:item/grappling_hook"},
@@ -1149,6 +1150,8 @@ SOUNDS3 = {
     "orbital_fire": lambda: mix(1.4, [(0, 0.7 * env(sweep(2400, 600, 0.35), 0.002, 0.1)), (0.05, 0.5 * echo(env(np.sin(2 * np.pi * 880 * t(0.08)), 0.002, 0.04), 0.12, 0.5, 3)),
                                       (0.3, 0.6 * env(lowpass(noise(0.9), 10) * np.linspace(1, 0, int(SR * 0.9)), 0.05, 0.3))]),
     "orbital_undo": lambda: mix(1.2, [(0, 0.6 * env(sweep(300, 1200, 0.6), 0.02, 0.2)), (0.4, chord([523.25, 659.25, 783.99], 0.7, 0.01))]),
+    "boss_growl": lambda: echo(mix(2.0, [(0, env(saw(np.linspace(48, 38, int(SR * 1.6)), 1.6, 0.03) * 0.7 + lowpass(noise(1.6), 8) * 2.5, 0.25, 0.6)),
+                                         (0, env(saw(np.linspace(72, 57, int(SR * 1.6)), 1.6, 0.04) * 0.35, 0.3, 0.6))]), 0.18, 0.3, 2),
     "boss_rise": lambda: echo(mix(2.4, [(0, env(lowpass(noise(2.0), 5) * np.linspace(0.5, 5, int(SR * 2.0)), 0.3, 0.4)),
                                         (0.2, 0.8 * env(saw(np.full(int(SR * 1.8), 55.0), 1.8, 0.02), 0.4, 0.6)), (1.2, 1.4 * boom(0.8, 45, 4))]), 0.2, 0.3, 2),
     "boss_shock": lambda: mix(1.4, [(0, 1.6 * boom(0.8, 50, 4)), (0, env(lowpass(noise(1.2), 6) * np.sin(np.linspace(0, np.pi, int(SR * 1.2))) * 6, 0.02, 0.4))]),

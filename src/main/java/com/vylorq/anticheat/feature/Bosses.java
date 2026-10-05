@@ -225,13 +225,11 @@ public final class Bosses {
         final MobEntity mob;
         final Kind kind;
         final DustParticleEffect aura;
-        UUID model;
         int phase = 1;
         Vec3d home;
         long[] next = new long[Ability.values().length];
         long lastPlayerNear;
         long leapLand = -1;
-        String animKey = "";
 
         Live(MobEntity mob, Kind kind) {
             this.mob = mob;
@@ -263,14 +261,6 @@ public final class Bosses {
             if (!Ac.running()) {
                 return;
             }
-            if (e.getCommandTags().contains(MODEL_TAG)) {
-                // A model left over from before a restart: a fresh one is made for its boss.
-                boolean owned = LIVE.values().stream().anyMatch(l -> e.getUuid().equals(l.model));
-                if (!owned) {
-                    e.discard();
-                }
-                return;
-            }
             String k = kindOf(e);
             if (k != null && KINDS.containsKey(k) && e instanceof MobEntity mob && mob.isAlive()) {
                 Live l = new Live(mob, KINDS.get(k));
@@ -290,10 +280,8 @@ public final class Bosses {
             }
         });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((e, w) -> {
-            Live l = LIVE.remove(e.getUuid());
-            if (l != null) {
+            if (LIVE.remove(e.getUuid()) != null) {
                 LIVE_IDS.remove(e.getId());
-                removeModel(w, l);
             }
         });
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((e, source) -> {
@@ -329,9 +317,7 @@ public final class Bosses {
         mob.setHealth((float) k.health());
         mob.setPersistent();
         mob.setCanPickUpLoot(false);
-        if (k.hasModel()) {
-            mob.setInvisible(true);
-        }
+        ModelMobs.attach(mob, k.id());
         mob.addCommandTag(TAG + ":" + k.id());
         mob.addCommandTag(String.format(java.util.Locale.ROOT, "vigil_home:%.1f,%.1f,%.1f", at.x, at.y, at.z));
         mob.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, StatusEffectInstance.INFINITE, 0, false, false));
@@ -384,6 +370,7 @@ public final class Bosses {
                 Vec3d at = boss.getEntityPos().add(Math.cos(a) * r, 0.1, Math.sin(a) * r);
                 m.refreshPositionAndAngles(at.x, at.y, at.z, w.getRandom().nextFloat() * 360, 0);
                 g.gear().accept(m);
+                ModelMobs.attach(m, modelName(g.name()));
                 m.setCustomName(Text.literal(g.name()));
                 m.setPersistent();
                 m.addCommandTag(GUARD_TAG);
@@ -397,6 +384,11 @@ public final class Bosses {
                 w.spawnParticles(new DustParticleEffect(k.aura(), 1.3f), at.x, at.y + 1, at.z, 20, 0.3, 0.6, 0.3, 0);
             }
         }
+    }
+
+    /** "§3Vault Drowned" -> "vault_drowned" (the guard's model). */
+    static String modelName(String name) {
+        return name.replaceAll("§.", "").trim().toLowerCase(java.util.Locale.ROOT).replace(' ', '_');
     }
 
     /** A player walked into a structure: its boss rises (once per structure). */
@@ -428,100 +420,6 @@ public final class Bosses {
                 Ac.LOG.info("{} rose at {} ({})", k.name(), BlockPos.ofFloored(at).toShortString(), key);
             }
         }
-    }
-
-    // ---------------------------------------------------------------- the model (Java) and its animation
-
-    private static String transform(Kind k, float lean, float roll, float bob) {
-        float s = k.modelScale();
-        // Quaternion for lean (around X) then roll (around Z).
-        double hx = Math.toRadians(lean) / 2;
-        double hz = Math.toRadians(roll) / 2;
-        double qx = Math.sin(hx) * Math.cos(hz);
-        double qy = Math.sin(hx) * Math.sin(hz);
-        double qz = Math.cos(hx) * Math.sin(hz);
-        double qw = Math.cos(hx) * Math.cos(hz);
-        return String.format(java.util.Locale.ROOT,
-                "{left_rotation:[%.4ff,%.4ff,%.4ff,%.4ff],right_rotation:[0f,0f,0f,1f],translation:[0f,%.3ff,0f],scale:[%.3ff,%.3ff,%.3ff]}",
-                qx, qy, qz, qw, k.modelLift() + bob, s, s, s);
-    }
-
-    private static void keepModel(ServerWorld w, Live l) {
-        Entity model = l.model == null ? null : w.getEntity(l.model);
-        if (model == null || model.isRemoved()) {
-            l.model = OwnerCombat.Display.summon(w, l.mob.getEntityPos(), "minecraft:nautilus_shell", l.kind.model(), transform(l.kind, 0, 0, 0));
-            model = l.model == null ? null : w.getEntity(l.model);
-            if (model == null) {
-                return;
-            }
-            model.addCommandTag(MODEL_TAG);
-            l.animKey = "";
-        }
-        model.refreshPositionAndAngles(l.mob.getX(), l.mob.getY(), l.mob.getZ(), l.mob.getBodyYaw() + state().yawOffset, 0);
-    }
-
-    /** Stomping sway while it walks, a lunge when it strikes, a crouch before a leap. */
-    private static void animate(ServerWorld w, Live l) {
-        if (l.model == null) {
-            return;
-        }
-        MobEntity m = l.mob;
-        double speed = m.getVelocity().horizontalLength();
-        float lean = 0;
-        float roll = 0;
-        float bob = 0;
-        if (m.handSwinging) {
-            lean = 16;
-            bob = -0.08f;
-        } else if (l.leapLand > 0) {
-            lean = -10;
-        } else if (speed > 0.02) {
-            double t = now * 0.45;
-            roll = (float) (Math.sin(t) * 7);
-            bob = (float) (Math.abs(Math.sin(t)) * 0.12);
-            lean = 5;
-        } else {
-            bob = (float) (Math.sin(now * 0.08) * 0.04);
-        }
-        String key = Math.round(lean) + "," + Math.round(roll) + "," + Math.round(bob * 100);
-        if (key.equals(l.animKey)) {
-            return;
-        }
-        l.animKey = key;
-        String cmd = "data merge entity " + l.model + " {start_interpolation:0,interpolation_duration:4,transformation:"
-                + transform(l.kind, lean, roll, bob) + "}";
-        try {
-            Ac.server().getCommandManager().parseAndExecute(Ac.server().getCommandSource().withWorld(w).withSilent(), cmd);
-        } catch (Exception ignored) {
-            // animation is cosmetic
-        }
-    }
-
-    private static void removeModel(ServerWorld w, Live l) {
-        Entity model = l.model == null ? null : w.getEntity(l.model);
-        if (model != null) {
-            model.discard();
-        }
-        l.model = null;
-    }
-
-    /** Java players see the model, so that mob is invisible; Bedrock players can't see models: show them the mob. */
-    public static Packet<?> forViewer(ServerPlayerEntity to, Packet<?> packet) {
-        if (!(packet instanceof EntityTrackerUpdateS2CPacket u) || !LIVE_IDS.contains(u.id()) || !com.vylorq.anticheat.ui.Viewer.isBedrock(to)) {
-            return packet;
-        }
-        List<net.minecraft.entity.data.DataTracker.SerializedEntry<?>> out = new ArrayList<>(u.trackedValues().size());
-        boolean changed = false;
-        for (var e : u.trackedValues()) {
-            if (e.id() == 0 && e.value() instanceof Byte b) {
-                out.add(new net.minecraft.entity.data.DataTracker.SerializedEntry<>(0,
-                        net.minecraft.entity.data.TrackedDataHandlerRegistry.BYTE, (byte) (b & ~0x20)));
-                changed = true;
-            } else {
-                out.add(e);
-            }
-        }
-        return changed ? new EntityTrackerUpdateS2CPacket(u.id(), out) : packet;
     }
 
     // ---------------------------------------------------------------- fighting
@@ -612,6 +510,10 @@ public final class Bosses {
                 m.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, StatusEffectInstance.INFINITE, 1, false, false));
                 m.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, StatusEffectInstance.INFINITE, 0, false, false));
             }
+        }
+        // A low growl now and then while players are near.
+        if (!near.isEmpty() && now % 140 == 0) {
+            sound(w, c, "boss_growl", SoundEvents.ENTITY_WARDEN_AMBIENT, 0.5f);
         }
         // Aura so it reads as a boss on both editions.
         if (now % 4 == 0) {
@@ -862,7 +764,6 @@ public final class Bosses {
     // ---------------------------------------------------------------- defeat
 
     private static void defeated(ServerWorld w, Live l, Entity killer) {
-        removeModel(w, l);
         state().killed++;
         save();
         Vec3d at = l.mob.getEntityPos();
@@ -906,13 +807,6 @@ public final class Bosses {
             if (m.isRemoved() || !m.isAlive()) {
                 continue;
             }
-            ServerWorld w = (ServerWorld) m.getEntityWorld();
-            if (l.kind.hasModel()) {
-                keepModel(w, l);
-                if (ticks % 2 == 0) {
-                    animate(w, l);
-                }
-            }
             if (ticks % 10 == 0) {
                 nameTag(m, l.kind);
             }
@@ -950,8 +844,8 @@ public final class Bosses {
             return;
         }
         int n = 0;
+        ModelMobs.clearAll();
         for (Live l : new ArrayList<>(LIVE.values())) {
-            removeModel((ServerWorld) l.mob.getEntityWorld(), l);
             l.mob.discard();
             n++;
         }

@@ -275,7 +275,7 @@ public final class AntiCheatGameTests {
         check(boss.isInvisible(), "the boss mob should be invisible (its model shows instead)");
         check(boss.getMaxHealth() >= 600, "the boss has too little health: " + boss.getMaxHealth());
         check(boss.getCustomName() != null && boss.getCustomName().getString().contains("Drowned Warden"), "no health name tag");
-        com.vylorq.anticheat.feature.Bosses.tick(1);
+        com.vylorq.anticheat.feature.ModelMobs.tick(1);
         var models = w.getEntitiesByClass(net.minecraft.entity.decoration.DisplayEntity.ItemDisplayEntity.class,
                 boss.getBoundingBox().expand(3), e -> e.getCommandTags().contains(com.vylorq.anticheat.feature.Bosses.MODEL_TAG));
         check(models.size() == 1, "the boss has " + models.size() + " models instead of 1");
@@ -287,6 +287,7 @@ public final class AntiCheatGameTests {
             check(b != null && com.vylorq.anticheat.feature.Bosses.isBoss(b), kind + " didn't spawn");
             check(b.getMaxHealth() >= 600, kind + " is too weak: " + b.getMaxHealth());
             check(b.getCustomName() != null && b.getCustomName().getString().contains("❤"), kind + " has no health tag");
+            check(com.vylorq.anticheat.feature.ModelMobs.wears(b), kind + " has no 3D model");
             b.discard();
         }
         for (var e : w.getEntitiesByClass(net.minecraft.entity.mob.MobEntity.class, new net.minecraft.util.math.Box(at, at).expand(12),
