@@ -2582,5 +2582,8 @@
   "teststructure.removed": "§aتمت إزالة {0} (#{1}): عادت المنطقة كما كانت.",
   "teststructure.failed": "§cتعذر فعل ذلك مع {0} هنا.",
   "teststructure.none": "§7لا توجد هياكل تجريبية موضوعة.",
-  "teststructure.entry": "§7#{0} §f{1} §7قرب {2}، {3}"
+  "teststructure.entry": "§7#{0} §f{1} §7قرب {2}، {3}",
+  "waiting.sent-back": "§aتم إرسال {0} إلى غرفة الانتظار. §7سيبقى هناك حتى تقبله: /requests accept {0}",
+  "waiting.not-set": "§cلا توجد غرفة انتظار بعد. قف في مكانها واستخدم /waitingroom set.",
+  "waiting.is-staff": "§c{0} من الطاقم، لذا لا يمكن إرساله إلى غرفة الانتظار."
 }

@@ -70,6 +70,26 @@ public final class WaitingRoom {
         data.accepted.add(id);
     }
 
+    /**
+     * Staff sent an already accepted player back: they wait again, with a request ready for staff to accept (no
+     * questions to answer).
+     */
+    public synchronized Request sendBack(UUID id, String name, boolean bedrock, String ip, String by) {
+        data.accepted.remove(id);
+        Request r = new Request();
+        r.player = id;
+        r.name = name;
+        r.bedrock = bedrock;
+        r.ip = ip;
+        r.joinedAt = clock.nowMillis();
+        r.submittedAt = r.joinedAt;
+        r.status = Status.PENDING;
+        java.util.Arrays.fill(r.answers, "(sent back by " + by + ")");
+        r.step = QUESTIONS.length;
+        data.requests.put(id, r);
+        return r;
+    }
+
     /** A new player who must wait: not accepted and not staff. */
     public synchronized boolean mustWait(UUID id, boolean staff, boolean enabled) {
         return enabled && isSet() && !staff && !data.accepted.contains(id);

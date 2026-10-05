@@ -2582,5 +2582,8 @@
   "teststructure.removed": "§aRemoved the {0} (#{1}): the area is back as it was.",
   "teststructure.failed": "§cCouldn't do that with the {0} here.",
   "teststructure.none": "§7No placed test structures.",
-  "teststructure.entry": "§7#{0} §f{1} §7around {2}, {3}"
+  "teststructure.entry": "§7#{0} §f{1} §7around {2}, {3}",
+  "waiting.sent-back": "§aSent {0} to the waiting room. §7They stay there until you accept them: /requests accept {0}",
+  "waiting.not-set": "§cThere's no waiting room yet. Stand where it should be and use /waitingroom set.",
+  "waiting.is-staff": "§c{0} is staff, so they can't be sent to the waiting room."
 }
