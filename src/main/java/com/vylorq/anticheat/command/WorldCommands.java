@@ -1035,6 +1035,16 @@ final class WorldCommands {
                     }
                     return 1;
                 })))
+                .then(literal("send").then(Args.player("player").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.WAITING_ROOM);
+                    String name = Args.str(ctx, "player");
+                    UUID id = p == null ? null : Args.known(ctx.getSource(), name);
+                    if (id != null) {
+                        ServerPlayerEntity t = Ac.get().server.getPlayerManager().getPlayer(id);
+                        WaitingRoomFeature.sendBack(p, id, t != null ? t.getGameProfile().name() : name);
+                    }
+                    return 1;
+                })))
                 .then(literal("tp").then(Args.player("player").executes(ctx -> {
                     ServerPlayerEntity p = staff(ctx, Perm.WAITING_ROOM);
                     if (p == null) return 0;

@@ -86,6 +86,12 @@ class GameplayTest {
         w.answerAll(a, new String[]{"x", "y", "z"});
         assertNotNull(w.decide(a, true, "admin"));
         assertFalse(w.mustWait(a, false, true));
+        // Sent back by staff: waits again, with a request staff can accept straight away.
+        w.sendBack(a, "Steve", false, "1.1.1.1", "admin");
+        assertTrue(w.mustWait(a, false, true));
+        assertEquals(1, w.pending().size());
+        assertNotNull(w.decide(a, true, "admin"));
+        assertFalse(w.mustWait(a, false, true));
     }
 
     @Test

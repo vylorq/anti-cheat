@@ -179,6 +179,35 @@ public final class WaitingRoomFeature {
         return t;
     }
 
+    /**
+     * Sends a player back to the waiting room until staff accept them again (their builder time, if any, ends).
+     * Works whether they're online or not; online players are moved there right away.
+     */
+    public static void sendBack(ServerPlayerEntity admin, UUID id, String name) {
+        Ac ac = Ac.get();
+        WaitingRoom wr = ac.waitingRoom;
+        if (!wr.isSet() || !Ac.config().waitingRoom.enabled) {
+            Msg.send(admin, "waiting.not-set");
+            return;
+        }
+        ServerPlayerEntity p = ac.server.getPlayerManager().getPlayer(id);
+        if (p != null && BuilderMode.is(p)) {
+            BuilderMode.end(admin, p);
+        }
+        if (p != null && Perms.isStaff(p)) {
+            Msg.send(admin, "waiting.is-staff", name);
+            return;
+        }
+        PlayerSession s = p == null ? null : Ac.session(p);
+        wr.sendBack(id, name, s != null && s.bedrock, s == null ? "" : s.ip, Staff.name(admin));
+        Ac.markDirty("waiting");
+        Staff.log(admin, "request-send-back", id, name, "");
+        if (p != null) {
+            onJoin(p);
+        }
+        Msg.send(admin, "waiting.sent-back", name);
+    }
+
     public static void accept(ServerPlayerEntity admin, UUID id) {
         Ac ac = Ac.get();
         WaitingRoom.Request r = ac.waitingRoom.decide(id, true, Staff.name(admin));
