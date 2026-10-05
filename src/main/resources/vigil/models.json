@@ -1,90 +1,90 @@
 {
  "deepslate_colossus": {
-  "lift": 2.149,
-  "scale": 1.495
+  "lift": 2.1723,
+  "scale": 1.521
  },
  "drowned_warden": {
-  "lift": 1.5868,
-  "scale": 1.1421
+  "lift": 1.65,
+  "scale": 1.1478
  },
  "ember_imp": {
-  "lift": 0.35,
-  "scale": 0.8
+  "lift": 0.3,
+  "scale": 0.48
  },
  "forge_brute": {
-  "lift": 0.5032,
-  "scale": 1.0065
+  "lift": 0.9836,
+  "scale": 1.2
  },
  "forgemaster": {
-  "lift": 1.7696,
-  "scale": 1.287
+  "lift": 1.8443,
+  "scale": 1.3365
  },
  "frost_titan": {
-  "lift": 2.3489,
-  "scale": 1.634
+  "lift": 2.4175,
+  "scale": 1.6598
  },
  "frostbite_bear": {
-  "lift": 0.5091,
-  "scale": 1.0182
+  "lift": 0.7051,
+  "scale": 0.7
  },
  "gale_phantom": {
-  "lift": 0.6,
-  "scale": 1.6
+  "lift": 0.3125,
+  "scale": 1.4545
  },
  "hollow_watcher": {
-  "lift": 2.3489,
-  "scale": 1.634
+  "lift": 2.4192,
+  "scale": 1.6562
  },
  "ice_stray": {
-  "lift": 0.5,
-  "scale": 1.0
+  "lift": 1.0,
+  "scale": 0.8889
  },
  "jungle_stalker": {
-  "lift": 0.5846,
-  "scale": 1.1692
+  "lift": 0.4835,
+  "scale": 1.0133
  },
  "sand_colossus": {
-  "lift": 2.3,
-  "scale": 1.6
+  "lift": 2.35,
+  "scale": 1.6348
  },
  "scarab": {
-  "lift": 0.5333,
-  "scale": 1.0667
- },
- "sculk_lurker": {
-  "lift": 0.4889,
-  "scale": 0.9778
- },
- "shadow_echo": {
-  "lift": 0.35,
+  "lift": 0.1742,
   "scale": 0.8
  },
+ "sculk_lurker": {
+  "lift": 0.275,
+  "scale": 0.88
+ },
+ "shadow_echo": {
+  "lift": 0.425,
+  "scale": 0.5231
+ },
  "sky_sentry": {
-  "lift": 0.5,
-  "scale": 1.0
+  "lift": 1.0,
+  "scale": 0.7805
  },
  "stone_crawler": {
-  "lift": 0.4571,
+  "lift": 0.1716,
   "scale": 0.9143
  },
  "storm_phantom": {
-  "lift": 1.3967,
-  "scale": 3.0757
+  "lift": 1.256,
+  "scale": 5.0951
  },
  "thornback_beast": {
-  "lift": 0.776,
-  "scale": 1.5519
+  "lift": 1.5591,
+  "scale": 1.6923
  },
  "tomb_husk": {
-  "lift": 0.5032,
+  "lift": 0.975,
   "scale": 1.0065
  },
  "vault_drowned": {
-  "lift": 0.4875,
-  "scale": 0.975
+  "lift": 0.975,
+  "scale": 0.8914
  },
  "vine_creeper": {
-  "lift": 0.4889,
-  "scale": 0.9778
+  "lift": 0.2344,
+  "scale": 0.6286
  }
 }

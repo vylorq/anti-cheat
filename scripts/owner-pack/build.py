@@ -1281,7 +1281,7 @@ def build():
         files[f"assets/vigil/models/item/{name}.json"] = json.dumps(
             {"parent": parent, "textures": {"layer0": f"vigil:item/{name}"}}, indent=2).encode()
         by_base.setdefault(base, []).append(name)
-    # 3D boss models (made by scripts/models/voxelize.py from the .glb files)
+    # 3D boss and guard models (made by scripts/models/cubes.py)
     for name, base in MODELS3D.items():
         mdir = os.path.join(ROOT, "scripts", "models", "built")
         files[f"assets/vigil/models/item/{name}.json"] = open(os.path.join(mdir, name + ".json"), "rb").read()
