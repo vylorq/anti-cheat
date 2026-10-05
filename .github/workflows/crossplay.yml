@@ -78,9 +78,14 @@ jobs:
           client.on('modal_form_request', (p) => { forms++; console.log('BEDROCK form:', String(p.data).slice(0, 120)) })
           client.on('join', () => console.log('BEDROCK: join packet'))
           client.on('resource_packs_info', (p) => {
-            const packs = [...(p.texture_packs || []), ...(p.behaviour_packs || [])]
-            ourPack = packs.some(k => String(k.uuid) === '6b1d6a5e-3c1f-4e9a-9a51-6f0c2d7b8e11')
-            console.log('BEDROCK packs offered:', packs.map(k => k.uuid).join(', '))
+            const text = JSON.stringify(p, (k, v) => typeof v === 'bigint' ? String(v) : v)
+            ourPack = ourPack || text.includes('6b1d6a5e-3c1f-4e9a-9a51-6f0c2d7b8e11')
+            console.log('BEDROCK packs offered:', text.slice(0, 600))
+          })
+          client.on('resource_pack_stack', (p) => {
+            const text = JSON.stringify(p, (k, v) => typeof v === 'bigint' ? String(v) : v)
+            ourPack = ourPack || text.includes('6b1d6a5e-3c1f-4e9a-9a51-6f0c2d7b8e11')
+            console.log('BEDROCK pack stack:', text.slice(0, 400))
           })
           client.on('start_game', (p) => {
             const names = (p.block_properties || []).map(b => b.name).filter(n => n.includes('vigil'))
@@ -124,6 +129,6 @@ jobs:
           rc=0; node bot.js || rc=$?
           echo "--- server log"; grep -E "BedrockBot|joined the game|lost connection|floodgate|Floodgate|Watcher|Exception" ../srv/run.log | tail -n 40
           echo "--- geyser log"; tail -n 25 ../geyser/geyser.log
-          echo "--- geyser custom content"; grep -iE "custom|mapping|pack" ../geyser/geyser.log | head -20 || true
+          echo "--- geyser custom content"; grep -iE "custom|mapping|pack" ../geyser/geyser.log; ls -la ../geyser/packs | head -20 || true
           grep -q "joined the game" ../srv/run.log
           exit $rc
