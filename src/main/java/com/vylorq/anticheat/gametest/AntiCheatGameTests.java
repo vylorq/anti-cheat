@@ -105,6 +105,7 @@ public final class AntiCheatGameTests {
             // Tools carry the custom model and only work for the owner.
             var wand = com.vylorq.anticheat.feature.OwnerTools.healWand();
             check(wand.get(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA) != null, "no custom model on the heal wand");
+            check(wand.get(net.minecraft.component.DataComponentTypes.ITEM_MODEL) != null, "no item model on the heal wand");
             other.setHealth(4);
             check(com.vylorq.anticheat.feature.OwnerTools.useOn(owner, wand, other), "the heal wand did nothing");
             check(other.getHealth() == other.getMaxHealth(), "the heal wand didn't heal");

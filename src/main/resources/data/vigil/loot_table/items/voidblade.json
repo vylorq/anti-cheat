@@ -32,6 +32,7 @@
                     "vigil:x2c7067b20d"
                   ]
                 },
+                "minecraft:item_model": "vigil:x2c7067b20d",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:voidblade"

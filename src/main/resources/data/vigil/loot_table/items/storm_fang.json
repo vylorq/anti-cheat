@@ -37,6 +37,7 @@
                     "vigil:x4182ff2655"
                   ]
                 },
+                "minecraft:item_model": "vigil:x4182ff2655",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:storm_fang"

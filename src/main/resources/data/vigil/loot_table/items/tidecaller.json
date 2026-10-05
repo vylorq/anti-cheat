@@ -37,6 +37,7 @@
                     "vigil:xe44016eaf4"
                   ]
                 },
+                "minecraft:item_model": "vigil:xe44016eaf4",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:tidecaller"

@@ -37,6 +37,7 @@
                     "vigil:x4d678e25c6"
                   ]
                 },
+                "minecraft:item_model": "vigil:x4d678e25c6",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:forge_cleaver"

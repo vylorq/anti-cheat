@@ -13,7 +13,6 @@ import com.vylorq.anticheat.util.Msg;
 import net.minecraft.block.BedBlock;
 import net.minecraft.block.Blocks;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -37,7 +36,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -155,7 +153,7 @@ public final class HomeTeleport {
                 "Right-click a block at your home to place it", "(your team's land, a claim you're in, or near your bed)",
                 "Use it: go to the lobby", "In the lobby: /home brings you back", "One per player"));
         ItemConv.setTag(s, KEY, "1");
-        s.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(List.of(), List.of(), List.of(com.vylorq.anticheat.util.PackIds.model("home_teleporter")), List.of()));
+        com.vylorq.anticheat.util.PackIds.apply(s, "home_teleporter");
         s.set(DataComponentTypes.MAX_STACK_SIZE, 1);
         return s;
     }

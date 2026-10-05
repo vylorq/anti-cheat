@@ -37,6 +37,7 @@
                     "vigil:xb41da33d39"
                   ]
                 },
+                "minecraft:item_model": "vigil:xb41da33d39",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:shadow_cloak"

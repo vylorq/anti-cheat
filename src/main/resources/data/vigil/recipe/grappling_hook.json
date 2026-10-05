@@ -41,6 +41,7 @@
           "vigil:x9c840dc0df"
         ]
       },
+      "minecraft:item_model": "vigil:x9c840dc0df",
       "minecraft:use_cooldown": {
         "seconds": 0.05,
         "cooldown_group": "vigil:grappling_hook"

@@ -37,6 +37,7 @@
                     "vigil:x6a7114d16c"
                   ]
                 },
+                "minecraft:item_model": "vigil:x6a7114d16c",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:dune_blade"

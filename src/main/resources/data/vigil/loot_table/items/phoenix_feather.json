@@ -37,6 +37,7 @@
                     "vigil:xe941643924"
                   ]
                 },
+                "minecraft:item_model": "vigil:xe941643924",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:phoenix_feather"

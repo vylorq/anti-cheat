@@ -32,6 +32,7 @@
                     "vigil:xfc3a0b8c8a"
                   ]
                 },
+                "minecraft:item_model": "vigil:xfc3a0b8c8a",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:seeker_compass"

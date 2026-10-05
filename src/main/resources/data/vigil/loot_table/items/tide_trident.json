@@ -37,6 +37,7 @@
                     "vigil:x549abbf707"
                   ]
                 },
+                "minecraft:item_model": "vigil:x549abbf707",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:tide_trident"

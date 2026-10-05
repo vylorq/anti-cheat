@@ -36,6 +36,7 @@
           "vigil:xa0f447057e"
         ]
       },
+      "minecraft:item_model": "vigil:xa0f447057e",
       "minecraft:use_cooldown": {
         "seconds": 0.05,
         "cooldown_group": "vigil:backpack"

@@ -35,6 +35,7 @@
           "vigil:x6ec9054e9e"
         ]
       },
+      "minecraft:item_model": "vigil:x6ec9054e9e",
       "minecraft:use_cooldown": {
         "seconds": 0.05,
         "cooldown_group": "vigil:magnet_charm"

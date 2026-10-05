@@ -32,6 +32,7 @@
                     "vigil:x1d876e2bd4"
                   ]
                 },
+                "minecraft:item_model": "vigil:x1d876e2bd4",
                 "minecraft:use_cooldown": {
                   "seconds": 0.05,
                   "cooldown_group": "vigil:ender_pouch"
