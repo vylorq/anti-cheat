@@ -53,6 +53,11 @@ VINE = Mat(["#13230b", "#1e3612", "#294a19", "#386224"], "bark")
 EMBER = Mat(["#1e0905", "#331009", "#4a170c", "#621f10"], veins="#ff9a2a", vein_density=0.14)
 MAGMA = Mat(["#8a2a08", "#d4560f", "#ff8a1f", "#ffd25a"], cell=1, mix=(0.2, 0.45, 0.25, 0.1))
 SHADOW = Mat(["#060409", "#0d0912", "#15101c", "#1f1829"], "bands", veins="#9a5cff", vein_density=0.05)
+SCALES_SEA = Mat(["#0f2a26", "#1a4038", "#25584c", "#367462"], "scales")
+FIN = Mat(["#173f3a", "#25605a", "#3a8a80", "#5fb8a8"], "bark")
+CHITIN = Mat(["#120d06", "#22190b", "#3a2a12", "#6a5222"], "plates")
+JACKAL = Mat(["#07070a", "#0f0f14", "#18181f", "#24242e"])
+SKULL = Mat(["#a8a48e", "#c8c4ac", "#dedac4", "#f4f2e4"], cell=1)
 WING_DARK = Mat(["#140604", "#1f0a06", "#2b0f09", "#38140c"])
 
 
@@ -144,37 +149,43 @@ def deepslate_colossus():
 
 
 def drowned_warden():
+    """A sea serpent: a coiled tail on the ground, a drowned king's body, tentacles hanging from the face."""
     m = Model("drowned_warden")
-    m.pair((-9, 0, -4), (7, 16, 8), CLOTH_DROWNED)
-    m.pair((-9.5, 0, -4.5), (8, 4, 9), SKIN_DROWNED)
-    m.box((-11, 15, -6), (22, 5, 12), PRISMARINE)
-    m.box((-12, 20, -7), (24, 12, 13), DROWNED_RIBS)
-    m.box((-13, 30, -8), (26, 8, 14), PRISMARINE)
-    m.pair((-21, 31, -8), (10, 8, 15), PRISMARINE)
-    m.pair((-19, 39, -3), (2, 6, 2), PRISMARINE, rot=("z", 22.5))
-    # Long arms, webbed claws.
-    m.pair((-19, 12, -4), (6, 21, 7), SKIN_DROWNED)
-    m.pair((-19.5, 6, -4.5), (7, 7, 8), SKIN_DROWNED)
-    claws(m, -16, 7, 2, BONE, n=3, length=5, spread=2)
-    # Head low between the shoulders, a crooked crown, kelp hair.
-    m.box((-7, 29, 2), (14, 13, 12), SKIN_DROWNED,
-          decal={"south": maw("#5fffe0", brow="#06110e", mouth="#020807", teeth="#a8c8b4", eye_row=0.26, gap=4,
-                              mouth_row=0.6, mouth_w=10, mouth_h=4)})
-    crown = ("z", 22.5, (0, 42, 8))
-    m.box((-7.5, 42, 1.5), (15, 2, 13), GOLD, rot=crown)
-    for x, z, h in ((-7.5, 1.5, 4), (5.5, 1.5, 4), (-1, 12.5, 6), (-4.5, 12.5, 4), (2.5, 12.5, 4)):
-        m.box((x, 44, z), (2, h, 2), GOLD_RAW, rot=crown)
-    m.pair((-8, 26, 4), (1, 15, 2), KELP)
-    m.pair((-8, 28, 9), (1, 12, 2), KELP)
-    m.box((-6, 30, 1), (2, 14, 1), KELP)
-    m.box((3, 26, 1), (2, 16, 1), KELP)
-    m.pair((-15, 18, -9), (2, 16, 1), KELP)
+    # Coiled tail.
+    m.box((-14, 0, -12), (28, 6, 8), SCALES_SEA)
+    m.box((-17, 0, -6), (7, 6, 14), SCALES_SEA)
+    m.box((10, 0, -6), (7, 6, 14), SCALES_SEA)
+    m.box((-12, 0, 8), (16, 5, 6), SCALES_SEA)
+    m.box((4, 0, 9), (10, 4, 4), SCALES_SEA)
+    m.box((14, 0, 10), (5, 3, 3), SCALES_SEA)
+    m.box((19, 0, 10.5), (3, 2, 2), FIN)
+    # Body rising out of the coil.
+    m.box((-8, 5, -6), (16, 8, 12), SCALES_SEA)
+    m.box((-7, 12, -4), (14, 9, 11), SCALES_SEA, decal={"south": stripes("#4f8f78", every=2, vertical=False)})
+    m.box((-0.5, 8, -9), (1, 26, 4), FIN)
+    m.box((-11, 20, -5), (22, 13, 11), DROWNED_RIBS)
+    m.pair((-18, 29, -6), (8, 6, 12), PRISMARINE)
+    m.pair((-17, 34, -2), (2, 6, 2), PRISMARINE, rot=("z", 22.5))
+    m.pair((-17, 12, -3), (5, 19, 6), SKIN_DROWNED)
+    claws(m, -14.5, 12, 1.5, BONE, n=3, length=5, spread=1.5)
+    # Head with fin ears, a crooked crown and a beard of tentacles.
+    m.box((-6, 31, 0), (12, 12, 11), SKIN_DROWNED,
+          decal={"south": maw("#5fffe0", brow="#06110e", mouth="#020807", teeth="#a8c8b4", eye_row=0.22, gap=3,
+                              mouth_row=0.55, mouth_w=10, mouth_h=3)})
+    m.pair((-10, 35, 2), (4, 8, 6), FIN, rot=("z", 22.5))
+    crown = ("z", 22.5, (0, 43, 5))
+    m.box((-6.5, 43, -0.5), (13, 2, 12), GOLD, rot=crown)
+    for x, z, h in ((-6.5, -0.5, 4), (4.5, -0.5, 4), (-1, 9.5, 6), (-4.5, 9.5, 4), (2.5, 9.5, 4)):
+        m.box((x, 45, z), (2, h, 2), GOLD_RAW, rot=crown)
+    for x, h in ((-5, 8), (-2.5, 11), (0.5, 12), (3, 9)):
+        m.box((x, 33 - h, 9), (2, h, 2), SKIN_DROWNED, rot=("x", 22.5, (x + 1, 33, 10)))
     # Trident.
-    m.box((-24, 0, -1), (2, 50, 2), PRISMARINE)
-    m.box((-28, 46, -1), (10, 2, 2), PRISMARINE)
-    m.box((-28, 48, -1), (2, 6, 2), PRISMARINE)
-    m.box((-20, 48, -1), (2, 6, 2), PRISMARINE)
-    m.box((-24, 48, -1), (2, 10, 2), PRISMARINE)
+    m.box((-22, 0, -1), (2, 50, 2), PRISMARINE)
+    m.box((-26, 46, -1), (10, 2, 2), PRISMARINE)
+    m.box((-26, 48, -1), (2, 6, 2), PRISMARINE)
+    m.box((-18, 48, -1), (2, 6, 2), PRISMARINE)
+    m.box((-22, 48, -1), (2, 10, 2), PRISMARINE)
+    m.box((-20, 14, -2), (3, 5, 5), SKIN_DROWNED)
     m.build()
 
 
@@ -210,105 +221,110 @@ def storm_phantom():
 
 
 def forgemaster():
+    """A four-armed forge demon on goat legs, with a furnace for a belly and a barbed tail."""
     m = Model("forgemaster")
-    m.pair((-11, 0, -5), (8, 16, 10), BLACKSTONE)
-    m.pair((-12, 0, -6), (10, 5, 12), IRON_DARK)
-    m.box((-12, 14, -6), (24, 7, 12), CHAIN)
-    m.box((-13, 20, -7), (26, 14, 14), BLACKSTONE, decal={"south": spot("#ffd25a", 0.5, 0.4, 4, 3, ring="#ff5a10")})
-    m.box((-16, 31, -9), (32, 9, 17), BLACKSTONE)
-    m.pair((-25, 31, -9), (11, 9, 17), IRON_DARK)
-    for z in (-6, 0):
-        m.pair((-23, 40, z), (2, 6, 2), BONE_DARK, rot=("z", 22.5))
-    for x, h in ((-5, 4), (-1, 6), (3, 4)):
-        m.box((x, 40, -8.5), (2, h, 2), BONE_DARK, rot=("x", -22.5))
-    # Long arms with gauntlets and claws.
-    m.pair((-23, 14, -5), (8, 18, 10), BLACKSTONE)
-    m.pair((-23.5, 6, -5.5), (9, 10, 11), IRON_DARK)
-    m.pair((-23, 2, -5), (8, 5, 10), BLACKSTONE)
-    claws(m, -19, 3, 3.5, BONE_DARK, n=3, length=4, spread=2.5)
-    # Demon head sunk between the shoulders, burning maw, huge curling horns.
-    m.box((-7, 27, 4), (14, 13, 12), BLACKSTONE,
-          decal={"south": maw("#ffb52a", brow="#050305", mouth="#ff5a10", teeth="#1c1416", eye_row=0.26, gap=4,
-                              mouth_row=0.6, mouth_w=10, mouth_h=4)})
-    m.pair((-12, 35, 8), (5, 3, 4), BONE_DARK)
-    m.pair((-15, 36, 8), (3, 8, 3), BONE, rot=("z", 22.5, (-13.5, 36, 9.5)))
-    m.pair((-16, 42, 8.5), (2, 7, 2), BONE, rot=("z", -22.5, (-15, 42, 9.5)))
-    m.pair((-13, 47, 8.5), (2, 4, 2), BONE, rot=("z", -45, (-12, 47, 9.5)))
+    m.pair((-12, 15, -4), (7, 11, 8), BLACKSTONE, rot=("x", -22.5))
+    m.pair((-11.5, 4, 0), (6, 12, 6), BLACKSTONE, rot=("x", 22.5))
+    m.pair((-12.5, 0, -3), (7, 5, 8), IRON_DARK)
+    m.box((-11, 24, -5), (22, 6, 10), CHAIN)
+    m.box((-2, 24, -14), (4, 4, 10), BLACKSTONE, rot=("x", 22.5))
+    m.box((-1.5, 20, -22), (3, 3, 9), BLACKSTONE)
+    m.box((-2.5, 19, -26), (5, 5, 4), BONE_DARK, rot=("x", 45))
+    furnace = chain(spot("#ffd25a", 0.5, 0.55, 10, 6, ring="#ff5a10"), stripes("#1d181f", every=3))
+    m.box((-13, 29, -7), (26, 13, 14), BLACKSTONE, decal={"south": furnace})
+    m.box((-16, 40, -8), (32, 8, 16), BLACKSTONE)
+    m.pair((-26, 39, -8), (11, 9, 16), IRON_DARK)
+    for x in (-24, -20):
+        m.pair((x, 48, -2), (2, 6, 2), BONE_DARK, rot=("z", 22.5))
+    for x, h in ((-5, 5), (-1, 8), (3, 5)):
+        m.box((x, 48, -8), (2, h, 2), BONE_DARK, rot=("x", -22.5))
+    # Big upper arms with gauntlets and claws.
+    m.pair((-24, 22, -5), (8, 18, 9), BLACKSTONE)
+    m.pair((-24.5, 14, -5.5), (9, 9, 10), IRON_DARK)
+    claws(m, -20, 14, 3, BONE_DARK, n=3, length=4, spread=2.5)
+    # Smaller lower arms reaching forward.
+    m.pair((-17, 18, 3), (5, 13, 5), BLACKSTONE, rot=("x", -45, (-14.5, 30, 5.5)))
+    # Small demon head sunk between the shoulders, ram horns.
+    m.box((-6, 36, 6), (12, 11, 10), BLACKSTONE,
+          decal={"south": maw("#ffb52a", brow="#050305", mouth="#ff5a10", teeth="#1c1416", eye_row=0.24, gap=3,
+                              mouth_row=0.58, mouth_w=8, mouth_h=3)})
+    m.pair((-10, 43, 8), (5, 4, 5), BONE_DARK)
+    m.pair((-13, 40, 8), (4, 7, 5), BONE, rot=("z", -22.5))
+    m.pair((-12, 36, 10), (3, 5, 3), BONE, rot=("x", -22.5))
     # Forge hammer.
-    m.box((23, 2, -1), (2, 34, 2), WOOD)
-    m.box((19, 30, -6), (10, 10, 12), IRON_DARK, decal={"south": spot("#ff8a1f", 0.5, 0.5, 4, 2, ring="#ff5a10"),
-                                                          "north": spot("#ff8a1f", 0.5, 0.5, 4, 2, ring="#ff5a10")})
+    m.box((25, 2, -1), (2, 30, 2), WOOD)
+    m.box((21, 28, -6), (10, 9, 12), IRON_DARK, decal={"south": spot("#ff8a1f", 0.5, 0.5, 4, 2, ring="#ff5a10")})
     m.build()
 
 
 def sand_colossus():
+    """A mummified pharaoh grown into a giant scorpion: eight legs, pincers and a stinger raised over its head."""
     m = Model("sand_colossus")
     stripe = lambda *sides: {s: stripes("#18307e", every=3, vertical=False) for s in sides}  # noqa: E731
-    m.pair((-9, 0, -4), (6, 22, 7), WRAPS)
-    m.pair((-10, 0, -5), (8, 3, 9), WRAPS_DARK)
-    m.box((-10, 21, -5), (20, 6, 10), WRAPS)
-    m.box((-5, 10, 5), (10, 14, 1), WRAPS_DARK)
-    m.box((-10.5, 25, -5.5), (21, 2, 11), GOLD)
-    m.box((-12, 27, -6), (24, 15, 12), MUMMY_RIBS)
-    m.box((-14, 37, -8), (28, 8, 15), WRAPS)
-    m.box((-14.5, 41, -8.5), (29, 3, 16), GOLD, decal={"south": stripes("#18307e", every=3)})
-    # Long gaunt arms with bony claws and loose wraps.
-    m.pair((-19, 14, -3), (5, 28, 6), WRAPS)
-    m.pair((-19.5, 8, -3.5), (6, 7, 7), WRAPS_DARK)
-    claws(m, -16.5, 9, 2, BONE, n=3, length=6, spread=2)
-    m.pair((-18, 2, 0), (1, 12, 2), WRAPS_DARK)
-    m.pair((-15, 20, -4), (1, 14, 1), WRAPS_DARK)
-    m.box((-4, 8, -6), (2, 18, 1), WRAPS_DARK)
-    m.box((3, 4, -6), (1, 22, 1), WRAPS_DARK)
-    # Dark face with burning eyes inside a gold headdress, cobra on the brow.
-    m.box((-7, 37, 3), (14, 13, 10), WRAPS_DARK,
-          decal={"south": maw("#ffd02a", mouth="#000000", teeth="#d8c8a0", eye_row=0.28, gap=4, mouth_row=0.62,
-                              mouth_w=8, mouth_h=4, mask=0.25)})
-    m.box((-9, 38, -3), (18, 14, 8), GOLD_RAW, decal=stripe("east", "west", "north", "south"))
-    m.box((-8.5, 50, -2.5), (17, 2, 15), GOLD_RAW, decal={"up": stripes("#18307e", every=3)})
-    m.pair((-10, 28, 3), (3, 18, 4), GOLD_RAW, decal=stripe("south", "east", "west"))
-    m.box((-1, 50, 11), (2, 6, 2), GOLD_RAW, decal={"south": spot("#ff2a1a", 0.5, 0.25)})
-    m.box((-1.5, 31, 10), (3, 7, 2), LAPIS)
-    # Staff topped with a skull.
-    m.box((-23, 0, -1), (2, 56, 2), WOOD)
-    m.box((-25.5, 56, -2.5), (7, 7, 6), BONE, decal={"south": face("#ffd02a", eye_w=2, eye_h=2, eye_row=0.25, gap=1,
-                                                                    mouth="#1a140c", mouth_row=0.7, mouth_w=4,
-                                                                    mouth_h=2, teeth="#ebe8d6")})
+    m.box((-9, 6, -16), (18, 7, 24), CHITIN)
+    for z in (4, -2, -8, -14):
+        m.box((-8, 12.5, z), (16, 1, 5), GOLD_RAW)
+    m.box((-7, 5, -22), (14, 6, 7), CHITIN)
+    # Eight legs: up and out from the body, then down to sharp tips.
+    for z, ang in ((6, 22.5), (0, 0), (-6, 0), (-12, -22.5)):
+        rot = ("y", ang, (-9, 10, z + 1)) if ang else None
+        m.pair((-20, 9, z), (11, 2, 2), CHITIN, rot=("z", -22.5, (-9, 10, z + 1)))
+        m.pair((-24, 0, z), (2, 14, 2), CHITIN, rot=("z", 22.5, (-23, 14, z + 1)))
+    # Pincers held up in front.
+    m.pair((-13, 9, 6), (4, 4, 12), CHITIN, rot=("x", -22.5, (-11, 11, 6)))
+    m.pair((-17, 13, 16), (9, 8, 9), CHITIN)
+    m.pair((-17, 15, 25), (3, 6, 7), CHITIN)
+    m.pair((-12, 13, 25), (3, 4, 5), CHITIN)
+    # Stinger tail curling high over the back.
+    m.box((-3, 8, -29), (6, 6, 8), CHITIN)
+    m.box((-2.5, 12, -33), (5, 10, 5), CHITIN, rot=("x", -22.5))
+    m.box((-2.5, 21, -34), (5, 10, 5), CHITIN)
+    m.box((-2, 30, -32), (4, 8, 4), CHITIN, rot=("x", 22.5))
+    m.box((-2, 36, -27), (4, 4, 6), CHITIN, rot=("x", 45))
+    m.box((-1, 34, -21), (2, 2, 5), Mat(["#6a5a10", "#a89020", "#e0c838", "#fff27a"], cell=1), rot=("x", 45))
+    # Mummy torso on the front.
+    m.box((-8, 14, -2), (16, 14, 10), MUMMY_RIBS)
+    m.box((-10, 26, -3), (20, 6, 12), WRAPS)
+    m.box((-10.5, 30, -3.5), (21, 2, 13), GOLD, decal={"south": stripes("#18307e", every=3)})
+    m.pair((-14, 12, 0), (4, 18, 5), WRAPS)
+    claws(m, -12, 12, 3, BONE, n=3, length=5, spread=1.5)
+    m.pair((-13, 6, 2), (1, 10, 1), WRAPS_DARK)
+    m.box((-6, 30, 2), (12, 12, 9), WRAPS_DARK,
+          decal={"south": maw("#ffd02a", mouth="#000000", teeth="#d8c8a0", eye_row=0.28, gap=3, mouth_row=0.62,
+                              mouth_w=8, mouth_h=3, mask=0.25)})
+    m.box((-8, 31, -3), (16, 13, 7), GOLD_RAW, decal=stripe("east", "west", "north", "south"))
+    m.box((-7.5, 42, -2.5), (15, 2, 14), GOLD_RAW, decal={"up": stripes("#18307e", every=3)})
+    m.pair((-9, 22, 2), (3, 15, 4), GOLD_RAW, decal=stripe("south", "east", "west"))
+    m.box((-1, 42, 9), (2, 6, 2), GOLD_RAW, decal={"south": spot("#ff2a1a", 0.5, 0.25)})
     m.build()
 
 
 def frost_titan():
+    """A starved frost giant: an antlered skull for a head, ribs showing, long thin arms with icicle claws."""
     m = Model("frost_titan")
-    m.pair((-12, 0, -6), (9, 20, 11), FROST_SKIN)
-    m.pair((-13, 0, -7), (11, 7, 13), ICE)
-    m.box((-13, 18, -7), (26, 6, 14), FROST_FUR)
-    m.box((-14, 23, -7), (28, 14, 14), ICE, decal={"south": spot("#e6ffff", 0.5, 0.45, 4, 3, ring="#2c548e")})
-    m.box((-17, 34, -9), (34, 9, 17), FROST_FUR)
-    m.pair((-26, 33, -9), (11, 10, 17), ICE)
-    # A forest of ice spikes on the back and shoulders.
-    for x, z, h, a in ((-25, -4, 10, ("z", 22.5)), (-21, -7, 7, ("x", -22.5)), (-20, 2, 6, ("z", 45)),
-                       (-12, -6, 9, ("x", -22.5)), (-6, -8, 12, ("x", -22.5)), (-2, -3, 8, ("z", 22.5))):
-        m.pair((x, 42, z), (3, h, 3), ICE_RAW, rot=a)
-    m.box((-1.5, 42, -9), (3, 14, 3), ICE_RAW, rot=("x", -22.5))
-    # Arms with ice gauntlets and icicle claws.
-    m.pair((-24, 15, -5), (9, 20, 10), FROST_SKIN)
-    m.pair((-24.5, 7, -5.5), (10, 9, 11), ICE)
-    m.pair((-24, 2, -5), (9, 6, 10), FROST_SKIN)
-    claws(m, -19.5, 3, 3.5, ICE_RAW, n=3, length=5, spread=3)
-    # Head low and forward, icicle teeth, frozen beard, crown of ice horns.
-    m.box((-8, 29, 4), (16, 14, 12), FROST_SKIN,
-          decal={"south": maw("#d6ffff", brow="#05101c", mouth="#020810", teeth="#e2f2ff", eye_row=0.26, gap=4,
-                              mouth_row=0.6, mouth_w=12, mouth_h=4)})
-    m.box((-6, 24, 13), (12, 5, 3), ICE_RAW)
-    for x, h in ((-5, 5), (-2, 8), (1, 7), (4, 4)):
-        m.box((x, 24 - h, 13.5), (2, h, 2), ICE_RAW)
-    m.pair((-10, 39, 8), (3, 10, 3), ICE_RAW, rot=("z", 22.5))
-    m.pair((-5, 42, 6), (2, 8, 2), ICE_RAW, rot=("z", 22.5))
-    m.box((-1, 42, 6), (2, 10, 2), ICE_RAW)
-    # Glacier axe.
-    m.box((24, 0, -1), (2, 46, 2), WOOD)
-    m.box((23.5, 33, 1), (3, 12, 10), ICE_RAW)
-    m.box((23.5, 35, -5), (3, 8, 6), ICE_RAW)
+    m.pair((-8, 0, -3), (4, 26, 5), FROST_SKIN)
+    m.pair((-8.5, 0, -3.5), (5, 4, 7), ICE)
+    m.box((-7, 25, -4), (14, 4, 8), FROST_SKIN)
+    m.box((-10, 28, -2), (20, 13, 9), Mat(["#0c1824", "#1f3448", "#8fa4b6", "#b2c4d2"], "ribs"))
+    m.box((-11, 38, 0), (22, 8, 11), FROST_SKIN)
+    m.box((-12, 30, -5), (24, 17, 3), FROST_FUR)
+    for z, h in ((-4, 8), (0, 10), (4, 7)):
+        m.box((-1.5, 45, z), (3, h, 3), ICE_RAW, rot=("x", -22.5))
+    m.pair((-12, 44, 0), (3, 7, 3), ICE_RAW, rot=("z", 22.5))
+    # Arms nearly dragging on the ground.
+    m.pair((-15, 10, 3), (4, 34, 4), FROST_SKIN)
+    m.pair((-15.5, 6, 2.5), (5, 5, 5), FROST_SKIN)
+    claws(m, -13, 7, 6, ICE_RAW, n=3, length=6, spread=1.5)
+    # Neck pushed forward, deer skull with a long toothy snout and huge antlers.
+    m.box((-2, 40, 10), (4, 4, 6), FROST_SKIN)
+    m.box((-5, 38, 14), (10, 10, 9), SKULL,
+          decal={"south": face("#7ff8ff", eye_w=2, eye_h=2, eye_row=0.3, gap=2, brow="#000000", mask=0.15)})
+    m.box((-3, 37, 23), (6, 6, 7), SKULL, decal={"south": snout("#05080c", "#f4f2e4")})
+    m.pair((-6, 46, 17), (2, 10, 2), SKULL, rot=("z", 22.5, (-5, 46, 18)))
+    m.pair((-15, 53, 17), (8, 2, 2), SKULL, rot=("z", -22.5, (-9, 54, 18)))
+    m.pair((-11, 55, 17), (2, 7, 2), SKULL, rot=("z", 22.5))
+    m.pair((-16, 56, 17), (2, 9, 2), SKULL, rot=("z", 22.5))
+    m.pair((-8, 57, 17), (2, 5, 2), SKULL)
     m.build()
 
 
@@ -340,36 +356,23 @@ def thornback_beast():
 
 
 def hollow_watcher():
+    """A floating eye: one giant eye over a jaw full of teeth, smaller eyes on stalks, tentacles hanging below."""
     m = Model("hollow_watcher")
-    m.box((-12, 14, -8), (24, 32, 1), CLOAK)
-    m.pair((-13, 8, -8), (4, 20, 1), CLOAK)
-    m.pair((-7, 0, -3), (4, 26, 5), VOID)
-    m.pair((-8, 0, -4), (6, 3, 8), VOID)
-    claws(m, -5, 2, 4, BONE_DARK, n=2, length=3, spread=3)
-    m.box((-8, 25, -4), (16, 5, 8), BONE_DARK)
-    m.box((-10, 30, -5), (20, 15, 10), VOID_RIBS)
-    m.box((-15, 44, -6), (30, 5, 12), VOID)
-    for x, h in ((-15, 10), (-11, 7)):
-        m.pair((x, 48, -3), (2, h, 2), SCULK, rot=("z", 22.5))
-    # Arms reaching the ground with long bone claws.
-    m.pair((-16, 10, -2), (4, 35, 4), VOID)
-    m.pair((-17, 5, -3), (6, 6, 6), VOID)
-    claws(m, -14, 6, 2, BONE, n=3, length=8, spread=2)
-    m.box((-2, 49, -2), (4, 3, 4), VOID)
-    # One huge eye and a ring of small ones, a stitched grin, sculk horns.
-    m.box((-7, 51, -4), (14, 14, 12), VOID,
-          decal={"south": chain(face("#3ff5ff", eyes=1, eye_w=4, eye_h=4, eye_row=0.25, brow="#000000", mask=0.2,
-                                     mouth="#000000", mouth_row=0.72, mouth_w=10, mouth_h=2, teeth="#8fdde6"),
-                                spot("#3ff5ff", 0.15, 0.25), spot("#3ff5ff", 0.85, 0.25), spot("#3ff5ff", 0.12, 0.5),
-                                spot("#3ff5ff", 0.88, 0.5), spot("#3ff5ff", 0.3, 0.1), spot("#3ff5ff", 0.7, 0.1))})
-    m.pair((-9, 61, 0), (2, 11, 2), SCULK, rot=("z", 22.5))
-    m.pair((-5, 64, -1), (2, 7, 2), SCULK, rot=("z", 22.5))
-    m.box((-1, 64, -2), (2, 10, 2), SCULK)
+    m.box((-12, 16, -12), (24, 22, 22), VOID,
+          decal={"south": face("#3ff5ff", eyes=1, eye_w=8, eye_h=6, eye_row=0.15, brow="#000000", mask=0.2,
+                               mouth="#000000", mouth_row=0.68, mouth_w=20, mouth_h=5, teeth="#cfe8ea")})
+    m.box((-10, 37, -10), (20, 3, 18), VOID)
+    m.box((-10, 14, -10), (20, 3, 18), VOID)
+    for x, z, h, a in ((-9, 0, 10, ("z", 22.5)), (-3, -6, 13, ("x", -22.5)), (5, 2, 9, ("z", -22.5)),
+                       (1, -9, 8, ("x", -45)), (-7, -8, 7, ("x", -22.5))):
+        m.box((x, 39, z), (2, h, 2), VOID, rot=a)
+    for x, y, z in ((-14, 50, 3), (-3, 53, -9), (9, 49, 4), (5, 47, -13), (-12, 46, -11)):
+        m.box((x, y - 3, z - 1), (5, 5, 5), VOID, decal={"south": face("#3ff5ff", eyes=1, eye_w=3, eye_h=2,
+                                                                       eye_row=0.3, brow=None, mask=0.3)})
+    for x, z, h in ((-9, 4, 16), (-4, 6, 18), (3, 6, 15), (8, 3, 17), (-8, -6, 14), (6, -7, 16), (-1, -9, 15)):
+        m.box((x, 15 - h, z), (2, h, 2), SCULK, rot=("x", -22.5 if z > 0 else 22.5, (x + 1, 15, z + 1)))
+    m.pair((-14, 22, -4), (2, 9, 2), SCULK, rot=("z", 45))
     m.build()
-
-
-# ---------------------------------------------------------------------------------------------------------------------
-# Guards
 
 
 def guard_face(eye, mouth="#050505", teeth="#d6d0bc", brow="#000000"):
@@ -378,18 +381,19 @@ def guard_face(eye, mouth="#050505", teeth="#d6d0bc", brow="#000000"):
 
 
 def vault_drowned():
+    """A deep-sea fish man: a huge toothy fish head with a glowing lure, fins and webbed claws."""
     m = Model("vault_drowned")
-    p = humanoid(m, (4, 12, 4), (8, 12, 5), (3, 15, 3), (8, 8, 8), CLOTH_DROWNED, DROWNED_RIBS, SKIN_DROWNED,
-                 SKIN_DROWNED, guard_face("#5fffe0", teeth="#a8c8b4"))
-    claws(m, p["hand_x"], p["hand_y"], 0.5, BONE, n=2, length=3, spread=1.5)
-    m.pair((-6, 21, -3), (3, 4, 6), PRISMARINE)
-    m.pair((-4.5, 18, 0), (1, 12, 1), KELP)
-    m.box((-1, 20, -5), (2, 10, 1), KELP)
-    m.box((-10, 0, 1), (1, 32, 1), PRISMARINE)
-    m.box((-11, 29, 1), (3, 1, 1), PRISMARINE)
-    m.box((-11, 30, 1), (1, 3, 1), PRISMARINE)
-    m.box((-9, 30, 1), (1, 3, 1), PRISMARINE)
-    m.box((-10, 30, 1), (1, 5, 1), PRISMARINE)
+    m.pair((-4, 0, -2), (3, 9, 4), SCALES_SEA)
+    m.box((-5, 9, -4), (10, 11, 7), SCALES_SEA)
+    m.box((-0.5, 14, -7), (1, 9, 6), FIN)
+    m.box((-6, 13, 1), (12, 11, 11), SKIN_DROWNED,
+          decal={"south": face("#5fffe0", eye_w=2, eye_h=2, eye_row=0.12, gap=6, brow="#000000", mask=0.5,
+                               mouth="#020807", mouth_row=0.45, mouth_w=12, mouth_h=5, teeth="#d0e8dc")})
+    m.pair((-8, 16, 4), (3, 6, 5), FIN, rot=("z", 22.5))
+    m.box((-0.5, 24, 5), (1, 8, 1), SKIN_DROWNED, rot=("x", 22.5))
+    m.box((-1, 30, 9), (2, 2, 2), Mat(["#8ffff0", "#c4fff8", "#ffffff", "#ffffff"], cell=1))
+    m.pair((-8, 5, -1), (3, 14, 3), SKIN_DROWNED)
+    claws(m, -6.5, 5, 0.5, BONE, n=2, length=3, spread=1.5)
     m.build()
 
 
@@ -409,44 +413,57 @@ def visor(eye):
 
 
 def sky_sentry():
+    """A floating armoured ghost: helmet and breastplate over a fading tail of cloth, wings and a spear."""
     m = Model("sky_sentry")
-    humanoid(m, (4, 12, 4), (8, 12, 4), (4, 13, 4), (8, 8, 8), IRON_DARK, QUARTZ, IRON_DARK, QUARTZ, visor("#7ff8ff"),
-             head_fwd=1, head_drop=1)
-    m.box((-1, 30, -4), (2, 5, 9), GOLD, rot=("x", -22.5))
-    m.pair((-7, 21, -3), (3, 4, 6), QUARTZ)
-    m.pair((-7, 24, -2), (1, 4, 1), GOLD_RAW, rot=("z", 22.5))
-    m.box((-4.5, 12, -2.5), (9, 2, 5), GOLD)
-    m.pair((-14, 8, -3), (8, 16, 1), FEATHER, rot=("z", -22.5, (-2, 22, -3)))
-    m.pair((-17, 4, -3), (4, 12, 1), FEATHER, rot=("z", -45, (-11, 14, -3)))
-    m.box((7, 0, 1), (1, 34, 1), WOOD)
-    m.box((6.5, 34, 0.5), (2, 7, 2), Mat(["#5fb8d8", "#8fdcf2", "#c8f4ff", "#ffffff"], cell=1))
+    m.box((-4, 22, -4), (8, 8, 8), QUARTZ, decal={"south": visor("#7ff8ff")})
+    m.box((-1, 29, -4), (2, 5, 9), GOLD, rot=("x", -22.5))
+    m.box((-5, 12, -3), (10, 10, 6), QUARTZ)
+    m.box((-5.5, 12, -3.5), (11, 2, 7), GOLD)
+    m.pair((-8, 19, -3), (4, 4, 6), QUARTZ)
+    m.pair((-8, 9, -2), (3, 11, 3), IRON_DARK)
+    claws(m, -6.5, 9, 0.5, GOLD_RAW, n=2, length=2, spread=1.5)
+    ghost = Mat(["#3a4a66", "#53668a", "#7088b0", "#9ab0d4"], "bands")
+    m.box((-4, 7, -2.5), (8, 5, 5), ghost)
+    m.box((-3, 3, -2), (6, 4, 4), ghost)
+    m.box((-2, 0, -1.5), (4, 3, 3), ghost)
+    m.pair((-15, 12, -3), (9, 14, 1), FEATHER, rot=("z", -22.5, (-4, 24, -3)))
+    m.pair((-19, 6, -3), (5, 12, 1), FEATHER, rot=("z", -45, (-12, 16, -3)))
+    m.box((8, 2, 1), (1, 34, 1), WOOD)
+    m.box((7.5, 36, 0.5), (2, 7, 2), Mat(["#5fb8d8", "#8fdcf2", "#c8f4ff", "#ffffff"], cell=1))
     m.build()
 
 
 def forge_brute():
+    """A gorilla-like brute: tiny legs, a massive chained chest, knuckles on the ground, a small head sunk low."""
     m = Model("forge_brute")
-    p = humanoid(m, (4, 10, 5), (11, 11, 7), (5, 14, 5), (9, 8, 8), BLACKSTONE, CHAIN, BLACKSTONE, BLACKSTONE,
-                 guard_face("#ffb52a", mouth="#ff5a10", teeth="#1a1416"), arm_gap=0.5, head_fwd=3, head_drop=3)
-    m.box((-6.5, 17, -4.5), (13, 5, 8), BLACKSTONE)
-    m.pair((-9, 20, -1), (2, 4, 2), BONE_DARK, rot=("z", 22.5))
-    m.pair((-6, 22, 2), (2, 4, 2), BONE, rot=("z", 22.5))
-    m.pair((-4, 16, 6.5), (1, 3, 1), BONE)
-    claws(m, p["hand_x"], p["hand_y"], 1.5, BONE_DARK, n=2, length=2, spread=2)
-    m.box((9, 0, -1), (2, 20, 2), WOOD)
-    m.box((8, 16, -1), (4, 8, 8), IRON_DARK, decal={"east": spot("#ff8a1f", 0.5, 0.5, 2, 2)})
+    m.pair((-4, 0, -3), (3, 6, 4), BLACKSTONE)
+    m.box((-7, 5, -5), (14, 12, 9), CHAIN)
+    m.box((-8, 15, -6), (16, 6, 11), BLACKSTONE)
+    for x in (-6, -2, 2):
+        m.box((x, 20, -4), (2, 4, 2), BONE_DARK, rot=("x", -22.5))
+    m.box((-3.5, 11, 4), (7, 7, 6), BLACKSTONE,
+          decal={"south": face("#ffb52a", eye_w=2, eye_h=1, eye_row=0.25, gap=1, brow="#000000", mask=0.4,
+                               mouth="#ff5a10", mouth_row=0.6, mouth_w=5, mouth_h=2, teeth="#1a1416")})
+    m.pair((-4.5, 13, 7), (1, 3, 1), BONE)
+    m.pair((-14, 4, -3), (6, 16, 7), BLACKSTONE)
+    m.pair((-14.5, 0, -3.5), (7, 5, 8), IRON_DARK)
     m.build()
 
 
 def tomb_husk():
+    """A jackal-headed tomb guardian: black jackal head with tall ears and a toothy snout, gold collar, wraps."""
     m = Model("tomb_husk")
-    p = humanoid(m, (4, 12, 4), (8, 12, 4), (3, 15, 3), (8, 8, 8), WRAPS, MUMMY_RIBS, WRAPS, WRAPS_DARK,
-                 face("#ffd02a", eye_w=2, eye_h=2, eye_row=0.3, gap=2, brow="#000000", mask=0.3, mouth="#000000",
-                      mouth_row=0.7, mouth_w=6, mouth_h=2, teeth="#d8c8a0"))
+    p = humanoid(m, (4, 12, 4), (8, 12, 4), (3, 15, 3), (7, 7, 7), WRAPS, MUMMY_RIBS, WRAPS, JACKAL,
+                 face("#ffd02a", eye_w=2, eye_h=1, eye_row=0.35, gap=2, brow="#000000", mask=0.6),
+                 head_fwd=2, head_drop=1)
     claws(m, p["hand_x"], p["hand_y"], 0.5, BONE, n=2, length=3, spread=1.5)
+    m.box((-2, 23, 5.5), (4, 3, 5), JACKAL, decal={"south": snout("#000000", "#e8e0c8")})
+    m.pair((-3.5, 30, 0), (2, 6, 1), JACKAL, rot=("x", -22.5))
+    m.box((-5, 21, -2.5), (10, 2, 6), GOLD, decal={"south": stripes("#18307e", every=2)})
     m.pair((-5.5, 2, 1), (1, 11, 1), WRAPS_DARK)
     m.box((-1, 14, 2.5), (2, 9, 1), WRAPS_DARK)
-    m.box((-5, 22, -2), (10, 9, 7), GOLD_RAW, decal={s: stripes("#18307e", every=3, vertical=False)
-                                                     for s in ("east", "west", "north", "up")})
+    m.box((-8, 0, 1), (1, 20, 1), GOLD_RAW)
+    m.box((-9, 20, 0), (3, 3, 3), GOLD_RAW, decal={"south": spot("#3a62cc", 0.5, 0.5)})
     m.build()
 
 
@@ -608,8 +625,8 @@ def shadow_echo():
 
 MODELS = {
     "deepslate_colossus": (deepslate_colossus, 4.3), "drowned_warden": (drowned_warden, 3.3),
-    "storm_phantom": (storm_phantom, 2.4), "forgemaster": (forgemaster, 3.7), "sand_colossus": (sand_colossus, 4.7),
-    "frost_titan": (frost_titan, 4.8), "thornback_beast": (thornback_beast, 3.1), "hollow_watcher": (hollow_watcher, 4.8),
+    "storm_phantom": (storm_phantom, 2.4), "forgemaster": (forgemaster, 3.7), "sand_colossus": (sand_colossus, 4.2),
+    "frost_titan": (frost_titan, 4.8), "thornback_beast": (thornback_beast, 3.1), "hollow_watcher": (hollow_watcher, 4.6),
     "vault_drowned": (vault_drowned, 1.95), "sky_sentry": (sky_sentry, 2.0), "forge_brute": (forge_brute, 1.95),
     "tomb_husk": (tomb_husk, 1.95), "ice_stray": (ice_stray, 2.0), "stone_crawler": (stone_crawler, 0.4),
     "scarab": (scarab, 0.4), "sculk_lurker": (sculk_lurker, 0.55), "jungle_stalker": (jungle_stalker, 0.95),

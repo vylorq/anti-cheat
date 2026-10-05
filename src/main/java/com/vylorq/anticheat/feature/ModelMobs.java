@@ -44,7 +44,8 @@ public final class ModelMobs {
 
     private static final Map<String, Style> STYLES = Map.ofEntries(
             Map.entry("storm_phantom", Style.FLYER), Map.entry("gale_phantom", Style.FLYER), Map.entry("shadow_echo", Style.FLYER),
-            Map.entry("ember_imp", Style.FLYER), Map.entry("thornback_beast", Style.QUAD), Map.entry("frostbite_bear", Style.QUAD),
+            Map.entry("ember_imp", Style.FLYER), Map.entry("hollow_watcher", Style.FLYER), Map.entry("sky_sentry", Style.FLYER),
+            Map.entry("thornback_beast", Style.QUAD), Map.entry("frostbite_bear", Style.QUAD),
             Map.entry("stone_crawler", Style.CRAWLER), Map.entry("scarab", Style.CRAWLER), Map.entry("sculk_lurker", Style.CRAWLER),
             Map.entry("jungle_stalker", Style.CRAWLER), Map.entry("vine_creeper", Style.CRAWLER));
 

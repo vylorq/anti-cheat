@@ -12,16 +12,16 @@
   "scale": 0.48
  },
  "forge_brute": {
-  "lift": 0.9836,
-  "scale": 1.2
+  "lift": 0.9844,
+  "scale": 1.3
  },
  "forgemaster": {
-  "lift": 1.8443,
-  "scale": 1.3365
+  "lift": 1.8526,
+  "scale": 1.3099
  },
  "frost_titan": {
-  "lift": 2.4175,
-  "scale": 1.6598
+  "lift": 2.4015,
+  "scale": 1.6706
  },
  "frostbite_bear": {
   "lift": 0.7051,
@@ -32,8 +32,8 @@
   "scale": 1.4545
  },
  "hollow_watcher": {
-  "lift": 2.4192,
-  "scale": 1.6562
+  "lift": 2.3392,
+  "scale": 1.5728
  },
  "ice_stray": {
   "lift": 1.0,
@@ -44,8 +44,8 @@
   "scale": 1.0133
  },
  "sand_colossus": {
-  "lift": 2.35,
-  "scale": 1.6348
+  "lift": 2.1299,
+  "scale": 2.0307
  },
  "scarab": {
   "lift": 0.1742,
@@ -61,7 +61,7 @@
  },
  "sky_sentry": {
   "lift": 1.0,
-  "scale": 0.7805
+  "scale": 0.7772
  },
  "stone_crawler": {
   "lift": 0.1716,
@@ -76,12 +76,12 @@
   "scale": 1.6923
  },
  "tomb_husk": {
-  "lift": 0.975,
-  "scale": 1.0065
+  "lift": 0.974,
+  "scale": 0.8667
  },
  "vault_drowned": {
   "lift": 0.975,
-  "scale": 0.8914
+  "scale": 0.975
  },
  "vine_creeper": {
   "lift": 0.2344,
