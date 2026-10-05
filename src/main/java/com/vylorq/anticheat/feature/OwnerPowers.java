@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -67,6 +68,8 @@ public final class OwnerPowers {
         public boolean realLightning;
         /** normal, grand or silent. */
         public String joinStyle = "normal";
+        /** Secret item id -> cooldown in seconds the owner set (replaces the item's own). */
+        public Map<String, Integer> itemCooldowns = new java.util.LinkedHashMap<>();
         /** Freeze wand: how far the circle reaches (blocks from the owner). */
         public int freezeRadius = 10;
         /** Players the freeze wand froze (so thawing only lets those go). */

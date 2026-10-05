@@ -148,7 +148,61 @@ public final class SecretItems {
     }
 
     private static void cool(ServerPlayerEntity p, ItemStack s, int ticks) {
-        p.getItemCooldownManager().set(s, ticks);
+        Integer set = setCooldown(idOf(s));
+        p.getItemCooldownManager().set(s, set != null ? set * 20 : ticks);
+    }
+
+    /** Each item's own cooldown in ticks (what it uses unless the owner set another). */
+    public static final Map<String, Integer> DEFAULT_COOLDOWNS = Map.ofEntries(
+            Map.entry(VOIDBLADE, 120), Map.entry(STORMBREAKER, 400), Map.entry(TIDECALLER, 300), Map.entry(PHOENIX, 12000),
+            Map.entry(SHADOW, 900), Map.entry(SEEKER, 200), Map.entry(HAMMER, 8), Map.entry(LUMBER, 60), Map.entry(GRAPPLE, 60),
+            Map.entry(MAGNET, 20), Map.entry(POUCH, 100), Map.entry(BACKPACK, 20), Map.entry("tide_trident", 160),
+            Map.entry("colossus_maul", 200), Map.entry("storm_fang", 120), Map.entry("forge_cleaver", 100),
+            Map.entry("dune_blade", 240), Map.entry("glacier_axe", 200), Map.entry("thornspine", 160), Map.entry("hollow_edge", 200));
+
+    /** The cooldown in seconds the owner set for this item, or null for its own. */
+    private static Integer setCooldown(String id) {
+        var m = OwnerPowers.state().itemCooldowns;
+        return id == null || m == null ? null : m.get(id);
+    }
+
+    private static long phoenixMillis() {
+        Integer set = setCooldown(PHOENIX);
+        return set != null ? set * 1000L : DEFAULT_COOLDOWNS.get(PHOENIX) * 50L;
+    }
+
+    /** Owner: sets an item's cooldown in seconds (null puts its own back). */
+    public static void setCooldown(ServerPlayerEntity p, String id, Integer seconds) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        var st = OwnerPowers.state();
+        if (st.itemCooldowns == null) {
+            st.itemCooldowns = new java.util.LinkedHashMap<>();
+        }
+        if (seconds == null) {
+            st.itemCooldowns.remove(id);
+        } else {
+            st.itemCooldowns.put(id, seconds);
+        }
+        OwnerPowers.save();
+        Msg.send(p, "secret.cooldown-set", id.replace('_', ' '), fmtSeconds(seconds != null ? seconds * 20 : DEFAULT_COOLDOWNS.get(id)));
+    }
+
+    /** Owner: every item's cooldown, its own or the one set. */
+    public static void listCooldowns(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        for (String id : ALL) {
+            Integer set = setCooldown(id);
+            Msg.send(p, set != null ? "secret.cooldown-entry-set" : "secret.cooldown-entry", id.replace('_', ' '),
+                    fmtSeconds(set != null ? set * 20 : DEFAULT_COOLDOWNS.get(id)));
+        }
+    }
+
+    private static String fmtSeconds(int ticks) {
+        return ticks % 20 == 0 ? (ticks / 20) + "s" : String.format(java.util.Locale.ROOT, "%.1fs", ticks / 20.0);
     }
 
     /** A pack sound for everyone near (they all have the pack), plus a quiet vanilla layer. */
@@ -418,7 +472,7 @@ public final class SecretItems {
             return false;
         }
         Long last = PHOENIX_COOLDOWN.get(p.getUuid());
-        if (last != null && System.currentTimeMillis() - last < 10 * 60_000L) {
+        if (last != null && System.currentTimeMillis() - last < phoenixMillis()) {
             return false;
         }
         var inv = p.getInventory();
@@ -896,7 +950,7 @@ public final class SecretItems {
         }
         if (ticks % 6000 == 0) {
             LAST_USE.clear();
-            PHOENIX_COOLDOWN.values().removeIf(t -> System.currentTimeMillis() - t > 10 * 60_000L);
+            PHOENIX_COOLDOWN.values().removeIf(t -> System.currentTimeMillis() - t > phoenixMillis());
         }
     }
 }

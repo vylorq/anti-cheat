@@ -3,7 +3,11 @@ package com.vylorq.anticheat.core.trader;
 import com.vylorq.anticheat.core.util.Location;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /** A frozen villager trader placed with the Trader Stick (section 23). */
@@ -29,4 +33,8 @@ public final class Trader {
     public String requestDay;
     /** How this trader is paid: "default" (server setting), "items", "emeralds" or "cash". */
     public String payment = "default";
+    /** Owner's own stock: item id -> how many, always in this trader's offers. */
+    public Map<String, Integer> pinned = new LinkedHashMap<>();
+    /** Items the owner took off this trader: never in its offers. */
+    public Set<String> blocked = new LinkedHashSet<>();
 }

@@ -134,6 +134,15 @@ public final class AdminCommands {
             })));
         }
         owner.then(secret);
+        var cooldown = literal("cooldown").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.SecretItems::listCooldowns));
+        for (String id : com.vylorq.anticheat.feature.SecretItems.ALL) {
+            cooldown.then(literal(id)
+                    .then(literal("default").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.SecretItems.setCooldown(p, id, null))))
+                    .then(CommandManager.argument("seconds", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 86400))
+                            .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.SecretItems.setCooldown(p, id,
+                                    com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "seconds"))))));
+        }
+        owner.then(cooldown);
         var boss = literal("boss");
         var bossSpawn = literal("spawn");
         for (String id : com.vylorq.anticheat.feature.Bosses.kinds()) {

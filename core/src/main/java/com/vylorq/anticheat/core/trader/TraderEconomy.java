@@ -52,6 +52,11 @@ public final class TraderEconomy {
         public List<String> neverSell = new ArrayList<>();
         /** Only sell items a player on the server already got naturally (off: traders always have stock). */
         public boolean onlyObtained = false;
+        /** A rare offer shows up only once in this many tries; a legendary one once in legendaryOdds. */
+        public int rareOdds = 1000;
+        public int legendaryOdds = 3000;
+        /** How many things one player may buy from traders a day (0 = no limit). */
+        public int buysPerDay = 0;
         /** Market prices move every this many minutes, up or down by up to {@link #priceSwing}. */
         public int priceChangeMinutes = 50;
         public double priceSwing = 0.15;
@@ -76,7 +81,7 @@ public final class TraderEconomy {
         public long marketPeriod = -1;
     }
 
-    public enum Refusal { NONE, SOLD_OUT, TRADER_WEEKLY_CAP, PLAYER_WEEKLY_CAP, IP_WEEKLY_CAP, RATE_LIMIT }
+    public enum Refusal { NONE, SOLD_OUT, TRADER_WEEKLY_CAP, PLAYER_WEEKLY_CAP, IP_WEEKLY_CAP, RATE_LIMIT, PLAYER_DAILY_CAP }
 
     private final Data data;
     private final Clock clock;
@@ -96,6 +101,18 @@ public final class TraderEconomy {
 
     public synchronized void markObtained(String itemId) {
         data.obtained.add(itemId);
+    }
+
+    /** Forgets every item players got, so traders start again from nothing. @return how many were forgotten */
+    public synchronized int resetObtained() {
+        int n = data.obtained.size();
+        data.obtained.clear();
+        return n;
+    }
+
+    /** Forgets one item, so traders stop selling it until a player gets it again. @return true if it was known */
+    public synchronized boolean forgetObtained(String itemId) {
+        return data.obtained.remove(itemId);
     }
 
     public synchronized boolean isObtained(String itemId) {
@@ -181,28 +198,49 @@ public final class TraderEconomy {
     /** Replaces the trader's offers with a new random set and schedules the next rotation. */
     public void rotate(Trader t, Settings s, Collection<String> illegal, SplittableRandom r) {
         long now = clock.nowMillis();
+        if (t.pinned == null) {
+            t.pinned = new LinkedHashMap<>();
+        }
+        if (t.blocked == null) {
+            t.blocked = new LinkedHashSet<>();
+        }
         List<Specialty.Entry> pool = new ArrayList<>();
         for (Specialty.Entry e : t.specialty.pool()) {
-            if (maySell(e.id(), s, illegal)) {
+            if (maySell(e.id(), s, illegal) && !t.blocked.contains(e.id())) {
                 pool.add(e);
             }
         }
         int want = s.minOffers + r.nextInt(Math.max(1, s.maxOffers - s.minOffers + 1));
         List<TraderOffer> offers = new ArrayList<>();
         Set<String> used = new HashSet<>();
-        if (t.specialty == Specialty.LIBRARIAN && maySell("minecraft:enchanted_book", s, illegal)) {
+        // The owner's own stock first: always there, whatever the rotation.
+        for (Map.Entry<String, Integer> pin : t.pinned.entrySet()) {
+            if (ALWAYS_BLOCKED.contains(pin.getKey())) {
+                continue;
+            }
+            TraderOffer o = new TraderOffer();
+            o.id = pin.getKey();
+            o.rarity = rarityOf(pin.getKey());
+            o.maxStock = o.stock = Math.max(1, pin.getValue());
+            if (used.add(o.signature())) {
+                offers.add(o);
+            }
+        }
+        want = Math.max(want, offers.size());
+        if (t.specialty == Specialty.LIBRARIAN && maySell("minecraft:enchanted_book", s, illegal)
+                && !t.blocked.contains("minecraft:enchanted_book")) {
             int books = Math.max(1, want - 2);
-            for (int i = 0; i < books * 3 && offers.size() < books; i++) {
+            for (int i = 0; i < books * 20 && offers.size() < books; i++) {
                 TraderOffer o = randomBook(r);
-                if (used.add(o.signature())) {
+                if (luckyEnough(o.rarity, s, r) && used.add(o.signature())) {
                     offers.add(o);
                 }
             }
         }
-        for (int i = 0; i < want * 4 && offers.size() < want && !pool.isEmpty(); i++) {
+        for (int i = 0; i < want * 20 && offers.size() < want && !pool.isEmpty(); i++) {
             Specialty.Entry e = pool.get(r.nextInt(pool.size()));
             TraderOffer o = fromEntry(e, r);
-            if (used.add(o.signature())) {
+            if (luckyEnough(o.rarity, s, r) && used.add(o.signature())) {
                 offers.add(o);
             }
         }
@@ -210,6 +248,27 @@ public final class TraderEconomy {
         t.mood = s.minMarkup + r.nextDouble() * (s.maxMarkup - s.minMarkup);
         long jitter = s.rotationJitterMinutes <= 0 ? 0 : r.nextLong(s.rotationJitterMinutes * 2L + 1) - s.rotationJitterMinutes;
         t.nextRotation = now + (s.rotationMinutes + jitter) * Durations.MINUTE;
+    }
+
+    /** Rare and legendary offers only make it into stock once in rareOdds / legendaryOdds tries. */
+    static boolean luckyEnough(Rarity rarity, Settings s, SplittableRandom r) {
+        return switch (rarity) {
+            case RARE -> r.nextInt(Math.max(1, s.rareOdds)) == 0;
+            case LEGENDARY -> r.nextInt(Math.max(1, s.legendaryOdds)) == 0;
+            default -> true;
+        };
+    }
+
+    /** The rarity an item has in any trader's list (common if none lists it). */
+    public static Rarity rarityOf(String id) {
+        for (Specialty sp : Specialty.values()) {
+            for (Specialty.Entry e : sp.pool()) {
+                if (e.id().equals(id)) {
+                    return e.rarity();
+                }
+            }
+        }
+        return Rarity.COMMON;
     }
 
     static TraderOffer randomBook(SplittableRandom r) {
@@ -277,6 +336,9 @@ public final class TraderEconomy {
         if (o.stock <= 0) {
             return Refusal.SOLD_OUT;
         }
+        if (s.buysPerDay > 0 && buysToday(player) >= s.buysPerDay) {
+            return Refusal.PLAYER_DAILY_CAP;
+        }
         if (o.rarity == Rarity.RARE || o.rarity == Rarity.LEGENDARY) {
             int traderCap = o.rarity == Rarity.RARE ? s.weeklyRareCap : s.weeklyLegendaryCap;
             int playerCap = o.rarity == Rarity.RARE ? s.perPlayerRarePerWeek : s.perPlayerLegendaryPerWeek;
@@ -304,6 +366,7 @@ public final class TraderEconomy {
             return ref;
         }
         o.stock--;
+        boughtToday(player, 1);
         if (o.rarity == Rarity.RARE || o.rarity == Rarity.LEGENDARY) {
             weeklyAdd("t:" + t.entity + ":" + o.rarity);
             weeklyAdd("p:" + player + ":" + o.rarity);
@@ -320,6 +383,27 @@ public final class TraderEconomy {
     /** Puts a unit back (the trade couldn't complete after claiming stock). */
     public synchronized void refund(TraderOffer o) {
         o.stock = Math.min(o.maxStock, o.stock + 1);
+    }
+
+    /** Puts a unit back and doesn't count it against the player's daily buys. */
+    public synchronized void refund(TraderOffer o, UUID player) {
+        refund(o);
+        boughtToday(player, -1);
+    }
+
+    /** How many things this player bought from traders today. */
+    public synchronized int buysToday(UUID player) {
+        String day = com.vylorq.anticheat.core.stats.AcStats.day(clock.nowMillis());
+        return data.sold.getOrDefault(day, Map.of()).getOrDefault("b:" + player, 0);
+    }
+
+    private void boughtToday(UUID player, int n) {
+        String day = com.vylorq.anticheat.core.stats.AcStats.day(clock.nowMillis());
+        Map<String, Integer> m = data.sold.computeIfAbsent(day, k -> new LinkedHashMap<>());
+        while (data.sold.size() > 3) {
+            data.sold.remove(data.sold.keySet().iterator().next());
+        }
+        m.merge("b:" + player, n, Integer::sum);
     }
 
     private double[] demandEntry(String sig) {
@@ -449,19 +533,15 @@ public final class TraderEconomy {
 
     // ---- Mystery boxes ----
 
-    /** Rolls a rarity for a mystery box: 60% common, 28% uncommon, 10% rare, 2% legendary. */
-    public static Rarity rollMystery(SplittableRandom r) {
-        int x = r.nextInt(100);
-        if (x < 2) {
+    /** Rolls a rarity for a mystery box: legendary 1 in legendaryOdds, rare 1 in rareOdds, 28% uncommon, else common. */
+    public static Rarity rollMystery(Settings s, SplittableRandom r) {
+        if (r.nextInt(Math.max(1, s.legendaryOdds)) == 0) {
             return Rarity.LEGENDARY;
         }
-        if (x < 12) {
+        if (r.nextInt(Math.max(1, s.rareOdds)) == 0) {
             return Rarity.RARE;
         }
-        if (x < 40) {
-            return Rarity.UNCOMMON;
-        }
-        return Rarity.COMMON;
+        return r.nextInt(100) < 28 ? Rarity.UNCOMMON : Rarity.COMMON;
     }
 
     /** Random offer of the given rarity from any specialty (used for mystery boxes and request rewards). */

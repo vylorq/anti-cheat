@@ -301,6 +301,37 @@ class GameplayTest {
     }
 
     @Test
+    void rareStockFollowsOddsAndOwnerStock() {
+        TraderEconomy e = new TraderEconomy(null, clock);
+        TraderEconomy.Settings s = settings();
+        SplittableRandom r = new SplittableRandom(5);
+        int rare = 0;
+        for (int i = 0; i < 200; i++) {
+            Trader t = new Trader();
+            t.entity = UUID.randomUUID();
+            t.specialty = Specialty.values()[i % Specialty.values().length];
+            e.rotate(t, s, List.of(), r);
+            for (TraderOffer o : t.offers) {
+                if (o.rarity == Rarity.RARE || o.rarity == Rarity.LEGENDARY) rare++;
+            }
+        }
+        assertTrue(rare < 10, "rare offers stay rare: " + rare);
+        Trader t = new Trader();
+        t.entity = UUID.randomUUID();
+        t.pinned.put("minecraft:oak_log", 32);
+        t.blocked.add("minecraft:oak_log");
+        e.rotate(t, s, List.of(), r);
+        assertTrue(t.offers.stream().anyMatch(o -> o.id.equals("minecraft:oak_log") && o.stock == 32), "owner's stock is there");
+        s.buysPerDay = 1;
+        UUID p = UUID.randomUUID();
+        TraderOffer o = t.offers.get(0);
+        assertEquals(TraderEconomy.Refusal.NONE, e.purchase(t, o, p, null, s));
+        assertEquals(TraderEconomy.Refusal.PLAYER_DAILY_CAP, e.purchase(t, o, p, null, s));
+        e.refund(o, p);
+        assertEquals(TraderEconomy.Refusal.NONE, e.purchase(t, o, p, null, s));
+    }
+
+    @Test
     void rotationOffersAreValid() {
         TraderEconomy e = new TraderEconomy(null, clock);
         TraderEconomy.Settings s = settings();

@@ -1257,7 +1257,40 @@ final class WorldCommands {
                     return 1;
                 }))
                 .then(literal("edit").then(Args.word("number").executes(ctx -> traderByIndex(ctx, false))))
-                .then(literal("remove").then(Args.word("number").executes(ctx -> traderByIndex(ctx, true)))));
+                .then(literal("remove").then(Args.word("number").executes(ctx -> traderByIndex(ctx, true))))
+                .then(literal("reset").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.TRADER_ADMIN);
+                    if (p != null) {
+                        Traders.resetObtained(p);
+                    }
+                    return 1;
+                }))
+                .then(literal("forget").then(Args.word("item").executes(ctx -> {
+                    ServerPlayerEntity p = staff(ctx, Perm.TRADER_ADMIN);
+                    if (p == null) return 0;
+                    String id = Traders.itemId(p, Args.str(ctx, "item"));
+                    if (id == null) {
+                        Msg.err(ctx.getSource(), "trader.bad-item");
+                        return 0;
+                    }
+                    Traders.forgetObtained(p, id);
+                    return 1;
+                })))
+                .then(literal("stock").then(Args.word("number")
+                        .executes(ctx -> stock(ctx, (p, t) -> Traders.stockList(p, t)))
+                        .then(literal("clear").executes(ctx -> stock(ctx, (p, t) -> Traders.stockClear(p, t))))
+                        .then(literal("remove").then(Args.word("item").executes(ctx -> stock(ctx, (p, t) -> {
+                            String id = Traders.itemId(p, Args.str(ctx, "item"));
+                            if (id == null) {
+                                Msg.err(ctx.getSource(), "trader.bad-item");
+                            } else {
+                                Traders.stockRemove(p, t, id);
+                            }
+                        }))))
+                        .then(literal("add").then(Args.word("item")
+                                .executes(ctx -> stockAdd(ctx, 16))
+                                .then(CommandManager.argument("amount", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 1000))
+                                        .executes(ctx -> stockAdd(ctx, com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "amount")))))))));
         d.register(literal("value").executes(ctx -> {
             ServerPlayerEntity p = self(ctx);
             if (p == null) return 0;
@@ -1316,6 +1349,38 @@ final class WorldCommands {
                     }
                     return 1;
                 })));
+    }
+
+    private static int stockAdd(CommandContext<ServerCommandSource> ctx, int amount) {
+        return stock(ctx, (p, t) -> {
+            String id = Traders.itemId(p, Args.str(ctx, "item"));
+            if (id == null) {
+                Msg.err(ctx.getSource(), "trader.bad-item");
+            } else {
+                Traders.stockAdd(p, t, id, amount);
+            }
+        });
+    }
+
+    /** Runs an action on the trader numbered as in /trader list. */
+    private static int stock(CommandContext<ServerCommandSource> ctx,
+                             java.util.function.BiConsumer<ServerPlayerEntity, com.vylorq.anticheat.core.trader.Trader> action) {
+        ServerPlayerEntity p = staff(ctx, Perm.TRADER_ADMIN);
+        if (p == null) return 0;
+        int n;
+        try {
+            n = Integer.parseInt(Args.str(ctx, "number"));
+        } catch (NumberFormatException e) {
+            Msg.err(ctx.getSource(), "general.bad-number");
+            return 0;
+        }
+        var list = new java.util.ArrayList<>(Ac.get().traders.traders.values());
+        if (n < 1 || n > list.size()) {
+            Msg.err(ctx.getSource(), "trader.not-found");
+            return 0;
+        }
+        action.accept(p, list.get(n - 1));
+        return 1;
     }
 
     private static int traderByIndex(CommandContext<ServerCommandSource> ctx, boolean remove) {

@@ -110,6 +110,9 @@ public final class Traders {
         s.tradesPerMinute = c.tradesPerMinute;
         s.neverSell = c.neverSell;
         s.onlyObtained = c.onlyObtainedItems;
+        s.rareOdds = c.rareOdds;
+        s.legendaryOdds = c.legendaryOdds;
+        s.buysPerDay = c.buysPerDay;
         s.priceChangeMinutes = c.priceChangeMinutes;
         s.priceSwing = c.priceSwing;
         s.minPrice = c.minPrice;
@@ -238,6 +241,90 @@ public final class Traders {
         LAST_ROTATION.put(t.entity, System.currentTimeMillis());
         Ac.markDirty("traders");
         Ac.markDirty("economy");
+    }
+
+    /**
+     * Resets what traders may sell back to nothing: they forget every item players got and only start selling
+     * an item again once a player gets it naturally (turns "only obtained items" on). Stock is redone at once.
+     */
+    public static void resetObtained(ServerPlayerEntity admin) {
+        int n = Ac.get().economy.resetObtained();
+        Ac.config().traders.onlyObtainedItems = true;
+        Ac.get().configManager.save();
+        restockAll();
+        Staff.log(admin, "trader-reset", null, "", n + " items");
+        Msg.send(admin, "trader.reset-done", n);
+    }
+
+    /** Forgets one item, so traders stop selling it until a player gets it again. */
+    public static void forgetObtained(ServerPlayerEntity admin, String itemId) {
+        String id = itemId.contains(":") ? itemId : "minecraft:" + itemId;
+        if (!Ac.get().economy.forgetObtained(id)) {
+            Msg.send(admin, "trader.forget-unknown", id.replace("minecraft:", ""));
+            return;
+        }
+        Ac.config().traders.onlyObtainedItems = true;
+        Ac.get().configManager.save();
+        restockAll();
+        Staff.log(admin, "trader-forget", null, "", id);
+        Msg.send(admin, "trader.forget-done", id.replace("minecraft:", ""));
+    }
+
+    private static void restockAll() {
+        for (Trader t : all().values()) {
+            if (t.type == Trader.Type.SELLS) {
+                rotate(t);
+            }
+        }
+        Ac.markDirty("economy");
+    }
+
+    /** An item id from what an admin typed ("oak_log", "minecraft:oak_log" or "hand"), or null if it isn't an item. */
+    public static String itemId(ServerPlayerEntity admin, String typed) {
+        if ("hand".equals(typed)) {
+            ItemStack held = admin.getMainHandStack();
+            return held.isEmpty() ? null : Mc.itemId(held.getItem());
+        }
+        Identifier id = Identifier.tryParse(typed.contains(":") ? typed : "minecraft:" + typed);
+        return id != null && Registries.ITEM.containsId(id) ? id.toString() : null;
+    }
+
+    /** Owner's own stock: this item is always on the trader, this many at a time. */
+    public static void stockAdd(ServerPlayerEntity admin, Trader t, String id, int count) {
+        t.blocked.remove(id);
+        t.pinned.put(id, count);
+        rotate(t);
+        Staff.log(admin, "trader-stock-add", null, t.name, id + " x" + count);
+        Msg.send(admin, "trader.stock-added", id.replace("minecraft:", ""), count, t.name);
+    }
+
+    /** Takes an item off the trader for good (until added back). */
+    public static void stockRemove(ServerPlayerEntity admin, Trader t, String id) {
+        t.pinned.remove(id);
+        t.blocked.add(id);
+        rotate(t);
+        Staff.log(admin, "trader-stock-remove", null, t.name, id);
+        Msg.send(admin, "trader.stock-removed", id.replace("minecraft:", ""), t.name);
+    }
+
+    /** Back to the trader's normal random stock. */
+    public static void stockClear(ServerPlayerEntity admin, Trader t) {
+        t.pinned.clear();
+        t.blocked.clear();
+        rotate(t);
+        Staff.log(admin, "trader-stock-clear", null, t.name, "");
+        Msg.send(admin, "trader.stock-cleared", t.name);
+    }
+
+    public static void stockList(ServerPlayerEntity admin, Trader t) {
+        Msg.send(admin, "trader.stock-header", t.name);
+        for (TraderOffer o : t.offers) {
+            Msg.send(admin, "trader.stock-line", o.rarity.color + o.id.replace("minecraft:", ""), o.stock, o.maxStock,
+                    t.pinned.containsKey(o.id) ? Msg.trFor(admin, "trader.stock-pinned") : "");
+        }
+        for (String b : t.blocked) {
+            Msg.send(admin, "trader.stock-blocked", b.replace("minecraft:", ""));
+        }
     }
 
     /** Every second: keep traders frozen in place. Every minute: rotations. */
@@ -770,7 +857,7 @@ public final class Traders {
         Rarity mysteryRarity = null;
         ItemStack goods;
         if (t.type == Trader.Type.MYSTERY) {
-            mysteryRarity = TraderEconomy.rollMystery(RANDOM);
+            mysteryRarity = TraderEconomy.rollMystery(settings(), RANDOM);
             TraderOffer prize = ac.economy.randomOfRarity(mysteryRarity, st, Ac.config().illegalItems.bannedItems, RANDOM);
             if (prize == null) {
                 mysteryRarity = Rarity.COMMON;
@@ -798,7 +885,7 @@ public final class Traders {
         }
         // Deal: the payment is destroyed (item sink) and the goods are given, in this one step.
         if (!pay.getAsBoolean()) {
-            ac.economy.refund(o);
+            ac.economy.refund(o, p.getUuid());
             return "§c" + Msg.tr("tr.cant-afford");
         }
         p.getInventory().insertStack(goods.copy());

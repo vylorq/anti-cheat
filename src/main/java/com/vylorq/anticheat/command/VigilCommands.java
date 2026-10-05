@@ -67,7 +67,7 @@ public final class VigilCommands {
             new Help(Group.PLACES, "barrier", "/barrier create|remove|list|newplayers|reset", "help.barrier", Perm.BARRIER),
             new Help(Group.PLACES, "lobby", "/lobby set|setspawn|edit|chest", "help.lobby", Perm.LOBBY_ADMIN),
             new Help(Group.PLACES, "arena", "/arena create|menu|kit save", "help.arena", Perm.ARENA_ADMIN),
-            new Help(Group.PLACES, "trader", "/trader stick|create|list|edit|remove", "help.trader", Perm.TRADER_ADMIN),
+            new Help(Group.PLACES, "trader", "/trader stick|create|list|edit|remove|stock|reset|forget", "help.trader", Perm.TRADER_ADMIN),
             new Help(Group.PLACES, "requests", "/requests [accept|deny|send|tp <player>]", "help.requests", Perm.WAITING_ROOM),
             new Help(Group.PLACES, "waitingroom", "/waitingroom set", "help.waitingroom", Perm.WAITING_ROOM),
             new Help(Group.TOOLS, "vanish", "/vanish", "help.vanish", Perm.VANISH),

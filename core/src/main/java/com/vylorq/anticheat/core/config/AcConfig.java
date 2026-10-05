@@ -378,6 +378,11 @@ public class AcConfig {
         public Map<String, Double> baseValues = new LinkedHashMap<>();
         /** Only sell items a player already got naturally. Off = traders always have stock. */
         public boolean onlyObtainedItems = false;
+        /** A rare item shows up in a trader's stock only once in this many tries; legendary once in legendaryOdds. */
+        public int rareOdds = 1000;
+        public int legendaryOdds = 3000;
+        /** How many things one player may buy from traders a day (0 = no limit). */
+        public int buysPerDay = 0;
         /** Prices change every this many minutes, up or down by up to priceSwing (0.15 = 15%). */
         public int priceChangeMinutes = 50;
         public double priceSwing = 0.15;
