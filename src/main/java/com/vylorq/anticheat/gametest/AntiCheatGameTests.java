@@ -269,7 +269,7 @@ public final class AntiCheatGameTests {
     public void structuresGrowRooms(TestContext ctx) {
         var w = ctx.getWorld();
         var server = w.getServer();
-        var src = server.getCommandSource().withWorld(w).withSilent().withLevel(4);
+        var src = server.getCommandSource().withWorld(w).withSilent();
         var dispatcher = server.getCommandManager().getDispatcher();
         // Far from the tests, so the structure has room to spread.
         BlockPos base = ctx.getAbsolutePos(BlockPos.ORIGIN).add(3000, 0, 3000);
