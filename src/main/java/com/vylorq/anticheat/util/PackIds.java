@@ -44,6 +44,26 @@ public final class PackIds {
         s.set(net.minecraft.component.DataComponentTypes.ITEM_MODEL, itemModel(name));
     }
 
+    /**
+     * Older copies of the custom items only carry custom_model_data; this adds the item_model they're missing (the
+     * model string is the definition's id), so they show on newer clients too. @return true if it changed
+     */
+    public static boolean upgrade(net.minecraft.item.ItemStack s) {
+        if (s.isEmpty()) {
+            return false;
+        }
+        var cmd = s.get(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA);
+        if (cmd == null || cmd.strings().isEmpty() || !cmd.strings().get(0).startsWith("vigil:x")) {
+            return false;
+        }
+        Identifier want = Identifier.tryParse(cmd.strings().get(0));
+        if (want == null || want.equals(s.get(net.minecraft.component.DataComponentTypes.ITEM_MODEL))) {
+            return false;
+        }
+        s.set(net.minecraft.component.DataComponentTypes.ITEM_MODEL, want);
+        return true;
+    }
+
     /** A pack sound. */
     public static Identifier sound(String name) {
         return Identifier.of("vigil", code(name));
