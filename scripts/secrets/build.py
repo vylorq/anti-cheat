@@ -323,133 +323,380 @@ def disc(t, cx, cz, r, y, block_fn):
                 t.set(x, y, z, block_fn(x, z) if callable(block_fn) else block_fn)
 
 
+def ring(t, cx, cz, r_in, r_out, y, block_fn):
+    for x in range(t.size[0]):
+        for z in range(t.size[2]):
+            d = ((x - cx) ** 2 + (z - cz) ** 2) ** 0.5
+            if r_in <= d <= r_out:
+                t.set(x, y, z, block_fn(x, z) if callable(block_fn) else block_fn)
+
+
+def stairs(t, x, y, z, block, facing, half="bottom", water=False):
+    t.set(x, y, z, f"{block}_stairs", facing=facing, half=half, shape="straight", waterlogged=water)
+
+
+def slab(t, x, y, z, block, kind="bottom", water=False):
+    t.set(x, y, z, f"{block}_slab", type=kind, waterlogged=water)
+
+
+def column(t, x, z, y0, y1, body, base=None, cap=None, **props):
+    for y in range(y0, y1 + 1):
+        t.set(x, y, z, body, **props)
+    if base:
+        t.set(x, y0, z, base)
+    if cap:
+        t.set(x, y1, z, cap)
+
+
+def hanging_lantern(t, x, z, y_top, length, soul=False):
+    """A chain from the ceiling at y_top + 1 down, with a lantern on its end."""
+    for y in range(y_top - length + 1, y_top + 1):
+        t.set(x, y, z, "chain", axis="y", waterlogged=False)
+    t.set(x, y_top - length, z, "soul_lantern" if soul else "lantern", hanging=True, waterlogged=False)
+
+
+def corners(cx, cz, d):
+    return [(cx - d, cz - d), (cx + d, cz - d), (cx - d, cz + d), (cx + d, cz + d)]
+
+
+# ------------------------------------------------------------------ the structures
+# Every boss rises at the centre of its structure, standing on the arena floor, so each centre is a wide open floor
+# with plenty of headroom. The Kind's floor (Bosses.java) is the first air layer above that floor.
+
 def sunken_vault():
-    r = random.Random(1)
-    t = Template(21, 12, 21)
-    disc(t, 10, 10, 10.4, 0, lambda x, z: r.choice(["prismarine_bricks", "prismarine_bricks", "dark_prismarine", "prismarine"]))
-    for (x, z, h) in [(0, 10, 6), (20, 10, 3), (10, 0, 4), (2, 2, 7), (18, 2, 4), (2, 18, 3), (18, 18, 5)]:
-        for y in range(1, h):
-            t.set(x, y, z, "prismarine_bricks")
-        t.set(x, h, z, "prismarine_brick_slab", type="bottom", waterlogged=True)
-    # The vault: a big sealed hall, dry inside.
-    t.shell(3, 0, 3, 17, 11, 17, "dark_prismarine")
-    t.fill(4, 0, 4, 16, 0, 16, "prismarine_bricks")
-    for x in range(4, 17):
-        for z in range(4, 17):
-            if (x + z) % 4 == 0:
-                t.set(x, 0, z, "sea_lantern")
-    for (x, z) in [(5, 5), (15, 5), (5, 15), (15, 15)]:
-        t.fill(x, 1, z, x, 10, z, "prismarine_bricks")
-        t.set(x, 5, z, "sea_lantern")
-    t.chest(10, 1, 4, "sunken_vault", facing="south")
-    t.chest(9, 1, 4, "sunken_vault", facing="south")
-    t.set(11, 1, 4, "conduit", waterlogged=False)
-    # The door (on the lock marker), its four hatches and the code
-    t.set(10, 0, 17, "reinforced_deepslate")
-    t.set(10, 1, 17, "iron_door", facing="north", half="lower", hinge="left", open=False, powered=False)
-    t.set(10, 2, 17, "iron_door", facing="north", half="upper", hinge="left", open=False, powered=False)
-    for x in (8, 9, 11, 12):
-        t.set(x, 3, 18, "oak_trapdoor", facing="south", half="top", open=False, powered=False, waterlogged=True)
-    t.sign(10, 4, 18, "south", ["Open  Shut", "Shut  Open", "(the hatches)", "~ the Vault ~"], waterlogged=True)
+    """An ancient temple on the sea floor: stepped terrace, a sealed dry hall under a stepped roof, four corner
+    towers, a pillared portico and the sealed door with its hatch code."""
+    S, c = 29, 14
+    t = Template(S, 18, S)
+    # Terrace: dark border, a step up, and the temple floor.
+    t.fill(0, 0, 0, S - 1, 0, S - 1, "dark_prismarine")
+    t.fill(1, 0, 1, S - 2, 0, S - 2, "prismarine_bricks")
+    for i in range(2, S - 2):
+        for (x, z, f) in [(i, 2, "south"), (i, S - 3, "north"), (2, i, "east"), (S - 3, i, "west")]:
+            stairs(t, x, 1, z, "prismarine_brick", f, water=True)
+    t.fill(3, 1, 3, S - 4, 1, S - 4, "prismarine_bricks")
+    # The hall: walls x/z 5..23, floor y1, air 2..11, ceiling y12.
+    a, b = 5, S - 6
+    t.fill(a, 1, a, b, 12, b, "prismarine_bricks")
+    t.fill(a + 1, 2, a + 1, b - 1, 11, b - 1, "air")
+    for i in range(a, b + 1):
+        if (i - a) % 3 == 0:
+            for (x, z) in [(i, a), (i, b), (a, i), (b, i)]:
+                column(t, x, z, 2, 11, "dark_prismarine")
+                t.set(x, 7, z, "sea_lantern")
+    for i in range(a, b + 1):
+        for (x, z) in [(i, a), (i, b), (a, i), (b, i)]:
+            t.set(x, 12, z, "dark_prismarine")
+    # Windows of blue glass between the pilasters (east, west and back walls).
+    for i in range(a + 1, b):
+        if (i - a) % 3 in (1, 2) and abs(i - c) > 1:
+            for y in (4, 5):
+                for (x, z) in [(a, i), (b, i), (i, a)]:
+                    t.set(x, y, z, "light_blue_stained_glass")
+    # Floor: border, a ring, sea-lantern star points and a centre medallion.
+    for x in range(a + 1, b):
+        for z in range(a + 1, b):
+            dx, dz = abs(x - c), abs(z - c)
+            m = max(dx, dz)
+            block = "prismarine_bricks"
+            if m == 8:
+                block = "dark_prismarine"
+            elif m in (5, 6) and (dx == dz or dx == 0 or dz == 0):
+                block = "sea_lantern"
+            elif m == 4:
+                block = "dark_prismarine"
+            elif m <= 2:
+                block = "dark_prismarine" if m == 2 else "prismarine"
+            t.set(x, 1, z, block)
+    t.set(c, 1, c, "sea_lantern")
+    # Four great columns around the arena.
+    for (x, z) in corners(c, c, 6):
+        column(t, x, z, 2, 11, "prismarine_bricks", base="dark_prismarine", cap="dark_prismarine")
+        t.set(x, 6, z, "sea_lantern")
+        for (dx, dz, f) in [(1, 0, "east"), (-1, 0, "west"), (0, 1, "south"), (0, -1, "north")]:
+            stairs(t, x + dx, 2, z + dz, "dark_prismarine", f)
+            stairs(t, x + dx, 11, z + dz, "dark_prismarine", f, half="top")
+    # Ceiling lights.
+    for (x, z) in corners(c, c, 3):
+        t.set(x, 12, z, "sea_lantern")
+    t.set(c, 12, c, "sea_lantern")
+    # Altar at the back: steps, chests, the conduit.
+    for x in range(c - 3, c + 4):
+        stairs(t, x, 2, a + 3, "prismarine_brick", "north")
+        t.fill(x, 2, a + 1, x, 2, a + 2, "dark_prismarine")
+    t.chest(c - 1, 3, a + 1, "sunken_vault", facing="south")
+    t.chest(c + 1, 3, a + 1, "sunken_vault", facing="south")
+    t.set(c, 3, a + 1, "conduit", waterlogged=False)
+    for x in (c - 3, c + 3):
+        t.set(x, 3, a + 1, "sea_lantern")
+    # Stepped roof.
+    for k, y in enumerate(range(13, 17)):
+        lo, hi = a + 1 + k * 2, b - 1 - k * 2
+        t.fill(lo, y, lo, hi, y, hi, "dark_prismarine" if k % 2 == 0 else "prismarine_bricks")
+        for i in range(lo, hi + 1):
+            for (x, z, f) in [(i, lo, "south"), (i, hi, "north"), (lo, i, "east"), (hi, i, "west")]:
+                stairs(t, x, y, z, "prismarine_brick", f, water=True)
+    t.fill(c - 1, 17, c - 1, c + 1, 17, c + 1, "sea_lantern")
+    # Corner towers.
+    for (x0, z0) in [(a - 1, a - 1), (b - 3, a - 1), (a - 1, b - 3), (b - 3, b - 3)]:
+        t.fill(x0, 2, z0, x0 + 4, 13, z0 + 4, "prismarine_bricks")
+        for (x, z) in corners(x0 + 2, z0 + 2, 2):
+            column(t, x, z, 2, 13, "dark_prismarine")
+        t.fill(x0 + 1, 14, z0 + 1, x0 + 3, 14, z0 + 3, "dark_prismarine")
+        t.set(x0 + 2, 15, z0 + 2, "sea_lantern")
+        for (x, z) in corners(x0 + 2, z0 + 2, 2):
+            t.set(x, 14, z, "prismarine_wall", up=True, waterlogged=True)
+        t.set(x0 + 2, 9, z0 + 2, "sea_lantern")
+    # The door (on the lock marker) in the front wall, a portico before it, the four hatches and the code.
+    t.set(c, 1, b, "reinforced_deepslate")
+    t.set(c, 2, b, "iron_door", facing="north", half="lower", hinge="left", open=False, powered=False)
+    t.set(c, 3, b, "iron_door", facing="north", half="upper", hinge="left", open=False, powered=False)
+    for x in (c - 1, c + 1):
+        column(t, x, b, 2, 4, "dark_prismarine")
+    stairs(t, c, 4, b, "dark_prismarine", "north", half="top")
+    for x in (c - 2, c - 1, c + 1, c + 2):
+        t.set(x, 5, b + 1, "oak_trapdoor", facing="south", half="top", open=False, powered=False, waterlogged=True)
+    t.sign(c, 6, b + 1, "south", ["Open  Shut", "Shut  Open", "(the hatches)", "~ the Vault ~"], waterlogged=True)
+    for x in (c - 3, c + 3):
+        column(t, x, b + 2, 2, 7, "prismarine_bricks", base="dark_prismarine", cap="sea_lantern")
+    for x in range(c - 3, c + 4):
+        slab(t, x, 8, b + 2, "dark_prismarine", "bottom", water=True)
     return t
 
 
 def buried_vault():
-    r = random.Random(2)
-    t = Template(23, 12, 23)
-    t.shell(0, 0, 0, 22, 11, 22, "deepslate_bricks")
-    for x in range(1, 22):
-        for z in range(1, 22):
-            t.set(x, 0, z, "polished_deepslate" if (x // 2 + z // 2) % 2 else "deepslate_tiles")
-            if r.random() < 0.08:
-                t.set(x, 1, z, "sculk")
-    for (x, z) in [(4, 4), (18, 4), (4, 18), (18, 18), (11, 3), (11, 19), (3, 11), (19, 11)]:
-        t.fill(x, 1, z, x, 10, z, "polished_deepslate")
-        t.set(x, 7, z, "chiseled_deepslate")
-        t.set(x, 10, z, "chiseled_deepslate")
-    t.fill(9, 0, 9, 13, 0, 13, "chiseled_deepslate")
-    t.set(11, 0, 11, "crying_obsidian")
-    t.set(11, 1, 20, "polished_blackstone")
-    t.chest(11, 2, 20, "buried_vault", facing="north")
-    for (x, z) in [(7, 7), (15, 7), (7, 15), (15, 15), (11, 11)]:
-        t.set(x, 10, z, "chain", axis="y")
-        t.set(x, 9, z, "soul_lantern", hanging=True)
-    for (x, z) in [(10, 19), (12, 19)]:
-        t.set(x, 1, z, "candle", candles=4, lit=True)
+    """A buried deepslate cathedral: a pillared nave with pointed vaults, side aisles, hanging soul lanterns and a
+    raised altar."""
+    X, Y, Z = 25, 15, 31
+    c, cz = 12, 15
+    t = Template(X, Y, Z)
+    t.shell(0, 0, 0, X - 1, Y - 1, Z - 1, "deepslate_bricks")
+    # Floor: tiled aisles, a polished nave with a chiseled border, and a medallion at the centre.
+    for x in range(1, X - 1):
+        for z in range(1, Z - 1):
+            nave = 7 <= x <= 17
+            block = "deepslate_tiles" if not nave else ("polished_deepslate" if (x + z) % 2 else "deepslate_tiles")
+            if x in (7, 17):
+                block = "chiseled_deepslate"
+            t.set(x, 0, z, block)
+    for x in range(c - 3, c + 4):
+        for z in range(cz - 3, cz + 4):
+            d = max(abs(x - c), abs(z - cz))
+            t.set(x, 0, z, "polished_blackstone" if d == 3 else ("chiseled_deepslate" if d == 2 else "polished_deepslate"))
+    t.set(c, 0, cz, "crying_obsidian")
+    # Vaulted ceiling: low over the aisles, rising to a point over the nave.
+    for x in range(1, X - 1):
+        d = abs(x - c)
+        top = 13 if d <= 1 else 12 if d <= 3 else 11 if d <= 5 else 9
+        for y in range(top + 1, Y - 1):
+            for z in range(1, Z - 1):
+                t.set(x, y, z, "deepslate_bricks")
+        if d in (2, 4) or d == 6:
+            for z in range(1, Z - 1):
+                stairs(t, x, top, z, "deepslate_brick", "east" if x < c else "west", half="top")
+    # Pillars with arches between them, along both sides of the nave.
+    for z in range(3, Z - 3, 4):
+        for x in (6, 18):
+            column(t, x, z, 1, 9, "polished_deepslate", base="chiseled_deepslate", cap="chiseled_deepslate")
+            t.set(x, 5, z, "chiseled_deepslate")
+        if z + 4 < Z - 3:
+            for x in (6, 18):
+                for zz in (z + 1, z + 3):
+                    stairs(t, x, 9, zz, "deepslate_brick", "south" if zz == z + 1 else "north", half="top")
+                t.set(x, 9, z + 2, "deepslate_bricks")
+    # Wall candles in the aisles and soul lanterns down the nave.
+    for z in range(5, Z - 3, 4):
+        for x in (1, X - 2):
+            t.set(x, 1, z, "polished_deepslate")
+            t.set(x, 2, z, "candle", candles=3, lit=True, waterlogged=False)
+    for z in (5, 9, 21, 25):
+        hanging_lantern(t, c, z, 12, 3, soul=True)
+    for (x, z) in corners(c, cz, 4):
+        hanging_lantern(t, x, z, 12, 4, soul=True)
+    # The altar: three steps, a blackstone altar with the chest, candles and the relic window.
+    for k in range(3):
+        for x in range(c - 4 + k, c + 5 - k):
+            stairs(t, x, 1 + k, Z - 5 + k, "polished_deepslate", "north")
+            t.fill(x, 1, Z - 4 + k, x, 1 + k, Z - 4 + k, "polished_deepslate")
+        t.fill(c - 4 + k, 1, Z - 2, c + 4 - k, 1 + k, Z - 2, "polished_deepslate")
+    t.fill(c - 4, 1, Z - 2, c + 4, 3, Z - 2, "polished_deepslate")
+    t.fill(c - 1, 4, Z - 3, c + 1, 4, Z - 3, "polished_blackstone")
+    t.chest(c, 5, Z - 3, "buried_vault", facing="north")
+    for x in (c - 1, c + 1):
+        t.set(x, 5, Z - 3, "candle", candles=4, lit=True, waterlogged=False)
+    for y in range(5, 11):
+        for x in range(c - 1, c + 2):
+            t.set(x, y, Z - 1, "crying_obsidian" if (x + y) % 2 else "obsidian")
+    for x in (c - 3, c + 3):
+        t.set(x, 4, Z - 2, "soul_lantern", hanging=False, waterlogged=False)
+    # A little sculk creeping in from the corners.
+    import random as _r
+    r = _r.Random(2)
+    for _ in range(26):
+        x, z = r.choice([r.randint(1, 5), r.randint(19, 23)]), r.randint(1, Z - 2)
+        t.set(x, 0, z, "sculk")
     return t
 
 
 def sky_citadel():
-    r = random.Random(3)
-    t = Template(25, 14, 25)
-    for y in range(0, 5):
-        rad = 2 + y * 2.3
-        for x in range(25):
-            for z in range(25):
-                d = ((x - 12) ** 2 + (z - 12) ** 2) ** 0.5
-                if d <= rad + r.random() * 0.8:
-                    block = "grass_block" if y == 4 else ("dirt" if y == 3 else r.choice(["stone", "andesite", "stone", "calcite"]))
+    """A floating island with a quartz temple: a ring of twelve columns holding a halo roof open to the sky, a
+    patterned plaza, flower gardens and four golden obelisks."""
+    import math
+    import random as _r
+    S, c = 31, 15
+    t = Template(S, 20, S)
+    r = _r.Random(3)
+    # The island: an upside-down cone of stone, a soil layer, grass on top (y 6).
+    for y in range(0, 7):
+        rad = 2.5 + y * 2.1
+        for x in range(S):
+            for z in range(S):
+                d = ((x - c) ** 2 + (z - c) ** 2) ** 0.5
+                if d <= rad + r.random() * 0.7:
+                    if y == 6:
+                        block = "grass_block"
+                    elif y >= 4:
+                        block = "dirt"
+                    else:
+                        block = r.choice(["stone", "andesite", "tuff", "stone", "calcite"])
                     t.set(x, y, z, block)
-    disc(t, 12, 12, 8.5, 4, lambda x, z: "smooth_quartz" if (x + z) % 3 else "calcite")
-    disc(t, 12, 12, 3.2, 4, "chiseled_quartz_block")
+    # Plaza (y 6): quartz with eight golden rays and a medallion.
+    disc(t, c, c, 10.5, 6, "smooth_quartz")
+    ring(t, c, c, 10.0, 10.9, 6, "quartz_bricks")
     for i in range(8):
-        import math
         a = i * math.pi / 4
-        x, z = int(round(12 + math.cos(a) * 8)), int(round(12 + math.sin(a) * 8))
-        h = 4 + (i % 3) * 2
-        for y in range(5, 5 + h):
-            t.set(x, y, z, "quartz_pillar", axis="y")
-        t.set(x, 5 + h, z, "end_rod", facing="up")
-    t.chest(12, 5, 20, "sky_citadel", facing="north")
-    t.set(12, 4, 20, "chiseled_quartz_block")
-    for _ in range(14):
-        x, z = r.randint(1, 23), r.randint(1, 23)
-        if t.blocks.get((x, 4, z), ("",))[0] == "grass_block" and (x, 5, z) not in t.blocks:
-            t.set(x, 5, z, r.choice(["poppy", "dandelion", "cornflower", "oxeye_daisy", "azure_bluet"]))
+        for k in range(3, 10):
+            t.set(int(round(c + math.cos(a) * k)), 6, int(round(c + math.sin(a) * k)), "chiseled_quartz_block" if k % 3 else "gold_block")
+    disc(t, c, c, 2.5, 6, "chiseled_quartz_block")
+    t.set(c, 6, c, "gold_block")
+    # Twelve columns and the halo roof.
+    for i in range(12):
+        a = i * math.pi / 6
+        x, z = int(round(c + math.cos(a) * 9)), int(round(c + math.sin(a) * 9))
+        column(t, x, z, 7, 13, "quartz_pillar", base="chiseled_quartz_block", cap="chiseled_quartz_block", axis="y")
+        t.set(x, 7, z, "chiseled_quartz_block")
+    ring(t, c, c, 7.6, 10.4, 14, "smooth_quartz")
+    ring(t, c, c, 8.4, 9.6, 15, "quartz_bricks")
+    for i in range(24):
+        a = i * math.pi / 12
+        x, z = int(round(c + math.cos(a) * 8)), int(round(c + math.sin(a) * 8))
+        t.set(x, 13, z, "end_rod", facing="down")
+    for i in range(12):
+        a = (i + 0.5) * math.pi / 6
+        x, z = int(round(c + math.cos(a) * 9)), int(round(c + math.sin(a) * 9))
+        t.set(x, 16, z, "end_rod", facing="up")
+    # Gardens between the plaza and the edge.
+    flowers = ["poppy", "dandelion", "cornflower", "oxeye_daisy", "azure_bluet", "allium", "lily_of_the_valley"]
+    for x in range(S):
+        for z in range(S):
+            d = ((x - c) ** 2 + (z - c) ** 2) ** 0.5
+            if 11.5 < d < 13.5 and t.blocks.get((x, 6, z), ("",))[0] == "grass_block" and r.random() < 0.55:
+                t.set(x, 7, z, r.choice(flowers) if r.random() < 0.75 else "flowering_azalea")
+    # Four golden obelisks at the cardinal points.
+    for (x, z) in [(c, c - 12), (c, c + 12), (c - 12, c), (c + 12, c)]:
+        t.set(x, 6, z, "quartz_bricks")
+        column(t, x, z, 7, 11, "quartz_pillar", axis="y")
+        t.set(x, 12, z, "gold_block")
+        t.set(x, 13, z, "end_rod", facing="up")
+    # The chest on a pedestal at the back.
+    t.set(c, 7, c + 8, "chiseled_quartz_block")
+    t.chest(c, 8, c + 8, "sky_citadel", facing="north")
     return t
 
 
 def nether_forge():
-    t = Template(23, 12, 23)
-    t.shell(0, 0, 0, 22, 11, 22, "polished_blackstone_bricks")
-    for x in range(23):
-        for z in range(23):
-            if (x + z) % 4 == 0:
-                t.set(x, 0, z, "magma_block")
-    t.fill(1, 1, 1, 21, 10, 21, "air")
-    t.fill(10, 1, 0, 12, 4, 0, "air")
-    # Lava channels behind iron bars along the walls
-    for z in range(2, 21):
-        for x in (1, 21):
+    """A blackstone forge-hall on the deltas: buttressed walls, a gilded band, lava channels behind bars, a tiled floor,
+    a forge with a tall chimney and a great arched gate."""
+    S, c = 27, 13
+    t = Template(S, 18, S)
+    a, b = 2, S - 3
+    t.fill(0, 0, 0, S - 1, 0, S - 1, "polished_blackstone")
+    ring_sq = [(x, z) for x in range(S) for z in range(S) if min(x, z, S - 1 - x, S - 1 - z) == 0]
+    for (x, z) in ring_sq:
+        t.set(x, 0, z, "magma_block" if (x + z) % 3 == 0 else "blackstone")
+    # Walls with buttresses and a gilded band.
+    t.fill(a, 1, a, b, 12, b, "polished_blackstone_bricks")
+    t.fill(a + 1, 1, a + 1, b - 1, 11, b - 1, "air")
+    for i in range(a, b + 1, 4):
+        for (x, z, dx, dz) in [(i, a - 1, 0, -1), (i, b + 1, 0, 1), (a - 1, i, -1, 0), (b + 1, i, 1, 0)]:
+            column(t, x, z, 1, 9, "polished_basalt", axis="y")
+            t.set(x, 10, z, "polished_blackstone_brick_wall", up=True, waterlogged=False)
+    for i in range(a, b + 1):
+        for (x, z) in [(i, a), (i, b), (a, i), (b, i)]:
+            t.set(x, 6, z, "gilded_blackstone" if i % 2 else "chiseled_polished_blackstone")
+    # Floor: tiles with a gold-trimmed border and a medallion.
+    for x in range(a + 1, b):
+        for z in range(a + 1, b):
+            m = max(abs(x - c), abs(z - c))
+            block = "polished_blackstone" if (x + z) % 2 else "polished_blackstone_bricks"
+            if m == 8:
+                block = "gilded_blackstone"
+            if m <= 2:
+                block = "chiseled_polished_blackstone" if m == 2 else "polished_blackstone"
+            t.set(x, 0, z, block)
+    t.set(c, 0, c, "crying_obsidian")
+    # Lava channels behind iron bars along the east and west walls.
+    for z in range(a + 2, b - 1):
+        for x in (a + 1, b - 1):
             t.set(x, 0, z, "lava")
-            t.set(x, 1, z, "iron_bars", east=(x == 1), west=(x == 21), north=False, south=False, waterlogged=False)
-    for (x, z) in [(5, 5), (17, 5), (5, 17), (17, 17)]:
-        t.fill(x, 1, z, x, 10, z, "gilded_blackstone")
-    t.set(11, 1, 19, "anvil", facing="east")
-    t.set(8, 1, 20, "blast_furnace", facing="north", lit=True)
-    t.set(14, 1, 20, "blast_furnace", facing="north", lit=True)
-    t.set(11, 1, 21, "smithing_table")
-    t.set(6, 1, 11, "lava_cauldron")
-    t.set(16, 1, 11, "lava_cauldron")
-    t.chest(11, 1, 20, "nether_forge", facing="north")
-    for (x, z) in [(7, 7), (15, 7), (7, 15), (15, 15), (11, 11)]:
-        t.set(x, 10, z, "shroomlight")
+            t.set(x, 1, z, "iron_bars", east=(x == a + 1), west=(x == b - 1), north=True, south=True, waterlogged=False)
+    # Ceiling: blackstone with shroomlights and hanging lanterns.
+    t.fill(a + 1, 12, a + 1, b - 1, 12, b - 1, "polished_blackstone_bricks")
+    for (x, z) in corners(c, c, 5) + [(c, c)]:
+        t.set(x, 12, z, "shroomlight")
+    for (x, z) in corners(c, c, 3):
+        hanging_lantern(t, x, z, 11, 3)
+    # The forge at the back: chimney with a campfire, furnaces, anvils and the chest.
+    for x in range(c - 2, c + 3):
+        for z in range(a, a + 3):
+            for y in range(1, 17):
+                edge = x in (c - 2, c + 2) or z in (a, a + 2)
+                if edge or y > 11:
+                    t.set(x, y, z, "polished_blackstone_bricks" if y < 16 else "polished_blackstone_brick_wall")
+                else:
+                    t.set(x, y, z, "air")
+    t.set(c, 1, a + 1, "campfire", lit=True, facing="south", signal_fire=True, waterlogged=False)
+    t.set(c, 2, a + 2, "air")
+    t.set(c, 1, a + 2, "air")
+    for x in (c - 1, c + 1):
+        t.set(x, 1, a + 2, "magma_block")
+    for x in (c - 4, c + 4):
+        t.set(x, 1, a + 1, "blast_furnace", facing="south", lit=True)
+        t.set(x, 2, a + 1, "blast_furnace", facing="south", lit=True)
+    t.set(c - 3, 1, a + 4, "anvil", facing="east")
+    t.set(c + 3, 1, a + 4, "anvil", facing="west")
+    t.set(c - 6, 1, a + 1, "smithing_table")
+    t.set(c + 6, 1, a + 1, "lava_cauldron")
+    t.chest(c, 1, a + 4, "nether_forge", facing="south")
+    # The gate: an arch in the front wall.
+    for y in range(1, 6):
+        for x in range(c - 2, c + 3):
+            t.set(x, y, b, "air")
+    for x in (c - 3, c + 3):
+        column(t, x, b + 1, 1, 7, "gilded_blackstone")
+    stairs(t, c - 2, 5, b, "polished_blackstone_brick", "east", half="top")
+    stairs(t, c + 2, 5, b, "polished_blackstone_brick", "west", half="top")
+    for x in range(c - 1, c + 2):
+        t.set(x, 6, b, "chiseled_polished_blackstone")
+    t.set(c, 7, b + 1, "lantern", hanging=False, waterlogged=False)
     return t
 
 
 def desert_tomb():
+    """A buried tomb under a hidden shaft: a trapped corridor, then a columned burial hall with a terracotta floor,
+    painted friezes, golden statues and the sarcophagus."""
     t = Template(23, 16, 23)
-    # Surface entrance and the ladder shaft
+    # Surface: a ring of worn cut sandstone around the shaft, mostly buried.
     for (x, z) in [(10, 0), (11, 0), (12, 0), (10, 1), (12, 1), (10, 2), (11, 2), (12, 2)]:
         t.set(x, 15, z, "chiseled_sandstone" if (x + z) % 2 else "cut_sandstone")
     for y in range(1, 16):
         for (x, z) in [(10, 1), (12, 1), (11, 0)]:
-            t.set(x, y, z, "sandstone")
+            t.set(x, y, z, "cut_sandstone" if y % 4 else "chiseled_sandstone")
         if y > 2:
-            t.set(11, y, 2, "sandstone")
+            t.set(11, y, 2, "cut_sandstone")
         t.set(11, y, 1, "ladder", facing="south")
     t.set(11, 0, 1, "sandstone")
-    # Trapped corridor
+    # The trapped corridor (pressure plates, dispensers in the walls).
     for z in range(2, 8):
         t.set(11, 0, z, "smooth_sandstone")
         t.set(11, 1, z, "air")
@@ -457,73 +704,158 @@ def desert_tomb():
         t.set(11, 3, z, "cut_sandstone")
         for x in (10, 12):
             for y in (1, 2):
-                t.set(x, y, z, "sandstone")
+                t.set(x, y, z, "cut_sandstone")
     for z in (3, 4, 5, 6):
         t.set(11, 1, z, "stone_pressure_plate", powered=False)
     t.dispenser(10, 1, 3, "east")
     t.dispenser(12, 1, 4, "west")
     t.dispenser(10, 1, 5, "east")
     t.dispenser(12, 1, 6, "west")
-    # The burial hall (the boss arena)
-    t.shell(2, 0, 7, 20, 9, 22, "sandstone")
+    # The burial hall: x 2..20, z 7..22, floor y0, air 1..8, ceiling y9.
+    t.shell(2, 0, 7, 20, 9, 22, "cut_sandstone")
     t.set(11, 1, 7, "air")
     t.set(11, 2, 7, "air")
+    for x in (10, 12):
+        column(t, x, 7, 1, 3, "chiseled_sandstone")
+    t.set(11, 3, 7, "chiseled_sandstone")
+    # Floor: a diamond pattern of orange and white, a blue medallion with a gold heart.
     for x in range(3, 20):
         for z in range(8, 22):
-            t.set(x, 0, z, "orange_terracotta" if (x + z) % 2 else "smooth_sandstone")
-    t.fill(9, 0, 13, 13, 0, 17, "blue_terracotta")
-    t.chest(11, 1, 21, "desert_tomb", facing="north")
-    for (x, z) in [(4, 9), (18, 9), (4, 20), (18, 20), (4, 15), (18, 15)]:
-        t.fill(x, 1, z, x, 8, z, "chiseled_sandstone")
-        t.set(x, 4, z, "lantern")
-    for x in (9, 13):
-        t.set(x, 1, 21, "skeleton_skull", rotation=8)
+            k = (abs(x - 11) + abs(z - 15)) % 4
+            t.set(x, 0, z, "orange_terracotta" if k == 0 else "smooth_sandstone")
+    for x in range(8, 15):
+        for z in range(12, 19):
+            d = abs(x - 11) + abs(z - 15)
+            if d <= 3:
+                t.set(x, 0, z, "blue_terracotta" if d >= 2 else "light_blue_terracotta")
+    t.set(11, 0, 15, "gold_block")
+    # Painted frieze around the walls and a ceiling grid with lights.
+    for x in range(2, 21):
+        for z in range(7, 23):
+            if x in (2, 20) or z in (7, 22):
+                t.set(x, 6, z, "blue_terracotta" if (x + z) % 2 else "orange_terracotta")
+                t.set(x, 7, z, "chiseled_sandstone")
+    for x in range(3, 20):
+        for z in range(8, 22):
+            t.set(x, 9, z, "glowstone" if (x - 3) % 4 == 0 and (z - 8) % 4 == 2 else "smooth_sandstone")
+    # Columns down both sides, with lanterns.
+    for z in (9, 13, 17, 21):
+        for x in (5, 17):
+            column(t, x, z, 1, 8, "cut_sandstone", base="chiseled_sandstone", cap="chiseled_sandstone")
+            t.set(x, 4, z, "chiseled_sandstone")
+        for x in (4, 18):
+            t.set(x, 5, z, "lantern", hanging=False, waterlogged=False)
+    # Golden statues guarding the sarcophagus.
+    for x in (8, 14):
+        t.set(x, 1, 20, "chiseled_sandstone")
+        t.set(x, 2, 20, "gold_block")
+        t.set(x, 3, 20, "skeleton_skull", rotation=0)
+    # The sarcophagus: a raised step, the chest, sandstone ends.
+    for x in range(9, 14):
+        stairs(t, x, 1, 19, "smooth_sandstone", "north")
+        t.set(x, 1, 20, "smooth_sandstone")
+        t.set(x, 1, 21, "smooth_sandstone")
+    t.chest(11, 2, 21, "desert_tomb", facing="north")
+    for x in (10, 12):
+        t.set(x, 2, 21, "chiseled_sandstone")
+        t.set(x, 3, 21, "candle", candles=3, lit=True, waterlogged=False)
     return t
 
 
 def frozen_bastion():
-    t = Template(21, 14, 21)
-    t.fill(0, 0, 0, 20, 0, 20, "packed_ice")
-    # Walls with crenellations, an open courtyard (the arena)
-    for x in range(21):
-        for z in range(21):
-            edge = x in (0, 20) or z in (0, 20)
-            if edge:
-                for y in range(1, 9):
-                    t.set(x, y, z, "packed_ice" if y % 3 else "blue_ice")
-                if (x + z) % 2 == 0:
-                    t.set(x, 9, z, "snow_block")
-            else:
-                for y in range(1, 13):
-                    t.set(x, y, z, "air")
-                t.set(x, 0, z, "snow_block" if (x * 7 + z * 3) % 5 else "blue_ice")
-    for (x, z) in [(0, 0), (20, 0), (0, 20), (20, 20)]:
-        for y in range(1, 13):
-            for dx in (0, 1, -1):
-                for dz in (0, 1, -1):
-                    if 0 <= x + dx < 21 and 0 <= z + dz < 21:
-                        t.set(x + dx, y, z + dz, "blue_ice" if y > 9 else "packed_ice")
-    t.fill(9, 1, 0, 11, 4, 0, "air")
-    for (x, z) in [(5, 5), (15, 5), (5, 15), (15, 15)]:
-        for y in range(1, 6):
-            t.set(x, y, z, "blue_ice")
-        t.set(x, 6, z, "sea_lantern")
-    t.chest(10, 1, 19, "frozen_bastion", facing="north")
-    t.set(10, 1, 18, "powder_snow")
+    """An ice castle: thick walls with a blue band and snowy battlements, a wall walk, four round towers with ice
+    roofs, a gate and a patterned courtyard."""
+    S, c = 25, 12
+    t = Template(S, 20, S)
+    t.fill(0, 0, 0, S - 1, 0, S - 1, "packed_ice")
+    # Courtyard floor: snow with ice paths in a cross and a ring, blue ice centre.
+    for x in range(1, S - 1):
+        for z in range(1, S - 1):
+            d = ((x - c) ** 2 + (z - c) ** 2) ** 0.5
+            block = "snow_block"
+            if abs(x - c) <= 1 or abs(z - c) <= 1:
+                block = "packed_ice"
+            if 5.5 <= d <= 6.5:
+                block = "blue_ice"
+            if d <= 2.2:
+                block = "blue_ice"
+            t.set(x, 0, z, block)
+    t.set(c, 0, c, "sea_lantern")
+    # Walls: two thick, 9 high, blue band, battlements.
+    for x in range(S):
+        for z in range(S):
+            edge = min(x, z, S - 1 - x, S - 1 - z)
+            if edge <= 1:
+                for y in range(1, 10):
+                    t.set(x, y, z, "blue_ice" if y == 5 else "packed_ice")
+                t.set(x, 10, z, "snow_block" if edge == 0 and (x + z) % 2 == 0 else ("air" if edge == 0 else "spruce_planks"))
+    for i in range(2, S - 2):
+        for (x, z) in [(i, 2), (i, S - 3), (2, i), (S - 3, i)]:
+            slab(t, x, 9, z, "spruce", "top")
+    # Round towers at the corners.
+    for (tx, tz) in corners(c, c, c - 1):
+        for x in range(tx - 3, tx + 4):
+            for z in range(tz - 3, tz + 4):
+                if not (0 <= x < S and 0 <= z < S):
+                    continue
+                d = ((x - tx) ** 2 + (z - tz) ** 2) ** 0.5
+                if d <= 3.2:
+                    for y in range(1, 14):
+                        t.set(x, y, z, "packed_ice" if d > 2.2 else "air")
+                    t.set(x, 14, z, "blue_ice")
+                    if d <= 2.4:
+                        t.set(x, 15, z, "blue_ice")
+                    if d <= 1.5:
+                        t.set(x, 16, z, "blue_ice")
+                    if d <= 0.5:
+                        t.set(x, 17, z, "ice")
+                        t.set(x, 18, z, "lantern", hanging=False, waterlogged=False)
+        for y in (4, 8, 12):
+            for (dx, dz) in [(3, 0), (-3, 0), (0, 3), (0, -3)]:
+                if 0 <= tx + dx < S and 0 <= tz + dz < S:
+                    t.set(tx + dx, y, tz + dz, "blue_ice")
+        hanging_lantern(t, tx, tz, 13, 2)
+    # The gate.
+    for x in range(c - 1, c + 2):
+        for y in range(1, 5):
+            for z in (S - 2, S - 1):
+                t.set(x, y, z, "air")
+    for x in (c - 2, c + 2):
+        column(t, x, S - 1, 1, 6, "blue_ice")
+        t.set(x, 7, S - 1, "lantern", hanging=False, waterlogged=False)
+    for x in range(c - 1, c + 2):
+        t.set(x, 5, S - 1, "spruce_fence", waterlogged=False)
+    # Ice spikes and lantern posts in the courtyard corners.
+    for (x, z) in corners(c, c, 7):
+        column(t, x, z, 1, 5, "packed_ice")
+        t.set(x, 6, z, "ice")
+    for (x, z) in [(c - 4, c - 8), (c + 4, c - 8), (c - 4, c + 8), (c + 4, c + 8)]:
+        column(t, x, z, 1, 2, "spruce_fence", waterlogged=False)
+        t.set(x, 3, z, "lantern", hanging=False, waterlogged=False)
+    # The chest under an ice canopy at the back.
+    t.chest(c, 1, 3, "frozen_bastion", facing="south")
+    for x in (c - 1, c + 1):
+        column(t, x, 3, 1, 3, "blue_ice")
+    t.fill(c - 1, 4, 3, c + 1, 4, 3, "packed_ice")
+    t.set(c, 1, 4, "powder_snow")
     return t
 
 
 def overgrown_labyrinth():
-    r = random.Random(7)
+    """A mossy maze around a ruined round temple: banded stone walls capped with leaves and lanterns, overgrown paths,
+    a grand entrance and a ring of broken columns in the middle."""
+    import random as _r
+    r = _r.Random(7)
     n = 7
     cell = 4
     size = n * cell + 1
-    t = Template(size, 8, size)
-    t.fill(0, 0, 0, size - 1, 0, size - 1, "mossy_cobblestone")
+    t = Template(size, 9, size)
+    for x in range(size):
+        for z in range(size):
+            t.set(x, 0, z, r.choice(["moss_block", "moss_block", "coarse_dirt", "mossy_cobblestone", "rooted_dirt"]))
     walls = [[True] * size for _ in range(size)]
-    seen = set()
+    seen = {(0, 0)}
     stack = [(0, 0)]
-    seen.add((0, 0))
 
     def open_cell(cx, cz):
         for x in range(cx * cell + 1, cx * cell + cell):
@@ -532,14 +864,14 @@ def overgrown_labyrinth():
     open_cell(0, 0)
     while stack:
         cx, cz = stack[-1]
-        nbrs = [(cx + dx, cz + dz) for dx, dz in [(1, 0), (-1, 0), (0, 1), (0, -1)] if 0 <= cx + dx < n and 0 <= cz + dz < n and (cx + dx, cz + dz) not in seen]
+        nbrs = [(cx + dx, cz + dz) for dx, dz in [(1, 0), (-1, 0), (0, 1), (0, -1)]
+                if 0 <= cx + dx < n and 0 <= cz + dz < n and (cx + dx, cz + dz) not in seen]
         if not nbrs:
             stack.pop()
             continue
         nx, nz = r.choice(nbrs)
         seen.add((nx, nz))
         open_cell(nx, nz)
-        # knock down the wall between
         if cx != nx:
             x = max(cx, nx) * cell
             for z in range(cz * cell + 1, cz * cell + cell):
@@ -549,54 +881,124 @@ def overgrown_labyrinth():
             for x in range(cx * cell + 1, cx * cell + cell):
                 walls[x][z] = False
         stack.append((nx, nz))
-    # Central arena (3x3 cells) and the entrance
     for x in range(2 * cell + 1, 5 * cell):
         for z in range(2 * cell + 1, 5 * cell):
             walls[x][z] = False
     for z in range(1, cell):
         walls[0][z] = False
+    # Walls: a cobbled base, mossy courses, a chiseled band, leaves on top, a lantern now and then.
     for x in range(size):
         for z in range(size):
             if walls[x][z]:
-                for y in range(1, 6):
-                    t.set(x, y, z, r.choice(["mossy_stone_bricks", "mossy_stone_bricks", "cracked_stone_bricks", "stone_bricks"]))
-                t.set(x, 6, z, "jungle_leaves", persistent=True, distance=1)
+                t.set(x, 1, z, "mossy_cobblestone")
+                for y in range(2, 5):
+                    t.set(x, y, z, r.choice(["mossy_stone_bricks", "mossy_stone_bricks", "stone_bricks", "cracked_stone_bricks"]))
+                t.set(x, 5, z, "chiseled_stone_bricks" if (x % 4 == 0 and z % 4 == 0) else "stone_bricks")
+                t.set(x, 6, z, "jungle_leaves", persistent=True, distance=1, waterlogged=False)
+                if x % 4 == 0 and z % 4 == 0 and r.random() < 0.35:
+                    t.set(x, 7, z, "lantern", hanging=False, waterlogged=False)
             else:
-                for y in range(1, 7):
+                for y in range(1, 9):
                     t.set(x, y, z, "air")
+                if r.random() < 0.08:
+                    t.set(x, 1, z, r.choice(["fern", "short_grass", "moss_carpet"]))
+    # The ruined temple in the middle.
     c = size // 2
-    t.fill(c - 2, 0, c - 2, c + 2, 0, c + 2, "chiseled_stone_bricks")
+    for x in range(c - 5, c + 6):
+        for z in range(c - 5, c + 6):
+            d = ((x - c) ** 2 + (z - c) ** 2) ** 0.5
+            if d <= 5.3:
+                t.set(x, 0, z, "chiseled_stone_bricks" if 4.4 <= d else ("mossy_stone_bricks" if d > 1.5 else "chiseled_stone_bricks"))
+    import math
+    for i in range(8):
+        a = i * math.pi / 4
+        x, z = int(round(c + math.cos(a) * 4.5)), int(round(c + math.sin(a) * 4.5))
+        h = [6, 3, 5, 2, 6, 4, 6, 3][i]
+        column(t, x, z, 1, h, "stone_bricks", base="chiseled_stone_bricks")
+        if h == 6:
+            t.set(x, 7, z, "lantern", hanging=False, waterlogged=False)
+        else:
+            slab(t, x, h + 1, z, "mossy_stone_brick")
     t.chest(c, 1, c + 5, "overgrown_labyrinth", facing="north")
-    # A second chest at a far corner of the maze
     t.chest(size - 3, 1, size - 3, "overgrown_labyrinth", facing="north")
+    # The entrance: a chiseled arch with lanterns.
+    for (z, y) in [(0, 1), (0, 2), (0, 3), (cell, 1), (cell, 2), (cell, 3)]:
+        t.set(0, y, z, "chiseled_stone_bricks")
+    for z in range(0, cell + 1):
+        t.set(0, 4, z, "chiseled_stone_bricks")
+        if z in (0, cell):
+            t.set(0, 5, z, "stone_brick_wall", up=True, waterlogged=False)
+        else:
+            t.set(0, 5, z, "stone_bricks")
+    t.set(0, 6, 0, "lantern", hanging=False, waterlogged=False)
+    t.set(0, 6, cell, "lantern", hanging=False, waterlogged=False)
     return t
 
 
 def watchers_hollow():
-    r = random.Random(6)
-    t = Template(17, 12, 17)
-    for y in range(0, 11):
-        for x in range(17):
-            for z in range(17):
-                d = ((x - 8) ** 2 + (z - 8) ** 2) ** 0.5
-                if y == 0 and d <= 8.2:
-                    t.set(x, y, z, "sculk" if r.random() < 0.4 else "mud")
-                elif 1 <= y <= 9:
-                    if 6.6 < d <= 8.2:
-                        t.set(x, y, z, "dark_oak_wood", axis="y")
-                    elif d <= 6.6:
-                        t.set(x, y, z, "air")
-                elif y == 10 and d <= 8.0:
-                    t.set(x, y, z, "dark_oak_leaves", persistent=True, distance=1)
-    t.fill(8, 1, 0, 8, 2, 1, "air")
-    for y in (1, 2, 3, 4):
-        t.set(8, y, 14, "black_concrete")
-    t.set(8, 5, 14, "wither_skeleton_skull", rotation=0)
-    t.set(6, 1, 14, "soul_lantern", hanging=False)
-    t.set(10, 1, 14, "soul_lantern", hanging=False)
-    t.chest(8, 1, 12, "watchers_hollow", facing="north")
-    for (x, z) in [(4, 5), (12, 5), (4, 11), (12, 11)]:
-        t.set(x, 1, z, "sculk_sensor")
+    """A ritual grove in the dark forest: a ring of dark oak pillars under a leafy dome, rings of sculk and mud,
+    soul lanterns on posts, candles, and a black obelisk crowned with a wither skull."""
+    import math
+    import random as _r
+    r = _r.Random(6)
+    S, c = 23, 11
+    t = Template(S, 14, S)
+    for x in range(S):
+        for z in range(S):
+            d = ((x - c) ** 2 + (z - c) ** 2) ** 0.5
+            if d <= 10.5:
+                # Dark moss and mud, sculk creeping out from a tiled ring around the centre.
+                block = "mud" if r.random() < 0.35 else "moss_block"
+                if r.random() < max(0.0, 0.6 - d * 0.07):
+                    block = "sculk"
+                if 9.4 <= d:
+                    block = "deepslate_tiles"
+                if 2.4 <= d <= 3.4:
+                    block = "deepslate_tiles"
+                if d < 2.4:
+                    block = "sculk" if d > 0.5 else "sculk_catalyst"
+                t.set(x, 0, z, block)
+                for y in range(1, 11):
+                    t.set(x, y, z, "air")
+    # Pillars, beams and the leafy dome.
+    for i in range(12):
+        a = i * math.pi / 6
+        x, z = int(round(c + math.cos(a) * 9)), int(round(c + math.sin(a) * 9))
+        column(t, x, z, 1, 8, "dark_oak_log", axis="y")
+        t.set(x, 9, z, "stripped_dark_oak_log", axis="y")
+    ring(t, c, c, 8.4, 9.6, 9, "dark_oak_planks")
+    for y, (ri, ro) in [(10, (7.5, 10.2)), (11, (5.5, 8.6)), (12, (2.5, 6.4))]:
+        ring(t, c, c, ri, ro, y, lambda x, z: "dark_oak_leaves")
+    for pos, (blk, props) in list(t.blocks.items()):
+        if blk == "dark_oak_leaves":
+            t.set(*pos, "dark_oak_leaves", persistent=True, distance=1, waterlogged=False)
+    # Soul lanterns on posts and candles around the inner ring.
+    for i in range(6):
+        a = (i + 0.5) * math.pi / 3
+        x, z = int(round(c + math.cos(a) * 6)), int(round(c + math.sin(a) * 6))
+        column(t, x, z, 1, 2, "dark_oak_fence", waterlogged=False)
+        t.set(x, 3, z, "soul_lantern", hanging=False, waterlogged=False)
+    for i in range(10):
+        a = i * math.pi / 5
+        x, z = int(round(c + math.cos(a) * 4)), int(round(c + math.sin(a) * 4))
+        t.set(x, 1, z, "black_candle", candles=r.randint(1, 4), lit=True, waterlogged=False)
+    # The obelisk at the back, crowned with a wither skull.
+    ox, oz = c, c + 8
+    t.fill(ox - 1, 1, oz - 1, ox + 1, 1, oz + 1, "polished_blackstone")
+    t.fill(ox - 1, 2, oz - 1, ox + 1, 2, oz + 1, "polished_blackstone_bricks")
+    column(t, ox, oz, 3, 7, "black_concrete")
+    t.set(ox, 5, oz - 1, "crying_obsidian")
+    t.set(ox, 8, oz, "wither_skeleton_skull", rotation=8)
+    for (x, z) in [(ox - 1, oz - 1), (ox + 1, oz - 1)]:
+        t.set(x, 3, z, "soul_lantern", hanging=False, waterlogged=False)
+    t.chest(ox, 1, oz - 2, "watchers_hollow", facing="north")
+    for (x, z) in [(c - 5, c - 5), (c + 5, c - 5), (c - 5, c + 5), (c + 5, c + 5)]:
+        t.set(x, 1, z, "sculk_sensor", sculk_sensor_phase="inactive", power=0, waterlogged=False)
+    # The way in, from the north.
+    for x in range(c - 1, c + 2):
+        for y in range(1, 4):
+            t.set(x, y, 1, "air")
+            t.set(x, y, 2, "air")
     return t
 
 

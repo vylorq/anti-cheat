@@ -207,6 +207,11 @@ if [ -f "$GEYSER_CFG" ]; then
 else
   echo "  Geyser did not create its settings yet. Check: journalctl -u geyser -n 50"
 fi
+# Custom blocks were tried and removed: take their Bedrock files out of Geyser if an earlier update put them there.
+if [ -f "$GEYSER_DIR/custom_mappings/vigil_blocks_mappings.json" ] || [ -f "$GEYSER_DIR/packs/vigil_blocks.mcpack" ]; then
+  rm -f "$GEYSER_DIR/custom_mappings/vigil_blocks_mappings.json" "$GEYSER_DIR/packs/vigil_blocks.mcpack"
+  sudo systemctl restart geyser
+fi
 
 # Make OWNER the server owner (full access to every staff tool).
 ANTI_CFG="$SERVER_DIR/config/vigil/config.json"

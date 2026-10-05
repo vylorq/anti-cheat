@@ -111,7 +111,7 @@ public final class Bosses {
     }
 
     static {
-        add(new Kind(DROWNED_WARDEN, "Drowned Warden", "§3", "sunken_vault", 1, EntityType.DROWNED, 900, 14, 16, 1.7f,
+        add(new Kind(DROWNED_WARDEN, "Drowned Warden", "§3", "sunken_vault", 2, EntityType.DROWNED, 900, 14, 16, 1.7f,
                 List.of(Ability.SHOCKWAVE, Ability.TRIDENTS, Ability.LEAP), 0x3FA8FF,
                 List.of(new Guard(EntityType.DROWNED, "§3Vault Drowned", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.TRIDENT)))),
                 m -> { }, "tide_trident", "drowned_warden", 1.15f, 1.6f));
@@ -120,7 +120,7 @@ public final class Bosses {
                 List.of(new Guard(EntityType.SILVERFISH, "§7Stone Crawler", 4, m -> { }),
                         new Guard(EntityType.CAVE_SPIDER, "§2Sculk Lurker", 2, m -> { })),
                 m -> { }, "colossus_maul", null, 0, 0));
-        add(new Kind("storm_phantom", "Storm Phantom", "§b", "sky_citadel", 5, EntityType.PHANTOM, 700, 12, 10, 2.0f,
+        add(new Kind("storm_phantom", "Storm Phantom", "§b", "sky_citadel", 7, EntityType.PHANTOM, 700, 12, 10, 2.0f,
                 List.of(Ability.LIGHTNING, Ability.SHOCKWAVE, Ability.LIGHTNING), 0xB8E8FF,
                 List.of(new Guard(EntityType.PHANTOM, "§bGale Phantom", 3, m -> { }),
                         new Guard(EntityType.SKELETON, "§fSky Sentry", 2, m -> wear(m, EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET)))),
