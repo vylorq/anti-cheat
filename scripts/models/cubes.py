@@ -229,26 +229,77 @@ def chain(*fns):
 # ----------------------------------------------------------------------------------------------------------------------
 
 
+def shade(img, side):
+    """Painted light like a hand-made mob texture: lit top edge, soft gradient down the side, dark bottom and corners."""
+    h, w = img.shape[:2]
+    if side in ("up", "down"):
+        f = np.full((h, w), 1.06 if side == "up" else 0.72)
+        if h > 2 and w > 2:
+            f[0, :] *= 0.92
+            f[-1, :] *= 0.92
+            f[:, 0] *= 0.92
+            f[:, -1] *= 0.92
+    else:
+        f = np.repeat(np.linspace(1.08, 0.80, h)[:, None], w, 1) if h > 1 else np.ones((h, w))
+        if h > 2:
+            f[0, :] *= 1.10
+            f[-1, :] *= 0.85
+        if w > 2:
+            f[:, 0] *= 0.90
+            f[:, -1] *= 0.90
+    return img * f[..., None]
+
+
 class Model:
+    """A model made of named parts. Each part turns around its own pivot in game (head, jaw, arms, legs, wings, tail).
+
+    m.part("arm", pivot, "arm", mirror=True) starts a part pair: every box added while it's current is added to
+    arm_r as given and, mirrored, to arm_l.
+    """
+
     def __init__(self, name, seed=0):
         self.name = name
         self.boxes = []
+        self.parts = {}
+        self.order = []
         self.rng = np.random.default_rng(seed or sum(map(ord, name)))
+        self.part("body", (0, 0, 0), "body")
 
-    def box(self, frm, size, mat, rot=None, decal=None, skip=()):
-        """rot = (axis, angle) about the box centre, or (axis, angle, pivot). decal = {side: fn}."""
+    def part(self, name, pivot, role="static", parent=None, mirror=False, phase=None):
+        self.cur = (name, mirror)
+        pv = np.array(pivot, float)
+        if mirror:
+            for sfx, sx in (("_r", 1), ("_l", -1)):
+                par = parent + sfx if parent and self.parts.get(parent + sfx) else parent
+                ph = None if phase is None else phase + (math.pi if sx == -1 else 0.0)
+                self._add_part(name + sfx, pv * [sx, 1, 1], role, par, -1 if sx == 1 else 1, ph)
+        else:
+            self._add_part(name, pv, role, parent, 0, phase)
+        return self
+
+    def use(self, name):
+        """Switches back to a part made earlier."""
+        self.cur = (name, name not in self.parts and name + "_r" in self.parts)
+        return self
+
+    def _add_part(self, name, pivot, role, parent, side, phase=None):
+        if name not in self.parts:
+            self.order.append(name)
+        if parent is None and role not in ("body", "leg", "leg_front", "leg_back") and name != "body":
+            parent = "body"
+        self.parts[name] = dict(pivot=pivot, role=role, parent=parent, side=side, phase=phase)
+
+    def _put(self, frm, size, mat, rot, decal, skip, part):
         frm = np.array(frm, float)
         size = np.array(size, float)
         if rot is not None:
             assert rot[1] in ANGLES, rot
             if len(rot) == 2:
                 rot = (rot[0], rot[1], tuple(frm + size / 2))
-        self.boxes.append(dict(frm=frm, to=frm + size, mat=mat, rot=rot, decal=decal or {}, skip=set(skip)))
-        return self
+        self.boxes.append(dict(frm=frm, to=frm + size, mat=mat, rot=rot, decal=decal or {}, skip=set(skip), part=part))
 
-    def pair(self, frm, size, mat, rot=None, decal=None, skip=()):
-        """A box and its mirror image on the other side (x -> -x)."""
-        self.box(frm, size, mat, rot, decal, skip)
+    @staticmethod
+    def _mirror(frm, size, rot, decal, skip):
         frm = np.array(frm, float)
         size = np.array(size, float)
         mfrm = (-(frm[0] + size[0]), frm[1], frm[2])
@@ -259,12 +310,24 @@ class Model:
             if axis in ("y", "z"):
                 ang = -ang
             mrot = (axis, ang, (-pivot[0], pivot[1], pivot[2]))
-        mdec = {}
         flip = {"east": "west", "west": "east"}
-        for s, f in (decal or {}).items():
-            mdec[flip.get(s, s)] = (lambda f: lambda img: f(img[:, ::-1])[:, ::-1])(f)
-        skip = {flip.get(s, s) for s in skip}
-        self.box(mfrm, size, mat, mrot, mdec, skip)
+        mdec = {flip.get(s, s): (lambda f: lambda img: f(img[:, ::-1])[:, ::-1])(f) for s, f in (decal or {}).items()}
+        return mfrm, size, mrot, mdec, {flip.get(s, s) for s in skip}
+
+    def box(self, frm, size, mat, rot=None, decal=None, skip=()):
+        """rot = (axis, angle) about the box centre, or (axis, angle, pivot). decal = {side: fn}."""
+        name, mirror = self.cur
+        if mirror:
+            return self.pair(frm, size, mat, rot, decal, skip)
+        self._put(frm, size, mat, rot, decal, skip, name)
+        return self
+
+    def pair(self, frm, size, mat, rot=None, decal=None, skip=()):
+        """A box and its mirror image on the other side (x -> -x)."""
+        name, mirror = self.cur
+        self._put(frm, size, mat, rot, decal, skip, name + "_r" if mirror else name)
+        mfrm, msize, mrot, mdec, mskip = self._mirror(frm, size, rot, decal, skip)
+        self._put(mfrm, msize, mat, mrot, mdec, mskip, name + "_l" if mirror else name)
         return self
 
     # -- export ----------------------------------------------------------------------------------------------------
@@ -276,18 +339,15 @@ class Model:
             pts = rotate(pts, *b["rot"])
         return pts
 
-    def build(self):
-        pts = np.concatenate([self._corners(b) for b in self.boxes])
-        lo, hi = pts.min(0), pts.max(0)
-        span = hi - lo
-        k = min(1.0, 46.0 / span.max())
-        # x/z centred on 8, y centred in -16..32.
-        off = np.array([8 - (lo[0] + hi[0]) / 2 * k, 8 - (lo[1] + hi[1]) / 2 * k, 8 - (lo[2] + hi[2]) / 2 * k])
+    def build(self, height_blocks):
+        used = [p for p in self.order if any(b["part"] == p for b in self.boxes)]
+        # Every part's boxes, measured from its pivot, must fit in -24..24 around the model centre (8).
+        dev = max(np.abs(self._corners(b) - self.parts[b["part"]]["pivot"]).max() for b in self.boxes)
+        k = min(1.0, 23.5 / dev)
+        allpts = np.concatenate([self._corners(b) for b in self.boxes])
+        ground, top = allpts[:, 1].min(), allpts[:, 1].max()
 
-        def T(p):
-            return (np.array(p) * k + off).round(4).tolist()
-
-        faces = []  # (box index, side, image)
+        faces = []
         for i, b in enumerate(self.boxes):
             sx, sy, sz = (b["to"] - b["frm"])
             dims = {"north": (sx, sy), "south": (sx, sy), "east": (sz, sy), "west": (sz, sy), "up": (sx, sz), "down": (sx, sz)}
@@ -295,28 +355,53 @@ class Model:
                 if side in b["skip"]:
                     continue
                 w, h = (max(1, int(round(v))) for v in dims[side])
-                img = b["mat"].paint(side, w, h, self.rng).astype(float)
+                img = shade(b["mat"].paint(side, w, h, self.rng).astype(float), side)
                 if side in b["decal"]:
                     img = b["decal"][side](img)
                 faces.append((i, side, np.clip(img, 0, 255).astype(np.uint8)))
         atlas, where = pack([f[2] for f in faces])
         S = atlas.shape[0]
-        elements = {}
+        per_part = {p: {} for p in used}
         for (i, side, img), (x, y) in zip(faces, where):
             b = self.boxes[i]
+            pv = self.parts[b["part"]]["pivot"]
+
+            def T(q):
+                return ((np.array(q) - pv) * k + 8).round(4).tolist()
             h, w = img.shape[:2]
             uv = [round(v * 16 / S, 4) for v in (x, y, x + w, y + h)]
-            el = elements.setdefault(i, {"from": T(b["frm"]), "to": T(b["to"]), "faces": {}})
+            el = per_part[b["part"]].setdefault(i, {"from": T(b["frm"]), "to": T(b["to"]), "faces": {}})
             if b["rot"] is not None:
                 el["rotation"] = {"origin": T(b["rot"][2]), "axis": b["rot"][0], "angle": b["rot"][1]}
             el["faces"][side] = {"uv": uv, "texture": "#p"}
         os.makedirs(OUT, exist_ok=True)
+        for f in os.listdir(OUT):
+            if f in (self.name + ".png", self.name + ".json") or f.startswith(self.name + "__"):
+                os.remove(os.path.join(OUT, f))
         Image.fromarray(atlas).save(os.path.join(OUT, self.name + ".png"))
-        model = {"textures": {"p": "vigil:item/" + self.name, "particle": "vigil:item/" + self.name},
-                 "elements": [elements[i] for i in sorted(elements)]}
-        with open(os.path.join(OUT, self.name + ".json"), "w") as f:
-            json.dump(model, f, separators=(",", ":"))
-        print(f"{self.name}: {len(self.boxes)} boxes, atlas {S}x{S}, scale {k:.3f}")
+        scale = height_blocks / ((top - ground) * k / 16.0)
+        parts = []
+        for idx, p in enumerate(used):
+            info = self.parts[p]
+            model = {"textures": {"p": "vigil:item/" + self.name, "particle": "vigil:item/" + self.name},
+                     "elements": [per_part[p][i] for i in sorted(per_part[p])]}
+            with open(os.path.join(OUT, f"{self.name}__{p}.json"), "w") as f:
+                json.dump(model, f, separators=(",", ":"))
+            pv = info["pivot"]
+            parent = info["parent"] if info["parent"] in used else None
+            # Walking legs: right and left opposite, front and back pairs opposite, extra pairs alternate.
+            phase = 0.0
+            if info["phase"] is not None:
+                phase = info["phase"]
+            elif info["role"].startswith("leg"):
+                phase = (math.pi if info["side"] > 0 else 0.0) + (math.pi if info["role"] == "leg_back" else 0.0)
+            elif info["role"] in ("arm", "tentacle"):
+                phase = (0.0 if info["side"] > 0 else math.pi) + idx * 0.9 * (info["role"] == "tentacle")
+            parts.append({"id": f"{self.name}__{p}", "role": info["role"], "side": info["side"],
+                          "parent": f"{self.name}__{parent}" if parent else None, "phase": round(phase, 3),
+                          "pivot": [round(pv[0] * k / 16, 4), round((pv[1] - ground) * k / 16, 4), round(pv[2] * k / 16, 4)]})
+        print(f"{self.name}: {len(self.boxes)} boxes in {len(used)} parts, atlas {S}x{S}, k {k:.3f}")
+        return {"scale": round(scale, 4), "parts": parts}
 
 
 def rotate(pts, axis, ang, pivot):
@@ -361,30 +446,14 @@ def pack(imgs):
     return atlas, where
 
 
-def model_bounds(name):
-    with open(os.path.join(OUT, name + ".json")) as f:
-        m = json.load(f)
-    ys = [v for e in m["elements"] for v in (e["from"][1], e["to"][1])]
-    return min(ys), max(ys)
-
-
-def spec(name, height_blocks):
-    """Scale and lift so the model stands on the ground and is height_blocks tall (item models are centred on 8)."""
-    lo, hi = model_bounds(name)
-    scale = height_blocks / ((hi - lo) / 16.0)
-    lift = -(lo / 16.0 - 0.5) * scale
-    return {"scale": round(scale, 4), "lift": round(lift, 4)}
-
-
 def main(names):
     from designs import MODELS
-    for n in names or MODELS:
-        MODELS[n][0]()
-    specs = {}
-    for n, (_, h) in MODELS.items():
-        if os.path.exists(os.path.join(OUT, n + ".json")):
-            specs[n] = spec(n, h)
     path = os.path.join(ROOT, "src", "main", "resources", "vigil", "models.json")
+    specs = json.load(open(path)) if os.path.exists(path) and names else {}
+    for n in names or MODELS:
+        fn, h = MODELS[n]
+        specs[n] = fn().build(h)
+    specs = {n: specs[n] for n in MODELS if n in specs}
     with open(path, "w") as f:
         json.dump(specs, f, indent=1, sort_keys=True)
     print("specs:", len(specs))

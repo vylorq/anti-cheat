@@ -846,8 +846,10 @@ SECRET = {"voidblade": ("diamond_sword", voidblade, "minecraft:item/handheld"),
           "forge_cleaver": ("netherite_axe", forge_cleaver, "minecraft:item/handheld"),
           "glacier_axe": ("diamond_axe", glacier_axe, "minecraft:item/handheld"),
           "colossus_maul": ("mace", colossus_maul, "minecraft:item/handheld")}
-# Every boss / guard model listed in src/main/resources/vigil/models.json (shown on item displays of a nautilus shell).
-MODELS3D = {name: "nautilus_shell" for name in json.load(open(os.path.join(ROOT, "src", "main", "resources", "vigil", "models.json")))}
+# Every boss / guard model listed in src/main/resources/vigil/models.json: one texture and one model per moving part
+# (each part is shown on its own item display of a nautilus shell).
+_SPECS = json.load(open(os.path.join(ROOT, "src", "main", "resources", "vigil", "models.json")))
+MODELS3D = {name: [p["id"] for p in spec["parts"]] for name, spec in _SPECS.items()}
 # Item models that aren't one plain model (the grappling hook looks different once cast).
 CASE_MODELS = {"grappling_hook": {"type": "minecraft:condition", "property": "minecraft:fishing_rod/cast",
                                   "on_false": {"type": "minecraft:model", "model": "vigil:item/grappling_hook"},
@@ -1282,11 +1284,12 @@ def build():
             {"parent": parent, "textures": {"layer0": f"vigil:item/{name}"}}, indent=2).encode()
         by_base.setdefault(base, []).append(name)
     # 3D boss and guard models (made by scripts/models/cubes.py)
-    for name, base in MODELS3D.items():
-        mdir = os.path.join(ROOT, "scripts", "models", "built")
-        files[f"assets/vigil/models/item/{name}.json"] = open(os.path.join(mdir, name + ".json"), "rb").read()
+    mdir = os.path.join(ROOT, "scripts", "models", "built")
+    for name, parts in MODELS3D.items():
         files[f"assets/vigil/textures/item/{name}.png"] = open(os.path.join(mdir, name + ".png"), "rb").read()
-        by_base.setdefault(base, []).append(name)
+        for part in parts:
+            files[f"assets/vigil/models/item/{part}.json"] = open(os.path.join(mdir, part + ".json"), "rb").read()
+            by_base.setdefault("nautilus_shell", []).append(part)
     files["assets/vigil/textures/item/grappling_hook_cast.png"] = png(grappling_hook(True))
     files["assets/vigil/models/item/grappling_hook_cast.json"] = json.dumps(
         {"parent": "minecraft:item/handheld_rod", "textures": {"layer0": "vigil:item/grappling_hook_cast"}}, indent=2).encode()
