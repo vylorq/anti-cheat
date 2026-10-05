@@ -5,19 +5,23 @@
       "rolls": 1,
       "entries": [
         {
+          "type": "minecraft:empty",
+          "weight": 999864
+        },
+        {
           "type": "minecraft:loot_table",
           "value": "vigil:items/voidblade",
-          "weight": 1
+          "weight": 33
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/stormbreaker",
-          "weight": 1
+          "weight": 20
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/tidecaller",
-          "weight": 1
+          "weight": 83
         }
       ]
     },
@@ -25,9 +29,13 @@
       "rolls": 1,
       "entries": [
         {
+          "type": "minecraft:empty",
+          "weight": 999950
+        },
+        {
           "type": "minecraft:loot_table",
           "value": "vigil:items/phoenix_feather",
-          "weight": 1
+          "weight": 50
         }
       ]
     },

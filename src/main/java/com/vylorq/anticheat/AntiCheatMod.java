@@ -57,6 +57,7 @@ public final class AntiCheatMod implements ModInitializer {
         com.vylorq.anticheat.feature.SecretItems.register();
         com.vylorq.anticheat.feature.Bosses.register();
         com.vylorq.anticheat.feature.ModelMobs.register();
+        com.vylorq.anticheat.feature.StructureMobs.register();
         com.vylorq.anticheat.feature.BuilderLog.register();
         com.vylorq.anticheat.feature.WorldEvents.register();
         com.vylorq.anticheat.feature.Watcher.register();

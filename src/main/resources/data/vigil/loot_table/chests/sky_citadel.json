@@ -5,14 +5,18 @@
       "rolls": 1,
       "entries": [
         {
+          "type": "minecraft:empty",
+          "weight": 999750
+        },
+        {
           "type": "minecraft:loot_table",
           "value": "vigil:items/phoenix_feather",
-          "weight": 4
+          "weight": 50
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/seeker_compass",
-          "weight": 1
+          "weight": 200
         }
       ]
     },

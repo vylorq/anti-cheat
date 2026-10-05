@@ -105,22 +105,22 @@
       "entries": [
         {
           "type": "minecraft:empty",
-          "weight": 12
+          "weight": 999642
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/seeker_compass",
-          "weight": 3
+          "weight": 200
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/shadow_cloak",
-          "weight": 2
+          "weight": 125
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/voidblade",
-          "weight": 1
+          "weight": 33
         }
       ]
     }

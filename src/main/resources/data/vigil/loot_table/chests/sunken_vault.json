@@ -5,14 +5,18 @@
       "rolls": 1,
       "entries": [
         {
+          "type": "minecraft:empty",
+          "weight": 999717
+        },
+        {
           "type": "minecraft:loot_table",
           "value": "vigil:items/tidecaller",
-          "weight": 3
+          "weight": 83
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/seeker_compass",
-          "weight": 2
+          "weight": 200
         }
       ]
     },

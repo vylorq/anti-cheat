@@ -5,19 +5,23 @@
       "rolls": 1,
       "entries": [
         {
+          "type": "minecraft:empty",
+          "weight": 999792
+        },
+        {
           "type": "minecraft:loot_table",
           "value": "vigil:items/voidblade",
-          "weight": 2
+          "weight": 33
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/phoenix_feather",
-          "weight": 2
+          "weight": 50
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/shadow_cloak",
-          "weight": 1
+          "weight": 125
         }
       ]
     },

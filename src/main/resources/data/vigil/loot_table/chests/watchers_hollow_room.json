@@ -90,22 +90,22 @@
       "entries": [
         {
           "type": "minecraft:empty",
-          "weight": 12
+          "weight": 999864
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/voidblade",
-          "weight": 1
+          "weight": 33
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/stormbreaker",
-          "weight": 1
+          "weight": 20
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/tidecaller",
-          "weight": 1
+          "weight": 83
         }
       ]
     }
