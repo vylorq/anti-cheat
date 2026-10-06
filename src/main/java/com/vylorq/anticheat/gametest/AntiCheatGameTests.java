@@ -395,7 +395,7 @@ public final class AntiCheatGameTests {
         var boss = com.vylorq.anticheat.feature.Bosses.spawn(w, at, "forgemaster");
         check(boss != null, "the boss didn't spawn");
         check(com.vylorq.anticheat.feature.Bosses.phaseOf(boss) == 1, "a new boss starts on its first health bar");
-        check(boss.getCustomName().getString().contains("/18000"), "the forgemaster should have 18000 health: " + boss.getCustomName().getString());
+        check(boss.getCustomName().getString().contains("/16500"), "the forgemaster should have 16500 health: " + boss.getCustomName().getString());
         var owner = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "OwnerTester"));
         float full = boss.getHealth();
         com.vylorq.anticheat.feature.OwnerCombat.hurtForTest(owner, boss, 30f);
@@ -412,6 +412,19 @@ public final class AntiCheatGameTests {
         check(com.vylorq.anticheat.feature.Bosses.phaseOf(boss) == 2, "the boss didn't go to phase 2");
         check(boss.getHealth() == boss.getMaxHealth(), "phase 2 didn't start on full health");
         check(boss.getCustomName().getString().contains("[2/3]"), "the name doesn't show the phase");
+        check(com.vylorq.anticheat.feature.Bosses.shieldedForTest(boss), "no shield crystals in phase 2");
+        boss.setHealth(boss.getMaxHealth() - 100);
+        boss.timeUntilRegen = 0;
+        float shielded = boss.getHealth();
+        boss.damage(w, w.getDamageSources().magic(), 20f);
+        check(boss.getHealth() == shielded, "the boss was hurt through its shield");
+        for (var e : w.getOtherEntities(null, boss.getBoundingBox().expand(20), e -> e.getCommandTags().stream().anyMatch(t -> t.startsWith("vigil_shield:")))) {
+            e.discard();
+        }
+        boss.timeUntilRegen = 0;
+        boss.damage(w, w.getDamageSources().magic(), 20f);
+        check(boss.getHealth() < shielded, "the boss can't be hurt once its shield crystals are gone");
+        check(com.vylorq.anticheat.feature.Bosses.isCursedKey(com.vylorq.anticheat.feature.Bosses.cursedKey()), "the Cursed Key isn't recognised");
         com.vylorq.anticheat.feature.ModelMobs.tick(2);
         check(!com.vylorq.anticheat.feature.ModelMobs.hasModel("forgemaster") || boss.isInvisible(),
                 "the boss's plain mob shows after its phase change");

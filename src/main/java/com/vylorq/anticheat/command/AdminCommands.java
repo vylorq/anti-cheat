@@ -151,6 +151,7 @@ public final class AdminCommands {
         boss.then(bossSpawn);
         boss.then(literal("rotate").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.Bosses::ownerRotate)));
         boss.then(literal("removeall").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.Bosses::ownerKillAll)));
+        boss.then(literal("cursedkey").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.Bosses::ownerKey)));
         owner.then(boss);
         var structure = literal("structure");
         var structurePlace = literal("place");

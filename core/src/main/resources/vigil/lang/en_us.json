@@ -2676,5 +2676,15 @@
   "builds.removed": "§a{0} is gone and the ground is back as it was.",
   "builds.entry": "§f{0}: §a{1} {2} {3}",
   "builds.entry-none": "§f{0}: §7not placed",
-  "builds.adventure": "Adventure mode while you're in this map."
+  "builds.adventure": "Adventure mode while you're in this map.",
+  "boss.shielded": "Its shield crystals protect it: break them first!",
+  "boss.shield-up": "§b✦ Shield crystals rose around the boss: break all three to hurt it.",
+  "boss.too-far": "Too far away: get closer to hurt it.",
+  "boss.no-pillar": "No hiding up there!",
+  "boss.reinforcements": "Its guards come to help it!",
+  "boss.cursed": "Cursed!",
+  "boss.cursed-sub": "More health, harder hits, double loot",
+  "boss.curse-late": "§cThe Cursed Key only works before the fight starts.",
+  "boss.curse-already": "§cThis boss is already cursed.",
+  "boss.key-given": "§5You got a Cursed Key."
 }
