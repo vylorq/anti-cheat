@@ -164,6 +164,15 @@ public final class AdminCommands {
                                 com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "number"))))));
         structure.then(literal("list").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TestStructures::list)));
         owner.then(structure);
+        var build = literal("build");
+        var buildPlace = literal("place");
+        var buildRemove = literal("remove");
+        for (String n : com.vylorq.anticheat.feature.Builds.NAMES) {
+            buildPlace.then(literal(n).executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.Builds.place(p, n))));
+            buildRemove.then(literal(n).executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.Builds.remove(p, n))));
+        }
+        owner.then(build.then(buildPlace).then(buildRemove)
+                .then(literal("list").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.Builds::list))));
         owner.then(literal("tempest")
                 .then(literal("place").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::place)))
                 .then(literal("remove").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::remove)))
