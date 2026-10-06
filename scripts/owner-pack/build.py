@@ -973,6 +973,7 @@ BOSS_HEADS = ["drowned_warden", "deepslate_colossus", "storm_phantom", "forgemas
               "thornback_beast", "hollow_watcher", "tempest_lord"]
 HEAD_CHAR = 0xE100   # the bosses' heads, in the order above
 PHASE_CHAR = 0xE110  # the phase badges I, II, III
+SCARE_CHAR = 0xE200  # The Boiled One's jumpscare face
 
 
 _BUILT = os.path.join(ROOT, "scripts", "models", "built")
@@ -1095,6 +1096,12 @@ def boss_bars():
         out[f"assets/vigil/textures/font/phase_{n}.png"] = png(phase_badge(n))
         providers.append({"type": "bitmap", "file": f"vigil:font/phase_{n}.png", "height": 11, "ascent": 9,
                           "chars": [chr(PHASE_CHAR + n - 1)]})
+    # The Boiled One's jumpscare: its face, filling the screen when shown as a title.
+    face = os.path.join(_BUILT, "boiled_one_face.png")
+    if os.path.exists(face):
+        out["assets/vigil/textures/font/boiled_scare.png"] = open(face, "rb").read()
+        providers.append({"type": "bitmap", "file": "vigil:font/boiled_scare.png", "height": 64, "ascent": 40,
+                          "chars": [chr(SCARE_CHAR)]})
     # Fonts from every pack are put together, so this only adds the glyphs to the game's own font.
     out["assets/minecraft/font/default.json"] = json.dumps({"providers": providers}, indent=2).encode()
     return out
@@ -1419,6 +1426,32 @@ SOUNDS4 = {
                                      (0, 0.4 * env(saw(np.full(int(SR * 0.3), 116.5), 0.3), 0.005, 0.1))]),
 }
 
+def s_boiled_scream():
+    """The Boiled One's jumpscare: a hit, a shrieking scream sliding down, and a low boom under it. Loud."""
+    n = int(SR * 2.2)
+    shriek = saw(np.linspace(1500, 420, n), 2.2, 0.09) + 0.8 * saw(np.linspace(2100, 640, n), 2.2, 0.12)
+    rough = lowpass(noise(2.2), 2) * 2.2
+    scream = env(np.tanh((shriek + rough) * 2.5), 0.004, 0.7)
+    return mix(2.4, [(0, 2.0 * crack(0.2, 22)), (0, 1.8 * boom(1.4, 38, 2.2)), (0.01, scream),
+                     (0.02, 0.6 * env(np.tanh(saw(np.linspace(300, 90, int(SR * 1.8)), 1.8, 0.2) * 3), 0.01, 0.6))])
+
+
+SOUNDS4["boiled_scream"] = s_boiled_scream
+
+
+def s_boiled_breath():
+    """Slow, heavy, wet breathing: two long breaths, in and out, rough and close."""
+    def breath(sec, rise):
+        n = int(SR * sec)
+        shape = np.sin(np.linspace(0, np.pi, n)) ** (1.4 if rise else 0.8)
+        air = lowpass(noise(sec), 6) * 3.0 + lowpass(noise(sec), 30) * 1.5
+        rasp = saw(np.linspace(70, 55, n), sec, 0.3) * 0.25 * (0 if rise else 1)
+        return (air + rasp) * shape
+    return mix(4.6, [(0.0, breath(1.1, True)), (1.15, breath(1.2, False)), (2.4, breath(1.0, True)), (3.45, breath(1.1, False))])
+
+
+SOUNDS4["boiled_breath"] = s_boiled_breath
+
 SOUNDS = {"zap": s_zap, "mode": s_mode, "launch": s_launch,
           "heal": s_heal, "repair": s_repair, "give": s_give, "owner_join": s_owner_join, **SOUNDS2, **SOUNDS3, **SOUNDS4}
 
@@ -1551,6 +1584,66 @@ def build():
     with open(os.path.join(ROOT, "core", "src", "main", "resources", "vigil", "owner-pack.sha1"), "w") as f:
         f.write(sha + "\n")
     print(zpath, os.path.getsize(zpath), "bytes, sha1", sha)
+    bedrock_pack()
+
+
+# ------------------------------------------------------------------ Bedrock pack (sent by Geyser)
+
+BEDROCK_UUID = "6e0d4c58-3f1b-4a39-9d4c-2b7f1e9a5c11"
+BEDROCK_MODULE = "a1c7e2f4-8b3d-4e6a-9f10-5d2c8b7e4a33"
+BOILED_NAME = "The Boiled One"
+
+
+def bedrock_pack():
+    """What Bedrock players need: The Boiled One's painted figure (on the wither skeleton it's built on, only when it
+    carries its name, so real wither skeletons look as always), its jumpscare face and its scream."""
+    bdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bedrock")
+    out = {}
+    ent = json.load(open(os.path.join(bdir, "wither_skeleton.entity.json")))
+    d = ent["minecraft:client_entity"]["description"]
+    d["materials"]["vigil_boiled"] = "entity_alphatest"
+    d["textures"]["vigil_boiled"] = "textures/entity/vigil/boiled_one"
+    d["geometry"]["vigil_boiled"] = "geometry.vigil.boiled_one"
+    is_it = f"query.get_name == '{BOILED_NAME}'"
+    d["render_controllers"] = [{rc: f"!({is_it})"} if isinstance(rc, str) else rc for rc in d["render_controllers"]] + [
+        {"controller.render.vigil_boiled_one": is_it}]
+    out["entity/wither_skeleton.entity.json"] = json.dumps(ent, indent=2).encode()
+    out["render_controllers/vigil_boiled_one.render_controllers.json"] = json.dumps({
+        "format_version": "1.8.0",
+        "render_controllers": {"controller.render.vigil_boiled_one": {
+            "geometry": "Geometry.vigil_boiled", "materials": [{"*": "Material.vigil_boiled"}],
+            "textures": ["Texture.vigil_boiled"]}}}, indent=2).encode()
+    # The 3D figure (scripts/models/billboard.py), 49 pixels tall (x1.5 scale from the server = 4.6 blocks).
+    out["models/entity/vigil_boiled_one.geo.json"] = open(os.path.join(_BUILT, "boiled_one.geo.json"), "rb").read()
+    out["textures/entity/vigil/boiled_one.png"] = open(os.path.join(_BUILT, "boiled_one.png"), "rb").read()
+    # The jumpscare face: the same character the mod sends in the title (U+E200 = glyph_E2, first cell).
+    face = Image.open(os.path.join(_BUILT, "boiled_one_face.png")).convert("RGBA").resize((128, 128), Image.LANCZOS)
+    sheet = Image.new("RGBA", (2048, 2048), (0, 0, 0, 0))
+    sheet.paste(face, (0, 0))
+    out["font/glyph_E2.png"] = png(sheet)
+    # The scream, under the coded name the mod plays it by (with and without the namespace, whichever Geyser sends).
+    defs = {}
+    for snd in ("boiled_scream", "boiled_breath"):
+        out[f"sounds/vigil/{snd}.ogg"] = ogg(SOUNDS[snd]())
+        entry = {"category": "hostile", "sounds": [{"name": f"sounds/vigil/{snd}", "volume": 1.0, "load_on_low_memory": True}]}
+        defs["vigil:" + code(snd)] = entry
+        defs[code(snd)] = entry
+    out["sounds/sound_definitions.json"] = json.dumps({"format_version": "1.14.0", "sound_definitions": defs}, indent=2).encode()
+    out["pack_icon.png"] = png(pack_icon())
+    digest = hashlib.sha1(b"".join(out[k] for k in sorted(out))).hexdigest()
+    version = [1, 0, int(digest[:6], 16) % 100000]
+    out["manifest.json"] = json.dumps({
+        "format_version": 2,
+        "header": {"name": "Vigil", "description": "Vigil server pack for Bedrock", "uuid": BEDROCK_UUID,
+                   "version": version, "min_engine_version": [1, 21, 0]},
+        "modules": [{"type": "resources", "uuid": BEDROCK_MODULE, "version": version}]}, indent=2).encode()
+    zpath = os.path.join(OUT, "bedrock.mcpack")
+    with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
+        for path in sorted(out):
+            info = zipfile.ZipInfo(path, date_time=(2026, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            z.writestr(info, out[path])
+    print(zpath, os.path.getsize(zpath), "bytes, version", version)
 
 
 if __name__ == "__main__":

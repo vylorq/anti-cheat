@@ -114,6 +114,17 @@ public final class ModelMobs {
     }
 
     private static final Map<UUID, Worn> WORN = new ConcurrentHashMap<>();
+    /** Mobs leaning (degrees forward, degrees sideways), turned about their feet. */
+    private static final Map<UUID, float[]> LEAN = new ConcurrentHashMap<>();
+
+    /** Leans a model: forward (toward where it faces) and sideways, about its feet. 0, 0 stands it up again. */
+    public static void lean(Entity e, float forward, float side) {
+        if (forward == 0 && side == 0) {
+            LEAN.remove(e.getUuid());
+        } else {
+            LEAN.put(e.getUuid(), new float[]{forward, side});
+        }
+    }
     private static final Set<Integer> IDS = ConcurrentHashMap.newKeySet();
     private static long now;
 
@@ -297,6 +308,12 @@ public final class ModelMobs {
         Part parent = p.parent() == null ? null : byId.get(p.parent());
         if (parent == null) {
             Vector3f pos = new Vector3f(p.px(), p.py(), p.pz()).mul(k);
+            float[] lean = LEAN.get(x.mob.getUuid());
+            if (lean != null) {
+                Quaternionf l = new Quaternionf().rotateX((float) Math.toRadians(lean[0])).rotateZ((float) Math.toRadians(lean[1]));
+                l.transform(pos);
+                q = new Quaternionf(l).mul(q);
+            }
             if ("body".equals(p.role())) {
                 float bob = x.spec.style() == Style.FLYER ? (float) (Math.sin(t * 0.9) * 0.15)
                         : (float) (Math.abs(Math.sin(x.walk)) * 0.05 * amp + Math.sin(t * 0.25) * 0.02) * k;
@@ -419,6 +436,7 @@ public final class ModelMobs {
 
     /** Takes a mob away with its model (discarding the mob alone would leave the model standing there). */
     public static void remove(MobEntity m) {
+        LEAN.remove(m.getUuid());
         if (m.getEntityWorld() instanceof ServerWorld w) {
             drop(m, w);
         }

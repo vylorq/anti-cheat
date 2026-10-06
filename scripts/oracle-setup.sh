@@ -213,6 +213,16 @@ if [ -f "$GEYSER_DIR/custom_mappings/vigil_blocks_mappings.json" ] || [ -f "$GEY
   sudo systemctl restart geyser
 fi
 
+# Bedrock players' pack (The Boiled One's painted figure, its jumpscare and scream): Geyser sends it to them.
+if [ -f "$SRC_DIR/resourcepack/bedrock.mcpack" ]; then
+  mkdir -p "$GEYSER_DIR/packs"
+  if ! cmp -s "$SRC_DIR/resourcepack/bedrock.mcpack" "$GEYSER_DIR/packs/vigil.mcpack"; then
+    cp "$SRC_DIR/resourcepack/bedrock.mcpack" "$GEYSER_DIR/packs/vigil.mcpack"
+    sudo systemctl restart geyser
+    echo "  Bedrock pack updated"
+  fi
+fi
+
 # Make OWNER the server owner (full access to every staff tool).
 ANTI_CFG="$SERVER_DIR/config/vigil/config.json"
 if [ -n "$OWNER" ]; then
