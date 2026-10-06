@@ -48,7 +48,8 @@ public final class ModelMobs {
     record Part(String id, String role, int side, String parent, float phase, float px, float py, float pz) {
     }
 
-    record Spec(float scale, Style style, List<Part> parts) {
+    /** billboard: one flat painted picture that always turns to face whoever looks at it (not blocky). */
+    record Spec(float scale, Style style, List<Part> parts, boolean billboard) {
     }
 
     private static Map<String, Spec> specs;
@@ -78,7 +79,7 @@ public final class ModelMobs {
                                     pv.get(0).getAsFloat(), pv.get(1).getAsFloat(), pv.get(2).getAsFloat()));
                         }
                         specs.put(e.getKey(), new Spec(v.get("scale").getAsFloat(), STYLES.getOrDefault(e.getKey(), Style.BIPED),
-                                List.copyOf(parts)));
+                                List.copyOf(parts), v.has("billboard") && v.get("billboard").getAsBoolean()));
                     }
                 }
             } catch (Exception ex) {
@@ -353,6 +354,14 @@ public final class ModelMobs {
                     continue;
                 }
                 d.addCommandTag(DISPLAY_TAG);
+                if (x.spec.billboard()) {
+                    try {
+                        Ac.server().getCommandManager().parseAndExecute(Ac.server().getCommandSource().withWorld(w).withSilent(),
+                                "data merge entity " + id + " {billboard:\"vertical\",brightness:{sky:6,block:6},view_range:2.0f}");
+                    } catch (Exception ignored) {
+                        // it still shows, just without turning
+                    }
+                }
                 x.displays.put(p.id(), id);
                 x.sent.remove(p.id());
             }
@@ -406,6 +415,14 @@ public final class ModelMobs {
                 animate(w, x);
             }
         }
+    }
+
+    /** Takes a mob away with its model (discarding the mob alone would leave the model standing there). */
+    public static void remove(MobEntity m) {
+        if (m.getEntityWorld() instanceof ServerWorld w) {
+            drop(m, w);
+        }
+        m.discard();
     }
 
     /** Removes every model display (owner cleanup). */

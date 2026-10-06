@@ -52,6 +52,7 @@ public final class Ticker {
         OrbitalStrike.tick(ticks);
         SecretItems.tick(ticks);
         Bosses.tick(ticks);
+        BoiledOne.tick(ticks);
         TempestKeep.tick(ticks);
         Builds.tick(ticks);
         ModelMobs.tick(ticks);

@@ -179,6 +179,20 @@ public final class AdminCommands {
                 .then(literal("remove").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::remove)))
                 .then(literal("reset").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::reset)))
                 .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::info))));
+        var boiledSend = literal("send");
+        for (String how : new String[]{"watch", "scare", "breakin"}) {
+            boiledSend.then(literal(how).then(Args.player("player").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerSend(p,
+                    Args.online(Args.str(ctx, "player")), how)))));
+        }
+        owner.then(literal("boiledone")
+                .then(literal("on").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerToggle(p, true))))
+                .then(literal("off").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerToggle(p, false))))
+                .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerInfo)))
+                .then(literal("removeall").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerRemoveAll)))
+                .then(literal("minutes").then(CommandManager.argument("minutes", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 10000))
+                        .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerMinutes(p,
+                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "minutes"))))))
+                .then(boiledSend));
         owner.then(literal("smite").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerCombat::smite)));
         owner.then(literal("items").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::items)));
         owner.then(literal("pack").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerPowers::sendPack)));

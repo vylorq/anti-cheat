@@ -1,0 +1,40 @@
+{
+  "textures": {
+    "p": "vigil:item/xb984b75cff",
+    "particle": "vigil:item/xb984b75cff"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        8
+      ],
+      "to": [
+        16,
+        16,
+        8
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#p"
+        },
+        "north": {
+          "uv": [
+            16,
+            0,
+            0,
+            16
+          ],
+          "texture": "#p"
+        }
+      }
+    }
+  ]
+}

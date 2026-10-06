@@ -449,11 +449,13 @@ def pack(imgs):
 def main(names):
     from designs import MODELS
     path = os.path.join(ROOT, "src", "main", "resources", "vigil", "models.json")
-    specs = json.load(open(path)) if os.path.exists(path) and names else {}
+    old = json.load(open(path)) if os.path.exists(path) else {}
+    specs = old if names else {}
     for n in names or MODELS:
         fn, h = MODELS[n]
         specs[n] = fn().build(h)
-    specs = {n: specs[n] for n in MODELS if n in specs}
+    # models made elsewhere (billboard.py) are kept
+    specs = {n: specs[n] for n in MODELS if n in specs} | {n: s for n, s in old.items() if s.get("billboard")}
     with open(path, "w") as f:
         json.dump(specs, f, indent=1, sort_keys=True)
     print("specs:", len(specs))

@@ -2686,5 +2686,14 @@
   "boss.cursed-sub": "More health, harder hits, double loot",
   "boss.curse-late": "§cThe Cursed Key only works before the fight starts.",
   "boss.curse-already": "§cThis boss is already cursed.",
-  "boss.key-given": "§5You got a Cursed Key."
+  "boss.key-given": "§5You got a Cursed Key.",
+  "boiled.breakin": "IT'S INSIDE",
+  "boiled.on": "§aThe Boiled One is hunting again.",
+  "boiled.off": "§cThe Boiled One stopped hunting.",
+  "boiled.minutes": "§7The Boiled One now shows up about once every {0} minutes per player (at night or in caves).",
+  "boiled.info": "§7The Boiled One: {0} · about every {1} min · break-ins 1 in {2} · hunting now: {3}",
+  "boiled.no-player": "§cThat player isn't online.",
+  "boiled.nowhere": "§cIt found nowhere to stand near {0}. Try again.",
+  "boiled.sent": "§4The Boiled One is coming for {0}.",
+  "boiled.removed": "§7Sent away {0} Boiled One(s)."
 }
