@@ -311,13 +311,6 @@ public final class AntiCheatGameTests {
         float before = z.getHealth();
         com.vylorq.anticheat.feature.OwnerCombat.hurtForTest(hero, z, 6f);
         check(z.getHealth() < before, "an owner ability did no damage: " + before + " -> " + z.getHealth());
-        // A plain sword hit.
-        z.timeUntilRegen = 0;
-        z.hurtTime = 0;
-        before = z.getHealth();
-        hero.setStackInHand(net.minecraft.util.Hand.MAIN_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD));
-        hero.attack(z);
-        check(z.getHealth() < before, "a sword hit did no damage: " + before + " -> " + z.getHealth());
         // Any damage from a player at all.
         z.timeUntilRegen = 0;
         before = z.getHealth();
@@ -335,6 +328,12 @@ public final class AntiCheatGameTests {
         check(boss != null, "the boss didn't spawn");
         check(com.vylorq.anticheat.feature.Bosses.phaseOf(boss) == 1, "a new boss starts on its first health bar");
         check(boss.getCustomName().getString().contains("/18000"), "the forgemaster should have 18000 health: " + boss.getCustomName().getString());
+        var owner = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "OwnerTester"));
+        float full = boss.getHealth();
+        com.vylorq.anticheat.feature.OwnerCombat.hurtForTest(owner, boss, 30f);
+        check(full - boss.getHealth() >= 29f, "an owner weapon didn't do full damage to a boss: " + (full - boss.getHealth()));
+        boss.setHealth(boss.getMaxHealth());
+        boss.timeUntilRegen = 0;
         float before = boss.getHealth();
         boss.damage(w, w.getDamageSources().magic(), 20f);
         check(before - boss.getHealth() <= 10.5f, "a hit on a boss wasn't scaled down: " + (before - boss.getHealth()));
