@@ -389,6 +389,26 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void boiledOneStalksThenRushes(TestContext ctx) {
+        var w = ctx.getWorld();
+        var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
+        var victim = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Hunted"));
+        victim.refreshPositionAndAngles(at.x, at.y, at.z + 6, 180, 0);
+        var m = com.vylorq.anticheat.feature.BoiledOne.spawnForTest(w, at, victim);
+        check(m != null, "The Boiled One didn't appear");
+        check(m.isInvulnerable(), "The Boiled One can be hurt");
+        check(m.isAiDisabled(), "a stalking Boiled One should just stand there");
+        check(!com.vylorq.anticheat.feature.BoiledOne.rushingForTest(m), "it shouldn't rush before it's seen");
+        check(m.getCommandTags().contains("vigil_model:boiled_one"), "it doesn't wear its painted model");
+        com.vylorq.anticheat.feature.BoiledOne.rushForTest(m, victim);
+        check(com.vylorq.anticheat.feature.BoiledOne.rushingForTest(m), "it didn't rush when seen");
+        check(!m.isAiDisabled(), "a rushing Boiled One must move");
+        com.vylorq.anticheat.feature.BoiledOne.removeForTest(m);
+        check(m.isRemoved(), "it didn't vanish");
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));

@@ -1,4 +1,22 @@
 {
+ "boiled_one": {
+  "billboard": true,
+  "parts": [
+   {
+    "id": "boiled_one__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.5,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   }
+  ],
+  "scale": 4.6
+ },
  "deepslate_colossus": {
   "parts": [
    {
