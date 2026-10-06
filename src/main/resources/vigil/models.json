@@ -1793,6 +1793,201 @@
   ],
   "scale": 2.2636
  },
+ "storm_wisp": {
+  "parts": [
+   {
+    "id": "storm_wisp__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.5,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "storm_wisp__arm_r",
+    "parent": "storm_wisp__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.375,
+     0.625,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "storm_wisp__arm_l",
+    "parent": "storm_wisp__body",
+    "phase": 0.0,
+    "pivot": [
+     0.375,
+     0.625,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   }
+  ],
+  "scale": 1.6941
+ },
+ "tempest_lord": {
+  "parts": [
+   {
+    "id": "tempest_lord__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.7145,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "tempest_lord__leg_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.1985,
+     0.7145,
+     0.0
+    ],
+    "role": "leg",
+    "side": -1
+   },
+   {
+    "id": "tempest_lord__leg_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.1985,
+     0.7145,
+     0.0
+    ],
+    "role": "leg",
+    "side": 1
+   },
+   {
+    "id": "tempest_lord__cape",
+    "parent": "tempest_lord__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.5481,
+     -0.2779
+    ],
+    "role": "tail",
+    "side": 0
+   },
+   {
+    "id": "tempest_lord__arm_r",
+    "parent": "tempest_lord__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.5954,
+     1.4688,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "tempest_lord__arm_l",
+    "parent": "tempest_lord__body",
+    "phase": 0.0,
+    "pivot": [
+     0.5954,
+     1.4688,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "tempest_lord__head",
+    "parent": "tempest_lord__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.5878,
+     0.0397
+    ],
+    "role": "head",
+    "side": 0
+   },
+   {
+    "id": "tempest_lord__axe",
+    "parent": "tempest_lord__arm_l",
+    "phase": 0.0,
+    "pivot": [
+     0.5954,
+     1.4688,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   }
+  ],
+  "scale": 2.6472
+ },
+ "tempest_shade": {
+  "parts": [
+   {
+    "id": "tempest_shade__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.375,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "tempest_shade__head",
+    "parent": "tempest_shade__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.5625,
+     0.0
+    ],
+    "role": "head",
+    "side": 0
+   },
+   {
+    "id": "tempest_shade__arm_r",
+    "parent": "tempest_shade__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.25,
+     0.5,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "tempest_shade__arm_l",
+    "parent": "tempest_shade__body",
+    "phase": 0.0,
+    "pivot": [
+     0.25,
+     0.5,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   }
+  ],
+  "scale": 0.8533
+ },
  "thornback_beast": {
   "parts": [
    {

@@ -164,6 +164,11 @@ public final class AdminCommands {
                                 com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "number"))))));
         structure.then(literal("list").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TestStructures::list)));
         owner.then(structure);
+        owner.then(literal("tempest")
+                .then(literal("place").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::place)))
+                .then(literal("remove").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::remove)))
+                .then(literal("reset").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::reset)))
+                .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::info))));
         owner.then(literal("smite").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerCombat::smite)));
         owner.then(literal("items").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::items)));
         owner.then(literal("pack").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerPowers::sendPack)));

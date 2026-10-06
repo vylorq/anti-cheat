@@ -30,6 +30,8 @@ def build_keep(seed=31170900):
     t = Template(X, Y, Z)
     layout = {"size": [X, Y, Z], "gates": [], "levers": [], "code": [], "regions": {}}
 
+    # Everything inside is cleared first (hills and caves where it's placed must not show through), then built.
+    t.fill(0, F + 1, 0, X - 1, Y - 1, Z - 1, "air")
     # Foundation, floor and outer shell.
     t.fill(0, 0, 0, X - 1, 1, Z - 1, "cobbled_deepslate")
     t.fill(0, F, 0, X - 1, F, Z - 1, FLOOR)
