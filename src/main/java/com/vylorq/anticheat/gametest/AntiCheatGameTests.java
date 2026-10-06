@@ -413,6 +413,7 @@ public final class AntiCheatGameTests {
         check(boss.getHealth() == boss.getMaxHealth(), "phase 2 didn't start on full health");
         check(boss.getCustomName().getString().contains("[2/3]"), "the name doesn't show the phase");
         check(com.vylorq.anticheat.feature.Bosses.shieldedForTest(boss), "no shield crystals in phase 2");
+        boss.removeStatusEffect(net.minecraft.entity.effect.StatusEffects.RESISTANCE); // the 3 seconds it can't be hurt as it rises
         boss.setHealth(boss.getMaxHealth() - 100);
         boss.timeUntilRegen = 0;
         float shielded = boss.getHealth();
