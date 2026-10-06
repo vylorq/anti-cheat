@@ -1,0 +1,103 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "vigil:font/head_0.png",
+      "height": 16,
+      "ascent": 12,
+      "chars": [
+        "\ue100"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "vigil:font/head_1.png",
+      "height": 16,
+      "ascent": 12,
+      "chars": [
+        "\ue101"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "vigil:font/head_2.png",
+      "height": 16,
+      "ascent": 12,
+      "chars": [
+        "\ue102"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "vigil:font/head_3.png",
+      "height": 16,
+      "ascent": 12,
+      "chars": [
+        "\ue103"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "vigil:font/head_4.png",
+      "height": 16,
+      "ascent": 12,
+      "chars": [
+        "\ue104"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "vigil:font/head_5.png",
+      "height": 16,
+      "ascent": 12,
+      "chars": [
+        "\ue105"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "vigil:font/head_6.png",
+      "height": 16,
+      "ascent": 12,
+      "chars": [
+        "\ue106"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "vigil:font/head_7.png",
+      "height": 16,
+      "ascent": 12,
+      "chars": [
+        "\ue107"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "vigil:font/phase_1.png",
+      "height": 11,
+      "ascent": 9,
+      "chars": [
+        "\ue110"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "vigil:font/phase_2.png",
+      "height": 11,
+      "ascent": 9,
+      "chars": [
+        "\ue111"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "vigil:font/phase_3.png",
+      "height": 11,
+      "ascent": 9,
+      "chars": [
+        "\ue112"
+      ]
+    }
+  ]
+}

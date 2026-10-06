@@ -874,49 +874,153 @@ def png(img):
 
 # ------------------------------------------------------------------ boss bars
 
-BAR_COLOURS = {"green": (70, 210, 80), "yellow": (240, 200, 40), "red": (225, 45, 50)}
+# Pixel art at twice the game's resolution (364x10 for its 182x5): stepped round ends, a bevel and a shine, in the
+# same blocky style as the rest of the game's screens.
+BAR_W, BAR_H = 364, 10
+BAR_COLOURS = {"green": ((24, 100, 34), (96, 226, 106)), "yellow": ((150, 104, 8), (255, 214, 64)),
+               "red": ((118, 14, 22), (250, 72, 72))}
 
 
-def bar_progress(col):
-    """A shaded bar fill (182x5): light on top, dark below, with a faint sheen."""
-    im = Image.new("RGBA", (182, 5))
-    for x in range(182):
-        for y in range(5):
-            f = [1.45, 1.15, 1.0, 0.85, 0.6][y]
-            c = tuple(max(0, min(255, int(v * f))) for v in col)
-            if (x // 3 + y) % 7 == 0 and y in (1, 2):
-                c = tuple(min(255, v + 25) for v in c)
-            im.putpixel((x, y), c + (255,))
-    return im
+def _inside(x, y):
+    """The bar's shape: a 10-high strip with corners stepped off two pixels deep."""
+    for cx in (min(x, BAR_W - 1 - x),):
+        if cx == 0 and (y < 2 or y > BAR_H - 3):
+            return False
+        if cx == 1 and (y < 1 or y > BAR_H - 2):
+            return False
+    return True
+
+
+def _edge(x, y):
+    return _inside(x, y) and not all(_inside(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                                     if 0 <= x + dx < BAR_W and 0 <= y + dy < BAR_H) or (
+        _inside(x, y) and (x in (0, BAR_W - 1) or y in (0, BAR_H - 1)))
 
 
 def bar_background():
-    """The empty part of a bar: dark, with a darker frame."""
-    im = Image.new("RGBA", (182, 5))
-    for x in range(182):
-        for y in range(5):
-            edge = y in (0, 4) or x in (0, 181)
-            im.putpixel((x, y), (18, 14, 12, 255) if edge else (48, 40, 36, 255))
+    """The empty part: a dark track with a black outline and a faint lower lip."""
+    im = Image.new("RGBA", (BAR_W, BAR_H), (0, 0, 0, 0))
+    px = im.load()
+    for x in range(BAR_W):
+        for y in range(BAR_H):
+            if not _inside(x, y):
+                continue
+            if _edge(x, y):
+                px[x, y] = (8, 6, 8, 255)
+            elif y == BAR_H - 2:
+                px[x, y] = (58, 50, 52, 255)
+            elif y == 1 or y == 2:
+                px[x, y] = (22, 18, 20, 255)
+            else:
+                px[x, y] = (34, 29, 31, 240)
     return im
 
 
-def bar_notches(n):
-    im = Image.new("RGBA", (182, 5), (0, 0, 0, 0))
-    for k in range(1, n):
-        x = 181 * k // n
-        for y in range(1, 4):
-            im.putpixel((x, y), (10, 8, 8, 200))
+def bar_progress(name):
+    """The fill: a light top row, a shine, the colour, and a darker bottom, inside the same outline."""
+    dark, bright = BAR_COLOURS[name]
+    mid = tuple((a + b) // 2 for a, b in zip(dark, bright))
+    light = tuple(min(255, int(v * 1.25) + 30) for v in bright)
+    rows = [None, light, bright, bright, bright, mid, mid, dark, tuple(int(v * 0.7) for v in dark), None]
+    im = Image.new("RGBA", (BAR_W, BAR_H), (0, 0, 0, 0))
+    px = im.load()
+    for x in range(BAR_W):
+        for y in range(BAR_H):
+            if not _inside(x, y):
+                continue
+            if _edge(x, y):
+                px[x, y] = tuple(int(v * 0.35) for v in dark) + (255,)
+                continue
+            c = rows[y] or dark
+            if y == 2 and (x // 2) % 9 == 0:
+                c = light  # a sparkle along the shine
+            px[x, y] = c + (255,)
+    return im
+
+
+BOSS_HEADS = ["drowned_warden", "deepslate_colossus", "storm_phantom", "forgemaster", "sand_colossus", "frost_titan",
+              "thornback_beast", "hollow_watcher"]
+HEAD_CHAR = 0xE100   # the bosses' heads, in the order above
+PHASE_CHAR = 0xE110  # the phase badges I, II, III
+
+
+def head_icon(boss, size=64):
+    """The boss's face, drawn from the front of its 3D model's head (the Hollow Watcher is all eye: its body)."""
+    built = os.path.join(ROOT, "scripts", "models", "built")
+    part = os.path.join(built, boss + "__head.json")
+    if not os.path.exists(part):
+        part = os.path.join(built, boss + "__body.json")
+    els = json.load(open(part))["elements"]
+    tex = Image.open(os.path.join(built, boss + ".png")).convert("RGBA")
+    tw, th = tex.size
+    sc = 8
+    minx = min(min(e["from"][0], e["to"][0]) for e in els)
+    maxx = max(max(e["from"][0], e["to"][0]) for e in els)
+    miny = min(min(e["from"][1], e["to"][1]) for e in els)
+    maxy = max(max(e["from"][1], e["to"][1]) for e in els)
+    img = Image.new("RGBA", (int((maxx - minx) * sc) + 2, int((maxy - miny) * sc) + 2), (0, 0, 0, 0))
+    for e in sorted(els, key=lambda e: e["to"][2]):
+        f = e["faces"].get("south")
+        if not f:
+            continue
+        u1, v1, u2, v2 = f["uv"]
+        a, b = sorted((u1 * tw / 16, u2 * tw / 16))
+        c, d = sorted((v1 * th / 16, v2 * th / 16))
+        crop = tex.crop((int(a), int(c), max(int(b), int(a) + 1), max(int(d), int(c) + 1)))
+        if u1 > u2:
+            crop = crop.transpose(Image.FLIP_LEFT_RIGHT)
+        if v1 > v2:
+            crop = crop.transpose(Image.FLIP_TOP_BOTTOM)
+        (x0, y0, _), (x1, y1, _) = e["from"], e["to"]
+        face = crop.resize((max(1, round((x1 - x0) * sc)), max(1, round((y1 - y0) * sc))), Image.NEAREST)
+        img.alpha_composite(face, (round((x0 - minx) * sc), round((maxy - y1) * sc)))
+    img.thumbnail((size, size), Image.NEAREST)
+    out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    out.alpha_composite(img, ((size - img.width) // 2, (size - img.height) // 2))
+    return out
+
+
+def phase_badge(n):
+    """A pixel-art "PHASE II" badge in the phase's colour, in the game's own blocky lettering, at 1:1 with the font."""
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import pixelfont
+    dark, bright = BAR_COLOURS[["green", "yellow", "red"][n - 1]]
+    label = "PHASE " + ["I", "II", "III"][n - 1]
+    w = pixelfont.width(label) + 8
+    h = 11
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    px = im.load()
+    for x in range(w):
+        for y in range(h):
+            corner = (x in (0, w - 1)) and (y in (0, h - 1))
+            if corner:
+                continue
+            edge = x in (0, w - 1) or y in (0, h - 1)
+            px[x, y] = (tuple(int(v * 0.45) for v in dark) if edge else tuple(int(v * 0.32) for v in bright)) + (255,)
+    for x in range(1, w - 1):
+        px[x, 1] = tuple(int(v * 0.5) for v in bright) + (255,)
+    pixelfont.draw(im, 4, 2, label, bright + (255,), shadow=tuple(int(v * 0.25) for v in bright) + (255,))
     return im
 
 
 def boss_bars():
-    """The bosses' bars (green, yellow and red by phase, notched in 20). Raids also use red bars and get the same look."""
+    """The bars (by phase colour) and the heads and badges the bars' titles show, as font glyphs."""
     out = {}
-    for name, col in BAR_COLOURS.items():
-        out[f"assets/minecraft/textures/gui/sprites/boss_bar/{name}_progress.png"] = png(bar_progress(col))
+    for name in BAR_COLOURS:
+        out[f"assets/minecraft/textures/gui/sprites/boss_bar/{name}_progress.png"] = png(bar_progress(name))
         out[f"assets/minecraft/textures/gui/sprites/boss_bar/{name}_background.png"] = png(bar_background())
-    out["assets/minecraft/textures/gui/sprites/boss_bar/notched_20_progress.png"] = png(bar_notches(20))
-    out["assets/minecraft/textures/gui/sprites/boss_bar/notched_20_background.png"] = png(bar_notches(20))
+    providers = []
+    for i, boss in enumerate(BOSS_HEADS):
+        out[f"assets/vigil/textures/font/head_{i}.png"] = png(head_icon(boss))
+        providers.append({"type": "bitmap", "file": f"vigil:font/head_{i}.png", "height": 16, "ascent": 12,
+                          "chars": [chr(HEAD_CHAR + i)]})
+    for n in (1, 2, 3):
+        out[f"assets/vigil/textures/font/phase_{n}.png"] = png(phase_badge(n))
+        providers.append({"type": "bitmap", "file": f"vigil:font/phase_{n}.png", "height": 11, "ascent": 9,
+                          "chars": [chr(PHASE_CHAR + n - 1)]})
+    # Fonts from every pack are put together, so this only adds the glyphs to the game's own font.
+    out["assets/minecraft/font/default.json"] = json.dumps({"providers": providers}, indent=2).encode()
     return out
 
 

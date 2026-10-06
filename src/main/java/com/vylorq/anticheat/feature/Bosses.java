@@ -238,8 +238,10 @@ public final class Bosses {
         final MobEntity mob;
         final Kind kind;
         final DustParticleEffect aura;
-        /** The health bar at the top of the screen (Java and Bedrock). */
+        /** The health bar at the top of the screen: Java's shows the boss's head and a phase badge from the pack. */
         final net.minecraft.entity.boss.ServerBossBar bar;
+        /** Bedrock players' bar: the same, in plain text (they don't have the pack's glyphs). */
+        final net.minecraft.entity.boss.ServerBossBar bedrockBar;
         /** The players this fight belongs to: only they can hurt it until it rests again. */
         final Set<UUID> group = new HashSet<>();
         /** The structure it guards ("forgemaster@12,-40"), or null when the owner spawned it. */
@@ -257,7 +259,9 @@ public final class Bosses {
             this.aura = new DustParticleEffect(kind.aura(), 1.6f);
             this.home = mob.getEntityPos();
             this.bar = new net.minecraft.entity.boss.ServerBossBar(Text.literal(kind.color() + "§l" + kind.name()),
-                    net.minecraft.entity.boss.BossBar.Color.GREEN, net.minecraft.entity.boss.BossBar.Style.NOTCHED_20);
+                    net.minecraft.entity.boss.BossBar.Color.GREEN, net.minecraft.entity.boss.BossBar.Style.PROGRESS);
+            this.bedrockBar = new net.minecraft.entity.boss.ServerBossBar(Text.literal(kind.color() + "§l" + kind.name()),
+                    net.minecraft.entity.boss.BossBar.Color.GREEN, net.minecraft.entity.boss.BossBar.Style.PROGRESS);
         }
     }
 
@@ -322,6 +326,7 @@ public final class Bosses {
             if (gone != null) {
                 LIVE_IDS.remove(e.getId());
                 gone.bar.clearPlayers();
+                gone.bedrockBar.clearPlayers();
             }
         });
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DAMAGE.register((e, source, amount) -> {
@@ -351,6 +356,7 @@ public final class Bosses {
             if (l != null) {
                 LIVE_IDS.remove(e.getId());
                 l.bar.clearPlayers();
+                l.bedrockBar.clearPlayers();
                 defeated((ServerWorld) e.getEntityWorld(), l, source.getAttacker());
             }
         });
@@ -415,27 +421,46 @@ public final class Bosses {
     static final int PHASES = 3;
     private static final String KEY_TAG = "vigil_key:";
 
+    /** The bosses in the order of their head glyphs in the pack (scripts/owner-pack/build.py BOSS_HEADS). */
+    private static final List<String> HEADS = List.of("drowned_warden", "deepslate_colossus", "storm_phantom", "forgemaster",
+            "sand_colossus", "frost_titan", "thornback_beast", "hollow_watcher");
+    private static final char HEAD_CHAR = '\uE100';
+    private static final char PHASE_CHAR = '\uE110';
+
     private static void updateBar(Live l, ServerWorld w, Vec3d c) {
         Kind k = l.kind;
         double scale = k.health() / BAR;
         double total = l.mob.getHealth() * scale + (PHASES - l.phase) * k.health();
+        String hp = String.format(java.util.Locale.ROOT, "%,d", (long) Math.ceil(Math.max(0, total)));
         // The bar is this phase's health (it fills again each phase); the number is what's left of the whole fight.
-        l.bar.setPercent((float) Math.max(0, Math.min(1, l.mob.getHealth() / l.mob.getMaxHealth())));
+        float pct = (float) Math.max(0, Math.min(1, l.mob.getHealth() / l.mob.getMaxHealth()));
+        var colour = l.phase == 1 ? net.minecraft.entity.boss.BossBar.Color.GREEN
+                : l.phase == 2 ? net.minecraft.entity.boss.BossBar.Color.YELLOW : net.minecraft.entity.boss.BossBar.Color.RED;
         String pc = l.phase == 1 ? "§a" : l.phase == 2 ? "§e" : "§c";
+        int head = HEADS.indexOf(k.id());
+        l.bar.setName(Text.literal((head >= 0 ? "§f" + (char) (HEAD_CHAR + head) + " " : "") + k.color() + "§l" + k.name()
+                + "  §f" + (char) (PHASE_CHAR + l.phase - 1) + "   §f" + hp + " §c❤"));
         StringBuilder pips = new StringBuilder();
         for (int i = 1; i <= PHASES; i++) {
             pips.append(i <= l.phase ? pc + "◆" : "§8◇");
         }
-        l.bar.setName(Text.literal("§4☠ " + k.color() + "§l" + k.name().toUpperCase(java.util.Locale.ROOT) + " §4☠  " + pips
-                + "   §f§l" + String.format(java.util.Locale.ROOT, "%,d", (long) Math.ceil(Math.max(0, total))) + " §c❤"));
-        for (ServerPlayerEntity p : List.copyOf(l.bar.getPlayers())) {
-            if (p.isRemoved() || p.getEntityWorld() != w || p.squaredDistanceTo(c) > 56 * 56) {
-                l.bar.removePlayer(p);
+        l.bedrockBar.setName(Text.literal(k.color() + "§l" + k.name() + "  " + pips + "  " + pc + "Phase "
+                + new String[]{"I", "II", "III"}[l.phase - 1] + "   §f" + hp + " §c❤"));
+        for (var b : List.of(l.bar, l.bedrockBar)) {
+            b.setPercent(pct);
+            b.setColor(colour);
+            for (ServerPlayerEntity p : List.copyOf(b.getPlayers())) {
+                if (p.isRemoved() || p.getEntityWorld() != w || p.squaredDistanceTo(c) > 56 * 56) {
+                    b.removePlayer(p);
+                }
             }
         }
         for (ServerPlayerEntity p : w.getPlayers()) {
-            if (p.squaredDistanceTo(c) < 48 * 48 && !l.bar.getPlayers().contains(p)) {
-                l.bar.addPlayer(p);
+            if (p.squaredDistanceTo(c) < 48 * 48) {
+                var b = com.vylorq.anticheat.ui.Viewer.isBedrock(p) ? l.bedrockBar : l.bar;
+                if (!b.getPlayers().contains(p)) {
+                    b.addPlayer(p);
+                }
             }
         }
     }
