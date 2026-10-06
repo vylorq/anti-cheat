@@ -369,6 +369,26 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void buildCommandsArePlaced(TestContext ctx) {
+        String c = com.vylorq.anticheat.feature.Builds.fillForTest("tp {SEL:@a} {X:64} {Y:37} {Z:37}", 100, 50, 200, 1000, 13, -20);
+        check(c.equals("tp @a[x=100,y=48,z=200,dx=10,dy=40,dz=10] 1064 50 17"), "a build command wasn't placed: " + c);
+        c = com.vylorq.anticheat.feature.Builds.fillForTest("kill {SEL:@e[type=item,nbt={Item:{id:\"minecraft:egg\"}}]}", 0, 0, 0, 0, 0, 0);
+        check(c.startsWith("kill @e[x=0,y=-2,z=0,dx=10,dy=40,dz=10,type=item,nbt={Item:{id:\"minecraft:egg\"}}]"), "a selector with nbt broke: " + c);
+        for (String n : com.vylorq.anticheat.feature.Builds.NAMES) {
+            try {
+                var data = com.vylorq.anticheat.feature.Builds.loadForTest(n);
+                check(data.getAsJsonArray("palette").size() > 1, n + " has no blocks");
+                for (var st : data.getAsJsonArray("palette")) {
+                    com.vylorq.anticheat.feature.Builds.parseForTest(st.getAsString());
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(n + " doesn't load", e);
+            }
+        }
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));

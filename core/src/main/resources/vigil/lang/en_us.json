@@ -2666,5 +2666,15 @@
   "keep.vault-empty": "The vault is open, but its prize is long gone.",
   "keep.claimed": "claimed the Stormbreaker. There will never be another.",
   "keep.no-build": "The Tempest Keep can't be built on or broken.",
-  "keep.no-cheat": "That doesn't work inside the Tempest Keep."
+  "keep.no-cheat": "That doesn't work inside the Tempest Keep.",
+  "builds.already": "§c{0} already stands at {1} {2} {3}. §7Remove it first: /owner build remove",
+  "builds.busy": "§7Another build is still being placed; wait for it to finish.",
+  "builds.failed": "§cThe build couldn't be placed or removed: {0}",
+  "builds.placing": "§a{0} is being built around you... §7(a few seconds)",
+  "builds.placed": "§a{0} is built at {1} {2} {3}. §7({4} blocks with data, {5} decorations) Remove it with /owner build remove",
+  "builds.none": "§7{0} isn't placed.",
+  "builds.removed": "§a{0} is gone and the ground is back as it was.",
+  "builds.entry": "§f{0}: §a{1} {2} {3}",
+  "builds.entry-none": "§f{0}: §7not placed",
+  "builds.adventure": "Adventure mode while you're in this map."
 }
