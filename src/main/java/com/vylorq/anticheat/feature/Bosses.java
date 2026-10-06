@@ -257,7 +257,7 @@ public final class Bosses {
             this.aura = new DustParticleEffect(kind.aura(), 1.6f);
             this.home = mob.getEntityPos();
             this.bar = new net.minecraft.entity.boss.ServerBossBar(Text.literal(kind.color() + "§l" + kind.name()),
-                    net.minecraft.entity.boss.BossBar.Color.RED, net.minecraft.entity.boss.BossBar.Style.NOTCHED_10);
+                    net.minecraft.entity.boss.BossBar.Color.GREEN, net.minecraft.entity.boss.BossBar.Style.NOTCHED_20);
         }
     }
 
@@ -418,13 +418,16 @@ public final class Bosses {
     private static void updateBar(Live l, ServerWorld w, Vec3d c) {
         Kind k = l.kind;
         double scale = k.health() / BAR;
-        double max = k.health() * PHASES;
         double total = l.mob.getHealth() * scale + (PHASES - l.phase) * k.health();
-        l.bar.setPercent((float) Math.max(0, Math.min(1, total / max)));
-        l.bar.setName(Text.literal(k.color() + "§l" + k.name() + " §7- " + (l.phase == 1 ? "§a" : l.phase == 2 ? "§e" : "§c")
-                + "Phase " + l.phase + "/" + PHASES));
-        l.bar.setColor(l.phase == 1 ? net.minecraft.entity.boss.BossBar.Color.GREEN
-                : l.phase == 2 ? net.minecraft.entity.boss.BossBar.Color.YELLOW : net.minecraft.entity.boss.BossBar.Color.RED);
+        // The bar is this phase's health (it fills again each phase); the number is what's left of the whole fight.
+        l.bar.setPercent((float) Math.max(0, Math.min(1, l.mob.getHealth() / l.mob.getMaxHealth())));
+        String pc = l.phase == 1 ? "§a" : l.phase == 2 ? "§e" : "§c";
+        StringBuilder pips = new StringBuilder();
+        for (int i = 1; i <= PHASES; i++) {
+            pips.append(i <= l.phase ? pc + "◆" : "§8◇");
+        }
+        l.bar.setName(Text.literal("§4☠ " + k.color() + "§l" + k.name().toUpperCase(java.util.Locale.ROOT) + " §4☠  " + pips
+                + "   §f§l" + String.format(java.util.Locale.ROOT, "%,d", (long) Math.ceil(Math.max(0, total))) + " §c❤"));
         for (ServerPlayerEntity p : List.copyOf(l.bar.getPlayers())) {
             if (p.isRemoved() || p.getEntityWorld() != w || p.squaredDistanceTo(c) > 56 * 56) {
                 l.bar.removePlayer(p);

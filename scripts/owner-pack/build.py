@@ -872,6 +872,54 @@ def png(img):
     return b.getvalue()
 
 
+# ------------------------------------------------------------------ boss bars
+
+BAR_COLOURS = {"green": (70, 210, 80), "yellow": (240, 200, 40), "red": (225, 45, 50)}
+
+
+def bar_progress(col):
+    """A shaded bar fill (182x5): light on top, dark below, with a faint sheen."""
+    im = Image.new("RGBA", (182, 5))
+    for x in range(182):
+        for y in range(5):
+            f = [1.45, 1.15, 1.0, 0.85, 0.6][y]
+            c = tuple(max(0, min(255, int(v * f))) for v in col)
+            if (x // 3 + y) % 7 == 0 and y in (1, 2):
+                c = tuple(min(255, v + 25) for v in c)
+            im.putpixel((x, y), c + (255,))
+    return im
+
+
+def bar_background():
+    """The empty part of a bar: dark, with a darker frame."""
+    im = Image.new("RGBA", (182, 5))
+    for x in range(182):
+        for y in range(5):
+            edge = y in (0, 4) or x in (0, 181)
+            im.putpixel((x, y), (18, 14, 12, 255) if edge else (48, 40, 36, 255))
+    return im
+
+
+def bar_notches(n):
+    im = Image.new("RGBA", (182, 5), (0, 0, 0, 0))
+    for k in range(1, n):
+        x = 181 * k // n
+        for y in range(1, 4):
+            im.putpixel((x, y), (10, 8, 8, 200))
+    return im
+
+
+def boss_bars():
+    """The bosses' bars (green, yellow and red by phase, notched in 20). Raids also use red bars and get the same look."""
+    out = {}
+    for name, col in BAR_COLOURS.items():
+        out[f"assets/minecraft/textures/gui/sprites/boss_bar/{name}_progress.png"] = png(bar_progress(col))
+        out[f"assets/minecraft/textures/gui/sprites/boss_bar/{name}_background.png"] = png(bar_background())
+    out["assets/minecraft/textures/gui/sprites/boss_bar/notched_20_progress.png"] = png(bar_notches(20))
+    out["assets/minecraft/textures/gui/sprites/boss_bar/notched_20_background.png"] = png(bar_notches(20))
+    return out
+
+
 # ------------------------------------------------------------------ sounds
 
 def t(sec):
@@ -1309,6 +1357,7 @@ def build():
             "type": "minecraft:select", "property": "minecraft:custom_model_data", "index": 0,
             "cases": [{"when": f"vigil:{tl}", "model": CASE_MODELS.get(tl, {"type": "minecraft:model", "model": f"vigil:item/{tl}"})} for tl in tools],
             "fallback": FALLBACK.get(base, {"type": "minecraft:model", "model": f"minecraft:item/{base}"})}}, indent=2).encode()
+    files.update(boss_bars())
     sounds = {}
     for name, fn in SOUNDS.items():
         files[f"assets/vigil/sounds/{name}.ogg"] = ogg(fn())
