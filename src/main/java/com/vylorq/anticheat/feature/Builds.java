@@ -394,8 +394,40 @@ public final class Builds {
             cm.parseAndExecute(src, String.format(Locale.ROOT, "summon %s %.3f %.3f %.3f %s", a.get(3).getAsString(), x, y, z, nbt));
             ents++;
         }
+        if (ARENA.equals(b.name())) {
+            arena(b, j.owner);
+        }
         Msg.send(j.owner, "builds.placed", b.name().replace('_', ' '), b.x(), b.y(), b.z(), bes, ents);
         Ac.LOG.info("Build {} placed at {} {} {} ({} block entities, {} decorations)", b.name(), b.x(), b.y(), b.z(), bes, ents);
+    }
+
+    /** The PvP arena build becomes a real arena (duels, the queue and kits use it). */
+    static final String ARENA = "pvp_arena";
+    /** Spawn spots on the arena floor, relative to the build: one side faces the other. */
+    private static final int[][] SIDE_A = {{68, 2, 97}, {68, 2, 93}, {68, 2, 101}};
+    private static final int[][] SIDE_B = {{98, 2, 97}, {98, 2, 101}, {100, 2, 97}};
+
+    private static void arena(Placed b, ServerPlayerEntity owner) {
+        var am = Ac.get().arenas;
+        am.removeArena(ARENA);
+        com.vylorq.anticheat.core.arena.Arena a = new com.vylorq.anticheat.core.arena.Arena();
+        a.name = ARENA;
+        a.area = new Area(b.world(), b.x() + 62, b.y(), b.z() + 70, b.x() + 105, b.y() + 30, b.z() + 125);
+        a.teamSpawns = new ArrayList<>();
+        for (int[][] side : new int[][][]{SIDE_A, SIDE_B}) {
+            List<com.vylorq.anticheat.core.util.Location> l = new ArrayList<>();
+            for (int[] s : side) {
+                l.add(new com.vylorq.anticheat.core.util.Location(b.world(), b.x() + s[0] + 0.5, b.y() + s[1], b.z() + s[2] + 0.5,
+                        side == SIDE_A ? -90f : 90f, 0f));
+            }
+            a.teamSpawns.add(l);
+        }
+        a.spectatorSpot = new com.vylorq.anticheat.core.util.Location(b.world(), b.x() + 83.5, b.y() + 22, b.z() + 97.5, 0f, 60f);
+        a.returnPoint = Mc.location(owner);
+        a.modes = new ArrayList<>(List.of(com.vylorq.anticheat.core.arena.Arena.Mode.ONE_V_ONE,
+                com.vylorq.anticheat.core.arena.Arena.Mode.TWO_V_TWO, com.vylorq.anticheat.core.arena.Arena.Mode.THREE_V_THREE));
+        am.addArena(a);
+        Ac.markDirty("arenas");
     }
 
     private static String quote(String s) {
@@ -438,6 +470,9 @@ public final class Builds {
         }
         state().placed.remove(b);
         save();
+        if (ARENA.equals(name) && Ac.get().arenas.removeArena(ARENA)) {
+            Ac.markDirty("arenas");
+        }
         Staff.log(p, "build-remove", null, null, name);
         Msg.send(p, "builds.removed", name.replace('_', ' '));
     }

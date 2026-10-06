@@ -117,16 +117,16 @@ public final class Bosses {
     }
 
     static {
-        add(new Kind(DROWNED_WARDEN, "Drowned Warden", "§3", "sunken_vault", 2, EntityType.DROWNED, 5000, 24, 26, 1.7f,
+        add(new Kind(DROWNED_WARDEN, "Drowned Warden", "§3", "sunken_vault", 2, EntityType.DROWNED, 5000, 24, 22, 1.7f,
                 List.of(Ability.SHOCKWAVE, Ability.TRIDENTS, Ability.LEAP), 0x3FA8FF,
                 List.of(new Guard(EntityType.DROWNED, "§3Vault Drowned", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.TRIDENT)))),
                 m -> { }, "tide_trident", "drowned_warden", 1.15f, 1.6f));
-        add(new Kind("deepslate_colossus", "Deepslate Colossus", "§8", "buried_vault", 1, EntityType.IRON_GOLEM, 6500, 30, 30, 1.6f,
+        add(new Kind("deepslate_colossus", "Deepslate Colossus", "§8", "buried_vault", 1, EntityType.IRON_GOLEM, 5500, 30, 26, 1.6f,
                 List.of(Ability.ROCKS, Ability.LEAP, Ability.SHOCKWAVE), 0x6C7684,
                 List.of(new Guard(EntityType.SILVERFISH, "§7Stone Crawler", 4, m -> { }),
                         new Guard(EntityType.CAVE_SPIDER, "§2Sculk Lurker", 2, m -> { })),
                 m -> { }, "colossus_maul", null, 0, 0));
-        add(new Kind("storm_phantom", "Storm Phantom", "§b", "sky_citadel", 7, EntityType.PHANTOM, 5000, 22, 22, 2.0f,
+        add(new Kind("storm_phantom", "Storm Phantom", "§b", "sky_citadel", 7, EntityType.PHANTOM, 5000, 22, 18, 2.0f,
                 List.of(Ability.LIGHTNING, Ability.SHOCKWAVE, Ability.LIGHTNING), 0xB8E8FF,
                 List.of(new Guard(EntityType.PHANTOM, "§bGale Phantom", 3, m -> { }),
                         new Guard(EntityType.SKELETON, "§fSky Sentry", 2, m -> wear(m, EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET)))),
@@ -135,7 +135,7 @@ public final class Bosses {
                         ph.setPhantomSize(6);
                     }
                 }, "storm_fang", null, 0, 0));
-        add(new Kind("forgemaster", "Forgemaster", "§6", "nether_forge", 1, EntityType.PIGLIN_BRUTE, 6000, 28, 28, 1.9f,
+        add(new Kind("forgemaster", "Forgemaster", "§6", "nether_forge", 1, EntityType.PIGLIN_BRUTE, 5500, 28, 24, 1.9f,
                 List.of(Ability.FIRE_RING, Ability.LEAP, Ability.SHOCKWAVE), 0xFF8A2E,
                 List.of(new Guard(EntityType.PIGLIN_BRUTE, "§6Forge Brute", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_AXE))),
                         new Guard(EntityType.MAGMA_CUBE, "§cEmber Imp", 3, m -> { })),
@@ -147,7 +147,7 @@ public final class Bosses {
                         b.setImmuneToZombification(true);
                     }
                 }, "forge_cleaver", null, 0, 0));
-        add(new Kind("sand_colossus", "Sand Colossus", "§e", "desert_tomb", 1, EntityType.HUSK, 5200, 24, 24, 2.4f,
+        add(new Kind("sand_colossus", "Sand Colossus", "§e", "desert_tomb", 1, EntityType.HUSK, 5000, 24, 20, 2.4f,
                 List.of(Ability.SANDSTORM, Ability.LEAP, Ability.SHOCKWAVE), 0xE8C77A,
                 List.of(new Guard(EntityType.HUSK, "§eTomb Husk", 3, m -> wear(m, EquipmentSlot.HEAD, new ItemStack(Items.GOLDEN_HELMET))),
                         new Guard(EntityType.SILVERFISH, "§6Scarab", 4, m -> { })),
@@ -156,7 +156,7 @@ public final class Bosses {
                     wear(m, EquipmentSlot.CHEST, new ItemStack(Items.GOLDEN_CHESTPLATE));
                     wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD));
                 }, "dune_blade", null, 0, 0));
-        add(new Kind("frost_titan", "Frost Titan", "§b", "frozen_bastion", 1, EntityType.STRAY, 5200, 22, 24, 2.4f,
+        add(new Kind("frost_titan", "Frost Titan", "§b", "frozen_bastion", 1, EntityType.STRAY, 5000, 22, 20, 2.4f,
                 List.of(Ability.ICE_SHARDS, Ability.FREEZE_AURA, Ability.SHOCKWAVE), 0xBFF4FF,
                 List.of(new Guard(EntityType.STRAY, "§bIce Stray", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.BOW))),
                         new Guard(EntityType.POLAR_BEAR, "§fFrostbite Bear", 1, m -> { })),
@@ -166,12 +166,12 @@ public final class Bosses {
                     wear(m, EquipmentSlot.CHEST, dyed(Items.LEATHER_CHESTPLATE, 0x8FD8F0));
                     wear(m, EquipmentSlot.LEGS, dyed(Items.LEATHER_LEGGINGS, 0x6FB8E0));
                 }, "glacier_axe", null, 0, 0));
-        add(new Kind("thornback_beast", "Thornback Beast", "§2", "overgrown_labyrinth", 1, EntityType.RAVAGER, 6000, 28, 26, 1.4f,
+        add(new Kind("thornback_beast", "Thornback Beast", "§2", "overgrown_labyrinth", 1, EntityType.RAVAGER, 5500, 28, 22, 1.4f,
                 List.of(Ability.THORNS, Ability.LEAP, Ability.SHOCKWAVE), 0x6FD05A,
                 List.of(new Guard(EntityType.SPIDER, "§2Jungle Stalker", 2, m -> { }),
                         new Guard(EntityType.CAVE_SPIDER, "§aVine Creeper", 3, m -> { })),
                 m -> { }, "thornspine", null, 0, 0));
-        add(new Kind("hollow_watcher", "The Hollow Watcher", "§5", "watchers_hollow", 1, EntityType.WITHER_SKELETON, 7000, 30, 30, 2.0f,
+        add(new Kind("hollow_watcher", "The Hollow Watcher", "§5", "watchers_hollow", 1, EntityType.WITHER_SKELETON, 6000, 30, 26, 2.0f,
                 List.of(Ability.DARKNESS, Ability.SHOCKWAVE, Ability.LEAP), 0x6A2BD6,
                 List.of(new Guard(EntityType.VEX, "§5Shadow Echo", 3, m -> { })),
                 m -> {
@@ -182,7 +182,7 @@ public final class Bosses {
                 }, "hollow_edge", null, 0, 0));
         // The Tempest Keep's lord (TempestKeep.java spawns him; no structure of his own, and no weapon to drop:
         // his prize is the Stormbreaker in the vault behind him).
-        add(new Kind(TEMPEST_LORD, "The Tempest Lord", "§b", "tempest", 1, EntityType.WITHER_SKELETON, 9000, 34, 30, 2.6f,
+        add(new Kind(TEMPEST_LORD, "The Tempest Lord", "§b", "tempest", 1, EntityType.WITHER_SKELETON, 7500, 34, 26, 2.6f,
                 List.of(Ability.LIGHTNING, Ability.SHOCKWAVE, Ability.LEAP), 0x7FD8FF,
                 List.of(new Guard(EntityType.BREEZE, "§bStorm Wisp", 2, m -> { }),
                         new Guard(EntityType.VEX, "§3Tempest Shade", 3, m -> { })),
@@ -266,6 +266,12 @@ public final class Bosses {
         long[] next = new long[Ability.values().length];
         long lastPlayerNear;
         long leapLand = -1;
+        /** A Cursed Key was used on it: more health, harder hits, better loot. */
+        boolean cursed;
+        /** Players standing high above it (on a pillar), in seconds. */
+        final Map<UUID, Integer> high = new HashMap<>();
+        /** When its next guard reinforcements may come (phases 2 and 3). */
+        long nextWave;
 
         Live(MobEntity mob, Kind kind) {
             this.mob = mob;
@@ -318,6 +324,9 @@ public final class Bosses {
                             // phase 1
                         }
                     }
+                    if (t.equals(CURSED_TAG)) {
+                        l.cursed = true;
+                    }
                     if (t.startsWith(KEY_TAG)) {
                         l.key = t.substring(KEY_TAG.length());
                     }
@@ -334,6 +343,10 @@ public final class Bosses {
                 LIVE.put(e.getUuid(), l);
                 LIVE_IDS.add(e.getId());
             }
+            String boss = shieldOf(e);
+            if (boss != null && e.isAlive()) {
+                SHIELDS.computeIfAbsent(boss, x -> ConcurrentHashMap.newKeySet()).add(e.getUuid());
+            }
         });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((e, w) -> {
             Live gone = LIVE.remove(e.getUuid());
@@ -345,8 +358,25 @@ public final class Bosses {
         });
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DAMAGE.register((e, source, amount) -> {
             Live l = LIVE.get(e.getUuid());
-            if (l == null || l.group.isEmpty() || !(source.getAttacker() instanceof ServerPlayerEntity p) || l.group.contains(p.getUuid())
-                    || com.vylorq.anticheat.perm.Perms.isOwner(p.getUuid())) {
+            if (l == null || source.isOf(net.minecraft.entity.damage.DamageTypes.GENERIC_KILL)
+                    || source.isOf(net.minecraft.entity.damage.DamageTypes.OUT_OF_WORLD)
+                    || source.getAttacker() instanceof ServerPlayerEntity o && com.vylorq.anticheat.perm.Perms.isOwner(o.getUuid())) {
+                return true;
+            }
+            if (shielded(l)) {
+                // Its shield crystals must break first.
+                if (source.getAttacker() instanceof ServerPlayerEntity sp) {
+                    Msg.actionBar(sp, "§b" + Msg.trFor(sp, "boss.shielded"));
+                }
+                return false;
+            }
+            if (source.getAttacker() instanceof ServerPlayerEntity sp && source.getSource() != sp
+                    && source.getSource() instanceof net.minecraft.entity.projectile.ProjectileEntity && sp.squaredDistanceTo(e) > FAR * FAR) {
+                // No shooting it from somewhere it can't reach.
+                Msg.actionBar(sp, "§c" + Msg.trFor(sp, "boss.too-far"));
+                return false;
+            }
+            if (l.group.isEmpty() || !(source.getAttacker() instanceof ServerPlayerEntity p) || l.group.contains(p.getUuid())) {
                 return true;
             }
             // Someone else's fight: they can't steal it.
@@ -362,6 +392,17 @@ public final class Bosses {
             // Not dead yet: it rises on its next health bar.
             nextPhase(l, l.phase + 1);
             return false;
+        });
+        net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
+            if (!Ac.running() || hand != net.minecraft.util.Hand.MAIN_HAND || !(player instanceof ServerPlayerEntity p)) {
+                return net.minecraft.util.ActionResult.PASS;
+            }
+            Live l = LIVE.get(entity.getUuid());
+            if (l == null || !isCursedKey(p.getMainHandStack())) {
+                return net.minecraft.util.ActionResult.PASS;
+            }
+            curse(l, p, p.getMainHandStack());
+            return net.minecraft.util.ActionResult.SUCCESS;
         });
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((e, source) -> {
             if (Ac.running() && e.getCommandTags().stream().anyMatch(t -> t.startsWith(StructureMobs.TAG))) {
@@ -395,7 +436,7 @@ public final class Bosses {
         set(mob, EntityAttributes.MAX_HEALTH, BAR);
         set(mob, EntityAttributes.ATTACK_DAMAGE, k.damage());
         set(mob, EntityAttributes.ARMOR, k.armor());
-        set(mob, EntityAttributes.ARMOR_TOUGHNESS, 12);
+        set(mob, EntityAttributes.ARMOR_TOUGHNESS, 8);
         set(mob, EntityAttributes.KNOCKBACK_RESISTANCE, 1.0);
         set(mob, EntityAttributes.FOLLOW_RANGE, 40);
         set(mob, EntityAttributes.SCALE, k.scale());
@@ -445,8 +486,8 @@ public final class Bosses {
 
     private static void updateBar(Live l, ServerWorld w, Vec3d c) {
         Kind k = l.kind;
-        double scale = k.health() / BAR;
-        double total = l.mob.getHealth() * scale + (PHASES - l.phase) * k.health();
+        double scale = health(l) / BAR;
+        double total = l.mob.getHealth() * scale + (PHASES - l.phase) * health(l);
         String hp = String.format(java.util.Locale.ROOT, "%,d", (long) Math.ceil(Math.max(0, total)));
         // The bar is this phase's health (it fills again each phase); the number is what's left of the whole fight.
         float pct = (float) Math.max(0, Math.min(1, l.mob.getHealth() / l.mob.getMaxHealth()));
@@ -504,7 +545,12 @@ public final class Bosses {
     /** How much less a hit counts on this entity: 1 for anything that isn't a boss. */
     public static float damageScale(Entity e) {
         Live l = LIVE.get(e.getUuid());
-        return l == null ? 1f : (float) (l.kind.health() / BAR);
+        return l == null ? 1f : (float) (health(l) / BAR);
+    }
+
+    /** One health bar of this boss: its kind's, half as much again when it was cursed. */
+    static double health(Live l) {
+        return l.kind.health() * (l.cursed ? CURSE : 1);
     }
     private static final String PHASE_TAG = "vigil_phase:";
 
@@ -523,10 +569,12 @@ public final class Bosses {
         m.setHealth(m.getMaxHealth());
         m.clearStatusEffects();
         m.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, StatusEffectInstance.INFINITE, 0, false, false));
-        int lvl = phase - 2; // phase 2: level I, phase 3: level II
-        m.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, StatusEffectInstance.INFINITE, lvl, false, false));
-        m.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, StatusEffectInstance.INFINITE, lvl, false, false));
-        m.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, lvl, false, false));
+        // Phase 2: Speed I and Strength I. Phase 3: Strength II and Resistance I as well.
+        m.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, StatusEffectInstance.INFINITE, 0, false, false));
+        m.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, StatusEffectInstance.INFINITE, phase - 2, false, false));
+        if (phase >= 3) {
+            m.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 0, false, false));
+        }
         // A moment to breathe while it rises (it can't be hurt for 3 seconds).
         m.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 60, 4, false, false));
         for (ServerPlayerEntity p : fighters(w, c, 48)) {
@@ -538,18 +586,21 @@ public final class Bosses {
         // Pushes everyone near away as it rises.
         shockwave(l, w, c, 7, 6, 1.6);
         guards(w, m, l.kind, phase);
+        shields(l, w);
+        l.nextWave = now + WAVE;
         nameTag(m, l.kind);
     }
 
     private static void nameTag(MobEntity m, Kind k) {
         Live l = LIVE.get(m.getUuid());
         int phase = l == null ? 1 : l.phase;
-        double scale = k.health() / BAR;
+        double one = l == null ? k.health() : health(l);
+        double scale = one / BAR;
         int hp = (int) Math.ceil(m.getHealth() * scale);
-        int max = (int) Math.round(k.health());
+        int max = (int) Math.round(one);
         int total = hp + (PHASES - phase) * max;
         String color = phase == 1 ? "§a" : phase == 2 ? "§e" : "§c";
-        m.setCustomName(Text.literal(k.color() + "§l" + k.name() + " §7[" + phase + "/" + PHASES + "] " + color + "❤ " + total + "/" + (max * PHASES)));
+        m.setCustomName(Text.literal(k.color() + "§l" + k.name() + " §7[" + phase + "/" + PHASES + "] " + color + "❤ " + total + "/" + (max * PHASES) + (l != null && l.cursed ? " §5☠" : "")));
     }
 
     /** The structure's own mobs come out to guard their boss. */
@@ -712,7 +763,7 @@ public final class Bosses {
     }
 
     private static int cooldown(Live l, int base) {
-        return (int) (base * (l.phase == 1 ? 1.0 : l.phase == 2 ? 0.75 : 0.55));
+        return (int) (base * (l.phase == 1 ? 1.0 : l.phase == 2 ? 0.75 : 0.65));
     }
 
     private static boolean ready(Live l, Ability a, int base) {
@@ -751,21 +802,37 @@ public final class Bosses {
                 // Whoever is here when the fight starts owns it.
                 near.forEach(p -> l.group.add(p.getUuid()));
             }
-        } else if (now - l.lastPlayerNear > 600 && (m.getHealth() < m.getMaxHealth() || l.phase > 1 || !l.group.isEmpty())) {
-            // Everyone left: it recovers and starts over, open to anyone again.
+        } else if (now - l.lastPlayerNear > 1200) {
+            // Everyone left a minute ago: the fight is open to anyone again, and it recovers, very slowly (0.5% of this
+            // health bar every 5 seconds; it stays on the phase it reached).
             l.group.clear();
-            setPhase(l, 1);
-            m.removeStatusEffect(StatusEffects.SPEED);
-            m.removeStatusEffect(StatusEffects.STRENGTH);
-            m.removeStatusEffect(StatusEffects.RESISTANCE);
-            m.setHealth(m.getMaxHealth());
+            if (now % 100 == 0 && m.getHealth() < m.getMaxHealth()) {
+                m.heal((float) (m.getMaxHealth() * 0.005));
+            }
             return;
         }
         // It stays in its lair.
         if (l.home != null && c.squaredDistanceTo(l.home) > 30 * 30) {
             m.refreshPositionAndAngles(l.home.x, l.home.y, l.home.z, m.getYaw(), 0);
-            m.heal((float) (m.getMaxHealth() * 0.05));
             w.spawnParticles(l.aura, l.home.x, l.home.y + 1, l.home.z, 60, 1, 1.5, 1, 0);
+        }
+        if (now % 10 == 0) {
+            shieldBeams(l, w, c);
+        }
+        if (now % 20 == 0) {
+            pillars(l, w, m, near);
+        }
+        // More guards in phases 2 and 3 while the fight goes on.
+        if (l.phase >= 2 && !near.isEmpty() && now >= l.nextWave) {
+            l.nextWave = now + WAVE;
+            int guards = w.getEntitiesByClass(MobEntity.class, m.getBoundingBox().expand(24),
+                    g -> g.isAlive() && g.getCommandTags().contains(GUARD_TAG) && shieldOf(g) == null).size();
+            if (guards < 6) {
+                guards(w, m, l.kind, 1);
+                for (ServerPlayerEntity p : near) {
+                    Msg.actionBar(p, "§c" + Msg.trFor(p, "boss.reinforcements"));
+                }
+            }
         }
         // Keep it on the nearest fighter (iron golems, for one, wouldn't go after players by themselves).
         LivingEntity target = m.getTarget();
@@ -806,7 +873,8 @@ public final class Bosses {
         switch (a) {
             case SHOCKWAVE -> {
                 if (dist < 7 && ready(l, a, 160)) {
-                    shockwave(l, w, c, 7, 8, 1.6);
+                    // A red circle on the ground first: a second to get out of it.
+                    telegraph(l, w, c, 7, () -> shockwave(l, w, c, 7, 8, 1.6));
                 }
             }
             case LEAP -> {
@@ -814,6 +882,11 @@ public final class Bosses {
                     Vec3d d = target.getEntityPos().subtract(c);
                     push(m, new Vec3d(d.x * 0.12, 0.9 + d.y * 0.04, d.z * 0.12));
                     l.leapLand = now + 60;
+                    Vec3d land = target.getEntityPos();
+                    DustParticleEffect red = new DustParticleEffect(0xFF2A2A, 1.4f);
+                    for (int s = 0; s < 30; s += 5) {
+                        OwnerPowers.later(s, () -> ring(w, red, land.add(0, 0.15, 0), 6, 40));
+                    }
                     w.spawnParticles(ParticleTypes.CLOUD, c.x, c.y + 0.2, c.z, 30, 1, 0.1, 1, 0.1);
                     sound(w, c, "boss_throw", SoundEvents.ENTITY_RAVAGER_ROAR, 1.2f);
                 }
@@ -970,6 +1043,215 @@ public final class Bosses {
         sound(w, c, "boss_shock", SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 0.6f);
     }
 
+    /** Warns with a red circle on the ground, then (a second later) does the attack if the boss is still alive. */
+    private static void telegraph(Live l, ServerWorld w, Vec3d c, double r, Runnable then) {
+        DustParticleEffect red = new DustParticleEffect(0xFF2A2A, 1.4f);
+        for (int s = 0; s < 20; s += 4) {
+            OwnerPowers.later(s, () -> {
+                ring(w, red, c.add(0, 0.15, 0), r, (int) (24 + r * 6));
+                ring(w, red, c.add(0, 0.15, 0), r * 0.5, 16);
+            });
+        }
+        w.playSound(null, c.x, c.y, c.z, SoundEvents.ENTITY_WARDEN_SONIC_CHARGE, SoundCategory.HOSTILE, 1.2f, 1.4f);
+        OwnerPowers.later(20, () -> {
+            if (l.mob.isAlive() && !l.mob.isRemoved()) {
+                then.run();
+            }
+        });
+    }
+
+    // ---------------------------------------------------------------- shield crystals, pillars
+
+    static final String SHIELD_TAG = "vigil_shield:";
+    private static final String CURSED_TAG = "vigil_cursed";
+    static final double CURSE = 1.5;
+    /** Hits from projectiles shot further away than this don't count. */
+    static final double FAR = 24;
+    /** Ticks between guard reinforcements. */
+    static final int WAVE = 900;
+    /** Boss -> its shield crystals still standing. */
+    private static final Map<String, Set<UUID>> SHIELDS = new ConcurrentHashMap<>();
+
+    static String shieldOf(Entity e) {
+        for (String t : e.getCommandTags()) {
+            if (t.startsWith(SHIELD_TAG)) {
+                return t.substring(SHIELD_TAG.length());
+            }
+        }
+        return null;
+    }
+
+    /** Whether its shield crystals are still up (it can't be hurt until they're broken). */
+    static boolean shielded(Live l) {
+        Set<UUID> s = SHIELDS.get(l.mob.getUuidAsString());
+        if (s == null) {
+            return false;
+        }
+        ServerWorld w = (ServerWorld) l.mob.getEntityWorld();
+        s.removeIf(id -> {
+            Entity e = w.getEntity(id);
+            return e == null || !e.isAlive();
+        });
+        return !s.isEmpty();
+    }
+
+    /** Each new phase: three shield crystals float around the arena, and the boss can't be hurt until they're broken. */
+    private static void shields(Live l, ServerWorld w) {
+        Vec3d c = l.home != null ? l.home : l.mob.getEntityPos();
+        double turn = w.getRandom().nextDouble() * Math.PI;
+        for (int i = 0; i < 3; i++) {
+            MobEntity s = EntityType.BLAZE.create(w, SpawnReason.EVENT);
+            if (s == null) {
+                continue;
+            }
+            double a = turn + i * 2 * Math.PI / 3;
+            Vec3d at = c.add(Math.cos(a) * 7, 1.5, Math.sin(a) * 7);
+            s.refreshPositionAndAngles(at.x, at.y, at.z, 0, 0);
+            s.setAiDisabled(true);
+            s.setNoGravity(true);
+            s.setSilent(true);
+            s.setPersistent();
+            set(s, EntityAttributes.MAX_HEALTH, 60);
+            s.setHealth(60);
+            s.setCustomName(Text.literal("§b§l✦ Shield Crystal ✦"));
+            s.setCustomNameVisible(true);
+            s.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, StatusEffectInstance.INFINITE, 0, false, false));
+            s.addCommandTag(GUARD_TAG);
+            s.addCommandTag(SHIELD_TAG + l.mob.getUuidAsString());
+            StructureMobs.noDrops(s);
+            w.spawnEntity(s);
+            w.spawnParticles(ParticleTypes.END_ROD, at.x, at.y + 1, at.z, 30, 0.4, 0.6, 0.4, 0.05);
+        }
+        for (ServerPlayerEntity p : fighters(w, c, 48)) {
+            Msg.send(p, "boss.shield-up");
+        }
+    }
+
+    public static boolean shieldedForTest(Entity boss) {
+        Live l = LIVE.get(boss.getUuid());
+        return l != null && shielded(l);
+    }
+
+    /** A beam from each shield crystal to its boss, so players see what protects it. */
+    private static void shieldBeams(Live l, ServerWorld w, Vec3d c) {
+        Set<UUID> s = SHIELDS.get(l.mob.getUuidAsString());
+        if (s == null || s.isEmpty()) {
+            return;
+        }
+        Vec3d to = c.add(0, l.mob.getHeight() * 0.6, 0);
+        for (UUID id : s) {
+            Entity e = w.getEntity(id);
+            if (e == null || !e.isAlive()) {
+                continue;
+            }
+            Vec3d from = e.getEntityPos().add(0, 1, 0);
+            Vec3d d = to.subtract(from);
+            int n = (int) Math.max(4, d.length() * 2);
+            for (int i = 0; i < n; i++) {
+                Vec3d at = from.add(d.multiply(i / (double) n));
+                w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, at.x, at.y, at.z, 1, 0, 0, 0, 0);
+            }
+        }
+    }
+
+    /** Someone standing up high on blocks for 3 seconds gets pulled back down into the fight. */
+    private static void pillars(Live l, ServerWorld w, MobEntity m, List<ServerPlayerEntity> near) {
+        Vec3d c = m.getEntityPos();
+        for (ServerPlayerEntity p : near) {
+            double up = p.getY() - c.y;
+            double side = Math.hypot(p.getX() - c.x, p.getZ() - c.z);
+            if (up < 4 || side > 14 || !p.isOnGround()) {
+                l.high.remove(p.getUuid());
+                continue;
+            }
+            if (l.high.merge(p.getUuid(), 1, Integer::sum) < 3) {
+                continue;
+            }
+            l.high.remove(p.getUuid());
+            Vec3d spot = p.getEntityPos();
+            DustParticleEffect red = new DustParticleEffect(0xFF2A2A, 1.4f);
+            for (int s = 0; s < 15; s += 3) {
+                OwnerPowers.later(s, () -> ring(w, red, spot.add(0, 0.1, 0), 1.5, 18));
+            }
+            OwnerPowers.later(15, () -> {
+                if (!m.isAlive() || p.isRemoved() || p.getY() - m.getY() < 4) {
+                    return;
+                }
+                Vec3d d = m.getEntityPos().subtract(p.getEntityPos()).multiply(1, 0, 1);
+                push(p, (d.lengthSquared() < 1e-3 ? Vec3d.ZERO : d.normalize().multiply(1.1)).add(0, 0.35, 0));
+                p.damage(w, m.getDamageSources().mobAttack(m), 6f);
+                Msg.actionBar(p, "§c" + Msg.trFor(p, "boss.no-pillar"));
+                w.spawnParticles(ParticleTypes.EXPLOSION, spot.x, spot.y + 0.5, spot.z, 1, 0, 0, 0, 0);
+                sound(w, spot, "boss_throw", SoundEvents.ENTITY_EVOKER_CAST_SPELL, 0.6f);
+            });
+        }
+    }
+
+    // ---------------------------------------------------------------- the Cursed Key
+
+    /** Used on a boss before its fight starts: half as much health again and harder hits, for better loot. */
+    public static ItemStack cursedKey() {
+        ItemStack s = new ItemStack(Items.OMINOUS_TRIAL_KEY);
+        s.set(DataComponentTypes.CUSTOM_NAME, Text.literal("§5§lCursed Key").styled(st -> st.withItalic(false)));
+        s.set(DataComponentTypes.LORE, new net.minecraft.component.type.LoreComponent(List.of(
+                Text.literal("§7Use it on a boss before its fight starts.").styled(st -> st.withItalic(false)),
+                Text.literal("§c+50% health, harder hits.").styled(st -> st.withItalic(false)),
+                Text.literal("§aDouble loot and a netherite ingot.").styled(st -> st.withItalic(false)))));
+        com.vylorq.anticheat.util.ItemConv.setTag(s, "vigil_cursed_key", "1");
+        return s;
+    }
+
+    public static boolean isCursedKey(ItemStack s) {
+        return s.isOf(Items.OMINOUS_TRIAL_KEY) && "1".equals(com.vylorq.anticheat.util.ItemConv.tag(s, "vigil_cursed_key"));
+    }
+
+    private static void curse(Live l, ServerPlayerEntity p, ItemStack key) {
+        MobEntity m = l.mob;
+        if (l.cursed) {
+            Msg.send(p, "boss.curse-already");
+            return;
+        }
+        if (l.phase > 1 || m.getHealth() < m.getMaxHealth() || !l.group.isEmpty() && !l.group.contains(p.getUuid())) {
+            Msg.send(p, "boss.curse-late");
+            return;
+        }
+        l.cursed = true;
+        m.addCommandTag(CURSED_TAG);
+        set(m, EntityAttributes.ATTACK_DAMAGE, l.kind.damage() * 1.4);
+        key.decrement(1);
+        ServerWorld w = (ServerWorld) m.getEntityWorld();
+        Vec3d c = m.getEntityPos();
+        w.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, c.x, c.y + 1, c.z, 120, 1.5, 2, 1.5, 0.05);
+        w.playSound(null, c.x, c.y, c.z, SoundEvents.ENTITY_WITHER_SPAWN, SoundCategory.HOSTILE, 1.2f, 0.6f);
+        for (ServerPlayerEntity f : fighters(w, c, 48)) {
+            Mc.title(f, "§5§l" + Msg.trFor(f, "boss.cursed"), "§7" + Msg.trFor(f, "boss.cursed-sub"), 10, 60, 20);
+        }
+        nameTag(m, l.kind);
+    }
+
+    /** What's left of a boss after it's beaten, with the name of who beat it. */
+    static ItemStack trophy(Kind k, String by, boolean cursed) {
+        Item head = switch (k.id()) {
+            case DROWNED_WARDEN, "sand_colossus" -> Items.ZOMBIE_HEAD;
+            case "storm_phantom" -> Items.DRAGON_HEAD;
+            case "forgemaster" -> Items.PIGLIN_HEAD;
+            case "thornback_beast" -> Items.CREEPER_HEAD;
+            case "hollow_watcher", TEMPEST_LORD -> Items.WITHER_SKELETON_SKULL;
+            default -> Items.SKELETON_SKULL;
+        };
+        ItemStack s = new ItemStack(head);
+        s.set(DataComponentTypes.CUSTOM_NAME, Text.literal(k.color() + "§l" + k.name() + " Trophy").styled(st -> st.withItalic(false)));
+        List<Text> lore = new ArrayList<>();
+        lore.add(Text.literal("§7Defeated by §f" + (by == null ? "?" : by)).styled(st -> st.withItalic(false)));
+        lore.add(Text.literal("§8" + java.time.LocalDate.now()).styled(st -> st.withItalic(false)));
+        if (cursed) {
+            lore.add(Text.literal("§5☠ Cursed").styled(st -> st.withItalic(false)));
+        }
+        s.set(DataComponentTypes.LORE, new net.minecraft.component.type.LoreComponent(lore));
+        s.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
+        return s;
+    }
+
     // ---------------------------------------------------------------- thrown rocks and ice
 
     enum Shard { ROCK, ICE }
@@ -1057,10 +1339,32 @@ public final class Bosses {
         state().killed++;
         save();
         Vec3d at = l.mob.getEntityPos();
-        ExperienceOrbEntity.spawn(w, at, 500);
-        List<ItemStack> drops = List.of(new ItemStack(Items.DIAMOND, 4 + w.getRandom().nextInt(5)),
-                new ItemStack(Items.NETHERITE_SCRAP, 1 + w.getRandom().nextInt(2)), new ItemStack(Items.EMERALD, 6 + w.getRandom().nextInt(7)),
-                new ItemStack(Items.GOLDEN_APPLE, 2));
+        ExperienceOrbEntity.spawn(w, at, l.cursed ? 1000 : 500);
+        Set<UUID> left = SHIELDS.remove(l.mob.getUuidAsString());
+        if (left != null) {
+            for (UUID id : left) {
+                Entity e = w.getEntity(id);
+                if (e != null) {
+                    e.discard();
+                }
+            }
+        }
+        String by = killer instanceof ServerPlayerEntity p ? p.getGameProfile().name() : null;
+        int times = l.cursed ? 2 : 1;
+        List<ItemStack> drops = new ArrayList<>();
+        for (int i = 0; i < times; i++) {
+            drops.add(new ItemStack(Items.DIAMOND, 4 + w.getRandom().nextInt(5)));
+            drops.add(new ItemStack(Items.NETHERITE_SCRAP, 1 + w.getRandom().nextInt(2)));
+            drops.add(new ItemStack(Items.EMERALD, 6 + w.getRandom().nextInt(7)));
+            drops.add(new ItemStack(Items.GOLDEN_APPLE, 2));
+        }
+        if (l.cursed) {
+            drops.add(new ItemStack(Items.NETHERITE_INGOT));
+        }
+        drops.add(trophy(l.kind, by, l.cursed));
+        if (w.getRandom().nextInt(4) == 0) {
+            drops.add(cursedKey());
+        }
         for (ItemStack s : drops) {
             ItemEntity it = new ItemEntity(w, at.x, at.y + 1, at.z, s);
             it.setVelocity((w.getRandom().nextDouble() - 0.5) * 0.3, 0.3, (w.getRandom().nextDouble() - 0.5) * 0.3);
@@ -1082,7 +1386,6 @@ public final class Bosses {
         w.spawnParticles(ParticleTypes.EXPLOSION_EMITTER, at.x, at.y + 1.5, at.z, 2, 1, 1, 1, 0);
         w.spawnParticles(l.aura, at.x, at.y + 1.5, at.z, 150, 1.5, 2, 1.5, 0);
         SecretItems.sound(w, at, "boss_defeated", 3f);
-        String by = killer instanceof ServerPlayerEntity p ? p.getGameProfile().name() : null;
         for (ServerPlayerEntity p : w.getPlayers()) {
             if (p.squaredDistanceTo(at) < 64 * 64) {
                 Mc.title(p, l.kind.color() + "§l" + l.kind.name(), "§7" + (by == null ? Msg.trFor(p, "boss.defeated")
@@ -1128,6 +1431,14 @@ public final class Bosses {
         if (spawn(p.getEntityWorld(), at, kind) != null) {
             Staff.log(p, "boss-spawn", null, null, kind);
         }
+    }
+
+    public static void ownerKey(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        p.getInventory().offerOrDrop(cursedKey());
+        Msg.send(p, "boss.key-given");
     }
 
     public static void ownerRotate(ServerPlayerEntity p) {
