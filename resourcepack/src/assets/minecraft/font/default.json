@@ -74,6 +74,15 @@
     },
     {
       "type": "bitmap",
+      "file": "vigil:font/head_8.png",
+      "height": 22,
+      "ascent": 16,
+      "chars": [
+        "\ue108"
+      ]
+    },
+    {
+      "type": "bitmap",
       "file": "vigil:font/phase_1.png",
       "height": 11,
       "ascent": 9,

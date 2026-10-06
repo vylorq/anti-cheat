@@ -78,6 +78,7 @@ public final class Bosses {
     public static final String MODEL_TAG = "vigil_boss_model";
     public static final String GUARD_TAG = "vigil_guard";
     public static final String DROWNED_WARDEN = "drowned_warden";
+    public static final String TEMPEST_LORD = "tempest_lord";
 
     enum Ability { SHOCKWAVE, TRIDENTS, ROCKS, LIGHTNING, FIRE_RING, SANDSTORM, ICE_SHARDS, FREEZE_AURA, THORNS, DARKNESS, LEAP }
 
@@ -179,6 +180,19 @@ public final class Bosses {
                     wear(m, EquipmentSlot.LEGS, dyed(Items.LEATHER_LEGGINGS, 0x15101C));
                     wear(m, EquipmentSlot.FEET, dyed(Items.LEATHER_BOOTS, 0x15101C));
                 }, "hollow_edge", null, 0, 0));
+        // The Tempest Keep's lord (TempestKeep.java spawns him; no structure of his own, and no weapon to drop:
+        // his prize is the Stormbreaker in the vault behind him).
+        add(new Kind(TEMPEST_LORD, "The Tempest Lord", "§b", "tempest", 1, EntityType.WITHER_SKELETON, 9000, 34, 30, 2.6f,
+                List.of(Ability.LIGHTNING, Ability.SHOCKWAVE, Ability.LEAP), 0x7FD8FF,
+                List.of(new Guard(EntityType.BREEZE, "§bStorm Wisp", 2, m -> { }),
+                        new Guard(EntityType.VEX, "§3Tempest Shade", 3, m -> { })),
+                m -> {
+                    wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.NETHERITE_AXE));
+                    wear(m, EquipmentSlot.HEAD, new ItemStack(Items.NETHERITE_HELMET));
+                    wear(m, EquipmentSlot.CHEST, dyed(Items.LEATHER_CHESTPLATE, 0x3FA8C8));
+                    wear(m, EquipmentSlot.LEGS, dyed(Items.LEATHER_LEGGINGS, 0x2A6B80));
+                    wear(m, EquipmentSlot.FEET, new ItemStack(Items.NETHERITE_BOOTS));
+                }, null, null, 0, 0));
     }
 
     // ---------------------------------------------------------------- saved state
@@ -356,6 +370,7 @@ public final class Bosses {
             Live l = LIVE.remove(e.getUuid());
             if (l != null) {
                 LIVE_IDS.remove(e.getId());
+                TempestKeep.bossDied(e);
                 l.bar.clearPlayers();
                 l.bedrockBar.clearPlayers();
                 defeated((ServerWorld) e.getEntityWorld(), l, source.getAttacker());
@@ -424,7 +439,7 @@ public final class Bosses {
 
     /** The bosses in the order of their head glyphs in the pack (scripts/owner-pack/build.py BOSS_HEADS). */
     private static final List<String> HEADS = List.of("drowned_warden", "deepslate_colossus", "storm_phantom", "forgemaster",
-            "sand_colossus", "frost_titan", "thornback_beast", "hollow_watcher");
+            "sand_colossus", "frost_titan", "thornback_beast", "hollow_watcher", "tempest_lord");
     private static final char HEAD_CHAR = '\uE100';
     private static final char PHASE_CHAR = '\uE110';
 
@@ -1060,7 +1075,7 @@ public final class Bosses {
         }
         // Its own weapon, through the same loot table the mod uses everywhere; the killer who has one already gets
         // it upgraded instead of a copy.
-        if (!(killer instanceof ServerPlayerEntity kp && upgradeWeapon(kp, l.kind.weapon()))) {
+        if (l.kind.weapon() != null && !(killer instanceof ServerPlayerEntity kp && upgradeWeapon(kp, l.kind.weapon()))) {
             Ac.server().getCommandManager().parseAndExecute(Ac.server().getCommandSource().withWorld(w).withSilent(),
                     String.format(java.util.Locale.ROOT, "loot spawn %.2f %.2f %.2f loot vigil:items/%s", at.x, at.y + 1, at.z, l.kind.weapon()));
         }

@@ -59,6 +59,10 @@ CHITIN = Mat(["#120d06", "#22190b", "#3a2a12", "#6a5222"], "plates")
 JACKAL = Mat(["#07070a", "#0f0f14", "#18181f", "#24242e"])
 SKULL = Mat(["#a8a48e", "#c8c4ac", "#dedac4", "#f4f2e4"], cell=1)
 WING_DARK = Mat(["#140604", "#1f0a06", "#2b0f09", "#38140c"])
+STORM_ARMOR = Mat(["#121a2a", "#1d2a42", "#2a3d5e", "#3d5884"], "plates", veins="#a8f6ff", vein_density=0.04)
+STORM_COPPER = Mat(["#24524a", "#337264", "#468f7e", "#64b8a2"], "plates")
+STORM_CAPE = Mat(["#060c14", "#0c1622", "#122033", "#1a2c45"], "bands", veins="#2fe6f2", vein_density=0.03)
+LIGHTNING = Mat(["#6fd0ff", "#a8f0ff", "#d6fbff", "#ffffff"], cell=1)
 
 
 def maw(eye, brow="#000000", mouth="#050505", teeth="#d8d2bc", eye_w=3, eye_h=2, eye_row=0.3, gap=None,
@@ -735,6 +739,75 @@ def shadow_echo():
     return m
 
 
+def tempest_lord():
+    """The Tempest Keep's lord: a towering storm knight in blue-black plate and green copper, a cape of storm cloud,
+    a crown of lightning and a storm axe."""
+    m = Model("tempest_lord")
+    m.part("leg", (-5, 18, 0), "leg", mirror=True)
+    m.pair((-9.5, 0, -4.5), (8, 6, 10), STORM_COPPER)
+    m.pair((-9, 6, -4), (7, 12, 8), STORM_ARMOR)
+    m.pair((-9.5, 12, 3), (8, 3, 2), STORM_COPPER)
+    m.part("body", (0, 18, 0), "body")
+    m.box((-10.5, 17, -6), (21, 3, 12), STORM_COPPER)
+    m.box((-10, 20, -5.5), (20, 8, 11), STORM_ARMOR)
+    core = spot("#d6fbff", 0.5, 0.45, 4, 4, ring="#2fe6f2")
+    m.box((-12, 28, -6.5), (24, 12, 13), STORM_ARMOR, decal={"south": core})
+    # Shoulders: heavy copper plates with lightning spikes.
+    m.pair((-18, 35, -7.5), (9, 7, 15), STORM_COPPER)
+    m.pair((-16, 42, -3), (2, 7, 2), LIGHTNING, rot=("z", 22.5))
+    m.pair((-13, 42, 1), (2, 5, 2), LIGHTNING, rot=("x", -22.5))
+    # A cape of storm cloud down the back.
+    m.part("cape", (0, 39, -7), "tail")
+    m.box((-11, 6, -9.5), (22, 33, 2), STORM_CAPE)
+    m.box((-12, 3, -10.5), (24, 6, 2), STORM_CAPE, rot=("x", 22.5, (0, 9, -9.5)))
+    # Arms in plate, copper gauntlets.
+    m.use("body")
+    m.part("arm", (-15, 37, 0), "arm", mirror=True)
+    m.pair((-19, 21, -4), (8, 17, 8), STORM_ARMOR)
+    m.pair((-19.5, 13, -4.5), (9, 8, 9), STORM_COPPER)
+    # A helm with a slit of storm-light for eyes, and a crown of lightning.
+    m.part("head", (0, 40, 1), "head")
+    m.box((-5.5, 40, -4), (11, 11, 10), STORM_ARMOR,
+          decal={"south": maw("#a8f6ff", brow="#04060a", mouth="#04060a", teeth="#2a3d5e", eye_w=3, eye_h=1, eye_row=0.36,
+                              gap=2, mouth_row=0.7, mouth_w=6, mouth_h=2, mask=0.5)})
+    m.box((-6, 47, -4.5), (12, 2, 11), STORM_COPPER)
+    for x, h, r in ((-5, 7, 22.5), (-2, 10, 0), (1, 10, 0), (4, 7, -22.5)):
+        m.box((x - 0.5, 49, 0), (1.5, h, 1.5), LIGHTNING, rot=("z", r, (x, 49, 0)) if r else None)
+    # The storm axe in the right hand, crackling along its edge.
+    m.part("axe", (15, 37, 0), "static", parent="arm_l")
+    m.box((18, 0, -1), (2, 36, 2), WOOD)
+    m.box((14, 26, -6), (10, 10, 2), STORM_ARMOR)
+    m.box((12.5, 24, -7), (2, 14, 4), LIGHTNING)
+    m.box((17, 34, -1.5), (4, 4, 3), STORM_COPPER)
+    return m
+
+
+def storm_wisp():
+    """A guard: a crackling ball of cloud with lightning arms."""
+    m = Model("storm_wisp")
+    m.part("body", (0, 8, 0), "body")
+    m.box((-5, 4, -5), (10, 10, 10), STORM_CAPE,
+          decal={"south": maw("#d6fbff", brow="#04060a", eye_w=2, eye_h=2, eye_row=0.35, gap=2, mouth_row=0.7, mouth_w=4, mouth_h=1)})
+    m.box((-3, 13, -3), (6, 4, 6), STORM_CAPE)
+    m.part("arm", (-6, 10, 0), "arm", mirror=True)
+    m.pair((-9, 2, -0.5), (1.5, 9, 1.5), LIGHTNING, rot=("z", -22.5, (-6, 10, 0)))
+    m.box((-1, 0, -1), (2, 4, 2), LIGHTNING)
+    return m
+
+
+def tempest_shade():
+    """A guard: a hooded shade in copper and storm cloud."""
+    m = Model("tempest_shade")
+    m.part("body", (0, 6, 0), "body")
+    m.box((-3, 0, -2), (6, 9, 4), STORM_CAPE)
+    m.part("head", (0, 9, 0), "head")
+    m.box((-3, 9, -3), (6, 6, 6), STORM_ARMOR,
+          decal={"south": maw("#a8f6ff", brow="#04060a", eye_w=1, eye_h=1, eye_row=0.45, gap=2, mouth_row=0.8, mouth_w=2, mouth_h=1)})
+    m.part("arm", (-4, 8, 0), "arm", mirror=True)
+    m.pair((-5, 2, -1), (2, 7, 2), STORM_COPPER)
+    return m
+
+
 MODELS = {
     "deepslate_colossus": (deepslate_colossus, 4.3), "drowned_warden": (drowned_warden, 3.3),
     "storm_phantom": (storm_phantom, 2.4), "forgemaster": (forgemaster, 3.7), "sand_colossus": (sand_colossus, 4.2),
@@ -744,4 +817,5 @@ MODELS = {
     "scarab": (scarab, 0.4), "sculk_lurker": (sculk_lurker, 0.55), "jungle_stalker": (jungle_stalker, 0.95),
     "vine_creeper": (vine_creeper, 0.55), "gale_phantom": (gale_phantom, 0.6), "ember_imp": (ember_imp, 0.6),
     "frostbite_bear": (frostbite_bear, 1.4), "shadow_echo": (shadow_echo, 0.85),
+    "tempest_lord": (tempest_lord, 6.2), "storm_wisp": (storm_wisp, 1.8), "tempest_shade": (tempest_shade, 0.8),
 }

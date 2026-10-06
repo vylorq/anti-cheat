@@ -340,6 +340,18 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void tempestKeepLoads(TestContext ctx) {
+        var w = ctx.getWorld();
+        var tpl = w.getStructureTemplateManager().getTemplate(net.minecraft.util.Identifier.of("vigil", "tempest/keep"));
+        check(tpl.isPresent() && tpl.get().getSize().getX() > 100, "the Tempest Keep's template doesn't load");
+        var lay = com.vylorq.anticheat.feature.TempestKeep.layoutForTest();
+        check(lay.levers().size() == 6 && lay.code().size() == 3, "the lever puzzle isn't laid out");
+        check(lay.gates().size() >= 5, "the keep's gates are missing");
+        check(com.vylorq.anticheat.feature.Bosses.kinds().contains(com.vylorq.anticheat.feature.Bosses.TEMPEST_LORD), "no Tempest Lord");
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));

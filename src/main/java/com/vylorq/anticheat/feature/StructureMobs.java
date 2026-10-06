@@ -35,7 +35,8 @@ public final class StructureMobs {
             "desert_tomb", Items.IRON_SWORD,
             "frozen_bastion", Items.IRON_AXE,
             "overgrown_labyrinth", Items.IRON_SWORD,
-            "watchers_hollow", Items.NETHERITE_SWORD);
+            "watchers_hollow", Items.NETHERITE_SWORD,
+            "tempest", Items.NETHERITE_SWORD);
 
     private static final Item[][] SETS = {
             {Items.IRON_HELMET, Items.IRON_CHESTPLATE, Items.IRON_LEGGINGS, Items.IRON_BOOTS},

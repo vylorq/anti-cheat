@@ -52,6 +52,7 @@ public final class Ticker {
         OrbitalStrike.tick(ticks);
         SecretItems.tick(ticks);
         Bosses.tick(ticks);
+        TempestKeep.tick(ticks);
         ModelMobs.tick(ticks);
         Replay.tick();
         Trades.tick();

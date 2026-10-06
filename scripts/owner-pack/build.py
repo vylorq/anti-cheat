@@ -940,7 +940,7 @@ def bar_progress(name):
 
 
 BOSS_HEADS = ["drowned_warden", "deepslate_colossus", "storm_phantom", "forgemaster", "sand_colossus", "frost_titan",
-              "thornback_beast", "hollow_watcher"]
+              "thornback_beast", "hollow_watcher", "tempest_lord"]
 HEAD_CHAR = 0xE100   # the bosses' heads, in the order above
 PHASE_CHAR = 0xE110  # the phase badges I, II, III
 

@@ -189,19 +189,19 @@ CHESTS = {
     "sky_citadel": [secret([("phoenix_feather", 4), ("seeker_compass", 1)]),
                     filler([("feather", 10, 2, 8), ("golden_apple", 3, 1, 2), ("emerald", 6, 1, 4), ("gold_ingot", 8, 1, 4),
                             ("phantom_membrane", 5, 1, 3), ("diamond", 2, 1, 2)])],
-    "nether_forge": [secret([("stormbreaker", 4), ("phoenix_feather", 1)]),
+    "nether_forge": [secret([("phoenix_feather", 2), ("voidblade", 1)]),
                      filler([("gold_ingot", 10, 2, 6), ("blaze_rod", 8, 1, 4), ("magma_cream", 6, 1, 4), ("quartz", 8, 3, 9),
                              ("iron_ingot", 8, 2, 6), ("netherite_scrap", 2, 1, 1)])],
     "desert_tomb": [secret([("seeker_compass", 3), ("shadow_cloak", 2), ("voidblade", 1)]),
                     filler([("gold_ingot", 10, 2, 6), ("bone", 10, 2, 6), ("emerald", 6, 1, 4), ("rotten_flesh", 8, 2, 6),
                             ("iron_ingot", 6, 1, 4), ("diamond", 2, 1, 2)])],
-    "frozen_bastion": [secret([("tidecaller", 2), ("stormbreaker", 2), ("seeker_compass", 1)]),
+    "frozen_bastion": [secret([("tidecaller", 2), ("seeker_compass", 1)]),
                        filler([("blue_ice", 8, 2, 6), ("snowball", 10, 4, 12), ("iron_ingot", 8, 2, 6), ("emerald", 5, 1, 3),
                                ("diamond", 2, 1, 2), ("golden_carrot", 6, 2, 6)])],
     "overgrown_labyrinth": [secret([("voidblade", 2), ("phoenix_feather", 2), ("shadow_cloak", 1)]),
                             filler([("cocoa_beans", 8, 2, 8), ("bamboo", 8, 4, 12), ("emerald", 8, 2, 5), ("gold_ingot", 6, 1, 4),
                                     ("iron_ingot", 6, 2, 5), ("diamond", 2, 1, 2), ("melon_seeds", 5, 2, 6)])],
-    "watchers_hollow": [secret([("voidblade", 1), ("stormbreaker", 1), ("tidecaller", 1)]), secret([("phoenix_feather", 1)]),
+    "watchers_hollow": [secret([("voidblade", 1), ("tidecaller", 1)]), secret([("phoenix_feather", 1)]),
                         filler([("ender_pearl", 8, 1, 3), ("echo_shard", 4, 1, 2), ("sculk", 8, 2, 6), ("emerald", 6, 1, 4),
                                 ("iron_ingot", 8, 2, 6)])],
 }
@@ -1068,6 +1068,12 @@ def _range(d):
 
 
 def mob_spawner(t, x, y, z, mobs, structure):
+    # Rooms cap their spawners (t.spawner_cap): a room is tough, but not wall-to-wall spawners.
+    cap = getattr(t, "spawner_cap", None)
+    if cap is not None:
+        if getattr(t, "spawners", 0) >= cap:
+            return
+        t.spawners = getattr(t, "spawners", 0) + 1
     """A spawner of the structure's mobs (weighted), in any light, a few at a time. Each mob is tagged with the
     structure, so the mod gives it that structure's armour and weapons (StructureMobs.java)."""
     t.set(x, y, z, "spawner")
@@ -1212,6 +1218,8 @@ def room(structure, kind):
                 ix, iz = xx + (1 if facing == "west" else -1 if facing == "east" else 0), zz + (1 if facing == "north" else -1 if facing == "south" else 0)
                 t.set(ix, y, iz, "air")
         door(t, x, 0, z, facing, structure, fa)
+    # Big rooms hold two spawners at most, the rest one.
+    t.spawner_cap = 2 if w * d >= 13 * 13 else 1
     _furnish(t, th, structure, kind, w, d)
     for (x, z) in TRAPS.get(kind, lambda w, d: [])(w, d):
         trap(t, x, z, structure)
@@ -1705,6 +1713,8 @@ def build():
                                                       "placement": {"type": "minecraft:random_spread", "spacing": spacing,
                                                                     "separation": sep, "salt": salt}})
     write("tags/worldgen/structure/secret.json", {"values": [f"vigil:{n}" for n in STRUCTURES]})
+    import tempest
+    tempest.write_all()
     print("items", len(ITEMS), "recipes", len(RECIPES), "structures", len(STRUCTURES))
 
 

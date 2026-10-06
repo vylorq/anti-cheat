@@ -6,17 +6,17 @@
       "entries": [
         {
           "type": "minecraft:empty",
-          "weight": 999930
-        },
-        {
-          "type": "minecraft:loot_table",
-          "value": "vigil:items/stormbreaker",
-          "weight": 20
+          "weight": 999917
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/phoenix_feather",
           "weight": 50
+        },
+        {
+          "type": "minecraft:loot_table",
+          "value": "vigil:items/voidblade",
+          "weight": 33
         }
       ]
     },

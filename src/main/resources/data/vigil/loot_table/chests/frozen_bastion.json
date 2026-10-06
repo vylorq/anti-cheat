@@ -6,17 +6,12 @@
       "entries": [
         {
           "type": "minecraft:empty",
-          "weight": 999697
+          "weight": 999717
         },
         {
           "type": "minecraft:loot_table",
           "value": "vigil:items/tidecaller",
           "weight": 83
-        },
-        {
-          "type": "minecraft:loot_table",
-          "value": "vigil:items/stormbreaker",
-          "weight": 20
         },
         {
           "type": "minecraft:loot_table",
