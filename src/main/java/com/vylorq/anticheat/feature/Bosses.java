@@ -116,16 +116,16 @@ public final class Bosses {
     }
 
     static {
-        add(new Kind(DROWNED_WARDEN, "Drowned Warden", "§3", "sunken_vault", 2, EntityType.DROWNED, 1800, 24, 26, 1.7f,
+        add(new Kind(DROWNED_WARDEN, "Drowned Warden", "§3", "sunken_vault", 2, EntityType.DROWNED, 5000, 24, 26, 1.7f,
                 List.of(Ability.SHOCKWAVE, Ability.TRIDENTS, Ability.LEAP), 0x3FA8FF,
                 List.of(new Guard(EntityType.DROWNED, "§3Vault Drowned", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.TRIDENT)))),
                 m -> { }, "tide_trident", "drowned_warden", 1.15f, 1.6f));
-        add(new Kind("deepslate_colossus", "Deepslate Colossus", "§8", "buried_vault", 1, EntityType.IRON_GOLEM, 2200, 30, 30, 1.6f,
+        add(new Kind("deepslate_colossus", "Deepslate Colossus", "§8", "buried_vault", 1, EntityType.IRON_GOLEM, 6500, 30, 30, 1.6f,
                 List.of(Ability.ROCKS, Ability.LEAP, Ability.SHOCKWAVE), 0x6C7684,
                 List.of(new Guard(EntityType.SILVERFISH, "§7Stone Crawler", 4, m -> { }),
                         new Guard(EntityType.CAVE_SPIDER, "§2Sculk Lurker", 2, m -> { })),
                 m -> { }, "colossus_maul", null, 0, 0));
-        add(new Kind("storm_phantom", "Storm Phantom", "§b", "sky_citadel", 7, EntityType.PHANTOM, 1700, 22, 22, 2.0f,
+        add(new Kind("storm_phantom", "Storm Phantom", "§b", "sky_citadel", 7, EntityType.PHANTOM, 5000, 22, 22, 2.0f,
                 List.of(Ability.LIGHTNING, Ability.SHOCKWAVE, Ability.LIGHTNING), 0xB8E8FF,
                 List.of(new Guard(EntityType.PHANTOM, "§bGale Phantom", 3, m -> { }),
                         new Guard(EntityType.SKELETON, "§fSky Sentry", 2, m -> wear(m, EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET)))),
@@ -134,7 +134,7 @@ public final class Bosses {
                         ph.setPhantomSize(6);
                     }
                 }, "storm_fang", null, 0, 0));
-        add(new Kind("forgemaster", "Forgemaster", "§6", "nether_forge", 1, EntityType.PIGLIN_BRUTE, 2000, 28, 28, 1.9f,
+        add(new Kind("forgemaster", "Forgemaster", "§6", "nether_forge", 1, EntityType.PIGLIN_BRUTE, 6000, 28, 28, 1.9f,
                 List.of(Ability.FIRE_RING, Ability.LEAP, Ability.SHOCKWAVE), 0xFF8A2E,
                 List.of(new Guard(EntityType.PIGLIN_BRUTE, "§6Forge Brute", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_AXE))),
                         new Guard(EntityType.MAGMA_CUBE, "§cEmber Imp", 3, m -> { })),
@@ -146,7 +146,7 @@ public final class Bosses {
                         b.setImmuneToZombification(true);
                     }
                 }, "forge_cleaver", null, 0, 0));
-        add(new Kind("sand_colossus", "Sand Colossus", "§e", "desert_tomb", 1, EntityType.HUSK, 1800, 24, 24, 2.4f,
+        add(new Kind("sand_colossus", "Sand Colossus", "§e", "desert_tomb", 1, EntityType.HUSK, 5200, 24, 24, 2.4f,
                 List.of(Ability.SANDSTORM, Ability.LEAP, Ability.SHOCKWAVE), 0xE8C77A,
                 List.of(new Guard(EntityType.HUSK, "§eTomb Husk", 3, m -> wear(m, EquipmentSlot.HEAD, new ItemStack(Items.GOLDEN_HELMET))),
                         new Guard(EntityType.SILVERFISH, "§6Scarab", 4, m -> { })),
@@ -155,7 +155,7 @@ public final class Bosses {
                     wear(m, EquipmentSlot.CHEST, new ItemStack(Items.GOLDEN_CHESTPLATE));
                     wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD));
                 }, "dune_blade", null, 0, 0));
-        add(new Kind("frost_titan", "Frost Titan", "§b", "frozen_bastion", 1, EntityType.STRAY, 1800, 22, 24, 2.4f,
+        add(new Kind("frost_titan", "Frost Titan", "§b", "frozen_bastion", 1, EntityType.STRAY, 5200, 22, 24, 2.4f,
                 List.of(Ability.ICE_SHARDS, Ability.FREEZE_AURA, Ability.SHOCKWAVE), 0xBFF4FF,
                 List.of(new Guard(EntityType.STRAY, "§bIce Stray", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.BOW))),
                         new Guard(EntityType.POLAR_BEAR, "§fFrostbite Bear", 1, m -> { })),
@@ -165,12 +165,12 @@ public final class Bosses {
                     wear(m, EquipmentSlot.CHEST, dyed(Items.LEATHER_CHESTPLATE, 0x8FD8F0));
                     wear(m, EquipmentSlot.LEGS, dyed(Items.LEATHER_LEGGINGS, 0x6FB8E0));
                 }, "glacier_axe", null, 0, 0));
-        add(new Kind("thornback_beast", "Thornback Beast", "§2", "overgrown_labyrinth", 1, EntityType.RAVAGER, 2000, 28, 26, 1.4f,
+        add(new Kind("thornback_beast", "Thornback Beast", "§2", "overgrown_labyrinth", 1, EntityType.RAVAGER, 6000, 28, 26, 1.4f,
                 List.of(Ability.THORNS, Ability.LEAP, Ability.SHOCKWAVE), 0x6FD05A,
                 List.of(new Guard(EntityType.SPIDER, "§2Jungle Stalker", 2, m -> { }),
                         new Guard(EntityType.CAVE_SPIDER, "§aVine Creeper", 3, m -> { })),
                 m -> { }, "thornspine", null, 0, 0));
-        add(new Kind("hollow_watcher", "The Hollow Watcher", "§5", "watchers_hollow", 1, EntityType.WITHER_SKELETON, 2400, 30, 30, 2.0f,
+        add(new Kind("hollow_watcher", "The Hollow Watcher", "§5", "watchers_hollow", 1, EntityType.WITHER_SKELETON, 7000, 30, 30, 2.0f,
                 List.of(Ability.DARKNESS, Ability.SHOCKWAVE, Ability.LEAP), 0x6A2BD6,
                 List.of(new Guard(EntityType.VEX, "§5Shadow Echo", 3, m -> { })),
                 m -> {
