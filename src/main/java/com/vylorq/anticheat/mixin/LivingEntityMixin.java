@@ -25,6 +25,9 @@ public abstract class LivingEntityMixin {
         if (!Ac.running()) {
             return original;
         }
+        if (com.vylorq.anticheat.feature.OwnerCombat.dealing()) {
+            return original; // the owner's weapons hit bosses for full damage
+        }
         return original / com.vylorq.anticheat.feature.Bosses.damageScale((LivingEntity) (Object) this);
     }
 

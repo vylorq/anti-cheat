@@ -130,10 +130,18 @@ public final class OwnerCombat {
                 && !com.vylorq.anticheat.perm.Perms.isOwner(sp.getUuid()));
     }
 
+    /** For the game tests: one of the owner's ability hits. */
+    public static void hurtForTest(ServerPlayerEntity owner, LivingEntity e, float amount) {
+        hurt(owner, e, amount);
+    }
+
     static void hurt(ServerPlayerEntity owner, LivingEntity e, float amount) {
         dealing++;
         try {
-            e.damage(owner.getEntityWorld(), owner.getDamageSources().playerAttack(owner), amount);
+            // Bosses: the owner's weapons go straight through their armour and their scaled-down hits.
+            var source = Bosses.isBoss(e) ? owner.getDamageSources().indirectMagic(owner, owner)
+                    : owner.getDamageSources().playerAttack(owner);
+            e.damage(owner.getEntityWorld(), source, amount);
         } finally {
             dealing--;
         }
