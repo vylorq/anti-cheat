@@ -2638,5 +2638,11 @@
   "boss.awake": "§4§lاستيقظ الزعيم. §cإنه ينتظر في القاعة الكبرى.",
   "boss.locked": "هذه المعركة لمجموعة أخرى.",
   "boss.weapon-upgraded": "§6أصبح {0} أقوى: المستوى {1}!",
-  "boss.weapon-max": "§7{0} في أقوى مستوى بالفعل."
+  "boss.weapon-max": "§7{0} في أقوى مستوى بالفعل.",
+  "owner.secrets": "العناصر السرية",
+  "owner.secrets.desc": "كل العناصر السرية والأدوات وأسلحة الزعماء. اضغط لأخذ واحد.",
+  "owner.secrets.take": "خذ واحدًا",
+  "owner.secrets.from.structure": "يوجد في صناديق المباني السرية",
+  "owner.secrets.from.boss": "يسقطه الزعيم الخاص به",
+  "owner.secrets.from.craft": "يمكن صنعه"
 }

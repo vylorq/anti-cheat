@@ -102,6 +102,8 @@ public final class OwnerMenu {
                     .desc(Msg.tr("owner.combat.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> combat(pl));
             menu.set(40, Btn.of(icon(Items.PAINTING, "icon_pack")).color(Theme.SOFT).name(Msg.tr("owner.pack")).desc(Msg.tr("owner.pack.desc"))
                     .left(Msg.tr("owner.pack-send")).build(), null, (pl, c) -> OwnerPowers.sendPack(pl));
+            menu.set(42, Btn.of(secretIcon("stormbreaker")).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.secrets"))
+                    .desc(Msg.tr("owner.secrets.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> secrets(pl));
         });
         m.open(p);
     }
@@ -426,6 +428,54 @@ public final class OwnerMenu {
                     OwnerTools.give(pl, s);
                 }, i -> Registries.ITEM.getId(i).getPath().replace('_', ' '),
                 List.of(), Msg.tr("owner.items.none"), ""));
+        m.open(p);
+    }
+
+    /** Each secret item: its base item, name and colour (the same as scripts/secrets/build.py ITEMS), and where it comes from. */
+    private record Secret(String id, Item base, String name, int colour, String from) {
+    }
+
+    private static final List<Secret> SECRETS = List.of(
+            new Secret("voidblade", Items.DIAMOND_SWORD, "Voidblade", 0xB488FF, "structure"),
+            new Secret("stormbreaker", Items.DIAMOND_AXE, "Stormbreaker", 0x7FD8FF, "structure"),
+            new Secret("tidecaller", Items.TRIDENT, "Tidecaller", 0x3FA8FF, "structure"),
+            new Secret("phoenix_feather", Items.FEATHER, "Phoenix Feather", 0xFF8A1E, "structure"),
+            new Secret("shadow_cloak", Items.PHANTOM_MEMBRANE, "Shadow Cloak", 0x8A73B0, "structure"),
+            new Secret("seeker_compass", Items.NAUTILUS_SHELL, "Seeker Compass", 0x7FFFD4, "structure"),
+            new Secret("tide_trident", Items.TRIDENT, "Warden's Tide", 0x3FD0FF, "boss"),
+            new Secret("colossus_maul", Items.MACE, "Colossus Maul", 0x8A93A6, "boss"),
+            new Secret("storm_fang", Items.DIAMOND_SWORD, "Storm Fang", 0xB8E8FF, "boss"),
+            new Secret("forge_cleaver", Items.NETHERITE_AXE, "Forge Cleaver", 0xFF8A2E, "boss"),
+            new Secret("dune_blade", Items.DIAMOND_SWORD, "Dune Blade", 0xE8C77A, "boss"),
+            new Secret("glacier_axe", Items.DIAMOND_AXE, "Glacier Axe", 0xBFF4FF, "boss"),
+            new Secret("thornspine", Items.DIAMOND_SWORD, "Thornspine", 0x6FD05A, "boss"),
+            new Secret("hollow_edge", Items.NETHERITE_SWORD, "Hollow Edge", 0x9A7BD0, "boss"),
+            new Secret("hammer", Items.IRON_PICKAXE, "Hammer", 0xE0E0E0, "craft"),
+            new Secret("lumber_axe", Items.IRON_AXE, "Lumber Axe", 0xE0B070, "craft"),
+            new Secret("grappling_hook", Items.FISHING_ROD, "Grappling Hook", 0xC0C8D0, "craft"),
+            new Secret("magnet_charm", Items.IRON_NUGGET, "Magnet Charm", 0xFF6060, "craft"),
+            new Secret("ender_pouch", Items.RABBIT_HIDE, "Ender Pouch", 0xB05CFF, "craft"),
+            new Secret("backpack", Items.LEATHER, "Backpack", 0xC8823C, "craft"));
+
+    static ItemStack secretIcon(String id) {
+        for (Secret x : SECRETS) {
+            if (x.id().equals(id)) {
+                return icon(x.base(), x.id());
+            }
+        }
+        return new ItemStack(Items.BARRIER);
+    }
+
+    /** The owner's page of every secret item, the craftable tools and the boss weapons: click to take one. */
+    public static void secrets(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        Menu m = Menu.std(Category.VIGIL, Msg.trFor(p, "owner.title"), Msg.trFor(p, "owner.secrets"));
+        m.renderer(menu -> menu.list(SECRETS, x -> Btn.of(icon(x.base(), x.id())).color(x.colour()).name(x.name())
+                        .line(Msg.tr("owner.secrets.from." + x.from())).left(Msg.tr("owner.secrets.take")).glint(true).build(),
+                x -> (pl, c) -> com.vylorq.anticheat.feature.SecretItems.give(pl, x.id()),
+                x -> x.name(), List.of(), Msg.tr("owner.items.none"), ""));
         m.open(p);
     }
 }
