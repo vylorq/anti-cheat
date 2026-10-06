@@ -2644,5 +2644,6 @@
   "owner.secrets.take": "خذ واحدًا",
   "owner.secrets.from.structure": "يوجد في صناديق المباني السرية",
   "owner.secrets.from.boss": "يسقطه الزعيم الخاص به",
-  "owner.secrets.from.craft": "يمكن صنعه"
+  "owner.secrets.from.craft": "يمكن صنعه",
+  "orbital.failed": "§cفشلت الضربة المدارية: {0}"
 }

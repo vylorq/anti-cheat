@@ -320,6 +320,25 @@ public final class AntiCheatGameTests {
         ctx.complete();
     }
 
+    @GameTest(maxTicks = 200)
+    public void orbitalPresetsFire(TestContext ctx) {
+        var w = ctx.getWorld();
+        var center = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 1, 2)));
+        for (String preset : new String[]{"doomsday", "stab", "nuke", "carpet"}) {
+            com.vylorq.anticheat.feature.OrbitalStrike.preset(preset);
+            com.vylorq.anticheat.feature.OrbitalStrike.launchForTest(w, center);
+            for (long t = 1; t <= 12; t++) {
+                com.vylorq.anticheat.feature.OrbitalStrike.tick(1_000_000L + t);
+            }
+            var box = new net.minecraft.util.math.Box(center, center).expand(64, 400, 64);
+            int tnt = w.getEntitiesByClass(net.minecraft.entity.TntEntity.class, box, e -> true).size();
+            check(tnt > 0, "the " + preset + " preset dropped no TNT");
+            com.vylorq.anticheat.feature.OrbitalStrike.cancelAll(null);
+        }
+        com.vylorq.anticheat.feature.OrbitalStrike.preset("nuke");
+        ctx.complete();
+    }
+
     @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();

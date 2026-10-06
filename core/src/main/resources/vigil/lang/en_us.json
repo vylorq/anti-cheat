@@ -2644,5 +2644,6 @@
   "owner.secrets.take": "take one",
   "owner.secrets.from.structure": "Found in secret structures' chests",
   "owner.secrets.from.boss": "Dropped by its boss",
-  "owner.secrets.from.craft": "Craftable"
+  "owner.secrets.from.craft": "Craftable",
+  "orbital.failed": "§cThe orbital strike failed: {0}"
 }
