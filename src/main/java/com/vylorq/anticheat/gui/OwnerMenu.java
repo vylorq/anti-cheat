@@ -134,7 +134,7 @@ public final class OwnerMenu {
                 });
             }
             List<ItemStack> weapons = com.vylorq.anticheat.feature.OwnerCombat.weapons();
-            int[] weaponSlots = {19, 20, 21, 22, 23, 24, 25};
+            int[] weaponSlots = {19, 20, 21, 22, 23, 24, 25, 28};
             for (int i = 0; i < weapons.size(); i++) {
                 ItemStack t = weapons.get(i);
                 menu.set(weaponSlots[i], t.copy(), null, (pl, c) -> OwnerTools.give(pl, t));

@@ -173,7 +173,7 @@ public final class AntiCheatGameTests {
             check(atk.getValue() < 100, "no cooldown didn't turn off");
 
             var weapons = com.vylorq.anticheat.feature.OwnerCombat.weapons();
-            check(weapons.size() == 7, "not every weapon is in the list");
+            check(weapons.size() == 8, "not every weapon is in the list");
             for (var wpn : weapons) {
                 check(com.vylorq.anticheat.feature.OwnerTools.toolOf(wpn) != null
                         && wpn.get(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA) != null, "a weapon isn't a custom owner tool");
@@ -348,6 +348,23 @@ public final class AntiCheatGameTests {
         check(lay.levers().size() == 6 && lay.code().size() == 3, "the lever puzzle isn't laid out");
         check(lay.gates().size() >= 5, "the keep's gates are missing");
         check(com.vylorq.anticheat.feature.Bosses.kinds().contains(com.vylorq.anticheat.feature.Bosses.TEMPEST_LORD), "no Tempest Lord");
+        ctx.complete();
+    }
+
+    @GameTest
+    public void godslayerKillsABossInOneBlow(TestContext ctx) {
+        var w = ctx.getWorld();
+        var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
+        var boss = com.vylorq.anticheat.feature.Bosses.spawn(w, at, "deepslate_colossus");
+        check(boss != null, "the boss didn't spawn");
+        var owner = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Slayer"));
+        com.vylorq.anticheat.feature.OwnerCombat.slayForTest(owner, boss);
+        check(!boss.isAlive(), "the Godslayer didn't kill the boss in one blow");
+        var zombie = net.minecraft.entity.EntityType.ZOMBIE.create(w, net.minecraft.entity.SpawnReason.EVENT);
+        zombie.refreshPositionAndAngles(at.x, at.y, at.z + 2, 0, 0);
+        w.spawnEntity(zombie);
+        com.vylorq.anticheat.feature.OwnerCombat.slayForTest(owner, zombie);
+        check(!zombie.isAlive(), "the Godslayer didn't kill a zombie");
         ctx.complete();
     }
 

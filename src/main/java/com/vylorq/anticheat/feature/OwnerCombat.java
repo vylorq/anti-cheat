@@ -60,6 +60,7 @@ public final class OwnerCombat {
     public static final String BLAST_BOW = "blast_bow";
     public static final String METEOR = "meteor_staff";
     public static final String DISARM = "disarm_gloves";
+    public static final String GODSLAYER = "godslayer";
 
     private static final DustParticleEffect STORM = new DustParticleEffect(0x7FD8FF, 1.6f);
     private static final DustParticleEffect STORM_GOLD = new DustParticleEffect(0xFFE27A, 1.3f);
@@ -105,8 +106,13 @@ public final class OwnerCombat {
                 "Hit a player or mob: knock the item out of their hand", "§8Owner only");
     }
 
+    public static ItemStack godslayer() {
+        return OwnerTools.make(Items.NETHERITE_SWORD, GODSLAYER, "§4☠ Godslayer",
+                "Hit: kills anything in one blow", "Players, mobs and bosses (all their phases)", "§8Owner only");
+    }
+
     public static List<ItemStack> weapons() {
-        return List.of(thorHammer(), flameSword(), frostBow(), blastBow(), meteorStaff(), disarmGloves(), OrbitalStrike.item());
+        return List.of(thorHammer(), flameSword(), frostBow(), blastBow(), meteorStaff(), disarmGloves(), OrbitalStrike.item(), godslayer());
     }
 
     // ---------------------------------------------------------------- helpers
@@ -246,6 +252,7 @@ public final class OwnerCombat {
             case THOR -> thorHit(p, target);
             case FLAME -> flameHit(p, target);
             case DISARM -> disarm(p, target);
+            case GODSLAYER -> slay(p, target);
             case FROST_BOW, BLAST_BOW, METEOR -> {
             }
             default -> {
@@ -253,6 +260,42 @@ public final class OwnerCombat {
             }
         }
         return true;
+    }
+
+    // ---------------------------------------------------------------- the Godslayer
+
+    /** For the game tests. */
+    public static void slayForTest(ServerPlayerEntity p, Entity target) {
+        slay(p, target);
+    }
+
+    /** One blow, and whatever it hits is dead: a boss skips straight past its phases, a totem doesn't save anyone. */
+    private static void slay(ServerPlayerEntity p, Entity target) {
+        Entity t = target instanceof net.minecraft.entity.boss.dragon.EnderDragonPart part ? part.owner : target;
+        if (!(t instanceof LivingEntity e) || !e.isAlive() || (e instanceof ServerPlayerEntity sp && (sp.isCreative() || sp.isSpectator()))) {
+            return;
+        }
+        if (e instanceof ServerPlayerEntity victim && LobbyFeature.in(victim) && com.vylorq.anticheat.Ac.config().lobby.noPvp) {
+            return;
+        }
+        ServerWorld w = p.getEntityWorld();
+        double x = e.getX();
+        double y = e.getY() + e.getHeight() / 2;
+        double z = e.getZ();
+        dealing++;
+        try {
+            e.damage(w, w.getDamageSources().genericKill(), Float.MAX_VALUE);
+            if (e.isAlive()) {
+                e.kill(w);
+            }
+        } finally {
+            dealing--;
+        }
+        w.spawnParticles(BLOOD, x, y, z, 60, 0.4, 0.6, 0.4, 0);
+        w.spawnParticles(ParticleTypes.SOUL, x, y, z, 20, 0.3, 0.5, 0.3, 0.05);
+        w.spawnParticles(ParticleTypes.SWEEP_ATTACK, x, y, z, 1, 0, 0, 0, 0);
+        w.playSound(null, x, y, z, SoundEvents.ENTITY_WITHER_BREAK_BLOCK, SoundCategory.PLAYERS, 0.8f, 1.4f);
+        w.playSound(null, x, y, z, SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, SoundCategory.PLAYERS, 1f, 0.6f);
     }
 
     // ---------------------------------------------------------------- Thor's hammer

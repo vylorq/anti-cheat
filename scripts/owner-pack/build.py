@@ -322,6 +322,36 @@ def flame_sword():
     return img
 
 
+def godslayer():
+    """A black blade with a blood-red edge and a glowing red core, on a bone hilt with a skull pommel."""
+    img = canvas()
+    px = img.load()
+    for x in range(5, 15):
+        y = 15 - x
+        px[x, y] = hexc("#1a0a0e")
+        px[x, y - 1] = hexc("#2a1016")
+        if x + 1 < 16:
+            px[x + 1, y] = hexc("#e0123a")
+        if y - 2 >= 0 and x % 2 == 0:
+            px[x, y - 2] = hexc("#ff3d63")
+    px[15, 0] = hexc("#ff8aa0")
+    for i in range(6, 13, 2):
+        px[i, 15 - i] = hexc("#ff2a4a")
+    for (x, y) in [(2, 9), (3, 10), (4, 11), (5, 12), (6, 13)]:
+        px[x, y] = hexc("#cfcbb4")
+    px[4, 11] = hexc("#e0123a")
+    for x in range(1, 4):
+        px[x, 15 - x] = hexc("#5a5546" if x % 2 else "#8e8a76")
+    px[0, 15] = hexc("#ebe8d6")
+    px[1, 15] = hexc("#cfcbb4")
+    px[0, 14] = hexc("#cfcbb4")
+    outline(img, "#0a0204")
+    for (x, y, c, a) in [(10, 2, "#ff3d63", 200), (12, 1, "#ff8aa0", 170), (8, 4, "#e0123a", 160), (13, 3, "#e0123a", 150)]:
+        if px[x, y][3] == 0:
+            px[x, y] = hexc(c, a)
+    return img
+
+
 def bow_art(limb, limb_light, grip, string, tip, glow):
     img = canvas()
     px = img.load()
@@ -1398,7 +1428,7 @@ TOOLS = {"lightning_wand": ("blaze_rod", lightning_wand), "launch_stick": ("stic
          "freeze_wand": ("prismarine_shard", freeze_wand), "judge_gavel": ("breeze_rod", judge_gavel),
          "thor_hammer": ("mace", thor_hammer), "flame_sword": ("golden_sword", flame_sword), "frost_bow": ("bow", frost_bow),
          "blast_bow": ("bow", blast_bow), "meteor_staff": ("magma_cream", meteor_staff), "disarm_gloves": ("leather", disarm_gloves),
-         "orbital_cannon": ("prismarine_crystals", orbital_cannon)}
+         "orbital_cannon": ("prismarine_crystals", orbital_cannon), "godslayer": ("netherite_sword", godslayer)}
 # Plain (not hand-held) items.
 FLAT = {"home_teleporter": ("echo_shard", home_teleporter), "rune_circle": ("light_blue_stained_glass_pane", rune_circle)}
 # Models that are cubes (the meteor flying down).
