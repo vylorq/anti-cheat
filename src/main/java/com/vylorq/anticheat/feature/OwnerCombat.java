@@ -130,6 +130,11 @@ public final class OwnerCombat {
                 && !com.vylorq.anticheat.perm.Perms.isOwner(sp.getUuid()));
     }
 
+    /** For the game tests: one of the owner's ability hits. */
+    public static void hurtForTest(ServerPlayerEntity owner, LivingEntity e, float amount) {
+        hurt(owner, e, amount);
+    }
+
     static void hurt(ServerPlayerEntity owner, LivingEntity e, float amount) {
         dealing++;
         try {

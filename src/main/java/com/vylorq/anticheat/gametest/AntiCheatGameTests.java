@@ -298,6 +298,36 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void weaponsDealDamage(TestContext ctx) {
+        var w = ctx.getWorld();
+        var at = ctx.getAbsolutePos(new BlockPos(2, 2, 2));
+        var hero = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Swordsman"));
+        hero.refreshPositionAndAngles(at.getX() + 0.5, at.getY(), at.getZ() - 1.5, 0, 0);
+        var z = net.minecraft.entity.EntityType.ZOMBIE.create(w, net.minecraft.entity.SpawnReason.EVENT);
+        z.refreshPositionAndAngles(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, 0, 0);
+        z.setAiDisabled(true);
+        w.spawnEntity(z);
+        // An owner ability's hit.
+        float before = z.getHealth();
+        com.vylorq.anticheat.feature.OwnerCombat.hurtForTest(hero, z, 6f);
+        check(z.getHealth() < before, "an owner ability did no damage: " + before + " -> " + z.getHealth());
+        // A plain sword hit.
+        z.timeUntilRegen = 0;
+        z.hurtTime = 0;
+        before = z.getHealth();
+        hero.setStackInHand(net.minecraft.util.Hand.MAIN_HAND, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD));
+        hero.attack(z);
+        check(z.getHealth() < before, "a sword hit did no damage: " + before + " -> " + z.getHealth());
+        // Any damage from a player at all.
+        z.timeUntilRegen = 0;
+        before = z.getHealth();
+        z.damage(w, w.getDamageSources().playerAttack(hero), 3f);
+        check(z.getHealth() < before, "player damage did nothing: " + before + " -> " + z.getHealth());
+        z.discard();
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
