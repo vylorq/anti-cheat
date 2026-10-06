@@ -288,6 +288,11 @@ public final class AntiCheatGameTests {
         var boss = com.vylorq.anticheat.feature.Bosses.spawn(w, at, "forgemaster");
         check(boss != null, "the boss didn't spawn");
         check(com.vylorq.anticheat.feature.Bosses.phaseOf(boss) == 1, "a new boss starts on its first health bar");
+        check(boss.getCustomName().getString().contains("/6000"), "the forgemaster should have 6000 health: " + boss.getCustomName().getString());
+        float before = boss.getHealth();
+        boss.damage(w, w.getDamageSources().magic(), 20f);
+        check(before - boss.getHealth() <= 10.5f, "a hit on a boss wasn't scaled down: " + (before - boss.getHealth()));
+        check(before - boss.getHealth() > 0f, "the boss took no damage");
         boss.setHealth(1f);
         boss.damage(w, w.getDamageSources().magic(), 50f);
         check(boss.isAlive(), "the boss died on its first health bar");
