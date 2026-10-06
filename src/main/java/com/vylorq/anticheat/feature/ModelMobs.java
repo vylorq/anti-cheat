@@ -114,16 +114,26 @@ public final class ModelMobs {
     }
 
     private static final Map<UUID, Worn> WORN = new ConcurrentHashMap<>();
-    /** Mobs leaning (degrees forward, degrees sideways), turned about their feet. */
+    /** Mobs leaning (degrees forward, degrees sideways, size), turned and shrunk about their feet. */
     private static final Map<UUID, float[]> LEAN = new ConcurrentHashMap<>();
 
     /** Leans a model: forward (toward where it faces) and sideways, about its feet. 0, 0 stands it up again. */
     public static void lean(Entity e, float forward, float side) {
-        if (forward == 0 && side == 0) {
+        pose(e, forward, side, 1f);
+    }
+
+    /** Leans a model and changes its size (crouching, crawling): about its feet. */
+    public static void pose(Entity e, float forward, float side, float size) {
+        if (forward == 0 && side == 0 && size == 1f) {
             LEAN.remove(e.getUuid());
         } else {
-            LEAN.put(e.getUuid(), new float[]{forward, side});
+            LEAN.put(e.getUuid(), new float[]{forward, side, size});
         }
+    }
+
+    private static float size(Worn x) {
+        float[] l = LEAN.get(x.mob.getUuid());
+        return l == null ? 1f : l[2];
     }
     private static final Set<Integer> IDS = ConcurrentHashMap.newKeySet();
     private static long now;
@@ -310,6 +320,7 @@ public final class ModelMobs {
             Vector3f pos = new Vector3f(p.px(), p.py(), p.pz()).mul(k);
             float[] lean = LEAN.get(x.mob.getUuid());
             if (lean != null) {
+                pos.mul(lean[2]);
                 Quaternionf l = new Quaternionf().rotateX((float) Math.toRadians(lean[0])).rotateZ((float) Math.toRadians(lean[1]));
                 l.transform(pos);
                 q = new Quaternionf(l).mul(q);
@@ -334,9 +345,9 @@ public final class ModelMobs {
      * The display transformation for a part's pose. Item displays draw the model turned half way round, so the pose
      * is turned the same way first.
      */
-    private static String transform(Spec s, Pose p) {
+    private static String transform(Spec s, Pose p, float size) {
         Quaternionf q = p.rot();
-        float k = s.scale();
+        float k = s.scale() * size;
         return String.format(java.util.Locale.ROOT,
                 "{left_rotation:[%.4ff,%.4ff,%.4ff,%.4ff],right_rotation:[0f,0f,0f,1f],translation:[%.3ff,%.3ff,%.3ff],scale:[%.4ff,%.4ff,%.4ff]}",
                 -q.x, q.y, -q.z, q.w, -p.pos().x, p.pos().y, -p.pos().z, k, k, k);
@@ -365,7 +376,7 @@ public final class ModelMobs {
                     rest = poses(x, now * 0.45, 0, 0);
                 }
                 id = OwnerCombat.Display.summon(w, x.mob.getEntityPos(), "minecraft:nautilus_shell", p.id(),
-                        transform(x.spec, rest.get(p.id())));
+                        transform(x.spec, rest.get(p.id()), size(x)));
                 d = id == null ? null : w.getEntity(id);
                 if (d == null) {
                     continue;
@@ -400,7 +411,7 @@ public final class ModelMobs {
             if (id == null) {
                 continue;
             }
-            String tr = transform(x.spec, all.get(p.id()));
+            String tr = transform(x.spec, all.get(p.id()), size(x));
             if (tr.equals(x.sent.get(p.id()))) {
                 continue;
             }

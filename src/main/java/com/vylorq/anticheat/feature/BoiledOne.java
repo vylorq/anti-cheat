@@ -140,6 +140,10 @@ public final class BoiledOne {
         long lastMove;
         long nextHit;
         boolean breathes;
+        /** Standing (4+ blocks of room), crouching (3) or crawling (2) to fit where it is. */
+        int room = 4;
+        /** Its hand pressed against the tunnel roof (a separate model), when it crouches over someone. */
+        UUID hand;
 
         Hunt(MobEntity mob, UUID victim, Mode mode, long now) {
             this.mob = mob;
@@ -343,7 +347,7 @@ public final class BoiledOne {
             if (cave) {
                 for (int dy = 6; dy >= -6; dy--) {
                     BlockPos at = new BlockPos(x, p.getBlockY() + dy, z);
-                    if (standable(w, at, 4)) {
+                    if (standable(w, at, 2)) {
                         return Vec3d.ofBottomCenter(at);
                     }
                 }
@@ -385,18 +389,57 @@ public final class BoiledOne {
             return null;
         }
         look = look.normalize();
-        for (double d : new double[]{2.2, 2.8, 3.4}) {
-            for (double side : new double[]{0, 0.8, -0.8}) {
-                Vec3d c = p.getEntityPos().subtract(look.multiply(d)).add(-look.z * side, 0, look.x * side);
-                for (int dy = 1; dy >= -1; dy--) {
-                    BlockPos at = BlockPos.ofFloored(c.x, p.getY() + dy, c.z);
-                    if (standable(w, at, 3)) {
-                        return Vec3d.ofBottomCenter(at);
+        // Room to stand over them if there is any; in a tight tunnel it crouches in it.
+        for (int room : new int[]{3, 2}) {
+            for (double d : new double[]{1.8, 2.4, 3.0}) {
+                for (double side : new double[]{0, 0.8, -0.8}) {
+                    Vec3d c = p.getEntityPos().subtract(look.multiply(d)).add(-look.z * side, 0, look.x * side);
+                    for (int dy = 1; dy >= -1; dy--) {
+                        BlockPos at = BlockPos.ofFloored(c.x, p.getY() + dy, c.z);
+                        if (standable(w, at, room)) {
+                            return Vec3d.ofBottomCenter(at);
+                        }
                     }
                 }
             }
         }
         return null;
+    }
+
+    /** Blocks of open space above its feet (up to 5). */
+    static int room(ServerWorld w, BlockPos feet) {
+        int n = 0;
+        while (n < 5 && w.getBlockState(feet.up(n)).getCollisionShape(w, feet.up(n)).isEmpty()) {
+            n++;
+        }
+        return n;
+    }
+
+    /** Stands tall in the open, crouches under a low roof, crawls through tunnels: and shrinks to fit through them. */
+    private static void posture(Hunt h, boolean force) {
+        MobEntity m = h.mob;
+        int room = Math.min(4, room((ServerWorld) m.getEntityWorld(), m.getBlockPos()));
+        if (room == h.room && !force) {
+            return;
+        }
+        h.room = room;
+        if (room >= 4) {
+            set(m, EntityAttributes.SCALE, 1.5);
+            if (h.mode == Mode.PEEK) {
+                ModelMobs.lean(m, 4, h.breathes ? 18 : -18);
+            } else if (h.mode == Mode.BEHIND) {
+                ModelMobs.lean(m, 26, 0);
+            } else {
+                ModelMobs.lean(m, 0, 0);
+            }
+        } else if (room == 3) {
+            set(m, EntityAttributes.SCALE, 1.0);
+            ModelMobs.pose(m, h.mode == Mode.BEHIND ? 38 : 28, 0, 0.68f);
+        } else {
+            // Crawling: nearly flat, low to the ground.
+            set(m, EntityAttributes.SCALE, 0.55);
+            ModelMobs.pose(m, h.mode == Mode.BEHIND ? 48 : 72, 0, h.mode == Mode.BEHIND ? 0.52f : 0.48f);
+        }
     }
 
     private static boolean standable(ServerWorld w, BlockPos at, int headroom) {
@@ -463,21 +506,59 @@ public final class BoiledOne {
                 rush(h, victim, true);
             }
             case PEEK -> {
-                // Leaning out from behind the rock.
-                ModelMobs.lean(m, 4, w.getRandom().nextBoolean() ? 18 : -18);
+                // Leaning out from behind the rock (posture() leans it).
                 if (h.breathes) {
                     breathe(victim, m, 0.8f);
                 }
             }
             case BEHIND -> {
-                // Bent over them, looking down.
-                ModelMobs.lean(m, 26, 0);
+                // Bent over them, looking down; in a tunnel, crouched, a hand pressed on the roof above them.
                 breathe(victim, m, 0.5f);
             }
             default -> Mc.sound(victim, SoundEvents.AMBIENT_CAVE.value(), 0.7f, 0.5f);
         }
+        posture(h, true);
+        if (mode == Mode.BEHIND && h.room < 4) {
+            h.hand = handOnRoof(w, m, victim);
+        }
         Ac.LOG.info("The Boiled One ({}) came for {} at {}", mode, victim.getGameProfile().name(), BlockPos.ofFloored(at).toShortString());
         return m;
+    }
+
+    /** Its clawed hand (its own model), flat against the roof just above and behind the player's head. */
+    private static UUID handOnRoof(ServerWorld w, MobEntity m, ServerPlayerEntity p) {
+        BlockPos head = p.getBlockPos().up();
+        int roof = -1;
+        for (int dy = 1; dy <= 3; dy++) {
+            BlockPos b = head.up(dy);
+            if (!w.getBlockState(b).getCollisionShape(w, b).isEmpty()) {
+                roof = b.getY();
+                break;
+            }
+        }
+        if (roof < 0) {
+            return null;
+        }
+        Vec3d toward = m.getEntityPos().subtract(p.getEntityPos()).multiply(1, 0, 1);
+        Vec3d c = p.getEntityPos().add(toward.lengthSquared() > 1e-4 ? toward.normalize().multiply(0.5) : Vec3d.ZERO);
+        Vec3d at = new Vec3d(c.x, roof - 0.06, c.z);
+        // Palm up against the stone (its painted side facing down at the player), fingers toward them.
+        UUID id = OwnerCombat.Display.summon(w, at, "minecraft:nautilus_shell", "boiled_hand__body",
+                "{left_rotation:[-0.7071f,0f,0f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.9f,0.9f,0.9f]}");
+        if (id != null) {
+            var d = w.getEntity(id);
+            if (d != null) {
+                d.refreshPositionAndAngles(at.x, at.y, at.z, m.getYaw() + 180, 0);
+                d.addCommandTag(ModelMobs.DISPLAY_TAG);
+                try {
+                    Ac.server().getCommandManager().parseAndExecute(Ac.server().getCommandSource().withWorld(w).withSilent(),
+                            "data merge entity " + id + " {brightness:{sky:5,block:5}}");
+                } catch (Exception ignored) {
+                    // it still shows
+                }
+            }
+        }
+        return id;
     }
 
     private static void set(MobEntity m, RegistryEntry<EntityAttribute> a, double v) {
@@ -546,6 +627,12 @@ public final class BoiledOne {
 
     private static void vanish(Hunt h) {
         HUNTS.remove(h.mob.getUuid());
+        if (h.hand != null) {
+            var d = ((ServerWorld) h.mob.getEntityWorld()).getEntity(h.hand);
+            if (d != null) {
+                d.discard();
+            }
+        }
         if (!h.mob.isRemoved()) {
             ServerWorld w = (ServerWorld) h.mob.getEntityWorld();
             Vec3d c = h.mob.getBoundingBox().getCenter();
@@ -565,6 +652,9 @@ public final class BoiledOne {
         }
         ServerWorld w = p.getEntityWorld();
         double dist = m.distanceTo(p);
+        if (now % 5 == 0 && h.mode != Mode.BEHIND) {
+            posture(h, false);
+        }
         switch (h.mode) {
             case STALK, SCARE, PEEK -> {
                 face(m, p);
@@ -682,7 +772,7 @@ public final class BoiledOne {
         MobEntity m = h.mob;
         h.mode = breakIn ? Mode.BREAK_IN : Mode.RUSH;
         h.modeSince = now;
-        ModelMobs.lean(m, 0, 0);
+        posture(h, true);
         m.setAiDisabled(false);
         m.setTarget(p);
         ServerWorld w = p.getEntityWorld();

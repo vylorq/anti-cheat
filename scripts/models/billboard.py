@@ -20,7 +20,9 @@ OUT = os.path.join(HERE, "built")
 SIZE = 512
 
 # name -> (painting in scripts/models/art, height in blocks of the whole square picture)
-BILLBOARDS = {"boiled_one": ("boiled_one.png", 4.6)}
+BILLBOARDS = {"boiled_one": ("boiled_one.png", 4.6, None, 112),
+              # its clawed hand on its own (pressed against a tunnel roof over you): fewer, bigger strips
+              "boiled_hand": ("boiled_one.png", 0.9, (225, 1255, 405, 1435), 40)}
 # Jumpscare faces (full-screen pictures shown as a title): name -> (painting, part of it with the face)
 FACES = {"boiled_one": ("boiled_one.png", (500, 0, 1000, 470))}
 
@@ -144,8 +146,10 @@ def main():
     path = os.path.join(ROOT, "src", "main", "resources", "vigil", "models.json")
     specs = json.load(open(path))
     os.makedirs(OUT, exist_ok=True)
-    for name, (art, height) in BILLBOARDS.items():
-        cut = cutout(os.path.join(HERE, "art", art))
+    global GRID
+    for name, (art, height, box, grid) in BILLBOARDS.items():
+        GRID = grid
+        cut = cutout(os.path.join(HERE, "art", art), box)
         sheet = textures(cut)
         sheet.save(os.path.join(OUT, name + ".png"))
         strips = relief(cut)

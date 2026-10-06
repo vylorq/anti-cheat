@@ -1,4 +1,21 @@
 {
+ "boiled_hand": {
+  "parts": [
+   {
+    "id": "boiled_hand__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.5,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   }
+  ],
+  "scale": 0.9
+ },
  "boiled_one": {
   "parts": [
    {
