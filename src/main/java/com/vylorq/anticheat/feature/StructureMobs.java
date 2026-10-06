@@ -35,13 +35,12 @@ public final class StructureMobs {
             "desert_tomb", Items.IRON_SWORD,
             "frozen_bastion", Items.IRON_AXE,
             "overgrown_labyrinth", Items.IRON_SWORD,
-            "watchers_hollow", Items.NETHERITE_SWORD,
-            "tempest", Items.NETHERITE_SWORD);
+            "watchers_hollow", Items.DIAMOND_SWORD,
+            "tempest", Items.DIAMOND_SWORD);
 
     private static final Item[][] SETS = {
             {Items.IRON_HELMET, Items.IRON_CHESTPLATE, Items.IRON_LEGGINGS, Items.IRON_BOOTS},
-            {Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS, Items.DIAMOND_BOOTS},
-            {Items.NETHERITE_HELMET, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_LEGGINGS, Items.NETHERITE_BOOTS}};
+            {Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS, Items.DIAMOND_BOOTS}};
 
     public static void register() {
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, w) -> {
@@ -123,11 +122,11 @@ public final class StructureMobs {
         }
     }
 
-    private static final Item[] NETHERITE = {Items.NETHERITE_HELMET, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_LEGGINGS, Items.NETHERITE_BOOTS};
+    private static final Item[] DIAMOND = {Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS, Items.DIAMOND_BOOTS};
     private static final net.minecraft.util.Identifier GUARD = net.minecraft.util.Identifier.of("vigil", "boss_guard");
 
     /**
-     * A boss's guard: stronger than any room mob. Full netherite (on top of its own gear's slots), a netherite sword
+     * A boss's guard: stronger than any room mob. Full diamond (on top of its own gear's slots), a diamond sword
      * if it has nothing in hand and can use one, two and a half times the health, nearly double the damage, faster,
      * and hard to knock back. It drops nothing.
      */
@@ -135,11 +134,11 @@ public final class StructureMobs {
         EquipmentSlot[] slots = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
         for (int i = 0; i < 4; i++) {
             if (m.getEquippedStack(slots[i]).isEmpty()) {
-                m.equipStack(slots[i], new ItemStack(NETHERITE[i]));
+                m.equipStack(slots[i], new ItemStack(DIAMOND[i]));
             }
         }
         if (m.getMainHandStack().isEmpty() && m instanceof ZombieEntity) {
-            m.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.NETHERITE_SWORD));
+            m.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.DIAMOND_SWORD));
         }
         boost(m, EntityAttributes.MAX_HEALTH, 1.5, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
         boost(m, EntityAttributes.ATTACK_DAMAGE, 0.9, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
@@ -175,9 +174,8 @@ public final class StructureMobs {
         Random r = m.getRandom();
         EquipmentSlot[] slots = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
         for (int i = 0; i < 4; i++) {
-            // Always a full set, iron at the least: half iron, 40% diamond, 10% netherite, piece by piece.
-            float roll = r.nextFloat();
-            Item[] set = SETS[roll < 0.1f ? 2 : roll < 0.5f ? 1 : 0];
+            // Always a full set: iron mostly, diamond now and then, piece by piece (never netherite).
+            Item[] set = SETS[r.nextFloat() < 0.3f ? 1 : 0];
             m.equipStack(slots[i], new ItemStack(set[i]));
             m.setEquipmentDropChance(slots[i], 0f);
         }
