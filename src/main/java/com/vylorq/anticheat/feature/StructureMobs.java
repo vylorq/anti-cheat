@@ -4,6 +4,8 @@ import com.vylorq.anticheat.Ac;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.mob.AbstractSkeletonEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.WitherSkeletonEntity;
@@ -62,9 +64,31 @@ public final class StructureMobs {
         return s;
     }
 
+    private static final net.minecraft.util.Identifier TOUGH = net.minecraft.util.Identifier.of("vigil", "structure_tough");
+
+    /** Every structure mob is tougher than a normal one: more health, harder hits, sees players from further away. */
+    private static void toughen(MobEntity m) {
+        add(m, EntityAttributes.MAX_HEALTH, 0.6);
+        add(m, EntityAttributes.ATTACK_DAMAGE, 0.35);
+        add(m, EntityAttributes.FOLLOW_RANGE, 0.5);
+        var kb = m.getAttributeInstance(EntityAttributes.KNOCKBACK_RESISTANCE);
+        if (kb != null && kb.getModifier(TOUGH) == null) {
+            kb.addPersistentModifier(new EntityAttributeModifier(TOUGH, 0.3, EntityAttributeModifier.Operation.ADD_VALUE));
+        }
+        m.setHealth(m.getMaxHealth());
+    }
+
+    private static void add(MobEntity m, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> a, double frac) {
+        var i = m.getAttributeInstance(a);
+        if (i != null && frac != 0 && i.getModifier(TOUGH) == null) {
+            i.addPersistentModifier(new EntityAttributeModifier(TOUGH, frac, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        }
+    }
+
     /** Dresses one mob (once). Only mobs that show armour get it; skeletons keep their bow. */
     static void arm(MobEntity m, String structure) {
         m.addCommandTag(ARMED);
+        toughen(m);
         Kit k = KITS.get(structure);
         boolean skeleton = m instanceof AbstractSkeletonEntity && !(m instanceof WitherSkeletonEntity);
         if (k == null || !(m instanceof ZombieEntity || m instanceof AbstractSkeletonEntity)) {
@@ -75,8 +99,8 @@ public final class StructureMobs {
         EquipmentSlot[] slots = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
         Item[] leather = {Items.LEATHER_HELMET, Items.LEATHER_CHESTPLATE, Items.LEATHER_LEGGINGS, Items.LEATHER_BOOTS};
         for (int i = 0; i < 4; i++) {
-            // Most pieces, not always all of them: every mob looks a little different.
-            if (parts[i] != null && r.nextFloat() < 0.8f) {
+            // Nearly always the full set.
+            if (parts[i] != null && r.nextFloat() < 0.95f) {
                 m.equipStack(slots[i], piece(parts[i], leather[i]));
                 m.setEquipmentDropChance(slots[i], 0.04f);
             }
