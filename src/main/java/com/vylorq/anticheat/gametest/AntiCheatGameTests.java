@@ -403,6 +403,7 @@ public final class AntiCheatGameTests {
         com.vylorq.anticheat.feature.BoiledOne.rushForTest(m, victim);
         check(com.vylorq.anticheat.feature.BoiledOne.rushingForTest(m), "it didn't rush when seen");
         check(!m.isAiDisabled(), "a rushing Boiled One must move");
+        check(com.vylorq.anticheat.feature.BoiledOne.grabForTest(m, victim), "it didn't grab the player it caught");
         com.vylorq.anticheat.feature.BoiledOne.removeForTest(m);
         check(m.isRemoved(), "it didn't vanish");
         check(com.vylorq.anticheat.feature.BoiledOne.huntEndsOnDeathForTest(victim), "a followed player's death didn't end the hunt");

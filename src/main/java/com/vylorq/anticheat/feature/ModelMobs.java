@@ -49,7 +49,7 @@ public final class ModelMobs {
     }
 
     /** billboard: one flat painted picture that always turns to face whoever looks at it (not blocky). */
-    record Spec(float scale, Style style, List<Part> parts, boolean billboard) {
+    record Spec(float scale, Style style, List<Part> parts, boolean billboard, boolean creepy) {
     }
 
     private static Map<String, Spec> specs;
@@ -79,7 +79,8 @@ public final class ModelMobs {
                                     pv.get(0).getAsFloat(), pv.get(1).getAsFloat(), pv.get(2).getAsFloat()));
                         }
                         specs.put(e.getKey(), new Spec(v.get("scale").getAsFloat(), STYLES.getOrDefault(e.getKey(), Style.BIPED),
-                                List.copyOf(parts), v.has("billboard") && v.get("billboard").getAsBoolean()));
+                                List.copyOf(parts), v.has("billboard") && v.get("billboard").getAsBoolean(),
+                                v.has("creepy") && v.get("creepy").getAsBoolean()));
                     }
                 }
             } catch (Exception ex) {
@@ -129,6 +130,71 @@ public final class ModelMobs {
         } else {
             LEAN.put(e.getUuid(), new float[]{forward, side, size});
         }
+    }
+
+    /** What a creepy model is doing now (GRAB, BITE) and since when. */
+    private static final Map<UUID, long[]> ACTION = new ConcurrentHashMap<>();
+    public static final int GRAB = 1;
+    public static final int BITE = 2;
+
+    /** Starts one of a creepy model's moves: GRAB (reaches out and holds), BITE (lunges its head in), or 0 to stop. */
+    public static void act(Entity e, int what) {
+        if (what == 0) {
+            ACTION.remove(e.getUuid());
+        } else {
+            ACTION.put(e.getUuid(), new long[]{what, now});
+        }
+    }
+
+    /**
+     * How a creepy model moves (The Boiled One): breathing slowly, its head tilting and now and then jerking
+     * sideways, its arm swinging as it runs, reaching out to grab, its head lunging in to bite.
+     */
+    private static Quaternionf creepy(Worn x, Part p, double t, float amp) {
+        MobEntity m = x.mob;
+        float pitch = 0;
+        float yaw = 0;
+        float roll = 0;
+        long[] act = ACTION.get(m.getUuid());
+        int what = act == null ? 0 : (int) act[0];
+        float since = act == null ? 0 : now - act[1];
+        float reach = what >= GRAB ? clamp(since / 10f, 0, 1) : 0;
+        switch (p.role()) {
+            case "body" -> {
+                pitch = (float) (Math.sin(t * 0.12) * 1.8) + amp * 7 + reach * 10;
+                roll = (float) (Math.sin(x.walk) * 5 * amp);
+            }
+            case "head" -> {
+                yaw = -clamp(wrap(m.getHeadYaw() - m.getBodyYaw()), -55, 55);
+                pitch = clamp(m.getPitch(), -35, 35);
+                roll = (float) (Math.sin(t * 0.07) * 7);
+                long cyc = (now + m.getId() * 37L) % 70;
+                if (cyc < 4) {
+                    float jerk = 1 - cyc / 4f;
+                    roll += (m.getId() % 2 == 0 ? 1 : -1) * 30 * jerk;
+                    yaw += 16 * jerk;
+                }
+                if (what == BITE) {
+                    float bite = clamp(since / 4f, 0, 1);
+                    pitch += 48 * bite;
+                    roll *= 1 - bite;
+                } else if (what == GRAB) {
+                    pitch += 12 * reach;
+                }
+            }
+            case "arm" -> {
+                yaw = (float) (Math.sin(x.walk) * 30 * amp + Math.sin(t * 0.3) * 3);
+                roll = (float) (Math.sin(x.walk * 2) * 7 * amp);
+                if (what >= GRAB) {
+                    yaw += 78 * reach;
+                    roll -= 28 * reach;
+                }
+            }
+            default -> {
+            }
+        }
+        return new Quaternionf().rotateY((float) Math.toRadians(yaw)).rotateX((float) Math.toRadians(pitch))
+                .rotateZ((float) Math.toRadians(roll));
     }
 
     private static float size(Worn x) {
@@ -239,6 +305,9 @@ public final class ModelMobs {
 
     /** The part's own turn (pitch about x, yaw about y, roll about z, in degrees) for this moment. */
     private static Quaternionf local(Worn x, Part p, double t, float amp, float swing) {
+        if (x.spec.creepy()) {
+            return creepy(x, p, t, amp);
+        }
         MobEntity m = x.mob;
         double walk = x.walk;
         float pitch = 0;
@@ -333,7 +402,7 @@ public final class ModelMobs {
             out = new Pose(pos, q);
         } else {
             Pose pp = pose(x, parent, byId, done, t, amp, swing);
-            Vector3f off = new Vector3f(p.px() - parent.px(), p.py() - parent.py(), p.pz() - parent.pz()).mul(k);
+            Vector3f off = new Vector3f(p.px() - parent.px(), p.py() - parent.py(), p.pz() - parent.pz()).mul(k * size(x));
             pp.rot().transform(off);
             out = new Pose(off.add(pp.pos()), new Quaternionf(pp.rot()).mul(q));
         }
@@ -448,6 +517,7 @@ public final class ModelMobs {
     /** Takes a mob away with its model (discarding the mob alone would leave the model standing there). */
     public static void remove(MobEntity m) {
         LEAN.remove(m.getUuid());
+        ACTION.remove(m.getUuid());
         if (m.getEntityWorld() instanceof ServerWorld w) {
             drop(m, w);
         }

@@ -63,8 +63,27 @@ GRID = 112          # rows and columns the figure is cut into
 BEDROCK_HEIGHT = 49  # Bedrock model pixels (the server scales the mob 1.5x: 4.6 blocks)
 
 
-def relief(cut):
-    """Strips for the 3D figure: (x0, x1, y, half_depth) in grid cells, y counted from the top."""
+# Moving parts, cut out of the picture (pixels of the 512 cut-out): name -> (role, which pixels, pivot pixel).
+# Everything else is the body (pivot: the feet). The head looks around and twitches, the arm swings and grabs.
+PARTS = {"boiled_one": {"head": ("head", lambda x, y: y < 112 and x > 190, (285, 112)),
+                        "arm": ("arm", lambda x, y: x < 250 and y > 395, (255, 455))}}
+
+
+def labels(name):
+    """The part each grid cell belongs to."""
+    lab = np.full((GRID, GRID), "body", dtype=object)
+    for part, (_, inside, _) in PARTS.get(name, {}).items():
+        for gy in range(GRID):
+            for gx in range(GRID):
+                if inside((gx + 0.5) * SIZE / GRID, (gy + 0.5) * SIZE / GRID):
+                    lab[gy, gx] = part
+    return lab
+
+
+def relief(cut, lab=None):
+    """Strips for the 3D figure: (x0, x1, y, half_depth, part) in grid cells, y counted from the top."""
+    if lab is None:
+        lab = np.full((GRID, GRID), "body", dtype=object)
     a = np.asarray(cut.resize((GRID, GRID), Image.BOX))[..., 3] > 110
     d = ndimage.distance_transform_edt(a)
     half = np.where(a, np.clip(np.minimum(2.7 * np.sqrt(d), 1.3 * d), 1, None), 0).round().astype(int)
@@ -75,10 +94,10 @@ def relief(cut):
             if half[y, x] == 0:
                 x += 1
                 continue
-            x0, h = x, half[y, x]
-            while x < GRID and half[y, x] == h:
+            x0, h, part = x, half[y, x], lab[y, x]
+            while x < GRID and half[y, x] == h and lab[y, x] == part:
                 x += 1
-            strips.append((x0, x, y, int(h)))
+            strips.append((x0, x, y, int(h), part))
     return strips
 
 
@@ -95,12 +114,16 @@ def textures(cut):
     return sheet
 
 
-def java_model(name, strips):
-    """Item model elements (0..16 units, the figure's front on the south side, which the mob faces)."""
+def java_model(name, strips, part="body", pivot=(8.0, 8.0)):
+    """Item model elements of one part (16 units = the whole picture, the figure's front on the south side, which the
+    mob faces), placed so the part's pivot sits at the model's centre (8, 8, 8)."""
     c = 16 / GRID
     t = 8 / GRID                        # one grid cell in the texture's uv (the painting is the left half)
+    dx, dy = 8 - pivot[0], 8 - pivot[1]
     els = []
-    for x0, x1, y, h in strips:
+    for x0, x1, y, h, prt in strips:
+        if prt != part:
+            continue
         # seen from the front (+z), +x is on the viewer's right, like the painting's columns
         fx0, fx1 = x0 * c, x1 * c
         top, bot = 16 - y * c, 16 - (y + 1) * c
@@ -111,8 +134,8 @@ def java_model(name, strips):
         left_edge = [li * t, y * t, (li + 1) * t, (y + 1) * t]
         right_edge = [ri * t, y * t, (ri + 1) * t, (y + 1) * t]
         row = [x0 * t, y * t, x1 * t, (y + 1) * t]
-        els.append({"from": [round(fx0, 4), round(bot, 4), round(8 - h * c, 4)],
-                    "to": [round(fx1, 4), round(top, 4), round(8 + h * c, 4)],
+        els.append({"from": [round(fx0 + dx, 4), round(bot + dy, 4), round(8 - h * c, 4)],
+                    "to": [round(fx1 + dx, 4), round(top + dy, 4), round(8 + h * c, 4)],
                     "faces": {"south": {"uv": front, "texture": "#p"}, "north": {"uv": back, "texture": "#p"},
                               "east": {"uv": right_edge, "texture": "#p"}, "west": {"uv": left_edge, "texture": "#p"},
                               "up": {"uv": row, "texture": "#p"}, "down": {"uv": row, "texture": "#p"}}})
@@ -120,12 +143,20 @@ def java_model(name, strips):
     return {"textures": {"p": tex, "particle": tex}, "elements": els}
 
 
+BEDROCK_BONES = {"body": "body", "head": "head", "arm": "rightArm"}   # the game's own animations move these
+
+
 def bedrock_geo(name, strips, tex_size):
-    """The same strips as Bedrock cubes (model pixels; Bedrock mobs face north)."""
+    """The same strips as Bedrock cubes (model pixels; Bedrock mobs face north), one bone per part."""
     c = BEDROCK_HEIGHT / GRID
     p = tex_size / 2 / GRID              # one grid cell in texture pixels
-    cubes = []
-    for x0, x1, y, h in strips:
+    k = BEDROCK_HEIGHT / SIZE            # cut-out pixels -> model pixels
+    bones = {"body": {"name": "body", "pivot": [0, 0, 0], "cubes": []}}
+    for part, (_, _, (px, py)) in PARTS.get(name, {}).items():
+        bones[part] = {"name": BEDROCK_BONES.get(part, part), "parent": "body",
+                       "pivot": [round(px * k - BEDROCK_HEIGHT / 2, 4), round((SIZE - py) * k, 4), 0], "cubes": []}
+    for x0, x1, y, h, part in strips:
+        cubes = bones[part]["cubes"]
         w = (x1 - x0)
         uvf = {"uv": [x0 * p, y * p], "uv_size": [w * p, p]}
         cubes.append({"origin": [round(x0 * c - BEDROCK_HEIGHT / 2, 4), round((GRID - y - 1) * c, 4), round(-h * c, 4)],
@@ -139,7 +170,7 @@ def bedrock_geo(name, strips, tex_size):
             "minecraft:geometry": [{"description": {"identifier": "geometry.vigil." + name, "texture_width": tex_size,
                                                     "texture_height": tex_size, "visible_bounds_width": 5,
                                                     "visible_bounds_height": 6, "visible_bounds_offset": [0, 3, 0]},
-                                    "bones": [{"name": "figure", "pivot": [0, 0, 0], "cubes": cubes}]}]}
+                                    "bones": list(bones.values())}]}
 
 
 def main():
@@ -152,15 +183,24 @@ def main():
         cut = cutout(os.path.join(HERE, "art", art), box)
         sheet = textures(cut)
         sheet.save(os.path.join(OUT, name + ".png"))
-        strips = relief(cut)
+        strips = relief(cut, labels(name))
+        parts = [{"id": name + "__body", "role": "body" if name in PARTS else "static", "side": 0, "parent": None,
+                  "phase": 0.0, "pivot": [0.0, 0.0 if name in PARTS else 0.5, 0.0]}]
+        body_pivot = (8.0, 0.0) if name in PARTS else (8.0, 8.0)
         with open(os.path.join(OUT, name + "__body.json"), "w") as f:
-            json.dump(java_model(name, strips), f, separators=(",", ":"))
+            json.dump(java_model(name, strips, "body", body_pivot), f, separators=(",", ":"))
+        for part, (role, _, (px, py)) in PARTS.get(name, {}).items():
+            pv = (px * 16 / SIZE, 16 - py * 16 / SIZE)
+            with open(os.path.join(OUT, f"{name}__{part}.json"), "w") as f:
+                json.dump(java_model(name, strips, part, pv), f, separators=(",", ":"))
+            parts.append({"id": f"{name}__{part}", "role": role, "side": 0, "parent": name + "__body", "phase": 0.0,
+                          "pivot": [round((pv[0] - 8) / 16, 4), round(pv[1] / 16, 4), 0.0]})
         with open(os.path.join(OUT, name + ".geo.json"), "w") as f:
             json.dump(bedrock_geo(name, strips, sheet.size[0]), f, separators=(",", ":"))
         print(name, len(strips), "strips")
-        specs[name] = {"scale": height,
-                       "parts": [{"id": name + "__body", "role": "static", "side": 0, "parent": None, "phase": 0.0,
-                                  "pivot": [0.0, 0.5, 0.0]}]}
+        specs[name] = {"scale": height, "parts": parts}
+        if name in PARTS:
+            specs[name]["creepy"] = True
         print(name, height, "blocks")
     with open(path, "w") as f:
         json.dump(specs, f, indent=1, sort_keys=True)

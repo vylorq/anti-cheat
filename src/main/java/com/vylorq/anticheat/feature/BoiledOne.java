@@ -65,7 +65,7 @@ public final class BoiledOne {
     public static final String TAG = "vigil_boiled_one";
     static final String MODEL = "boiled_one";
 
-    enum Mode { STALK, SCARE, PEEK, BEHIND, RUSH, BREAK_IN }
+    enum Mode { STALK, SCARE, PEEK, BEHIND, RUSH, BREAK_IN, GRAB }
 
     /** One break-in, remembered: who it came for and whose base it was. */
     public static final class BreakIn {
@@ -166,8 +166,6 @@ public final class BoiledOne {
     private static long now;
 
     static final double RUSH_SPEED = 0.46;
-    static final float RUSH_DAMAGE = 16f;
-    static final float BREAK_IN_DAMAGE = 40f;
 
     public static void register() {
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, w) -> {
@@ -712,6 +710,7 @@ public final class BoiledOne {
                     breathe(p, m, 0.45f);
                 }
             }
+            case GRAB -> held(h, p, w);
             case RUSH, BREAK_IN -> {
                 m.setTarget(p);
                 face(m, p);
@@ -726,17 +725,70 @@ public final class BoiledOne {
                         smash(w, m, d);
                     }
                 }
-                if (dist < 2.2 && now >= h.nextHit) {
-                    h.nextHit = now + 14;
-                    m.swingHand(net.minecraft.util.Hand.MAIN_HAND);
-                    jumpscare(p);
-                    p.damage(w, m.getDamageSources().mobAttack(m), h.mode == Mode.BREAK_IN ? BREAK_IN_DAMAGE : RUSH_DAMAGE);
+                if (dist < 2.4) {
+                    grab(h, p);
+                    return;
                 }
                 long limit = h.mode == Mode.BREAK_IN ? 20 * 40 : 20 * 9;
                 if (now - h.modeSince > limit || dist > 80) {
                     vanish(h);
                 }
             }
+        }
+    }
+
+    /** It caught them: it grabs them and lifts them up to its face. */
+    private static void grab(Hunt h, ServerPlayerEntity p) {
+        MobEntity m = h.mob;
+        h.mode = Mode.GRAB;
+        h.modeSince = now;
+        m.setTarget(null);
+        m.setAiDisabled(true);
+        m.setVelocity(Vec3d.ZERO);
+        m.swingHand(net.minecraft.util.Hand.MAIN_HAND);
+        ModelMobs.act(m, ModelMobs.GRAB);
+        ServerWorld w = p.getEntityWorld();
+        w.playSound(null, m.getX(), m.getY(), m.getZ(), SoundEvents.ENTITY_WARDEN_ROAR, SoundCategory.HOSTILE, 2f, 0.6f);
+        breathe(p, m, 1.4f);
+        p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 6, false, false));
+    }
+
+    /** Held up in front of its face, made to look at it; then it bites their head, and they die. */
+    private static void held(Hunt h, ServerPlayerEntity p, ServerWorld w) {
+        MobEntity m = h.mob;
+        long t = now - h.modeSince;
+        face(m, p);
+        Vec3d fwd = Vec3d.fromPolar(0, m.getYaw());
+        double lift = Math.min(m.getHeight() * 0.62, 2.6);
+        Vec3d hold = m.getEntityPos().add(fwd.multiply(Math.max(0.9, m.getWidth() * 1.4))).add(0, lift, 0);
+        Vec3d eye = hold.add(0, p.getStandingEyeHeight(), 0);
+        Vec3d to = m.getEyePos().subtract(eye);
+        float yaw = (float) (MathHelper.atan2(to.z, to.x) * 57.2958) - 90f;
+        float pitch = (float) -(MathHelper.atan2(to.y, to.horizontalLength()) * 57.2958);
+        // Struggling a little in its grip.
+        double shake = Math.sin(t * 1.7) * 0.04;
+        p.networkHandler.requestTeleport(hold.x + shake, hold.y, hold.z - shake, yaw, pitch);
+        p.setVelocity(Vec3d.ZERO);
+        p.onLanding();
+        if (t % 8 == 0 && t < 28) {
+            p.damage(w, m.getDamageSources().mobAttack(m), 1f);
+        }
+        if (t == 28) {
+            ModelMobs.act(m, ModelMobs.BITE);
+        }
+        if (t == 32) {
+            Vec3d head = p.getEyePos();
+            w.spawnParticles(new net.minecraft.particle.BlockStateParticleEffect(net.minecraft.particle.ParticleTypes.BLOCK,
+                    net.minecraft.block.Blocks.REDSTONE_BLOCK.getDefaultState()), head.x, head.y, head.z, 80, 0.3, 0.3, 0.3, 0.2);
+            w.spawnParticles(new net.minecraft.particle.DustParticleEffect(0x8A0000, 1.6f), head.x, head.y, head.z, 60, 0.4, 0.5, 0.4, 0);
+            w.playSound(null, head.x, head.y, head.z, SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, SoundCategory.HOSTILE, 2f, 0.5f);
+            w.playSound(null, head.x, head.y, head.z, SoundEvents.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, SoundCategory.HOSTILE, 2f, 1.4f);
+            w.playSound(null, head.x, head.y, head.z, SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE, 2f, 0.6f);
+            jumpscare(p);
+            p.damage(w, m.getDamageSources().mobAttack(m), 1000f);
+        }
+        if (t > 50) {
+            vanish(h);
         }
     }
 
@@ -1022,6 +1074,15 @@ public final class BoiledOne {
         if (h != null) {
             rush(h, p, false);
         }
+    }
+
+    public static boolean grabForTest(MobEntity m, ServerPlayerEntity p) {
+        Hunt h = HUNTS.get(m.getUuid());
+        if (h == null) {
+            return false;
+        }
+        grab(h, p);
+        return h.mode == Mode.GRAB && m.isAiDisabled();
     }
 
     public static void removeForTest(MobEntity m) {
