@@ -282,6 +282,23 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void bossHasThreeHealthBars(TestContext ctx) {
+        var w = ctx.getWorld();
+        var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
+        var boss = com.vylorq.anticheat.feature.Bosses.spawn(w, at, "forgemaster");
+        check(boss != null, "the boss didn't spawn");
+        check(com.vylorq.anticheat.feature.Bosses.phaseOf(boss) == 1, "a new boss starts on its first health bar");
+        boss.setHealth(1f);
+        boss.damage(w, w.getDamageSources().magic(), 50f);
+        check(boss.isAlive(), "the boss died on its first health bar");
+        check(com.vylorq.anticheat.feature.Bosses.phaseOf(boss) == 2, "the boss didn't go to phase 2");
+        check(boss.getHealth() == boss.getMaxHealth(), "phase 2 didn't start on full health");
+        check(boss.getCustomName().getString().contains("[2/3]"), "the name doesn't show the phase");
+        boss.discard();
+        ctx.complete();
+    }
+
+    @GameTest
     public void drownedWardenBoss(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));

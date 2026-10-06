@@ -1,8 +1,6 @@
 package com.vylorq.anticheat.feature;
 
 import com.vylorq.anticheat.Ac;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -28,19 +26,21 @@ public final class StructureMobs {
     public static final String TAG = "vigil_structure_mob:";
     private static final String ARMED = "vigil_armed";
 
-    /** Helmet, chestplate, leggings, boots (null = none, an int = leather dyed that colour), then the melee weapon. */
-    private record Kit(Object head, Object chest, Object legs, Object feet, Item weapon) {
-    }
+    /** The structure's melee weapon (skeletons and strays keep a bow). */
+    private static final Map<String, Item> WEAPONS = Map.of(
+            "sunken_vault", Items.TRIDENT,
+            "buried_vault", Items.DIAMOND_SWORD,
+            "sky_citadel", Items.IRON_SWORD,
+            "nether_forge", Items.DIAMOND_AXE,
+            "desert_tomb", Items.IRON_SWORD,
+            "frozen_bastion", Items.IRON_AXE,
+            "overgrown_labyrinth", Items.IRON_SWORD,
+            "watchers_hollow", Items.NETHERITE_SWORD);
 
-    private static final Map<String, Kit> KITS = Map.of(
-            "sunken_vault", new Kit(Items.CHAINMAIL_HELMET, Items.CHAINMAIL_CHESTPLATE, 0x2A6560, Items.IRON_BOOTS, Items.TRIDENT),
-            "buried_vault", new Kit(Items.IRON_HELMET, Items.IRON_CHESTPLATE, Items.IRON_LEGGINGS, Items.IRON_BOOTS, Items.IRON_SWORD),
-            "sky_citadel", new Kit(Items.GOLDEN_HELMET, Items.CHAINMAIL_CHESTPLATE, 0xECE6DF, Items.IRON_BOOTS, Items.IRON_SWORD),
-            "nether_forge", new Kit(Items.GOLDEN_HELMET, Items.GOLDEN_CHESTPLATE, Items.IRON_LEGGINGS, Items.GOLDEN_BOOTS, Items.IRON_AXE),
-            "desert_tomb", new Kit(Items.GOLDEN_HELMET, 0xC4AD80, 0xC4AD80, Items.CHAINMAIL_BOOTS, Items.GOLDEN_SWORD),
-            "frozen_bastion", new Kit(Items.IRON_HELMET, 0x8FD8F0, 0x6FB8E0, 0xBFF4FF, Items.IRON_AXE),
-            "overgrown_labyrinth", new Kit(0x2F6E20, 0x3F6328, 0x2F6E20, Items.CHAINMAIL_BOOTS, Items.STONE_SWORD),
-            "watchers_hollow", new Kit(Items.CHAINMAIL_HELMET, 0x15101C, 0x15101C, 0x15101C, Items.IRON_SWORD));
+    private static final Item[][] SETS = {
+            {Items.IRON_HELMET, Items.IRON_CHESTPLATE, Items.IRON_LEGGINGS, Items.IRON_BOOTS},
+            {Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS, Items.DIAMOND_BOOTS},
+            {Items.NETHERITE_HELMET, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_LEGGINGS, Items.NETHERITE_BOOTS}};
 
     public static void register() {
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, w) -> {
@@ -53,15 +53,6 @@ public final class StructureMobs {
                 }
             }
         });
-    }
-
-    private static ItemStack piece(Object o, Item leather) {
-        if (o instanceof Item i) {
-            return new ItemStack(i);
-        }
-        ItemStack s = new ItemStack(leather);
-        s.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent((Integer) o));
-        return s;
     }
 
     private static final net.minecraft.util.Identifier TOUGH = net.minecraft.util.Identifier.of("vigil", "structure_tough");
@@ -85,27 +76,29 @@ public final class StructureMobs {
         }
     }
 
-    /** Dresses one mob (once). Only mobs that show armour get it; skeletons keep their bow. */
+    /** Dresses one mob (once): a full set of iron or better; zombies and skeletons also get a weapon (skeletons keep their bow). */
     static void arm(MobEntity m, String structure) {
         m.addCommandTag(ARMED);
         toughen(m);
-        Kit k = KITS.get(structure);
-        boolean skeleton = m instanceof AbstractSkeletonEntity && !(m instanceof WitherSkeletonEntity);
-        if (k == null || !(m instanceof ZombieEntity || m instanceof AbstractSkeletonEntity)) {
+        Item weapon = WEAPONS.get(structure);
+        if (weapon == null) {
             return;
         }
         Random r = m.getRandom();
-        Object[] parts = {k.head(), k.chest(), k.legs(), k.feet()};
         EquipmentSlot[] slots = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
-        Item[] leather = {Items.LEATHER_HELMET, Items.LEATHER_CHESTPLATE, Items.LEATHER_LEGGINGS, Items.LEATHER_BOOTS};
         for (int i = 0; i < 4; i++) {
-            // Nearly always the full set.
-            if (parts[i] != null && r.nextFloat() < 0.95f) {
-                m.equipStack(slots[i], piece(parts[i], leather[i]));
-                m.setEquipmentDropChance(slots[i], 0.04f);
-            }
+            // Always a full set, iron at the least: half iron, 40% diamond, 10% netherite, piece by piece.
+            float roll = r.nextFloat();
+            Item[] set = SETS[roll < 0.1f ? 2 : roll < 0.5f ? 1 : 0];
+            m.equipStack(slots[i], new ItemStack(set[i]));
+            m.setEquipmentDropChance(slots[i], 0.02f);
         }
-        m.equipStack(EquipmentSlot.MAINHAND, new ItemStack(skeleton ? Items.BOW : k.weapon()));
-        m.setEquipmentDropChance(EquipmentSlot.MAINHAND, 0.04f);
+        // Every mob wears it (spiders and blazes too: it doesn't show on them, but it still protects them).
+        if (!(m instanceof ZombieEntity || m instanceof AbstractSkeletonEntity)) {
+            return;
+        }
+        boolean skeleton = m instanceof AbstractSkeletonEntity && !(m instanceof WitherSkeletonEntity);
+        m.equipStack(EquipmentSlot.MAINHAND, new ItemStack(skeleton ? Items.BOW : weapon));
+        m.setEquipmentDropChance(EquipmentSlot.MAINHAND, 0.02f);
     }
 }

@@ -84,7 +84,10 @@ public final class Bosses {
     record Guard(EntityType<? extends MobEntity> type, String name, int count, Consumer<MobEntity> gear) {
     }
 
-    /** One boss. Phase N unlocks the first N abilities. */
+    /**
+     * One boss. It has three lives (phases), each a full health bar of {@code health} (so three times that in all):
+     * when one runs out it rises again, stronger, and phase N unlocks the first N abilities.
+     */
     record Kind(String id, String name, String color, String structure, int floor, EntityType<? extends MobEntity> type,
                 double health, double damage, double armor, float scale, List<Ability> abilities, int aura,
                 List<Guard> guards, Consumer<MobEntity> gear, String weapon,
@@ -112,16 +115,16 @@ public final class Bosses {
     }
 
     static {
-        add(new Kind(DROWNED_WARDEN, "Drowned Warden", "§3", "sunken_vault", 2, EntityType.DROWNED, 900, 14, 16, 1.7f,
+        add(new Kind(DROWNED_WARDEN, "Drowned Warden", "§3", "sunken_vault", 2, EntityType.DROWNED, 1000, 24, 26, 1.7f,
                 List.of(Ability.SHOCKWAVE, Ability.TRIDENTS, Ability.LEAP), 0x3FA8FF,
                 List.of(new Guard(EntityType.DROWNED, "§3Vault Drowned", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.TRIDENT)))),
                 m -> { }, "tide_trident", "drowned_warden", 1.15f, 1.6f));
-        add(new Kind("deepslate_colossus", "Deepslate Colossus", "§8", "buried_vault", 1, EntityType.IRON_GOLEM, 1100, 18, 18, 1.6f,
+        add(new Kind("deepslate_colossus", "Deepslate Colossus", "§8", "buried_vault", 1, EntityType.IRON_GOLEM, 1024, 30, 30, 1.6f,
                 List.of(Ability.ROCKS, Ability.LEAP, Ability.SHOCKWAVE), 0x6C7684,
                 List.of(new Guard(EntityType.SILVERFISH, "§7Stone Crawler", 4, m -> { }),
                         new Guard(EntityType.CAVE_SPIDER, "§2Sculk Lurker", 2, m -> { })),
                 m -> { }, "colossus_maul", null, 0, 0));
-        add(new Kind("storm_phantom", "Storm Phantom", "§b", "sky_citadel", 7, EntityType.PHANTOM, 700, 12, 10, 2.0f,
+        add(new Kind("storm_phantom", "Storm Phantom", "§b", "sky_citadel", 7, EntityType.PHANTOM, 900, 22, 22, 2.0f,
                 List.of(Ability.LIGHTNING, Ability.SHOCKWAVE, Ability.LIGHTNING), 0xB8E8FF,
                 List.of(new Guard(EntityType.PHANTOM, "§bGale Phantom", 3, m -> { }),
                         new Guard(EntityType.SKELETON, "§fSky Sentry", 2, m -> wear(m, EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET)))),
@@ -130,7 +133,7 @@ public final class Bosses {
                         ph.setPhantomSize(6);
                     }
                 }, "storm_fang", null, 0, 0));
-        add(new Kind("forgemaster", "Forgemaster", "§6", "nether_forge", 1, EntityType.PIGLIN_BRUTE, 1000, 16, 18, 1.9f,
+        add(new Kind("forgemaster", "Forgemaster", "§6", "nether_forge", 1, EntityType.PIGLIN_BRUTE, 1024, 28, 28, 1.9f,
                 List.of(Ability.FIRE_RING, Ability.LEAP, Ability.SHOCKWAVE), 0xFF8A2E,
                 List.of(new Guard(EntityType.PIGLIN_BRUTE, "§6Forge Brute", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_AXE))),
                         new Guard(EntityType.MAGMA_CUBE, "§cEmber Imp", 3, m -> { })),
@@ -142,7 +145,7 @@ public final class Bosses {
                         b.setImmuneToZombification(true);
                     }
                 }, "forge_cleaver", null, 0, 0));
-        add(new Kind("sand_colossus", "Sand Colossus", "§e", "desert_tomb", 1, EntityType.HUSK, 900, 14, 14, 2.4f,
+        add(new Kind("sand_colossus", "Sand Colossus", "§e", "desert_tomb", 1, EntityType.HUSK, 1000, 24, 24, 2.4f,
                 List.of(Ability.SANDSTORM, Ability.LEAP, Ability.SHOCKWAVE), 0xE8C77A,
                 List.of(new Guard(EntityType.HUSK, "§eTomb Husk", 3, m -> wear(m, EquipmentSlot.HEAD, new ItemStack(Items.GOLDEN_HELMET))),
                         new Guard(EntityType.SILVERFISH, "§6Scarab", 4, m -> { })),
@@ -151,7 +154,7 @@ public final class Bosses {
                     wear(m, EquipmentSlot.CHEST, new ItemStack(Items.GOLDEN_CHESTPLATE));
                     wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD));
                 }, "dune_blade", null, 0, 0));
-        add(new Kind("frost_titan", "Frost Titan", "§b", "frozen_bastion", 1, EntityType.STRAY, 900, 12, 14, 2.4f,
+        add(new Kind("frost_titan", "Frost Titan", "§b", "frozen_bastion", 1, EntityType.STRAY, 1000, 22, 24, 2.4f,
                 List.of(Ability.ICE_SHARDS, Ability.FREEZE_AURA, Ability.SHOCKWAVE), 0xBFF4FF,
                 List.of(new Guard(EntityType.STRAY, "§bIce Stray", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.BOW))),
                         new Guard(EntityType.POLAR_BEAR, "§fFrostbite Bear", 1, m -> { })),
@@ -161,12 +164,12 @@ public final class Bosses {
                     wear(m, EquipmentSlot.CHEST, dyed(Items.LEATHER_CHESTPLATE, 0x8FD8F0));
                     wear(m, EquipmentSlot.LEGS, dyed(Items.LEATHER_LEGGINGS, 0x6FB8E0));
                 }, "glacier_axe", null, 0, 0));
-        add(new Kind("thornback_beast", "Thornback Beast", "§2", "overgrown_labyrinth", 1, EntityType.RAVAGER, 1000, 16, 16, 1.4f,
+        add(new Kind("thornback_beast", "Thornback Beast", "§2", "overgrown_labyrinth", 1, EntityType.RAVAGER, 1024, 28, 26, 1.4f,
                 List.of(Ability.THORNS, Ability.LEAP, Ability.SHOCKWAVE), 0x6FD05A,
                 List.of(new Guard(EntityType.SPIDER, "§2Jungle Stalker", 2, m -> { }),
                         new Guard(EntityType.CAVE_SPIDER, "§aVine Creeper", 3, m -> { })),
                 m -> { }, "thornspine", null, 0, 0));
-        add(new Kind("hollow_watcher", "The Hollow Watcher", "§5", "watchers_hollow", 1, EntityType.WITHER_SKELETON, 1200, 18, 20, 2.0f,
+        add(new Kind("hollow_watcher", "The Hollow Watcher", "§5", "watchers_hollow", 1, EntityType.WITHER_SKELETON, 1024, 30, 30, 2.0f,
                 List.of(Ability.DARKNESS, Ability.SHOCKWAVE, Ability.LEAP), 0x6A2BD6,
                 List.of(new Guard(EntityType.VEX, "§5Shadow Echo", 3, m -> { })),
                 m -> {
@@ -230,6 +233,7 @@ public final class Bosses {
         final MobEntity mob;
         final Kind kind;
         final DustParticleEffect aura;
+        /** 1-3: which of its three health bars it is on. Kept on the mob as a tag, so a reload doesn't reset it. */
         int phase = 1;
         Vec3d home;
         long[] next = new long[Ability.values().length];
@@ -257,6 +261,12 @@ public final class Bosses {
         return null;
     }
 
+    /** Which of its health bars a boss is on (1-3), or 0 for anything else. */
+    public static int phaseOf(Entity e) {
+        Live l = LIVE.get(e.getUuid());
+        return l == null ? 0 : l.phase;
+    }
+
     public static boolean isBoss(Entity e) {
         return LIVE.containsKey(e.getUuid());
     }
@@ -270,6 +280,13 @@ public final class Bosses {
             if (k != null && KINDS.containsKey(k) && e instanceof MobEntity mob && mob.isAlive()) {
                 Live l = new Live(mob, KINDS.get(k));
                 for (String t : e.getCommandTags()) {
+                    if (t.startsWith(PHASE_TAG)) {
+                        try {
+                            l.phase = Math.max(1, Math.min(PHASES, Integer.parseInt(t.substring(PHASE_TAG.length()))));
+                        } catch (NumberFormatException ignored) {
+                            // phase 1
+                        }
+                    }
                     if (t.startsWith("vigil_home:")) {
                         String[] p = t.substring(11).split(",");
                         try {
@@ -288,6 +305,16 @@ public final class Bosses {
             if (LIVE.remove(e.getUuid()) != null) {
                 LIVE_IDS.remove(e.getId());
             }
+        });
+        net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DEATH.register((e, source, amount) -> {
+            Live l = LIVE.get(e.getUuid());
+            if (l == null || l.phase >= PHASES || source.isOf(net.minecraft.entity.damage.DamageTypes.GENERIC_KILL)
+                    || source.isOf(net.minecraft.entity.damage.DamageTypes.OUT_OF_WORLD)) {
+                return true;
+            }
+            // Not dead yet: it rises on its next health bar.
+            nextPhase(l, l.phase + 1);
+            return false;
         });
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((e, source) -> {
             if (Ac.running() && e.getCommandTags().stream().anyMatch(t -> t.startsWith(StructureMobs.TAG))) {
@@ -318,7 +345,7 @@ public final class Bosses {
         set(mob, EntityAttributes.MAX_HEALTH, k.health());
         set(mob, EntityAttributes.ATTACK_DAMAGE, k.damage());
         set(mob, EntityAttributes.ARMOR, k.armor());
-        set(mob, EntityAttributes.ARMOR_TOUGHNESS, 8);
+        set(mob, EntityAttributes.ARMOR_TOUGHNESS, 12);
         set(mob, EntityAttributes.KNOCKBACK_RESISTANCE, 1.0);
         set(mob, EntityAttributes.FOLLOW_RANGE, 40);
         set(mob, EntityAttributes.SCALE, k.scale());
@@ -357,11 +384,50 @@ public final class Bosses {
         }
     }
 
+    static final int PHASES = 3;
+    private static final String PHASE_TAG = "vigil_phase:";
+
+    private static void setPhase(Live l, int phase) {
+        l.phase = phase;
+        l.mob.getCommandTags().removeIf(t -> t.startsWith(PHASE_TAG));
+        l.mob.addCommandTag(PHASE_TAG + phase);
+    }
+
+    /** Its health bar ran out: it rises again on full health, stronger, faster and with more guards. */
+    private static void nextPhase(Live l, int phase) {
+        MobEntity m = l.mob;
+        ServerWorld w = (ServerWorld) m.getEntityWorld();
+        Vec3d c = m.getEntityPos();
+        setPhase(l, phase);
+        m.setHealth(m.getMaxHealth());
+        m.clearStatusEffects();
+        m.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, StatusEffectInstance.INFINITE, 0, false, false));
+        int lvl = phase - 2; // phase 2: level I, phase 3: level II
+        m.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, StatusEffectInstance.INFINITE, lvl, false, false));
+        m.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, StatusEffectInstance.INFINITE, lvl, false, false));
+        m.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, lvl, false, false));
+        // A moment to breathe while it rises (it can't be hurt for 3 seconds).
+        m.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 60, 4, false, false));
+        for (ServerPlayerEntity p : fighters(w, c, 48)) {
+            Mc.title(p, l.kind.color() + "§l" + l.kind.name(), "§c" + Msg.trFor(p, phase == 2 ? "boss.phase2" : "boss.phase3"), 5, 50, 10);
+        }
+        w.spawnParticles(ParticleTypes.EXPLOSION_EMITTER, c.x, c.y + 1, c.z, 2, 0.5, 0.5, 0.5, 0);
+        w.spawnParticles(new DustParticleEffect(l.kind.aura(), 2f), c.x, c.y + 1.5, c.z, 160, 2, 2.5, 2, 0);
+        sound(w, c, "boss_rise", SoundEvents.ENTITY_RAVAGER_ROAR, 0.6f);
+        // Pushes everyone near away as it rises.
+        shockwave(l, w, c, 7, 6, 1.6);
+        guards(w, m, l.kind, phase);
+        nameTag(m, l.kind);
+    }
+
     private static void nameTag(MobEntity m, Kind k) {
+        Live l = LIVE.get(m.getUuid());
+        int phase = l == null ? 1 : l.phase;
         int hp = (int) Math.ceil(m.getHealth());
         int max = (int) Math.ceil(m.getMaxHealth());
-        String color = hp > max * 2 / 3 ? "§a" : hp > max / 3 ? "§e" : "§c";
-        m.setCustomName(Text.literal(k.color() + "§l" + k.name() + " " + color + "❤ " + hp + "/" + max));
+        int total = hp + (PHASES - phase) * max;
+        String color = phase == 1 ? "§a" : phase == 2 ? "§e" : "§c";
+        m.setCustomName(Text.literal(k.color() + "§l" + k.name() + " §7[" + phase + "/" + PHASES + "] " + color + "❤ " + total + "/" + (max * PHASES)));
     }
 
     /** The structure's own mobs come out to guard their boss. */
@@ -542,8 +608,11 @@ public final class Bosses {
             l.lastPlayerNear = now;
         } else if (now - l.lastPlayerNear > 600 && m.getHealth() < m.getMaxHealth()) {
             // Everyone left: it recovers and starts over.
+            setPhase(l, 1);
+            m.removeStatusEffect(StatusEffects.SPEED);
+            m.removeStatusEffect(StatusEffects.STRENGTH);
+            m.removeStatusEffect(StatusEffects.RESISTANCE);
             m.setHealth(m.getMaxHealth());
-            l.phase = 1;
             return;
         }
         // It stays in its lair.
@@ -557,24 +626,6 @@ public final class Bosses {
         if (target == null || !target.isAlive() || (target instanceof ServerPlayerEntity sp && (sp.isCreative() || sp.isSpectator()))) {
             target = near.isEmpty() ? null : near.stream().min((a, b) -> Double.compare(a.squaredDistanceTo(m), b.squaredDistanceTo(m))).get();
             m.setTarget(target);
-        }
-        // Phases
-        float frac = m.getHealth() / m.getMaxHealth();
-        int phase = frac > 2f / 3 ? 1 : frac > 1f / 3 ? 2 : 3;
-        if (phase > l.phase) {
-            l.phase = phase;
-            m.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 60, 4, false, false));
-            for (ServerPlayerEntity p : fighters(w, c, 48)) {
-                Mc.title(p, l.kind.color() + "§l" + l.kind.name(), "§c" + Msg.trFor(p, phase == 2 ? "boss.phase2" : "boss.phase3"), 5, 40, 10);
-            }
-            w.spawnParticles(ParticleTypes.EXPLOSION_EMITTER, c.x, c.y + 1, c.z, 1, 0, 0, 0, 0);
-            w.spawnParticles(new DustParticleEffect(l.kind.aura(), 2f), c.x, c.y + 1.5, c.z, 100, 1.5, 2, 1.5, 0);
-            sound(w, c, "boss_rise", SoundEvents.ENTITY_RAVAGER_ROAR, 0.6f);
-            guards(w, m, l.kind, 1);
-            if (phase == 3) {
-                m.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, StatusEffectInstance.INFINITE, 1, false, false));
-                m.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, StatusEffectInstance.INFINITE, 0, false, false));
-            }
         }
         // A low growl now and then while players are near.
         if (!near.isEmpty() && now % 140 == 0) {
