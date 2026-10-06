@@ -7,12 +7,13 @@ Run from the repo root:             python3 scripts/owner-pack/build.py
 import hashlib
 import io
 import json
+import math
 import os
 import zipfile
 
 import numpy as np
 import soundfile as sf
-from PIL import Image, ImageDraw
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT = os.path.join(ROOT, "resourcepack")
@@ -944,41 +945,86 @@ HEAD_CHAR = 0xE100   # the bosses' heads, in the order above
 PHASE_CHAR = 0xE110  # the phase badges I, II, III
 
 
-def head_icon(boss, size=64):
-    """The boss's face, drawn from the front of its 3D model's head (the Hollow Watcher is all eye: its body)."""
-    built = os.path.join(ROOT, "scripts", "models", "built")
-    part = os.path.join(built, boss + "__head.json")
-    if not os.path.exists(part):
-        part = os.path.join(built, boss + "__body.json")
-    els = json.load(open(part))["elements"]
-    tex = Image.open(os.path.join(built, boss + ".png")).convert("RGBA")
-    tw, th = tex.size
-    sc = 8
-    minx = min(min(e["from"][0], e["to"][0]) for e in els)
-    maxx = max(max(e["from"][0], e["to"][0]) for e in els)
-    miny = min(min(e["from"][1], e["to"][1]) for e in els)
-    maxy = max(max(e["from"][1], e["to"][1]) for e in els)
-    img = Image.new("RGBA", (int((maxx - minx) * sc) + 2, int((maxy - miny) * sc) + 2), (0, 0, 0, 0))
-    for e in sorted(els, key=lambda e: e["to"][2]):
-        f = e["faces"].get("south")
-        if not f:
-            continue
-        u1, v1, u2, v2 = f["uv"]
-        a, b = sorted((u1 * tw / 16, u2 * tw / 16))
-        c, d = sorted((v1 * th / 16, v2 * th / 16))
-        crop = tex.crop((int(a), int(c), max(int(b), int(a) + 1), max(int(d), int(c) + 1)))
-        if u1 > u2:
-            crop = crop.transpose(Image.FLIP_LEFT_RIGHT)
-        if v1 > v2:
-            crop = crop.transpose(Image.FLIP_TOP_BOTTOM)
-        (x0, y0, _), (x1, y1, _) = e["from"], e["to"]
-        face = crop.resize((max(1, round((x1 - x0) * sc)), max(1, round((y1 - y0) * sc))), Image.NEAREST)
-        img.alpha_composite(face, (round((x0 - minx) * sc), round((maxy - y1) * sc)))
-    img.thumbnail((size, size), Image.NEAREST)
-    out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    out.alpha_composite(img, ((size - img.width) // 2, (size - img.height) // 2))
-    return out
+_BUILT = os.path.join(ROOT, "scripts", "models", "built")
 
+
+def _face_img(tex, uv):
+    TW,TH=tex.size; u1,v1,u2,v2=uv
+    a,b=sorted((u1*TW/16,u2*TW/16)); c,d=sorted((v1*TH/16,v2*TH/16))
+    im=tex.crop((int(a),int(c),max(int(b),int(a)+1),max(int(d),int(c)+1)))
+    if u1>u2: im=im.transpose(Image.FLIP_LEFT_RIGHT)
+    if v1>v2: im=im.transpose(Image.FLIP_TOP_BOTTOM)
+    return im
+def head_icon(boss, size=128, yaw=-32, pitch=22):
+    """The boss's head as a small 3D picture (seen from the front and a little from the side and above, shaded like
+    an item in the inventory, with a dark outline), drawn from its model. The Hollow Watcher is all eye: its body."""
+    part=os.path.join(_BUILT, boss + "__head.json")
+    if not os.path.exists(part): part=os.path.join(_BUILT, boss + "__body.json")
+    els=json.load(open(part))["elements"]; tex=Image.open(os.path.join(_BUILT, boss + ".png")).convert("RGBA")
+    th,ph=math.radians(yaw),math.radians(pitch)
+    def proj(p):
+        x,y,z=p
+        xr=x*math.cos(th)+z*math.sin(th); zr=-x*math.sin(th)+z*math.cos(th)
+        yr=y*math.cos(ph)-zr*math.sin(ph); dr=zr*math.cos(ph)+y*math.sin(ph)
+        return (xr,-yr,dr)
+    faces=[]
+    for e in els:
+        (x0,y0,z0),(x1,y1,z1)=e["from"],e["to"]
+        # face: (name, origin corner, U edge end, V edge end, shade) -- texture u along U, v along V (v down)
+        defs={
+         "south":((x0,y1,z1),(x1,y1,z1),(x0,y0,z1),0.82),
+         "east":((x1,y1,z1),(x1,y1,z0),(x1,y0,z1),0.62),
+         "west":((x0,y1,z0),(x0,y1,z1),(x0,y0,z0),0.62),
+         "up":((x0,y1,z0),(x1,y1,z0),(x0,y1,z1),1.0),
+        }
+        rot=e.get("rotation")
+        def R(p,rot=rot):
+            if not rot or not rot.get("angle") or rot["axis"] != "x": return p
+            a=math.radians(rot["angle"]); ox,oy,oz=rot["origin"]; x,y,z=p[0]-ox,p[1]-oy,p[2]-oz
+            ca,sa=math.cos(a),math.sin(a)
+            if rot["axis"]=="x": y,z=y*ca-z*sa,y*sa+z*ca
+            elif rot["axis"]=="y": x,z=x*ca+z*sa,-x*sa+z*ca
+            else: x,y=x*ca-y*sa,x*sa+y*ca
+            return (x+ox,y+oy,z+oz)
+        for n,(o,u,v,sh) in defs.items():
+            f=e["faces"].get(n)
+            if not f: continue
+            o,u,v=R(o),R(u),R(v)
+            P=[proj(o),proj(u),proj(v)]
+            c=[(o[i]+u[i]+v[i])/3 for i in range(3)]
+            # back-face cull with normal
+            ux,uy=P[1][0]-P[0][0],P[1][1]-P[0][1]; vx,vy=P[2][0]-P[0][0],P[2][1]-P[0][1]
+            if ux*vy-uy*vx<=0: continue
+            depth=proj(((o[0]+u[0]+v[0]-o[0]*0)/1, 0,0))[2]
+            cen=proj(((u[0]+v[0])/2,(u[1]+v[1])/2,(u[2]+v[2])/2))
+            faces.append((cen[2],P,f["uv"],sh))
+    pts=[p for _,P,_,_ in faces for p in P]+[]
+    xs=[]; ys=[]
+    for _,P,_,_ in faces:
+        o,u,v=P; w=(u[0]+v[0]-o[0],u[1]+v[1]-o[1])
+        xs+= [o[0],u[0],v[0],w[0]]; ys+=[o[1],u[1],v[1],w[1]]
+    minx,maxx,miny,maxy=min(xs),max(xs),min(ys),max(ys)
+    sc=(size-16)/max(maxx-minx,maxy-miny)
+    offx=(size-(maxx-minx)*sc)/2-minx*sc; offy=(size-(maxy-miny)*sc)/2-miny*sc
+    out=Image.new("RGBA",(size,size),(0,0,0,0))
+    for _,P,uv,sh in sorted(faces,key=lambda f:f[0]):
+        fi=_face_img(tex,uv); tw,th2=fi.size
+        fi=fi.resize((tw*8,th2*8),Image.NEAREST); tw,th2=fi.size
+        r,g,b,a=fi.split()
+        fi=Image.merge("RGBA",(r.point(lambda v:int(v*sh)),g.point(lambda v:int(v*sh)),b.point(lambda v:int(v*sh)),a))
+        O=(P[0][0]*sc+offx,P[0][1]*sc+offy); U=((P[1][0]-P[0][0])*sc,(P[1][1]-P[0][1])*sc); V=((P[2][0]-P[0][0])*sc,(P[2][1]-P[0][1])*sc)
+        m00,m01,m10,m11=U[0]/tw,V[0]/th2,U[1]/tw,V[1]/th2
+        det=m00*m11-m01*m10
+        if abs(det)<1e-9: continue
+        i00,i01,i10,i11=m11/det,-m01/det,-m10/det,m00/det
+        coeffs=(i00,i01,-(i00*O[0]+i01*O[1]),i10,i11,-(i10*O[0]+i11*O[1]))
+        layer=fi.transform((size,size),Image.AFFINE,coeffs,resample=Image.NEAREST,fillcolor=(0,0,0,0))
+        out.alpha_composite(layer)
+    # dark outline for contrast on any sky
+    a=out.split()[3]; grown=a.filter(ImageFilter.MaxFilter(5))
+    ol=Image.new("RGBA",(size,size),(10,8,10,0)); ol.putalpha(ImageChops.subtract(grown,a).point(lambda v:200 if v>0 else 0))
+    base=Image.new("RGBA",(size,size),(0,0,0,0)); base.alpha_composite(ol); base.alpha_composite(out)
+    return base
 
 def phase_badge(n):
     """A pixel-art "PHASE II" badge in the phase's colour, in the game's own blocky lettering, at 1:1 with the font."""
@@ -1013,7 +1059,7 @@ def boss_bars():
     providers = []
     for i, boss in enumerate(BOSS_HEADS):
         out[f"assets/vigil/textures/font/head_{i}.png"] = png(head_icon(boss))
-        providers.append({"type": "bitmap", "file": f"vigil:font/head_{i}.png", "height": 16, "ascent": 12,
+        providers.append({"type": "bitmap", "file": f"vigil:font/head_{i}.png", "height": 22, "ascent": 16,
                           "chars": [chr(HEAD_CHAR + i)]})
     for n in (1, 2, 3):
         out[f"assets/vigil/textures/font/phase_{n}.png"] = png(phase_badge(n))

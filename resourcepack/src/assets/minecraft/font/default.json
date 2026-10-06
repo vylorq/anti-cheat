@@ -3,8 +3,8 @@
     {
       "type": "bitmap",
       "file": "vigil:font/head_0.png",
-      "height": 16,
-      "ascent": 12,
+      "height": 22,
+      "ascent": 16,
       "chars": [
         "\ue100"
       ]
@@ -12,8 +12,8 @@
     {
       "type": "bitmap",
       "file": "vigil:font/head_1.png",
-      "height": 16,
-      "ascent": 12,
+      "height": 22,
+      "ascent": 16,
       "chars": [
         "\ue101"
       ]
@@ -21,8 +21,8 @@
     {
       "type": "bitmap",
       "file": "vigil:font/head_2.png",
-      "height": 16,
-      "ascent": 12,
+      "height": 22,
+      "ascent": 16,
       "chars": [
         "\ue102"
       ]
@@ -30,8 +30,8 @@
     {
       "type": "bitmap",
       "file": "vigil:font/head_3.png",
-      "height": 16,
-      "ascent": 12,
+      "height": 22,
+      "ascent": 16,
       "chars": [
         "\ue103"
       ]
@@ -39,8 +39,8 @@
     {
       "type": "bitmap",
       "file": "vigil:font/head_4.png",
-      "height": 16,
-      "ascent": 12,
+      "height": 22,
+      "ascent": 16,
       "chars": [
         "\ue104"
       ]
@@ -48,8 +48,8 @@
     {
       "type": "bitmap",
       "file": "vigil:font/head_5.png",
-      "height": 16,
-      "ascent": 12,
+      "height": 22,
+      "ascent": 16,
       "chars": [
         "\ue105"
       ]
@@ -57,8 +57,8 @@
     {
       "type": "bitmap",
       "file": "vigil:font/head_6.png",
-      "height": 16,
-      "ascent": 12,
+      "height": 22,
+      "ascent": 16,
       "chars": [
         "\ue106"
       ]
@@ -66,8 +66,8 @@
     {
       "type": "bitmap",
       "file": "vigil:font/head_7.png",
-      "height": 16,
-      "ascent": 12,
+      "height": 22,
+      "ascent": 16,
       "chars": [
         "\ue107"
       ]
