@@ -1403,19 +1403,6 @@ TOOLS = {"lightning_wand": ("blaze_rod", lightning_wand), "launch_stick": ("stic
 FLAT = {"home_teleporter": ("echo_shard", home_teleporter), "rune_circle": ("light_blue_stained_glass_pane", rune_circle)}
 # Models that are cubes (the meteor flying down).
 CUBES = {"meteor": ("magma_block", meteor_texture)}
-# Base items whose own model isn't the plain minecraft:item/<name>.
-FALLBACK = {
-    "fishing_rod": {"type": "minecraft:condition", "property": "minecraft:fishing_rod/cast",
-                    "on_false": {"type": "minecraft:model", "model": "minecraft:item/fishing_rod"},
-                    "on_true": {"type": "minecraft:model", "model": "minecraft:item/fishing_rod_cast"}},
-    "magma_block": {"type": "minecraft:model", "model": "minecraft:block/magma_block"},
-    "bow": {"type": "minecraft:condition", "property": "minecraft:using_item",
-            "on_false": {"type": "minecraft:model", "model": "minecraft:item/bow"},
-            "on_true": {"type": "minecraft:range_dispatch", "property": "minecraft:use_duration", "scale": 0.05,
-                        "entries": [{"threshold": 0.65, "model": {"type": "minecraft:model", "model": "minecraft:item/bow_pulling_1"}},
-                                    {"threshold": 0.9, "model": {"type": "minecraft:model", "model": "minecraft:item/bow_pulling_2"}}],
-                        "fallback": {"type": "minecraft:model", "model": "minecraft:item/bow_pulling_0"}}},
-}
 ICON_ITEMS = {**{k: (v[0], (lambda rows=v[1], o=v[2]: grid(rows, o))) for k, v in ICONS.items()},
               "icon_join": ("nether_star", star_icon), "icon_pack": ("painting", palette_icon)}
 
@@ -1503,10 +1490,8 @@ def build():
         for tl in tools:
             files[f"assets/vigil/items/{tl}.json"] = json.dumps({"model": CASE_MODELS.get(
                 tl, {"type": "minecraft:model", "model": f"vigil:item/{tl}"})}, indent=2).encode()
-        files[f"assets/minecraft/items/{base}.json"] = json.dumps({"model": {
-            "type": "minecraft:select", "property": "minecraft:custom_model_data", "index": 0,
-            "cases": [{"when": f"vigil:{tl}", "model": CASE_MODELS.get(tl, {"type": "minecraft:model", "model": f"vigil:item/{tl}"})} for tl in tools],
-            "fallback": FALLBACK.get(base, {"type": "minecraft:model", "model": f"minecraft:item/{base}"})}}, indent=2).encode()
+        # The game's own items are left alone (replacing their definitions broke them on newer game versions):
+        # every custom item carries the item_model component pointing at its definition above.
     files.update(boss_bars())
     sounds = {}
     for name, fn in SOUNDS.items():
