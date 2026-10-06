@@ -45,19 +45,28 @@ public final class PackIds {
     }
 
     /**
-     * Older copies of the custom items only carry custom_model_data; this adds the item_model they're missing (the
-     * model string is the definition's id), so they show on newer clients too. @return true if it changed
+     * Brings an older copy of a custom item up to date so it shows on every game version: very old copies name their
+     * model in plain words ("vigil:meteor_staff") and get the coded name and item_model; newer ones that only lack
+     * item_model get it. @return true if it changed
      */
     public static boolean upgrade(net.minecraft.item.ItemStack s) {
         if (s.isEmpty()) {
             return false;
         }
         var cmd = s.get(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA);
-        if (cmd == null || cmd.strings().isEmpty() || !cmd.strings().get(0).startsWith("vigil:x")) {
+        if (cmd == null || cmd.strings().isEmpty() || !cmd.strings().get(0).startsWith("vigil:")) {
             return false;
         }
-        Identifier want = Identifier.tryParse(cmd.strings().get(0));
-        if (want == null || want.equals(s.get(net.minecraft.component.DataComponentTypes.ITEM_MODEL))) {
+        String name = cmd.strings().get(0).substring("vigil:".length());
+        if (!name.matches("x[0-9a-f]{10}")) {
+            if (!name.matches("[a-z0-9_]+")) {
+                return false;
+            }
+            apply(s, name);
+            return true;
+        }
+        Identifier want = Identifier.of("vigil", name);
+        if (want.equals(s.get(net.minecraft.component.DataComponentTypes.ITEM_MODEL))) {
             return false;
         }
         s.set(net.minecraft.component.DataComponentTypes.ITEM_MODEL, want);
