@@ -1599,17 +1599,8 @@ def bedrock_pack():
         "render_controllers": {"controller.render.vigil_boiled_one": {
             "geometry": "Geometry.vigil_boiled", "materials": [{"*": "Material.vigil_boiled"}],
             "textures": ["Texture.vigil_boiled"]}}}, indent=2).encode()
-    # One flat painted plane, 49 pixels tall (x1.5 scale from the server = 4.6 blocks), facing where it looks.
-    out["models/entity/vigil_boiled_one.geo.json"] = json.dumps({
-        "format_version": "1.12.0",
-        "minecraft:geometry": [{"description": {"identifier": "geometry.vigil.boiled_one", "texture_width": 512,
-                                                "texture_height": 512, "visible_bounds_width": 4,
-                                                "visible_bounds_height": 5, "visible_bounds_offset": [0, 2.5, 0]},
-                                "bones": [{"name": "picture", "pivot": [0, 0, 0],
-                                           "cubes": [{"origin": [-24.5, 0, 0], "size": [49, 49, 0],
-                                                      "uv": {"north": {"uv": [0, 0], "uv_size": [512, 512]},
-                                                             "south": {"uv": [512, 0], "uv_size": [-512, 512]}}}]}]}]},
-        indent=2).encode()
+    # The 3D figure (scripts/models/billboard.py), 49 pixels tall (x1.5 scale from the server = 4.6 blocks).
+    out["models/entity/vigil_boiled_one.geo.json"] = open(os.path.join(_BUILT, "boiled_one.geo.json"), "rb").read()
     out["textures/entity/vigil/boiled_one.png"] = open(os.path.join(_BUILT, "boiled_one.png"), "rb").read()
     # The jumpscare face: the same character the mod sends in the title (U+E200 = glyph_E2, first cell).
     face = Image.open(os.path.join(_BUILT, "boiled_one_face.png")).convert("RGBA").resize((128, 128), Image.LANCZOS)
