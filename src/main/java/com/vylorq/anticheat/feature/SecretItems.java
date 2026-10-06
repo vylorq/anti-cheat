@@ -949,6 +949,10 @@ public final class SecretItems {
                 for (int i = 0; i < inv.size(); i++) {
                     com.vylorq.anticheat.util.PackIds.upgrade(inv.getStack(i));
                 }
+                var ender = p.getEnderChestInventory();
+                for (int i = 0; i < ender.size(); i++) {
+                    com.vylorq.anticheat.util.PackIds.upgrade(ender.getStack(i));
+                }
             }
             if (ticks % 4 == 0 && magnetOn(p)) {
                 magnetTick(p);

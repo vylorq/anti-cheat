@@ -283,6 +283,21 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void oldCustomItemsAreUpgraded(TestContext ctx) {
+        // A very old Meteor Staff: its model named in plain words, no item_model.
+        var s = new net.minecraft.item.ItemStack(net.minecraft.item.Items.MAGMA_CREAM);
+        s.set(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA, new net.minecraft.component.type.CustomModelDataComponent(
+                java.util.List.of(), java.util.List.of(), java.util.List.of("vigil:meteor_staff"), java.util.List.of()));
+        check(com.vylorq.anticheat.util.PackIds.upgrade(s), "the old item wasn't upgraded");
+        check(com.vylorq.anticheat.util.PackIds.itemModel("meteor_staff").equals(s.get(net.minecraft.component.DataComponentTypes.ITEM_MODEL)),
+                "no item_model after the upgrade");
+        check(s.get(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA).strings().get(0)
+                .equals(com.vylorq.anticheat.util.PackIds.model("meteor_staff")), "the model name wasn't coded");
+        check(!com.vylorq.anticheat.util.PackIds.upgrade(s), "upgraded twice");
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
