@@ -2635,5 +2635,8 @@
   "tr.obtained-count": "Items players got so far: {0}",
   "boss.asleep": "The boss sleeps. Kill {0} more of this place's mobs to wake it.",
   "boss.kills": "Mobs slain here: {0}/{1}",
-  "boss.awake": "§4§lThe boss has woken. §cIt waits in the great chamber."
+  "boss.awake": "§4§lThe boss has woken. §cIt waits in the great chamber.",
+  "boss.locked": "This fight belongs to another group.",
+  "boss.weapon-upgraded": "§6Your {0} grew stronger: level {1}!",
+  "boss.weapon-max": "§7Your {0} is already as strong as it gets."
 }

@@ -1132,6 +1132,31 @@ ROOMS = {
 H = 9  # floor y0, air 1..7, ceiling y8
 
 
+def trap(t, x, z, structure):
+    """A hidden trap: a dispenser in the floor under a pressure plate fires up into whoever steps on it (arrows, or
+    fire charges in the nether forge)."""
+    item = "fire_charge" if structure == "nether_forge" else "arrow"
+    t.set(x, 0, z, "dispenser", facing="up", triggered=False)
+    t.nbt[(x, 0, z)] = {"id": S("minecraft:dispenser"),
+                        "Items": L(10, [C({"Slot": B(s), "id": S(f"minecraft:{item}"), "count": I(64 if item == "arrow" else 16)})
+                                        for s in range(3)])}
+    t.set(x, 1, z, "polished_blackstone_pressure_plate" if structure == "nether_forge" else "stone_pressure_plate", powered=False)
+
+
+TRAPS = {
+    # kind: where the traps go, as functions of the room's width and depth
+    "corridor": lambda w, d: [(w // 2, 3), (w // 2, d - 4)],
+    "crossroad": lambda w, d: [(w // 2, 2), (2, d // 2), (w - 3, d // 2)],
+    "crypt": lambda w, d: [(w // 2, 5), (w // 2, 11)],
+    "mine_tunnel": lambda w, d: [(w // 2, 6), (w // 2, 12)],
+    "storage_vault": lambda w, d: [(w // 2, 4), (w // 2 - 1, 9)],
+    "great_hall": lambda w, d: [(w // 2, 6), (w // 2, 14)],
+    "library": lambda w, d: [(w // 2, 2), (w // 2, d - 3)],
+    "throne_room": lambda w, d: [(w // 2, 8), (w // 2, 12)],
+    "mess_hall": lambda w, d: [(w // 2, d // 2)],
+}
+
+
 def room(structure, kind):
     th = THEMES[structure]
     w, d, doors, _ = ROOMS[kind]
@@ -1188,6 +1213,8 @@ def room(structure, kind):
                 t.set(ix, y, iz, "air")
         door(t, x, 0, z, facing, structure, fa)
     _furnish(t, th, structure, kind, w, d)
+    for (x, z) in TRAPS.get(kind, lambda w, d: [])(w, d):
+        trap(t, x, z, structure)
     if open_air:
         t = _lift_onto_rock(t, 4)
     return t
