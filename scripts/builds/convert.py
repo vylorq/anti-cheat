@@ -49,7 +49,7 @@ PATTERNS = {"b": "base", "bl": "square_bottom_left", "br": "square_bottom_right"
 # ------------------------------------------------------------------ SNBT
 
 def q(s):
-    return '"' + str(s).replace("\\", "\\\\").replace('"', '\\"') + '"'
+    return '"' + str(s).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n") + '"'
 
 
 def snbt(v):
@@ -417,7 +417,8 @@ def entity(e, rel):
             drops[n] = nbtlib.tag.Float(float(v))
     if drops:
         out["drop_chances"] = drops
-    if "Attributes" in e:
+    # Attributes only for mobs a command summons (a saved entity's are its defaults, some from other mod loaders).
+    if "Attributes" in e and rel is None:
         out["attributes"] = [{"id": "minecraft:" + str(a["Name"]).replace("minecraft:", "").replace("generic.", ""),
                               "base": nbtlib.tag.Double(float(a["Base"]))} for a in e["Attributes"]]
     if "Item" in e:
