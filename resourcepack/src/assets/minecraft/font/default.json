@@ -107,6 +107,15 @@
       "chars": [
         "\ue112"
       ]
+    },
+    {
+      "type": "bitmap",
+      "file": "vigil:font/boiled_scare.png",
+      "height": 64,
+      "ascent": 40,
+      "chars": [
+        "\ue200"
+      ]
     }
   ]
 }

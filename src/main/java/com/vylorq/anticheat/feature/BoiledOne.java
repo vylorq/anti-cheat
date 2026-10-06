@@ -351,7 +351,7 @@ public final class BoiledOne {
                 }
                 if (h.mode == Mode.SCARE && h.seen >= 3) {
                     // Just wanted you to see it.
-                    Mc.sound(p, SoundEvents.ENTITY_WARDEN_SONIC_CHARGE, 0.9f, 0.5f);
+                    jumpscare(p);
                     vanish(h);
                     return;
                 }
@@ -392,6 +392,7 @@ public final class BoiledOne {
                 if (dist < 2.2 && now >= h.nextHit) {
                     h.nextHit = now + 14;
                     m.swingHand(net.minecraft.util.Hand.MAIN_HAND);
+                    jumpscare(p);
                     p.damage(w, m.getDamageSources().mobAttack(m), h.mode == Mode.BREAK_IN ? BREAK_IN_DAMAGE : RUSH_DAMAGE);
                 }
                 long limit = h.mode == Mode.BREAK_IN ? 20 * 40 : 20 * 9;
@@ -400,6 +401,23 @@ public final class BoiledOne {
                 }
             }
         }
+    }
+
+    /** Its face (a glyph from the pack) filling the screen, and its scream, as loud as the game plays anything. */
+    static final char SCARE = '\uE200';
+
+    static void jumpscare(ServerPlayerEntity p) {
+        Mc.title(p, "§f" + SCARE, "", 0, 16, 6);
+        var scream = RegistryEntry.of(net.minecraft.sound.SoundEvent.of(com.vylorq.anticheat.util.PackIds.sound("boiled_scream")));
+        for (float pitch : new float[]{1.0f, 0.85f, 1.15f}) {
+            p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket(scream, SoundCategory.MASTER,
+                    p.getX(), p.getY(), p.getZ(), 1f, pitch, p.getRandom().nextLong()));
+        }
+        Mc.sound(p, SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, 1f, 0.7f);
+        Mc.sound(p, SoundEvents.ENTITY_GHAST_SCREAM, 1f, 0.55f);
+        Mc.sound(p, SoundEvents.ENTITY_WARDEN_ROAR, 1f, 1.3f);
+        p.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, 50, 0, false, false));
+        p.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 60, 0, false, false));
     }
 
     /** It sees you: a scream, and it comes for you. */
@@ -413,9 +431,9 @@ public final class BoiledOne {
         Vec3d c = m.getEntityPos();
         w.playSound(null, c.x, c.y, c.z, SoundEvents.ENTITY_GHAST_SCREAM, SoundCategory.HOSTILE, 3f, 0.45f);
         w.playSound(null, c.x, c.y, c.z, SoundEvents.ENTITY_WARDEN_ROAR, SoundCategory.HOSTILE, 3f, 0.7f);
-        p.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, 60, 0, false, false));
+        jumpscare(p);
         if (breakIn) {
-            Mc.title(p, "§4§l" + Msg.trFor(p, "boiled.breakin"), "", 0, 30, 10);
+            OwnerPowers.later(20, () -> Mc.title(p, "§4§l" + Msg.trFor(p, "boiled.breakin"), "", 0, 30, 10));
         }
     }
 

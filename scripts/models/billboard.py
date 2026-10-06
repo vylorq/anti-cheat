@@ -18,12 +18,19 @@ SIZE = 512
 
 # name -> (painting in scripts/models/art, height in blocks of the whole square picture)
 BILLBOARDS = {"boiled_one": ("boiled_one.png", 4.6)}
+# Jumpscare faces (full-screen pictures shown as a title): name -> (painting, part of it with the face)
+FACES = {"boiled_one": ("boiled_one.png", (500, 0, 1000, 470))}
 
 
-def cutout(path):
-    """The figure, its paper made transparent (blood and needles kept), cropped and centred on a square, feet down."""
-    img = np.asarray(Image.open(path).convert("RGB")).astype(np.float32) / 255
-    paper = np.median(img[:40, :40].reshape(-1, 3), axis=0)
+def cutout(path, box=None, size=SIZE):
+    """The figure, its paper made transparent (blood and needles kept), cropped and centred on a square, feet down.
+    box (left, top, right, bottom) takes just that part of the painting first."""
+    im0 = Image.open(path).convert("RGB")
+    paper_img = np.asarray(im0).astype(np.float32) / 255
+    if box is not None:
+        im0 = im0.crop(box)
+    img = np.asarray(im0).astype(np.float32) / 255
+    paper = np.median(paper_img[:40, :40].reshape(-1, 3), axis=0)
     lum = img @ np.array([0.299, 0.587, 0.114], np.float32)
     plum = float(paper @ np.array([0.299, 0.587, 0.114], np.float32))
     a = np.clip((plum - lum - 0.04) / 0.3, 0, 1)
@@ -38,7 +45,7 @@ def cutout(path):
     ox = (side - w) // 2
     sq[side - h:, ox:ox + w, :3] = col * a[..., None]          # premultiplied, so it scales down cleanly
     sq[side - h:, ox:ox + w, 3] = a
-    im = Image.fromarray((sq * 255).astype(np.uint8), "RGBA").resize((SIZE, SIZE), Image.LANCZOS)
+    im = Image.fromarray((sq * 255).astype(np.uint8), "RGBA").resize((size, size), Image.LANCZOS)
     arr = np.asarray(im).astype(np.float32) / 255
     al = arr[..., 3:4]
     rgb = np.where(al > 0.02, arr[..., :3] / np.maximum(al, 1e-3), 0.03)
@@ -66,6 +73,9 @@ def main():
         print(name, "billboard,", height, "blocks")
     with open(path, "w") as f:
         json.dump(specs, f, indent=1, sort_keys=True)
+    for name, (art, box) in FACES.items():
+        cutout(os.path.join(HERE, "art", art), box, 256).save(os.path.join(OUT, name + "_face.png"))
+        print(name, "jumpscare face")
 
 
 if __name__ == "__main__":
