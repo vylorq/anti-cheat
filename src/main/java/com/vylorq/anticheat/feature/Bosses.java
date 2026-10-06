@@ -331,7 +331,8 @@ public final class Bosses {
         });
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DAMAGE.register((e, source, amount) -> {
             Live l = LIVE.get(e.getUuid());
-            if (l == null || l.group.isEmpty() || !(source.getAttacker() instanceof ServerPlayerEntity p) || l.group.contains(p.getUuid())) {
+            if (l == null || l.group.isEmpty() || !(source.getAttacker() instanceof ServerPlayerEntity p) || l.group.contains(p.getUuid())
+                    || com.vylorq.anticheat.perm.Perms.isOwner(p.getUuid())) {
                 return true;
             }
             // Someone else's fight: they can't steal it.

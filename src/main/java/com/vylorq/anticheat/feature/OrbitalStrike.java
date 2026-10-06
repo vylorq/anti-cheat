@@ -366,8 +366,37 @@ public final class OrbitalStrike {
                 center = hit.getPos();
             }
         }
-        List<double[]> offsets = layout(s.pattern, s.tnt, s.radius, p.getYaw(), new java.util.Random());
-        Strike st = new Strike(p.getUuid(), w, center, offsets, s, follow, now + s.delay * 20L);
+        Zone zone;
+        try {
+            zone = launch(p.getUuid(), w, center, s, follow, p.getYaw());
+        } catch (RuntimeException e) {
+            // Never silently: the owner sees what went wrong (and it's in the log).
+            Ac.LOG.warn("Orbital strike failed", e);
+            Msg.send(p, "orbital.failed", e.toString());
+            return;
+        }
+        // Only the owner sees and hears anything before the TNT arrives.
+        markFor(p, center, Math.max(1.5, s.radius));
+        OwnerPowers.sfx(p, "orbital_fire", null, 1f);
+        OwnerPowers.usedTool();
+        Msg.actionBar(p, "§c◎ " + Msg.trFor(p, "orbital.fired", s.tnt, (int) center.x + " " + (int) center.y + " " + (int) center.z));
+        Staff.log(p, "owner-orbital", null, null, s.tnt + " TNT " + s.pattern + " r" + s.radius + " at " + Mc.worldId(w) + " "
+                + BlockPos.ofFloored(center).toShortString() + " (" + zone.id + ")");
+    }
+
+    /** For the game tests: fires the current settings at a spot, for an owner who isn't there. */
+    public static void launchForTest(ServerWorld w, Vec3d center) {
+        Settings cfg = settings();
+        Settings s = com.vylorq.anticheat.core.config.ConfigManager.GSON.fromJson(
+                com.vylorq.anticheat.core.config.ConfigManager.GSON.toJson(cfg), Settings.class);
+        s.delay = 0;
+        launch(UUID.randomUUID(), w, center, s, null, 0);
+    }
+
+    /** Starts a strike: the TNT, the kept-loaded chunks and the area its rules (and undo) cover. */
+    private static Zone launch(UUID owner, ServerWorld w, Vec3d center, Settings s, UUID follow, float yaw) {
+        List<double[]> offsets = layout(s.pattern, s.tnt, s.radius, yaw, new java.util.Random());
+        Strike st = new Strike(owner, w, center, offsets, s, follow, now + s.delay * 20L);
         // Keep the area loaded (and ticking) while TNT falls, even far from any player.
         int cr = (s.radius >> 4) + 1;
         int cx = (int) Math.floor(center.x) >> 4;
@@ -398,13 +427,7 @@ public final class OrbitalStrike {
         zone.tnt = s.tnt;
         st.zone = zone;
         ZONES.add(zone);
-        // Only the owner sees and hears anything before the TNT arrives.
-        markFor(p, center, Math.max(1.5, s.radius));
-        OwnerPowers.sfx(p, "orbital_fire", null, 1f);
-        OwnerPowers.usedTool();
-        Msg.actionBar(p, "§c◎ " + Msg.trFor(p, "orbital.fired", s.tnt, (int) center.x + " " + (int) center.y + " " + (int) center.z));
-        Staff.log(p, "owner-orbital", null, null, s.tnt + " TNT " + s.pattern + " r" + s.radius + " at " + Mc.worldId(w) + " "
-                + BlockPos.ofFloored(center).toShortString());
+        return zone;
     }
 
     private static void markFor(ServerPlayerEntity p, Vec3d c, double r) {
@@ -487,7 +510,6 @@ public final class OrbitalStrike {
                     if (a != null && !t.isRemoved()) {
                         t.setPosition(a[0], t.getY(), a[1]);
                         t.setVelocity(0, Math.min(t.getVelocity().y, -0.8), 0);
-                        t.velocityModified = true;
                     }
                 }
                 st.aim.keySet().removeIf(TntEntity::isRemoved);
