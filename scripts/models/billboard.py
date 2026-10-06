@@ -65,7 +65,7 @@ def relief(cut):
     """Strips for the 3D figure: (x0, x1, y, half_depth) in grid cells, y counted from the top."""
     a = np.asarray(cut.resize((GRID, GRID), Image.BOX))[..., 3] > 110
     d = ndimage.distance_transform_edt(a)
-    half = np.where(a, np.clip(np.minimum(1.7 * np.sqrt(d), d), 1, None), 0).round().astype(int)
+    half = np.where(a, np.clip(np.minimum(2.7 * np.sqrt(d), 1.3 * d), 1, None), 0).round().astype(int)
     strips = []
     for y in range(GRID):
         x = 0
@@ -99,20 +99,20 @@ def java_model(name, strips):
     t = 8 / GRID                        # one grid cell in the texture's uv (the painting is the left half)
     els = []
     for x0, x1, y, h in strips:
-        # x flipped: the figure faces +z, so its right is -x
-        fx0, fx1 = 16 - x1 * c, 16 - x0 * c
+        # seen from the front (+z), +x is on the viewer's right, like the painting's columns
+        fx0, fx1 = x0 * c, x1 * c
         top, bot = 16 - y * c, 16 - (y + 1) * c
         front = [x0 * t, y * t, x1 * t, (y + 1) * t]
         back = [8 + x1 * t, y * t, 8 + x0 * t, (y + 1) * t]
         # the sides take their colour from a little inside the edge (the very edge is half paper)
-        li, ri = min(x0 + 2, x1 - 1), max(x1 - 3, x0)
+        li, ri = x0 + min(4, (x1 - x0) // 2), x1 - 1 - min(4, (x1 - x0) // 2)
         left_edge = [li * t, y * t, (li + 1) * t, (y + 1) * t]
         right_edge = [ri * t, y * t, (ri + 1) * t, (y + 1) * t]
         row = [x0 * t, y * t, x1 * t, (y + 1) * t]
         els.append({"from": [round(fx0, 4), round(bot, 4), round(8 - h * c, 4)],
                     "to": [round(fx1, 4), round(top, 4), round(8 + h * c, 4)],
                     "faces": {"south": {"uv": front, "texture": "#p"}, "north": {"uv": back, "texture": "#p"},
-                              "east": {"uv": left_edge, "texture": "#p"}, "west": {"uv": right_edge, "texture": "#p"},
+                              "east": {"uv": right_edge, "texture": "#p"}, "west": {"uv": left_edge, "texture": "#p"},
                               "up": {"uv": row, "texture": "#p"}, "down": {"uv": row, "texture": "#p"}}})
     tex = "vigil:item/" + name
     return {"textures": {"p": tex, "particle": tex}, "elements": els}
@@ -126,12 +126,12 @@ def bedrock_geo(name, strips, tex_size):
     for x0, x1, y, h in strips:
         w = (x1 - x0)
         uvf = {"uv": [x0 * p, y * p], "uv_size": [w * p, p]}
-        cubes.append({"origin": [round(BEDROCK_HEIGHT / 2 - x1 * c, 4), round((GRID - y - 1) * c, 4), round(-h * c, 4)],
+        cubes.append({"origin": [round(x0 * c - BEDROCK_HEIGHT / 2, 4), round((GRID - y - 1) * c, 4), round(-h * c, 4)],
                       "size": [round(w * c, 4), round(c, 4), round(2 * h * c, 4)],
                       "uv": {"north": uvf,
                              "south": {"uv": [tex_size / 2 + x1 * p, y * p], "uv_size": [-w * p, p]},
-                             "east": {"uv": [min(x0 + 2, x1 - 1) * p, y * p], "uv_size": [p, p]},
-                             "west": {"uv": [max(x1 - 3, x0) * p, y * p], "uv_size": [p, p]},
+                             "east": {"uv": [(x1 - 1 - min(4, w // 2)) * p, y * p], "uv_size": [p, p]},
+                             "west": {"uv": [(x0 + min(4, w // 2)) * p, y * p], "uv_size": [p, p]},
                              "up": uvf, "down": uvf}})
     return {"format_version": "1.12.0",
             "minecraft:geometry": [{"description": {"identifier": "geometry.vigil." + name, "texture_width": tex_size,
