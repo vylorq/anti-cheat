@@ -152,7 +152,8 @@ public final class TestStructures {
             // Its mobs first (guards, spawner mobs, the boss), then the blocks, then the game's record of the structure.
             var box = new net.minecraft.util.math.Box(a[0], a[1] - 10, a[2], a[3] + 1, a[4] + 30, a[5] + 1);
             for (MobEntity m : w.getEntitiesByClass(MobEntity.class, box, e -> (e instanceof Monster && !e.hasCustomName())
-                    || e.getCommandTags().contains(Bosses.GUARD_TAG) || e.getCommandTags().stream().anyMatch(t -> t.startsWith(ModelMobs.TAG)))) {
+                    || e.getCommandTags().contains(Bosses.GUARD_TAG)
+                    || e.getCommandTags().stream().anyMatch(t -> t.startsWith(ModelMobs.TAG) || t.startsWith(StructureMobs.TAG)))) {
                 m.discard();
             }
             BlockSnapshots.restore(w, snap);

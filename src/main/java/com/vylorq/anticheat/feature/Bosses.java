@@ -190,6 +190,10 @@ public final class Bosses {
         public Map<String, Integer> kills = new HashMap<>();
         /** How many of a structure's mobs must die before its boss wakes. */
         public int killsToWake = 30;
+        /** Beaten structures rest until then (millis): no spawner mobs, and then the boss can rise again. */
+        public Map<String, Long> restUntil = new HashMap<>();
+        /** How many days a structure rests after its boss is beaten. */
+        public int restDays = 3;
         public int killed;
         /** Turn the models around if they face backwards. */
         public float yawOffset = 180f;
@@ -234,6 +238,14 @@ public final class Bosses {
         final MobEntity mob;
         final Kind kind;
         final DustParticleEffect aura;
+        /** The health bar at the top of the screen: Java's shows the boss's head and a phase badge from the pack. */
+        final net.minecraft.entity.boss.ServerBossBar bar;
+        /** Bedrock players' bar: the same, in plain text (they don't have the pack's glyphs). */
+        final net.minecraft.entity.boss.ServerBossBar bedrockBar;
+        /** The players this fight belongs to: only they can hurt it until it rests again. */
+        final Set<UUID> group = new HashSet<>();
+        /** The structure it guards ("forgemaster@12,-40"), or null when the owner spawned it. */
+        String key;
         /** 1-3: which of its three health bars it is on. Kept on the mob as a tag, so a reload doesn't reset it. */
         int phase = 1;
         Vec3d home;
@@ -246,6 +258,10 @@ public final class Bosses {
             this.kind = kind;
             this.aura = new DustParticleEffect(kind.aura(), 1.6f);
             this.home = mob.getEntityPos();
+            this.bar = new net.minecraft.entity.boss.ServerBossBar(Text.literal(kind.color() + "§l" + kind.name()),
+                    net.minecraft.entity.boss.BossBar.Color.GREEN, net.minecraft.entity.boss.BossBar.Style.PROGRESS);
+            this.bedrockBar = new net.minecraft.entity.boss.ServerBossBar(Text.literal(kind.color() + "§l" + kind.name()),
+                    net.minecraft.entity.boss.BossBar.Color.GREEN, net.minecraft.entity.boss.BossBar.Style.PROGRESS);
         }
     }
 
@@ -288,6 +304,9 @@ public final class Bosses {
                             // phase 1
                         }
                     }
+                    if (t.startsWith(KEY_TAG)) {
+                        l.key = t.substring(KEY_TAG.length());
+                    }
                     if (t.startsWith("vigil_home:")) {
                         String[] p = t.substring(11).split(",");
                         try {
@@ -303,9 +322,21 @@ public final class Bosses {
             }
         });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((e, w) -> {
-            if (LIVE.remove(e.getUuid()) != null) {
+            Live gone = LIVE.remove(e.getUuid());
+            if (gone != null) {
                 LIVE_IDS.remove(e.getId());
+                gone.bar.clearPlayers();
+                gone.bedrockBar.clearPlayers();
             }
+        });
+        net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DAMAGE.register((e, source, amount) -> {
+            Live l = LIVE.get(e.getUuid());
+            if (l == null || l.group.isEmpty() || !(source.getAttacker() instanceof ServerPlayerEntity p) || l.group.contains(p.getUuid())) {
+                return true;
+            }
+            // Someone else's fight: they can't steal it.
+            Msg.actionBar(p, "§c" + Msg.trFor(p, "boss.locked"));
+            return false;
         });
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DEATH.register((e, source, amount) -> {
             Live l = LIVE.get(e.getUuid());
@@ -324,6 +355,8 @@ public final class Bosses {
             Live l = LIVE.remove(e.getUuid());
             if (l != null) {
                 LIVE_IDS.remove(e.getId());
+                l.bar.clearPlayers();
+                l.bedrockBar.clearPlayers();
                 defeated((ServerWorld) e.getEntityWorld(), l, source.getAttacker());
             }
         });
@@ -386,6 +419,69 @@ public final class Bosses {
     }
 
     static final int PHASES = 3;
+    private static final String KEY_TAG = "vigil_key:";
+
+    /** The bosses in the order of their head glyphs in the pack (scripts/owner-pack/build.py BOSS_HEADS). */
+    private static final List<String> HEADS = List.of("drowned_warden", "deepslate_colossus", "storm_phantom", "forgemaster",
+            "sand_colossus", "frost_titan", "thornback_beast", "hollow_watcher");
+    private static final char HEAD_CHAR = '\uE100';
+    private static final char PHASE_CHAR = '\uE110';
+
+    private static void updateBar(Live l, ServerWorld w, Vec3d c) {
+        Kind k = l.kind;
+        double scale = k.health() / BAR;
+        double total = l.mob.getHealth() * scale + (PHASES - l.phase) * k.health();
+        String hp = String.format(java.util.Locale.ROOT, "%,d", (long) Math.ceil(Math.max(0, total)));
+        // The bar is this phase's health (it fills again each phase); the number is what's left of the whole fight.
+        float pct = (float) Math.max(0, Math.min(1, l.mob.getHealth() / l.mob.getMaxHealth()));
+        var colour = l.phase == 1 ? net.minecraft.entity.boss.BossBar.Color.GREEN
+                : l.phase == 2 ? net.minecraft.entity.boss.BossBar.Color.YELLOW : net.minecraft.entity.boss.BossBar.Color.RED;
+        String pc = l.phase == 1 ? "§a" : l.phase == 2 ? "§e" : "§c";
+        int head = HEADS.indexOf(k.id());
+        l.bar.setName(Text.literal((head >= 0 ? "§f" + (char) (HEAD_CHAR + head) + " " : "") + k.color() + "§l" + k.name()
+                + "  §f" + (char) (PHASE_CHAR + l.phase - 1) + "   §f" + hp + " §c❤"));
+        StringBuilder pips = new StringBuilder();
+        for (int i = 1; i <= PHASES; i++) {
+            pips.append(i <= l.phase ? pc + "◆" : "§8◇");
+        }
+        l.bedrockBar.setName(Text.literal(k.color() + "§l" + k.name() + "  " + pips + "  " + pc + "Phase "
+                + new String[]{"I", "II", "III"}[l.phase - 1] + "   §f" + hp + " §c❤"));
+        for (var b : List.of(l.bar, l.bedrockBar)) {
+            b.setPercent(pct);
+            b.setColor(colour);
+            for (ServerPlayerEntity p : List.copyOf(b.getPlayers())) {
+                if (p.isRemoved() || p.getEntityWorld() != w || p.squaredDistanceTo(c) > 56 * 56) {
+                    b.removePlayer(p);
+                }
+            }
+        }
+        for (ServerPlayerEntity p : w.getPlayers()) {
+            if (p.squaredDistanceTo(c) < 48 * 48) {
+                var b = com.vylorq.anticheat.ui.Viewer.isBedrock(p) ? l.bedrockBar : l.bar;
+                if (!b.getPlayers().contains(p)) {
+                    b.addPlayer(p);
+                }
+            }
+        }
+    }
+
+    /** Whether the structure at this spot is resting after its boss was beaten (its spawners stay quiet). */
+    public static boolean resting(ServerWorld w, String structure, BlockPos pos) {
+        var rest = state().restUntil;
+        if (rest == null || rest.isEmpty()) {
+            return false;
+        }
+        Structure s = w.getRegistryManager().getOrThrow(RegistryKeys.STRUCTURE).get(Identifier.of("vigil", structure));
+        if (s == null) {
+            return false;
+        }
+        var start = w.getStructureAccessor().getStructureAt(pos, s);
+        if (start == null || !start.hasChildren()) {
+            return false;
+        }
+        Long until = rest.get(structure + "@" + start.getPos().x + "," + start.getPos().z);
+        return until != null && System.currentTimeMillis() < until;
+    }
     /** The real health bar (the game's limit is 1024); a boss's own bar is bigger and its hits count for less. */
     static final double BAR = 1000;
 
@@ -546,6 +642,14 @@ public final class Bosses {
                     continue;
                 }
                 String key = k.structure() + "@" + start.getPos().x + "," + start.getPos().z;
+                Long rest = state().restUntil == null ? null : state().restUntil.get(key);
+                if (rest != null && System.currentTimeMillis() >= rest) {
+                    // Rested long enough: it fills up again and its boss can rise once more.
+                    state().restUntil.remove(key);
+                    state().spawned.remove(key);
+                    state().kills.remove(key);
+                    save();
+                }
                 if (state().spawned.contains(key)) {
                     continue;
                 }
@@ -558,7 +662,14 @@ public final class Bosses {
                 state().spawned.add(key);
                 save();
                 Vec3d at = new Vec3d(box.getCenter().getX() + 0.5, box.getMinY() + k.floor(), box.getCenter().getZ() + 0.5);
-                spawn(w, at, k.id());
+                MobEntity risen = spawn(w, at, k.id());
+                if (risen != null) {
+                    risen.addCommandTag(KEY_TAG + key);
+                    Live rl = LIVE.get(risen.getUuid());
+                    if (rl != null) {
+                        rl.key = key;
+                    }
+                }
                 Ac.LOG.info("{} rose at {} ({})", k.name(), BlockPos.ofFloored(at).toShortString(), key);
             }
         }
@@ -615,10 +726,18 @@ public final class Bosses {
         ServerWorld w = (ServerWorld) m.getEntityWorld();
         Vec3d c = m.getEntityPos();
         List<ServerPlayerEntity> near = fighters(w, c, 40);
+        if (now % 10 == 0) {
+            updateBar(l, w, c);
+        }
         if (!near.isEmpty()) {
             l.lastPlayerNear = now;
-        } else if (now - l.lastPlayerNear > 600 && m.getHealth() < m.getMaxHealth()) {
-            // Everyone left: it recovers and starts over.
+            if (l.group.isEmpty()) {
+                // Whoever is here when the fight starts owns it.
+                near.forEach(p -> l.group.add(p.getUuid()));
+            }
+        } else if (now - l.lastPlayerNear > 600 && (m.getHealth() < m.getMaxHealth() || l.phase > 1 || !l.group.isEmpty())) {
+            // Everyone left: it recovers and starts over, open to anyone again.
+            l.group.clear();
             setPhase(l, 1);
             m.removeStatusEffect(StatusEffects.SPEED);
             m.removeStatusEffect(StatusEffects.STRENGTH);
@@ -890,6 +1009,34 @@ public final class Bosses {
 
     // ---------------------------------------------------------------- defeat
 
+    static final int MAX_UPGRADE = 10;
+
+    /** Raises the boss weapon the player carries by one level (up to {@link #MAX_UPGRADE}). @return false if they have none */
+    static boolean upgradeWeapon(ServerPlayerEntity p, String weapon) {
+        var inv = p.getInventory();
+        for (int i = 0; i < inv.size(); i++) {
+            ItemStack s = inv.getStack(i);
+            if (!weapon.equals(SecretItems.idOf(s))) {
+                continue;
+            }
+            String ench = s.isOf(Items.TRIDENT) ? "minecraft:impaling" : s.isOf(Items.MACE) ? "minecraft:density" : "minecraft:sharpness";
+            var entry = com.vylorq.anticheat.util.ItemConv.enchantment(ench);
+            if (entry.isEmpty()) {
+                return false;
+            }
+            int level = net.minecraft.enchantment.EnchantmentHelper.getLevel(entry.get(), s);
+            if (level >= MAX_UPGRADE) {
+                Msg.send(p, "boss.weapon-max", s.getName().getString());
+                return true;
+            }
+            s.addEnchantment(entry.get(), level + 1);
+            Msg.send(p, "boss.weapon-upgraded", s.getName().getString(), level + 1);
+            Mc.sound(p, SoundEvents.BLOCK_ANVIL_USE, 1f, 1.2f);
+            return true;
+        }
+        return false;
+    }
+
     private static void defeated(ServerWorld w, Live l, Entity killer) {
         state().killed++;
         save();
@@ -903,9 +1050,19 @@ public final class Bosses {
             it.setVelocity((w.getRandom().nextDouble() - 0.5) * 0.3, 0.3, (w.getRandom().nextDouble() - 0.5) * 0.3);
             w.spawnEntity(it);
         }
-        // Its own weapon, through the same loot table the mod uses everywhere.
-        Ac.server().getCommandManager().parseAndExecute(Ac.server().getCommandSource().withWorld(w).withSilent(),
-                String.format(java.util.Locale.ROOT, "loot spawn %.2f %.2f %.2f loot vigil:items/%s", at.x, at.y + 1, at.z, l.kind.weapon()));
+        if (l.key != null) {
+            if (state().restUntil == null) {
+                state().restUntil = new HashMap<>();
+            }
+            state().restUntil.put(l.key, System.currentTimeMillis() + state().restDays * 86_400_000L);
+            save();
+        }
+        // Its own weapon, through the same loot table the mod uses everywhere; the killer who has one already gets
+        // it upgraded instead of a copy.
+        if (!(killer instanceof ServerPlayerEntity kp && upgradeWeapon(kp, l.kind.weapon()))) {
+            Ac.server().getCommandManager().parseAndExecute(Ac.server().getCommandSource().withWorld(w).withSilent(),
+                    String.format(java.util.Locale.ROOT, "loot spawn %.2f %.2f %.2f loot vigil:items/%s", at.x, at.y + 1, at.z, l.kind.weapon()));
+        }
         w.spawnParticles(ParticleTypes.EXPLOSION_EMITTER, at.x, at.y + 1.5, at.z, 2, 1, 1, 1, 0);
         w.spawnParticles(l.aura, at.x, at.y + 1.5, at.z, 150, 1.5, 2, 1.5, 0);
         SecretItems.sound(w, at, "boss_defeated", 3f);

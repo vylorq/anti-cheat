@@ -47,7 +47,14 @@ public final class StructureMobs {
             if (Ac.running() && e instanceof MobEntity m && !m.getCommandTags().contains(ARMED)) {
                 for (String t : m.getCommandTags()) {
                     if (t.startsWith(TAG)) {
-                        arm(m, t.substring(TAG.length()));
+                        String structure = t.substring(TAG.length());
+                        if (w instanceof net.minecraft.server.world.ServerWorld sw && Bosses.resting(sw, structure, m.getBlockPos())) {
+                            // Its boss was beaten: the structure rests and its spawners stay empty for now.
+                            m.addCommandTag(ARMED);
+                            OwnerPowers.later(1, m::discard);
+                            break;
+                        }
+                        arm(m, structure);
                         break;
                     }
                 }
@@ -87,6 +94,32 @@ public final class StructureMobs {
                         "data merge entity " + m.getUuidAsString() + " {DeathLootTable:\"minecraft:empty\"}");
             }
         });
+    }
+
+    /** One room mob in this many is an elite. */
+    static final float ELITE_CHANCE = 1f / 20;
+    public static final String ELITE_TAG = "vigil_elite";
+    private static final net.minecraft.util.Identifier ELITE = net.minecraft.util.Identifier.of("vigil", "elite");
+
+    /** An elite: glows, has a name, double the health and much harder hits, and is faster. */
+    static void elite(MobEntity m) {
+        m.addCommandTag(ELITE_TAG);
+        eliteBoost(m, EntityAttributes.MAX_HEALTH, 1.0);
+        eliteBoost(m, EntityAttributes.ATTACK_DAMAGE, 0.6);
+        eliteBoost(m, EntityAttributes.MOVEMENT_SPEED, 0.15);
+        m.setHealth(m.getMaxHealth());
+        m.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.GLOWING,
+                net.minecraft.entity.effect.StatusEffectInstance.INFINITE, 0, false, false));
+        m.setCustomName(net.minecraft.text.Text.literal("§6§lElite §e" + m.getType().getName().getString()));
+        m.setCustomNameVisible(true);
+        m.setPersistent();
+    }
+
+    private static void eliteBoost(MobEntity m, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> a, double v) {
+        var i = m.getAttributeInstance(a);
+        if (i != null && i.getModifier(ELITE) == null) {
+            i.addPersistentModifier(new EntityAttributeModifier(ELITE, v, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        }
     }
 
     private static final Item[] NETHERITE = {Items.NETHERITE_HELMET, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_LEGGINGS, Items.NETHERITE_BOOTS};
@@ -131,6 +164,9 @@ public final class StructureMobs {
         m.addCommandTag(ARMED);
         toughen(m);
         noDrops(m);
+        if (m.getRandom().nextFloat() < ELITE_CHANCE) {
+            elite(m);
+        }
         Item weapon = WEAPONS.get(structure);
         if (weapon == null) {
             return;
