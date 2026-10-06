@@ -50,6 +50,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -181,6 +182,10 @@ public final class Bosses {
     public static final class State {
         /** Structures that already had their boss ("sunken_vault@12,-40"). */
         public Set<String> spawned = new HashSet<>();
+        /** Structure mobs players killed in each structure ("sunken_vault@12,-40" -> kills). */
+        public Map<String, Integer> kills = new HashMap<>();
+        /** How many of a structure's mobs must die before its boss wakes. */
+        public int killsToWake = 30;
         public int killed;
         /** Turn the models around if they face backwards. */
         public float yawOffset = 180f;
@@ -285,6 +290,9 @@ public final class Bosses {
             }
         });
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((e, source) -> {
+            if (Ac.running() && e.getCommandTags().stream().anyMatch(t -> t.startsWith(StructureMobs.TAG))) {
+                structureMobDied(e, source);
+            }
             Live l = LIVE.remove(e.getUuid());
             if (l != null) {
                 LIVE_IDS.remove(e.getId());
@@ -392,6 +400,53 @@ public final class Bosses {
     }
 
     /** A player walked into a structure: its boss rises (once per structure). */
+    private static int killsLeft(String key) {
+        var m = state().kills;
+        return Math.max(0, state().killsToWake - (m == null ? 0 : m.getOrDefault(key, 0)));
+    }
+
+    /** A structure's mob died: a player's kill counts toward waking that structure's boss. */
+    static void structureMobDied(net.minecraft.entity.LivingEntity e, net.minecraft.entity.damage.DamageSource source) {
+        if (!(source.getAttacker() instanceof ServerPlayerEntity killer) || !(e.getEntityWorld() instanceof ServerWorld w)) {
+            return;
+        }
+        String structure = null;
+        for (String t : e.getCommandTags()) {
+            if (t.startsWith(StructureMobs.TAG)) {
+                structure = t.substring(StructureMobs.TAG.length());
+            }
+        }
+        if (structure == null) {
+            return;
+        }
+        Structure s = w.getRegistryManager().getOrThrow(RegistryKeys.STRUCTURE).get(Identifier.of("vigil", structure));
+        if (s == null) {
+            return;
+        }
+        var start = w.getStructureAccessor().getStructureAt(e.getBlockPos(), s);
+        if (start == null || !start.hasChildren()) {
+            return;
+        }
+        String key = structure + "@" + start.getPos().x + "," + start.getPos().z;
+        if (state().spawned.contains(key)) {
+            return;
+        }
+        if (state().kills == null) {
+            state().kills = new HashMap<>();
+        }
+        int n = state().kills.merge(key, 1, Integer::sum);
+        save();
+        int need = state().killsToWake;
+        if (n == need) {
+            for (ServerPlayerEntity p : fighters(w, e.getEntityPos(), 120)) {
+                Msg.send(p, "boss.awake");
+                com.vylorq.anticheat.util.Mc.sound(p, net.minecraft.sound.SoundEvents.ENTITY_WITHER_SPAWN, 0.6f, 0.7f);
+            }
+        } else if (n < need) {
+            Msg.actionBar(killer, "§6" + Msg.trFor(killer, "boss.kills", n, need));
+        }
+    }
+
     private static void checkPlayers() {
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
             if (p.isSpectator() || p.isCreative()) {
@@ -415,6 +470,12 @@ public final class Bosses {
                 }
                 String key = k.structure() + "@" + start.getPos().x + "," + start.getPos().z;
                 if (state().spawned.contains(key)) {
+                    continue;
+                }
+                int left = killsLeft(key);
+                if (left > 0) {
+                    // Asleep until enough of the structure's mobs are dead.
+                    Msg.actionBar(p, "§c" + Msg.trFor(p, "boss.asleep", left));
                     continue;
                 }
                 state().spawned.add(key);

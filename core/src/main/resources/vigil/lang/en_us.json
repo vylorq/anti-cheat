@@ -2632,5 +2632,8 @@
   "tr.no-limit": "no limit",
   "tr.reset-obtained": "Reset what traders sell",
   "tr.reset-obtained-desc": "Every trader forgets what players got and sells an item again only once a player gets it.",
-  "tr.obtained-count": "Items players got so far: {0}"
+  "tr.obtained-count": "Items players got so far: {0}",
+  "boss.asleep": "The boss sleeps. Kill {0} more of this place's mobs to wake it.",
+  "boss.kills": "Mobs slain here: {0}/{1}",
+  "boss.awake": "§4§lThe boss has woken. §cIt waits in the great chamber."
 }

@@ -1068,8 +1068,8 @@ def mob_spawner(t, x, y, z, mobs, structure):
     entries = [C({"weight": I(w), "data": C({"entity": entity(m), "custom_spawn_rules": _range(LIGHT_ANY)})}) for m, w in mobs]
     t.nbt[(x, y, z)] = {"id": S("minecraft:mob_spawner"),
                         "SpawnData": C({"entity": entity(mobs[0][0]), "custom_spawn_rules": _range(LIGHT_ANY)}),
-                        "SpawnPotentials": L(10, entries), "SpawnCount": Tag(2, 3), "MaxNearbyEntities": Tag(2, 6),
-                        "RequiredPlayerRange": Tag(2, 18), "MinSpawnDelay": Tag(2, 160), "MaxSpawnDelay": Tag(2, 400),
+                        "SpawnPotentials": L(10, entries), "SpawnCount": Tag(2, 4), "MaxNearbyEntities": Tag(2, 8),
+                        "RequiredPlayerRange": Tag(2, 20), "MinSpawnDelay": Tag(2, 100), "MaxSpawnDelay": Tag(2, 260),
                         "SpawnRange": Tag(2, 4), "Delay": Tag(2, 20)}
 
 
@@ -1105,6 +1105,12 @@ ROOMS = {
     "shrine": (11, 15, "ns", 2),
     "crossroad": (9, 9, "nsew", 2),
     "treasure": (11, 11, "n", 2),
+    "great_hall": (17, 21, "nsew", 2),
+    "barracks": (15, 11, "ns", 3),
+    "prison": (13, 13, "nse", 2),
+    "library": (13, 11, "ns", 2),
+    "gauntlet": (7, 17, "ns", 3),
+    "armory": (11, 11, "nw", 2),
 }
 H = 9  # floor y0, air 1..7, ceiling y8
 
@@ -1213,6 +1219,7 @@ def _furnish(t, th, structure, kind, w, d):
         if not th.get("open"):
             for z in (3, d - 4):
                 t.set(cx, H - 2, z, th["lantern"], hanging=True, waterlogged=False)
+        mob_spawner(t, 1 if not th.get("open") else 2, 1, cz, mobs, structure)
     elif kind == "hall":
         for y in range(1, H - 1):
             _put(t, cx, y, cz, acc)
@@ -1246,6 +1253,10 @@ def _furnish(t, th, structure, kind, w, d):
         _put(t, cx, 1, cz, acc)
         t.set(cx, 2, cz, th["light"])
         _put(t, cx, 3, cz, acc)
+        mob_spawner(t, 2, 1, 2, mobs, structure)
+        mob_spawner(t, w - 3, 1, d - 3, mobs, structure)
+    elif kind in NEW_ROOMS:
+        NEW_ROOMS[kind](t, th, structure, w, d)
     elif kind == "treasure":
         for x in range(cx - 2, cx + 3):
             for z in range(d - 4, d - 1):
@@ -1256,6 +1267,127 @@ def _furnish(t, th, structure, kind, w, d):
             t.set(x, 3, d - 3, th["lantern"], hanging=False, waterlogged=False)
         mob_spawner(t, cx - 3, 1, cz - 1, mobs, structure)
         mob_spawner(t, cx + 3, 1, cz - 1, mobs, structure)
+
+
+# ------------------------------------------------------------------ the newer rooms (harder: more spawners, traps)
+
+def _bars(t, x, y, z, along_x):
+    """Iron bars joined into a straight run (along x or along z)."""
+    t.set(x, y, z, "iron_bars", east=along_x, west=along_x, north=not along_x, south=not along_x, waterlogged=False)
+
+
+def great_hall(t, th, structure, w, d):
+    """A long hall of columns with hanging lights, a carpet of the trim down the middle and three spawners."""
+    cx, cz = w // 2, d // 2
+    acc = th["accent"]
+    for z in range(3, d - 3, 4):
+        for x in (4, w - 5):
+            for y in range(1, H - 1):
+                _put(t, x, y, z, acc)
+            stairs(t, x + 1, 1, z, th["trim"], "west")
+            stairs(t, x - 1, 1, z, th["trim"], "east")
+            t.set(x, 5, z, th["light"])
+    for z in range(2, d - 2):
+        if z % 4 == 1 and not th.get("open"):
+            t.set(cx - 3, H - 2, z, th["lantern"], hanging=True, waterlogged=False)
+            t.set(cx + 3, H - 2, z, th["lantern"], hanging=True, waterlogged=False)
+    for (x, z) in [(2, cz - 4), (w - 3, cz + 4), (cx, 3)]:
+        mob_spawner(t, x, 1, z, th["mobs"], structure)
+    for x in (2, w - 3):
+        for z in (2, d - 3):
+            _put(t, x, 1, z, th["decor"][0])
+            t.set(x, 2, z, th["lantern"], hanging=False, waterlogged=False)
+
+
+def barracks(t, th, structure, w, d):
+    """Rows of bunks (slabs over barrels) along both walls, a weapon rack, two spawners and a footlocker chest."""
+    cx, cz = w // 2, d // 2
+    for x in range(2, w - 2, 3):
+        if abs(x - cx) <= 1:
+            continue
+        for z in (2, d - 3):
+            t.set(x, 1, z, "barrel", facing="up", open=False)
+            slab(t, x, 2, z, th["trim"])
+            slab(t, x + 1 if x + 1 < w - 2 else x, 3, z, th["trim"], "top")
+    for z in range(3, d - 3):
+        if z != cz:
+            t.set(2, 1, z, "smithing_table" if z % 2 else "fletching_table")
+    mob_spawner(t, cx - 3, 1, cz, th["mobs"], structure)
+    mob_spawner(t, cx + 3, 1, cz, th["mobs"], structure)
+    t.chest(w - 3, 1, cz, f"{structure}_room", facing="west")
+
+
+def prison(t, th, structure, w, d):
+    """Four barred cells in the corners, chains from the ceiling and spawners locked in two of the cells."""
+    for (x0, z0, fx) in [(1, 1, False), (w - 5, 1, True), (1, d - 5, False), (w - 5, d - 5, True)]:
+        for k in range(4):
+            for y in (1, 2, 3):
+                bz = z0 + 3 if z0 == 1 else z0
+                if k != 1:
+                    _bars(t, x0 + k, y, bz, True)
+                bx = x0 + 3 if not fx else x0
+                if k != 2:
+                    _bars(t, bx, y, z0 + k, False)
+        t.set(x0 + 1 + (1 if fx else 0), 1, z0 + 1 + (1 if z0 != 1 else 0), "cobweb")
+    mob_spawner(t, 2, 1, 2, th["mobs"], structure)
+    mob_spawner(t, w - 3, 1, d - 3, th["mobs"], structure)
+    cx, cz = w // 2, d // 2
+    if not th.get("open"):
+        for (x, z) in [(cx - 2, cz), (cx + 2, cz), (cx, cz - 2), (cx, cz + 2)]:
+            for y in range(H - 4, H - 1):
+                t.set(x, y, z, "chain", axis="y", waterlogged=False)
+
+
+def library(t, th, structure, w, d):
+    """Shelves in rows with an aisle down the middle, a reading desk, a spawner and a chest."""
+    cx, cz = w // 2, d // 2
+    for z in (3, d - 4):
+        for x in range(2, w - 2):
+            if abs(x - cx) <= 1:
+                continue
+            for y in (1, 2, 3):
+                t.set(x, y, z, "bookshelf")
+    t.set(cx - 2, 1, cz, "lectern", facing="east", has_book=False, powered=False)
+    t.set(cx + 2, 1, cz, "enchanting_table")
+    mob_spawner(t, 2, 1, cz, th["mobs"], structure)
+    mob_spawner(t, w - 3, 1, cz, th["mobs"], structure)
+    t.chest(w - 3, 1, 1 if th.get("open") else 2, f"{structure}_room", facing="south")
+
+
+def gauntlet(t, th, structure, w, d):
+    """A trapped corridor: pressure plates that fire arrows from the walls, and spawners in nooks."""
+    cx = w // 2
+    for z in range(3, d - 3, 3):
+        x = cx - 1 if (z // 3) % 2 else cx + 1
+        t.set(x, 1, z, "stone_pressure_plate", powered=False)
+        if x < cx:
+            t.set(x - 1, 1, z, "dispenser", facing="east", triggered=False)
+            t.nbt[(x - 1, 1, z)] = {"id": S("minecraft:dispenser"),
+                                    "Items": L(10, [C({"Slot": B(0), "id": S("minecraft:arrow"), "count": I(64)})])}
+        else:
+            t.set(x + 1, 1, z, "dispenser", facing="west", triggered=False)
+            t.nbt[(x + 1, 1, z)] = {"id": S("minecraft:dispenser"),
+                                    "Items": L(10, [C({"Slot": B(0), "id": S("minecraft:arrow"), "count": I(64)})])}
+    mob_spawner(t, 1, 2, 4, th["mobs"], structure)
+    mob_spawner(t, w - 2, 2, d - 5, th["mobs"], structure)
+
+
+def armory(t, th, structure, w, d):
+    """Anvils, a grindstone and a blast furnace round the walls, two spawners and a weapons chest."""
+    cx, cz = w // 2, d // 2
+    t.set(w - 3, 1, 2, "anvil", facing="north")
+    t.set(w - 3, 1, 4, "grindstone", face="floor", facing="west")
+    t.set(w - 3, 1, 6, "blast_furnace", facing="west", lit=False)
+    t.set(w - 3, 1, 8 if d > 9 else d - 3, "smithing_table")
+    for x in range(3, w - 4, 2):
+        t.set(x, 1, d - 3, "barrel", facing="up", open=False)
+    mob_spawner(t, cx, 1, cz + 2, th["mobs"], structure)
+    mob_spawner(t, cx + 2, 1, 2, th["mobs"], structure)
+    t.chest(cx - 1, 1, d - 3, f"{structure}_room", facing="north")
+
+
+NEW_ROOMS = {"great_hall": great_hall, "barracks": barracks, "prison": prison, "library": library,
+             "gauntlet": gauntlet, "armory": armory}
 
 
 def cap(structure):
@@ -1374,7 +1506,7 @@ def build():
         write(f"loot_table/chests/{name}_room.json", {"type": "minecraft:chest", "pools": [
             CHESTS[name][-1], CHESTS[name][0]]})
         s = {"type": "minecraft:jigsaw", "biomes": biomes, "step": step, "spawn_overrides": {}, "terrain_adaptation": terrain,
-             "start_pool": f"vigil:{name}/start", "size": 7, "start_height": {"absolute": height}, "max_distance_from_center": 80,
+             "start_pool": f"vigil:{name}/start", "size": 9, "start_height": {"absolute": height}, "max_distance_from_center": 96,
              "use_expansion_hack": False}
         if heightmap:
             s["project_start_to_heightmap"] = heightmap
