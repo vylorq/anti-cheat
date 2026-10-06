@@ -510,7 +510,6 @@ public final class OrbitalStrike {
                     if (a != null && !t.isRemoved()) {
                         t.setPosition(a[0], t.getY(), a[1]);
                         t.setVelocity(0, Math.min(t.getVelocity().y, -0.8), 0);
-                        t.velocityModified = true;
                     }
                 }
                 st.aim.keySet().removeIf(TntEntity::isRemoved);
