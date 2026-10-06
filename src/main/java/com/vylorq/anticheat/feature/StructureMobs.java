@@ -76,10 +76,61 @@ public final class StructureMobs {
         }
     }
 
+    /** The mob drops nothing when it dies: no loot and none of what it wears or holds. */
+    public static void noDrops(MobEntity m) {
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            m.setEquipmentDropChance(slot, 0f);
+        }
+        OwnerPowers.later(1, () -> {
+            if (!m.isRemoved()) {
+                Ac.server().getCommandManager().parseAndExecute(Ac.server().getCommandSource().withSilent(),
+                        "data merge entity " + m.getUuidAsString() + " {DeathLootTable:\"minecraft:empty\"}");
+            }
+        });
+    }
+
+    private static final Item[] NETHERITE = {Items.NETHERITE_HELMET, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_LEGGINGS, Items.NETHERITE_BOOTS};
+    private static final net.minecraft.util.Identifier GUARD = net.minecraft.util.Identifier.of("vigil", "boss_guard");
+
+    /**
+     * A boss's guard: stronger than any room mob. Full netherite (on top of its own gear's slots), a netherite sword
+     * if it has nothing in hand and can use one, two and a half times the health, nearly double the damage, faster,
+     * and hard to knock back. It drops nothing.
+     */
+    public static void guard(MobEntity m) {
+        EquipmentSlot[] slots = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+        for (int i = 0; i < 4; i++) {
+            if (m.getEquippedStack(slots[i]).isEmpty()) {
+                m.equipStack(slots[i], new ItemStack(NETHERITE[i]));
+            }
+        }
+        if (m.getMainHandStack().isEmpty() && m instanceof ZombieEntity) {
+            m.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.NETHERITE_SWORD));
+        }
+        boost(m, EntityAttributes.MAX_HEALTH, 1.5, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        boost(m, EntityAttributes.ATTACK_DAMAGE, 0.9, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        boost(m, EntityAttributes.MOVEMENT_SPEED, 0.15, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        boost(m, EntityAttributes.FOLLOW_RANGE, 1.0, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        boost(m, EntityAttributes.KNOCKBACK_RESISTANCE, 0.6, EntityAttributeModifier.Operation.ADD_VALUE);
+        boost(m, EntityAttributes.ARMOR_TOUGHNESS, 4, EntityAttributeModifier.Operation.ADD_VALUE);
+        m.setHealth(m.getMaxHealth());
+        m.addCommandTag(ARMED);
+        noDrops(m);
+    }
+
+    private static void boost(MobEntity m, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> a,
+                              double v, EntityAttributeModifier.Operation op) {
+        var i = m.getAttributeInstance(a);
+        if (i != null && i.getModifier(GUARD) == null) {
+            i.addPersistentModifier(new EntityAttributeModifier(GUARD, v, op));
+        }
+    }
+
     /** Dresses one mob (once): a full set of iron or better; zombies and skeletons also get a weapon (skeletons keep their bow). */
     static void arm(MobEntity m, String structure) {
         m.addCommandTag(ARMED);
         toughen(m);
+        noDrops(m);
         Item weapon = WEAPONS.get(structure);
         if (weapon == null) {
             return;
@@ -91,7 +142,7 @@ public final class StructureMobs {
             float roll = r.nextFloat();
             Item[] set = SETS[roll < 0.1f ? 2 : roll < 0.5f ? 1 : 0];
             m.equipStack(slots[i], new ItemStack(set[i]));
-            m.setEquipmentDropChance(slots[i], 0.02f);
+            m.setEquipmentDropChance(slots[i], 0f);
         }
         // Every mob wears it (spiders and blazes too: it doesn't show on them, but it still protects them).
         if (!(m instanceof ZombieEntity || m instanceof AbstractSkeletonEntity)) {
@@ -99,6 +150,6 @@ public final class StructureMobs {
         }
         boolean skeleton = m instanceof AbstractSkeletonEntity && !(m instanceof WitherSkeletonEntity);
         m.equipStack(EquipmentSlot.MAINHAND, new ItemStack(skeleton ? Items.BOW : weapon));
-        m.setEquipmentDropChance(EquipmentSlot.MAINHAND, 0.02f);
+        m.setEquipmentDropChance(EquipmentSlot.MAINHAND, 0f);
     }
 }

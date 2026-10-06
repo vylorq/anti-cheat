@@ -273,7 +273,8 @@ public final class AntiCheatGameTests {
         for (String n : java.util.List.of("sunken_vault", "buried_vault", "sky_citadel", "nether_forge", "desert_tomb", "frozen_bastion",
                 "overgrown_labyrinth", "watchers_hollow")) {
             for (String piece : java.util.List.of("arena", "corridor", "hall", "guard_room", "shrine", "crossroad", "treasure",
-                    "great_hall", "barracks", "prison", "library", "gauntlet", "armory", "cap")) {
+                    "great_hall", "barracks", "prison", "library", "gauntlet", "armory", "throne_room", "crypt",
+                    "ritual_chamber", "storage_vault", "courtyard", "mess_hall", "mine_tunnel", "cap")) {
                 var t = templates.getTemplate(net.minecraft.util.Identifier.of("vigil", n + "/" + piece));
                 check(t.isPresent() && t.get().getSize().getX() > 0, n + "/" + piece + " doesn't load");
             }

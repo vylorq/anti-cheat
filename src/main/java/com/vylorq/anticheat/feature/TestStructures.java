@@ -33,7 +33,7 @@ public final class TestStructures {
             "desert_tomb", "frozen_bastion", "overgrown_labyrinth", "watchers_hollow");
 
     /** How far the rooms can reach from the middle (the structures' max distance plus a room). */
-    private static final int REACH = 112;
+    private static final int REACH = 136;
 
     /** One placed structure: its number, kind, world and the saved area (x1 y1 z1 x2 y2 z2). */
     record Placed(int id, String structure, String world, int[] area) {

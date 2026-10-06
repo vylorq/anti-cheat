@@ -146,9 +146,18 @@ def recipe(item_id):
 
 # ------------------------------------------------------------------ chest loot
 
-def filler(entries, rolls=(4, 7)):
-    out = []
-    for name, weight, lo, hi in entries:
+# Good things in chests are rare: they're a small share of each roll, one at a time, and most rolls are junk or nothing.
+VALUABLE = {"diamond", "netherite_scrap", "heart_of_the_sea", "golden_apple", "echo_shard", "emerald", "ender_pearl",
+            "gold_ingot", "blaze_rod", "phantom_membrane"}
+JUNK = [("rotten_flesh", 14, 1, 4), ("bone", 12, 1, 3), ("string", 12, 1, 3), ("stick", 12, 1, 4), ("coal", 8, 1, 3),
+        ("cobweb", 5, 1, 2), ("arrow", 8, 2, 6), ("bread", 6, 1, 2)]
+
+
+def filler(entries, rolls=(2, 4)):
+    out = [{"type": "minecraft:empty", "weight": 40}]
+    for name, weight, lo, hi in list(entries) + JUNK:
+        if name in VALUABLE:
+            weight, lo, hi = 1, 1, 1 if name in ("diamond", "netherite_scrap", "heart_of_the_sea", "golden_apple", "echo_shard") else min(hi, 2)
         e = {"type": "minecraft:item", "name": f"minecraft:{name}", "weight": weight}
         if hi > 1:
             e["functions"] = [{"function": "minecraft:set_count", "count": {"type": "minecraft:uniform", "min": lo, "max": hi}}]
@@ -1064,7 +1073,8 @@ def mob_spawner(t, x, y, z, mobs, structure):
     t.set(x, y, z, "spawner")
 
     def entity(m):
-        return C({"id": S(f"minecraft:{m}"), "Tags": L(8, [S(f"vigil_structure_mob:{structure}")])})
+        return C({"id": S(f"minecraft:{m}"), "Tags": L(8, [S(f"vigil_structure_mob:{structure}")]),
+                  "DeathLootTable": S("minecraft:empty")})
     entries = [C({"weight": I(w), "data": C({"entity": entity(m), "custom_spawn_rules": _range(LIGHT_ANY)})}) for m, w in mobs]
     t.nbt[(x, y, z)] = {"id": S("minecraft:mob_spawner"),
                         "SpawnData": C({"entity": entity(mobs[0][0]), "custom_spawn_rules": _range(LIGHT_ANY)}),
@@ -1111,6 +1121,13 @@ ROOMS = {
     "library": (13, 11, "ns", 2),
     "gauntlet": (7, 17, "ns", 3),
     "armory": (11, 11, "nw", 2),
+    "throne_room": (19, 19, "sew", 1),
+    "crypt": (13, 17, "ns", 2),
+    "ritual_chamber": (15, 15, "nsew", 2),
+    "storage_vault": (11, 13, "n", 2),
+    "courtyard": (17, 17, "nsew", 2),
+    "mess_hall": (15, 11, "nse", 2),
+    "mine_tunnel": (7, 19, "ns", 2),
 }
 H = 9  # floor y0, air 1..7, ceiling y8
 
@@ -1386,8 +1403,154 @@ def armory(t, th, structure, w, d):
     t.chest(cx - 1, 1, d - 3, f"{structure}_room", facing="north")
 
 
+def throne_room(t, th, structure, w, d):
+    """A raised dais at the far wall with a throne, columns down both sides and four spawners."""
+    cx = w // 2
+    acc, trim = th["accent"], th["trim"]
+    for x in range(cx - 4, cx + 5):
+        for z in range(1, 5):
+            _put(t, x, 1, z, acc if (x in (cx - 4, cx + 4) or z == 4) else th["floor"][1])
+    for x in range(cx - 4, cx + 5):
+        stairs(t, x, 1, 5, trim, "south")
+    for x in range(cx - 2, cx + 3):
+        for z in range(1, 4):
+            _put(t, x, 2, z, acc)
+    stairs(t, cx, 3, 2, trim, "south")
+    stairs(t, cx - 1, 3, 2, trim, "east")
+    stairs(t, cx + 1, 3, 2, trim, "west")
+    for y in (3, 4, 5):
+        _put(t, cx, y, 1, acc)
+    t.set(cx, 6, 1, th["light"])
+    for x in (cx - 3, cx + 3):
+        t.set(x, 3, 2, th["lantern"], hanging=False, waterlogged=False)
+    for z in range(7, d - 2, 4):
+        for x in (3, w - 4):
+            for y in range(1, H - 1):
+                _put(t, x, y, z, acc)
+            t.set(x, 5, z, th["light"])
+    for (x, z) in [(2, 8), (w - 3, 8), (2, d - 4), (w - 3, d - 4)]:
+        mob_spawner(t, x, 1, z, th["mobs"], structure)
+    t.chest(cx + 3, 2, 3, f"{structure}_room", facing="south")
+
+
+def crypt(t, th, structure, w, d):
+    """Rows of stone coffins under hanging soul lights, with spawners at both ends."""
+    cx = w // 2
+    for z in range(3, d - 3, 3):
+        for x0 in (2, w - 5):
+            for dx in range(3):
+                slab(t, x0 + dx, 1, z, th["trim"], "bottom" if dx != 1 else "top")
+            t.set(x0 + 1, 2, z, "candle", candles=3, lit=True, waterlogged=False)
+    if not th.get("open"):
+        for z in range(2, d - 2, 4):
+            t.set(cx, H - 2, z, "soul_lantern", hanging=True, waterlogged=False)
+    t.set(cx, 1, 2, "cobweb")
+    t.set(cx, 1, d - 3, "cobweb")
+    mob_spawner(t, 1, 1, 4, th["mobs"], structure)
+    mob_spawner(t, w - 2, 1, d - 5, th["mobs"], structure)
+    mob_spawner(t, cx, 1, d // 2, th["mobs"], structure)
+
+
+def ritual_chamber(t, th, structure, w, d):
+    """A ring of candles round a dark altar holding a spawner, with four more in the corners."""
+    cx, cz = w // 2, d // 2
+    for x in range(w):
+        for z in range(d):
+            r = ((x - cx) ** 2 + (z - cz) ** 2) ** 0.5
+            if 4.5 <= r < 5.5 and abs(x - cx) > 1 and abs(z - cz) > 1:
+                t.set(x, 1, z, "candle", candles=4, lit=True, waterlogged=False)
+            elif 2.5 <= r < 3.5:
+                t.set(x, 0, z, "crying_obsidian" if (x + z) % 2 else "obsidian")
+    for (dx, dz, f) in [(-1, 0, "east"), (1, 0, "west"), (0, -1, "south"), (0, 1, "north")]:
+        stairs(t, cx + dx, 1, cz + dz, th["trim"], f)
+    mob_spawner(t, cx, 1, cz, th["mobs"], structure)
+    for (x, z) in [(2, 2), (w - 3, 2), (2, d - 3), (w - 3, d - 3)]:
+        mob_spawner(t, x, 1, z, th["mobs"], structure)
+    t.set(cx, 3, cz, th["light"])
+
+
+def storage_vault(t, th, structure, w, d):
+    """A dead end stacked with barrels and crates; one of the chests holds loot, two spawners guard it."""
+    cx = w // 2
+    for z in range(3, d - 1, 2):
+        for x in (1, 2, w - 3, w - 2):
+            for y in range(1, 3 + (z % 3)):
+                t.set(x, y, z, "barrel", facing="up", open=False)
+    for x in range(3, w - 3):
+        if x != cx:
+            t.set(x, 1, d - 2, "barrel", facing="up", open=False)
+            t.set(x, 2, d - 2, "hay_block" if x % 2 else "barrel", **({"axis": "y"} if x % 2 else {"facing": "up", "open": False}))
+    t.chest(cx, 1, d - 2, f"{structure}_room", facing="north")
+    mob_spawner(t, cx - 2, 1, d // 2, th["mobs"], structure)
+    mob_spawner(t, cx + 2, 1, d // 2, th["mobs"], structure)
+
+
+def courtyard(t, th, structure, w, d):
+    """An overgrown yard: moss and flowers, four small trees, a well in the middle and spawners in the hedges."""
+    cx, cz = w // 2, d // 2
+    for x in range(2, w - 2):
+        for z in range(2, d - 2):
+            if abs(x - cx) > 1 and abs(z - cz) > 1 and (x * 7 + z * 3) % 5 == 0:
+                t.set(x, 0, z, "moss_block")
+                t.set(x, 1, z, "moss_carpet")
+    for (x, z) in corners(cx, cz, 5):
+        for y in (1, 2, 3):
+            t.set(x, y, z, "oak_log", axis="y")
+        for dx in (-1, 0, 1):
+            for dz in (-1, 0, 1):
+                for y in (4, 5):
+                    if (dx, dz) != (0, 0) or y == 5:
+                        t.set(x + dx, y, z + dz, "azalea_leaves", persistent=True, distance=1, waterlogged=False)
+    for dx in (-1, 0, 1):
+        for dz in (-1, 0, 1):
+            if (dx, dz) != (0, 0):
+                _put(t, cx + dx, 1, cz + dz, th["accent"])
+    t.set(cx, 1, cz, th["light"])
+    for (x, z) in [(cx, 3), (cx, d - 4), (3, cz + 3), (w - 4, cz - 3)]:
+        mob_spawner(t, x, 1, z, th["mobs"], structure)
+
+
+def mess_hall(t, th, structure, w, d):
+    """Long tables with benches, a kitchen corner and two spawners."""
+    cx, cz = w // 2, d // 2
+    for z in (3, d - 4):
+        for x in range(2, w - 2):
+            if abs(x - cx) <= 1:
+                continue
+            slab(t, x, 1, z, th["trim"], "top")
+            stairs(t, x, 1, z - 1, th["trim"], "south")
+            stairs(t, x, 1, z + 1, th["trim"], "north")
+    t.set(1, 1, cz - 1, "smoker", facing="east", lit=False)
+    t.set(1, 1, cz + 1, "barrel", facing="east", open=False)
+    t.set(1, 2, cz, "cauldron")
+    mob_spawner(t, cx, 1, 2, th["mobs"], structure)
+    mob_spawner(t, cx, 1, d - 3, th["mobs"], structure)
+
+
+def mine_tunnel(t, th, structure, w, d):
+    """A narrow old dig: timber frames, a broken rail line, cobwebs and spawners in the side pockets."""
+    cx = w // 2
+    for z in range(2, d - 2, 4):
+        for x in (1, w - 2):
+            for y in (1, 2, 3):
+                t.set(x, y, z, "spruce_log", axis="y")
+        for x in range(1, w - 1):
+            t.set(x, 4, z, "spruce_planks")
+        t.set(cx, 3, z + 1 if z + 1 < d - 1 else z, "lantern", hanging=True, waterlogged=False)
+    for z in range(1, d - 1):
+        if z % 5 != 3:
+            t.set(cx, 1, z, "rail", shape="north_south", waterlogged=False)
+    for (x, z) in [(1, 5), (w - 2, 11), (1, 15)]:
+        if z < d - 1:
+            t.set(x, 2, z, "cobweb")
+    mob_spawner(t, 1, 1, 7, th["mobs"], structure)
+    mob_spawner(t, w - 2, 1, 13, th["mobs"], structure)
+
+
 NEW_ROOMS = {"great_hall": great_hall, "barracks": barracks, "prison": prison, "library": library,
-             "gauntlet": gauntlet, "armory": armory}
+             "gauntlet": gauntlet, "armory": armory, "throne_room": throne_room, "crypt": crypt,
+             "ritual_chamber": ritual_chamber, "storage_vault": storage_vault, "courtyard": courtyard,
+             "mess_hall": mess_hall, "mine_tunnel": mine_tunnel}
 
 
 def cap(structure):
@@ -1506,7 +1669,7 @@ def build():
         write(f"loot_table/chests/{name}_room.json", {"type": "minecraft:chest", "pools": [
             CHESTS[name][-1], CHESTS[name][0]]})
         s = {"type": "minecraft:jigsaw", "biomes": biomes, "step": step, "spawn_overrides": {}, "terrain_adaptation": terrain,
-             "start_pool": f"vigil:{name}/start", "size": 9, "start_height": {"absolute": height}, "max_distance_from_center": 96,
+             "start_pool": f"vigil:{name}/start", "size": 12, "start_height": {"absolute": height}, "max_distance_from_center": 116,
              "use_expansion_hack": False}
         if heightmap:
             s["project_start_to_heightmap"] = heightmap

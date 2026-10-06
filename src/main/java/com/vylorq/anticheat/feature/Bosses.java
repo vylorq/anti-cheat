@@ -458,6 +458,7 @@ public final class Bosses {
                 m.setCustomName(Text.literal(g.name()));
                 m.setPersistent();
                 m.addCommandTag(GUARD_TAG);
+                StructureMobs.guard(m);
                 if (m instanceof PiglinBruteEntity b) {
                     b.setImmuneToZombification(true);
                 }
