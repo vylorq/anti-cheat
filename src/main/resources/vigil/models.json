@@ -1,8 +1,8 @@
 {
- "boiled_one": {
+ "boiled_hand": {
   "parts": [
    {
-    "id": "boiled_one__body",
+    "id": "boiled_hand__body",
     "parent": null,
     "phase": 0.0,
     "pivot": [
@@ -11,6 +11,48 @@
      0.0
     ],
     "role": "static",
+    "side": 0
+   }
+  ],
+  "scale": 0.9
+ },
+ "boiled_one": {
+  "creepy": true,
+  "parts": [
+   {
+    "id": "boiled_one__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "boiled_one__head",
+    "parent": "boiled_one__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0566,
+     0.7812,
+     0.0
+    ],
+    "role": "head",
+    "side": 0
+   },
+   {
+    "id": "boiled_one__arm",
+    "parent": "boiled_one__body",
+    "phase": 0.0,
+    "pivot": [
+     -0.002,
+     0.1113,
+     0.0
+    ],
+    "role": "arm",
     "side": 0
    }
   ],
