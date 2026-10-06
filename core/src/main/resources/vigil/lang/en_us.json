@@ -2638,5 +2638,11 @@
   "boss.awake": "§4§lThe boss has woken. §cIt waits in the great chamber.",
   "boss.locked": "This fight belongs to another group.",
   "boss.weapon-upgraded": "§6Your {0} grew stronger: level {1}!",
-  "boss.weapon-max": "§7Your {0} is already as strong as it gets."
+  "boss.weapon-max": "§7Your {0} is already as strong as it gets.",
+  "owner.secrets": "Secret items",
+  "owner.secrets.desc": "Every secret item, tool and boss weapon. Click to take one.",
+  "owner.secrets.take": "take one",
+  "owner.secrets.from.structure": "Found in secret structures' chests",
+  "owner.secrets.from.boss": "Dropped by its boss",
+  "owner.secrets.from.craft": "Craftable"
 }
