@@ -345,6 +345,9 @@ public final class AntiCheatGameTests {
         check(com.vylorq.anticheat.feature.Bosses.phaseOf(boss) == 2, "the boss didn't go to phase 2");
         check(boss.getHealth() == boss.getMaxHealth(), "phase 2 didn't start on full health");
         check(boss.getCustomName().getString().contains("[2/3]"), "the name doesn't show the phase");
+        com.vylorq.anticheat.feature.ModelMobs.tick(2);
+        check(!com.vylorq.anticheat.feature.ModelMobs.hasModel("forgemaster") || boss.isInvisible(),
+                "the boss's plain mob shows after its phase change");
         boss.discard();
         ctx.complete();
     }

@@ -395,6 +395,11 @@ public final class ModelMobs {
                 continue;
             }
             ServerWorld w = (ServerWorld) x.mob.getEntityWorld();
+            if (!x.mob.isInvisible()) {
+                // The game turns invisibility off whenever its effects change (a boss's next phase, Resistance
+                // running out...), which would show the plain mob inside its model.
+                x.mob.setInvisible(true);
+            }
             follow(w, x);
             // Only animate where someone can see it.
             if (ticks % 2 == 0 && w.getClosestPlayer(x.mob, 80) != null) {
