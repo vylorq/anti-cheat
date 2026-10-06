@@ -405,6 +405,10 @@ public final class AntiCheatGameTests {
         check(!m.isAiDisabled(), "a rushing Boiled One must move");
         com.vylorq.anticheat.feature.BoiledOne.removeForTest(m);
         check(m.isRemoved(), "it didn't vanish");
+        check(com.vylorq.anticheat.feature.BoiledOne.huntEndsOnDeathForTest(victim), "a followed player's death didn't end the hunt");
+        com.vylorq.anticheat.feature.BoiledOne.eventForTest(true);
+        check(com.vylorq.anticheat.feature.BoiledOne.eventOn(), "The Boiling Night didn't start");
+        com.vylorq.anticheat.feature.BoiledOne.eventForTest(false);
         ctx.complete();
     }
 

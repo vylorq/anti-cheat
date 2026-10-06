@@ -1438,6 +1438,20 @@ def s_boiled_scream():
 
 SOUNDS4["boiled_scream"] = s_boiled_scream
 
+
+def s_boiled_breath():
+    """Slow, heavy, wet breathing: two long breaths, in and out, rough and close."""
+    def breath(sec, rise):
+        n = int(SR * sec)
+        shape = np.sin(np.linspace(0, np.pi, n)) ** (1.4 if rise else 0.8)
+        air = lowpass(noise(sec), 6) * 3.0 + lowpass(noise(sec), 30) * 1.5
+        rasp = saw(np.linspace(70, 55, n), sec, 0.3) * 0.25 * (0 if rise else 1)
+        return (air + rasp) * shape
+    return mix(4.6, [(0.0, breath(1.1, True)), (1.15, breath(1.2, False)), (2.4, breath(1.0, True)), (3.45, breath(1.1, False))])
+
+
+SOUNDS4["boiled_breath"] = s_boiled_breath
+
 SOUNDS = {"zap": s_zap, "mode": s_mode, "launch": s_launch,
           "heal": s_heal, "repair": s_repair, "give": s_give, "owner_join": s_owner_join, **SOUNDS2, **SOUNDS3, **SOUNDS4}
 
@@ -1608,11 +1622,13 @@ def bedrock_pack():
     sheet.paste(face, (0, 0))
     out["font/glyph_E2.png"] = png(sheet)
     # The scream, under the coded name the mod plays it by (with and without the namespace, whichever Geyser sends).
-    scream = code("boiled_scream")
-    out["sounds/vigil/boiled_scream.ogg"] = ogg(SOUNDS["boiled_scream"]())
-    entry = {"category": "hostile", "sounds": [{"name": "sounds/vigil/boiled_scream", "volume": 1.0, "load_on_low_memory": True}]}
-    out["sounds/sound_definitions.json"] = json.dumps({"format_version": "1.14.0", "sound_definitions": {
-        "vigil:" + scream: entry, scream: entry}}, indent=2).encode()
+    defs = {}
+    for snd in ("boiled_scream", "boiled_breath"):
+        out[f"sounds/vigil/{snd}.ogg"] = ogg(SOUNDS[snd]())
+        entry = {"category": "hostile", "sounds": [{"name": f"sounds/vigil/{snd}", "volume": 1.0, "load_on_low_memory": True}]}
+        defs["vigil:" + code(snd)] = entry
+        defs[code(snd)] = entry
+    out["sounds/sound_definitions.json"] = json.dumps({"format_version": "1.14.0", "sound_definitions": defs}, indent=2).encode()
     out["pack_icon.png"] = png(pack_icon())
     digest = hashlib.sha1(b"".join(out[k] for k in sorted(out))).hexdigest()
     version = [1, 0, int(digest[:6], 16) % 100000]

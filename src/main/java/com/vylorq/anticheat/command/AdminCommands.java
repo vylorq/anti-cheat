@@ -180,7 +180,7 @@ public final class AdminCommands {
                 .then(literal("reset").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::reset)))
                 .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::info))));
         var boiledSend = literal("send");
-        for (String how : new String[]{"watch", "scare", "breakin"}) {
+        for (String how : new String[]{"watch", "scare", "peek", "behind", "breakin"}) {
             boiledSend.then(literal(how).then(Args.player("player").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerSend(p,
                     Args.online(Args.str(ctx, "player")), how)))));
         }
@@ -192,6 +192,18 @@ public final class AdminCommands {
                 .then(literal("minutes").then(CommandManager.argument("minutes", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 10000))
                         .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerMinutes(p,
                                 com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "minutes"))))))
+                .then(literal("breakins")
+                        .then(literal("always").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerBreakIns(p, true))))
+                        .then(literal("rare").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerBreakIns(p, false)))))
+                .then(literal("hunt").then(Args.player("player").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerHunt(p,
+                        Args.online(Args.str(ctx, "player")), true)))))
+                .then(literal("unhunt").then(Args.player("player").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerHunt(p,
+                        Args.online(Args.str(ctx, "player")), false)))))
+                .then(literal("hunted").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerHunted)))
+                .then(literal("bases").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerBases)))
+                .then(literal("event")
+                        .then(literal("start").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerEvent(p, true))))
+                        .then(literal("stop").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerEvent(p, false)))))
                 .then(boiledSend));
         owner.then(literal("smite").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerCombat::smite)));
         owner.then(literal("items").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::items)));
