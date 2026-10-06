@@ -154,7 +154,8 @@ public final class OrbitalStrike {
         switch (pattern) {
             case "column" -> {
                 for (int i = 0; i < count; i++) {
-                    out.add(new double[]{(rnd.nextDouble() - 0.5) * 0.3, i * 1.2, (rnd.nextDouble() - 0.5) * 0.3});
+                    // All in one line, one after another (they come in waves): each digs deeper than the last.
+                    out.add(new double[]{0, 0, 0});
                 }
             }
             case "random" -> {
@@ -293,6 +294,8 @@ public final class OrbitalStrike {
         int next;
         long at;
         final List<TntEntity> live = new ArrayList<>();
+        /** Where each TNT of a column (stab) must stay over (x, z), so the blasts before it can't push it aside. */
+        final java.util.Map<TntEntity, double[]> aim = new java.util.HashMap<>();
         final List<Long> forced = new ArrayList<>();
         Zone zone;
 
@@ -471,8 +474,23 @@ public final class OrbitalStrike {
                     setPower(tnt, s.power);
                     st.world.spawnEntity(tnt);
                     st.live.add(tnt);
+                    if ("column".equals(s.pattern)) {
+                        st.aim.put(tnt, new double[]{x, z});
+                    }
                 }
                 st.at = ticks + s.waveTicks;
+            }
+            // A stab's TNT drops straight down its shaft: the blasts before it would otherwise knock it aside.
+            if (!st.aim.isEmpty()) {
+                for (TntEntity t : st.live) {
+                    double[] a = st.aim.get(t);
+                    if (a != null && !t.isRemoved()) {
+                        t.setPosition(a[0], t.getY(), a[1]);
+                        t.setVelocity(0, Math.min(t.getVelocity().y, -0.8), 0);
+                        t.velocityModified = true;
+                    }
+                }
+                st.aim.keySet().removeIf(TntEntity::isRemoved);
             }
             // Explode-on-landing: light the fuse the moment each one touches down.
             if (s.fuse == 0) {

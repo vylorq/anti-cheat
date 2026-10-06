@@ -1,0 +1,176 @@
+{
+  "size": [
+    178,
+    34,
+    41
+  ],
+  "gates": [
+    {
+      "name": "seal",
+      "box": [
+        3,
+        3,
+        18,
+        3,
+        8,
+        22
+      ],
+      "block": "reinforced_deepslate",
+      "closed": false
+    },
+    {
+      "name": "code",
+      "box": [
+        44,
+        10,
+        18,
+        44,
+        13,
+        22
+      ],
+      "block": "polished_blackstone_bricks",
+      "closed": true
+    },
+    {
+      "name": "maze",
+      "box": [
+        128,
+        3,
+        18,
+        128,
+        7,
+        22
+      ],
+      "block": "polished_blackstone_bricks",
+      "closed": true
+    },
+    {
+      "name": "vault",
+      "box": [
+        160,
+        3,
+        19,
+        160,
+        6,
+        21
+      ],
+      "block": "reinforced_deepslate",
+      "closed": true
+    },
+    {
+      "name": "exit",
+      "box": [
+        177,
+        3,
+        19,
+        177,
+        6,
+        21
+      ],
+      "block": "reinforced_deepslate",
+      "closed": true
+    }
+  ],
+  "levers": [
+    [
+      25,
+      4,
+      3
+    ],
+    [
+      28,
+      4,
+      3
+    ],
+    [
+      31,
+      4,
+      3
+    ],
+    [
+      34,
+      4,
+      3
+    ],
+    [
+      37,
+      4,
+      3
+    ],
+    [
+      40,
+      4,
+      3
+    ]
+  ],
+  "code": [
+    0,
+    3,
+    4
+  ],
+  "regions": {
+    "inside": [
+      1,
+      2,
+      1,
+      176,
+      23,
+      39
+    ],
+    "seal_trigger": [
+      7,
+      2,
+      1,
+      21,
+      12,
+      39
+    ],
+    "levers": [
+      23,
+      2,
+      1,
+      43,
+      12,
+      39
+    ],
+    "parkour": [
+      45,
+      2,
+      1,
+      80,
+      15,
+      39
+    ],
+    "maze": [
+      93,
+      2,
+      1,
+      127,
+      7,
+      39
+    ],
+    "arena": [
+      130,
+      2,
+      1,
+      159,
+      22,
+      39
+    ]
+  },
+  "maze_lever": [
+    109,
+    4,
+    16
+  ],
+  "boss_spawn": [
+    144,
+    3,
+    20
+  ],
+  "vault_chest": [
+    165,
+    4,
+    20
+  ]
+}
