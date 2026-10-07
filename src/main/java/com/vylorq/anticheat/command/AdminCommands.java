@@ -189,6 +189,7 @@ public final class AdminCommands {
                 .then(literal("on").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerToggle(p, true))))
                 .then(literal("off").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerToggle(p, false))))
                 .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerInfo)))
+                .then(literal("locate").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerLocate)))
                 .then(literal("removeall").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerRemoveAll)))
                 .then(literal("minutes").then(CommandManager.argument("minutes", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 10000))
                         .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerMinutes(p,

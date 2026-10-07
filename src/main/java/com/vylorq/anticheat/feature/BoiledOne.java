@@ -147,6 +147,8 @@ public final class BoiledOne {
         /** Seconds-ish its victim has spent hiding from it. */
         int hidden;
         boolean leftFoot;
+        /** Stalking: it stands frozen until this tick after being looked at. */
+        long frozenUntil;
 
         Hunt(MobEntity mob, UUID victim, Mode mode, long now) {
             this.mob = mob;
@@ -719,6 +721,9 @@ public final class BoiledOne {
         for (Hunt h : HUNTS.values()) {
             step(h);
         }
+        if (ticks % 10 == 0 && !ESP.isEmpty()) {
+            espTick();
+        }
     }
 
     private static void vanish(Hunt h) {
@@ -796,11 +801,24 @@ public final class BoiledOne {
                     vanish(h);
                     return;
                 }
-                if (h.mode == Mode.STALK && h.seen >= 8) {
-                    rush(h, p, false);
-                    return;
+                if (h.mode == Mode.STALK) {
+                    // Looked at: it freezes for a few seconds, then keeps coming (slower while watched).
+                    if (h.seen == 1) {
+                        h.frozenUntil = now + 20 * (3 + p.getRandom().nextInt(3));
+                    }
+                    if (dist < 2.4) {
+                        grab(h, p);
+                        return;
+                    }
+                    if (now >= h.frozenUntil) {
+                        walk(m, p, seen ? 0.09 : 0.16);
+                        if (now % 9 == 0) {
+                            h.leftFoot = !h.leftFoot;
+                            BoiledOmens.footprint(w, m, h.leftFoot);
+                        }
+                    }
                 }
-                if (dist < (h.mode == Mode.PEEK ? 6 : 7) || now - h.born > 20 * 150
+                if ((h.mode != Mode.STALK && dist < (h.mode == Mode.PEEK ? 6 : 7)) || now - h.born > 20 * 150
                         || (h.lastSeen >= 0 && now - h.lastSeen > 20 * 6 && dist > 50)) {
                     vanish(h);
                     return;
@@ -810,10 +828,10 @@ public final class BoiledOne {
                 } else if (h.mode == Mode.STALK && now % 30 == 0 && dist < 48) {
                     Mc.sound(p, SoundEvents.ENTITY_WARDEN_HEARTBEAT, (float) Math.max(0.15, 1 - dist / 48), 0.6f);
                 }
-                // While nobody's looking, it creeps closer.
-                if (!seen && h.mode == Mode.STALK && now - h.lastMove > 20 * 15 && dist > 14) {
+                // Far off and unwatched, it closes the gap out of sight.
+                if (!seen && h.mode == Mode.STALK && now - h.lastMove > 20 * 15 && dist > 40) {
                     h.lastMove = now;
-                    Vec3d to = spot(p, Math.max(10, dist - 12), Math.max(12, dist - 6), inCave(p), true);
+                    Vec3d to = spot(p, Math.max(24, dist - 16), Math.max(28, dist - 10), inCave(p), true);
                     if (to != null) {
                         m.refreshPositionAndAngles(to.x, to.y, to.z, m.getYaw(), 0);
                     }
@@ -953,6 +971,18 @@ public final class BoiledOne {
     }
 
     /** It sees you: a scream, and it comes for you. */
+    /** One step toward the player with its AI off: climbs a block, falls with gravity. */
+    private static void walk(MobEntity m, ServerPlayerEntity p, double speed) {
+        Vec3d d = p.getEntityPos().subtract(m.getEntityPos()).multiply(1, 0, 1);
+        if (d.lengthSquared() < 0.01) {
+            return;
+        }
+        set(m, EntityAttributes.STEP_HEIGHT, 1.1);
+        Vec3d v = d.normalize().multiply(speed);
+        m.move(net.minecraft.entity.MovementType.SELF, new Vec3d(v.x, -0.5, v.z));
+        face(m, p);
+    }
+
     private static void rush(Hunt h, ServerPlayerEntity p, boolean breakIn) {
         MobEntity m = h.mob;
         h.mode = breakIn ? Mode.BREAK_IN : Mode.RUSH;
@@ -1158,6 +1188,69 @@ public final class BoiledOne {
         State s = state();
         Msg.send(p, "boiled.info", s.enabled ? "on" : "off", s.minutes, s.breakInOdds == 1 ? "always" : "1 in " + s.breakInOdds,
                 HUNTS.size(), s.hunted.size(), eventOn() ? "on" : "off");
+    }
+
+    // ---------------------------------------------------------------- locator (owner ESP)
+
+    /** Owners with the locator on: every Boiled One glows for them (Java) and the nearest shows on the action bar. */
+    private static final Set<UUID> ESP = new java.util.HashSet<>();
+
+    /** /owner boiledone locate: lists every Boiled One out now and turns the locator on or off. */
+    public static void ownerLocate(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        if (ESP.remove(p.getUuid())) {
+            espPush(p, false);
+            Msg.send(p, "boiled.locate-off");
+            return;
+        }
+        ESP.add(p.getUuid());
+        Msg.send(p, "boiled.locate-on", HUNTS.size());
+        for (Hunt h : HUNTS.values()) {
+            MobEntity m = h.mob;
+            ServerPlayerEntity v = Ac.server().getPlayerManager().getPlayer(h.victim);
+            Msg.send(p, "boiled.locate-entry", Mc.worldId(m.getEntityWorld()).replace("minecraft:", ""),
+                    m.getBlockX(), m.getBlockY(), m.getBlockZ(), v == null ? "?" : v.getGameProfile().name(), h.mode.name().toLowerCase());
+        }
+        espPush(p, true);
+    }
+
+    private static void espPush(ServerPlayerEntity p, boolean glow) {
+        for (Hunt h : HUNTS.values()) {
+            if (h.mob.getEntityWorld() == p.getEntityWorld()) {
+                p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket(h.mob.getId(), List.of(
+                        new net.minecraft.entity.data.DataTracker.SerializedEntry<>(0,
+                                net.minecraft.entity.data.TrackedDataHandlerRegistry.BYTE, OwnerPowers.flags(h.mob, glow)))));
+            }
+        }
+    }
+
+    private static void espTick() {
+        for (UUID id : ESP.toArray(new UUID[0])) {
+            ServerPlayerEntity p = Ac.server().getPlayerManager().getPlayer(id);
+            if (p == null) {
+                ESP.remove(id);
+                continue;
+            }
+            espPush(p, true);
+            Hunt near = null;
+            double best = Double.MAX_VALUE;
+            for (Hunt h : HUNTS.values()) {
+                if (h.mob.getEntityWorld() == p.getEntityWorld() && h.mob.squaredDistanceTo(p) < best) {
+                    best = h.mob.squaredDistanceTo(p);
+                    near = h;
+                }
+            }
+            if (near == null) {
+                Msg.actionBar(p, "§8" + Msg.trFor(p, "boiled.locate-none"));
+            } else {
+                ServerPlayerEntity v = Ac.server().getPlayerManager().getPlayer(near.victim);
+                MobEntity m = near.mob;
+                Msg.actionBar(p, "§4☠ §f" + m.getBlockX() + " " + m.getBlockY() + " " + m.getBlockZ() + " §7(" + (int) Math.sqrt(best)
+                        + "m) §c" + (v == null ? "?" : v.getGameProfile().name()) + " §8" + near.mode.name().toLowerCase());
+            }
+        }
     }
 
     /** Sends it after a player now: watch (stalks), scare, peek (from a corner), behind, or breakin. */
