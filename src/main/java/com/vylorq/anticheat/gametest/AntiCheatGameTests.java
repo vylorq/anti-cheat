@@ -389,6 +389,22 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void chestsOnlyGiveWhatPlayersHaveGot(TestContext ctx) {
+        var eco = com.vylorq.anticheat.Ac.get().economy;
+        boolean had = eco.isObtained("minecraft:netherite_ingot");
+        eco.forgetObtained("minecraft:netherite_ingot");
+        check(!com.vylorq.anticheat.feature.StructureLoot.allowed(new net.minecraft.item.ItemStack(net.minecraft.item.Items.NETHERITE_INGOT)),
+                "a chest would give netherite nobody has found yet");
+        eco.markObtained("minecraft:netherite_ingot");
+        check(com.vylorq.anticheat.feature.StructureLoot.allowed(new net.minecraft.item.ItemStack(net.minecraft.item.Items.NETHERITE_INGOT)),
+                "a chest can't give netherite after someone found some");
+        if (!had) {
+            eco.forgetObtained("minecraft:netherite_ingot");
+        }
+        ctx.complete();
+    }
+
+    @GameTest
     public void boiledOneStalksThenRushes(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
