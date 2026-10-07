@@ -234,6 +234,20 @@ public final class WaitingRoomFeature {
         Msg.send(admin, "waiting.sent-back", name);
     }
 
+    /** Lets a waiting player in without the questions (staff made them a builder, for example). */
+    public static void letIn(ServerPlayerEntity admin, ServerPlayerEntity p) {
+        Ac ac = Ac.get();
+        ac.waitingRoom.decide(p.getUuid(), true, admin == null ? "console" : Staff.name(admin));
+        ac.waitingRoom.accept(p.getUuid());
+        Ac.markDirty("waiting");
+        Staff.log(admin, "request-accept", p.getUuid(), p.getGameProfile().name(), "builder");
+        p.removeStatusEffect(StatusEffects.DARKNESS);
+        if (ac.lobby.isSet()) {
+            Mc.teleport(p, ac.server, ac.lobby.data().spawn);
+        }
+        Mc.title(p, Msg.tr("waiting.accepted-title"), Msg.tr("waiting.accepted-subtitle"), 10, 60, 20);
+    }
+
     public static void accept(ServerPlayerEntity admin, UUID id) {
         Ac ac = Ac.get();
         WaitingRoom.Request r = ac.waitingRoom.decide(id, true, Staff.name(admin));
