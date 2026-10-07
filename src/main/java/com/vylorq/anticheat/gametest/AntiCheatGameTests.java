@@ -366,6 +366,7 @@ public final class AntiCheatGameTests {
         com.vylorq.anticheat.feature.OwnerCombat.slayForTest(owner, zombie);
         check(!zombie.isAlive(), "the Doom Blade didn't kill a zombie");
         var creative = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "CreativeOne"));
+        com.vylorq.anticheat.feature.ScareWarning.accept(creative);
         creative.changeGameMode(net.minecraft.world.GameMode.CREATIVE);
         creative.setHealth(20f);
         com.vylorq.anticheat.feature.OwnerCombat.slayForTest(owner, creative);
@@ -457,6 +458,7 @@ public final class AntiCheatGameTests {
         float shown = (before - boss.getHealth()) * scale;
         check(shown >= 19f && shown <= 41f, "a secret weapon should take 20-40 off a boss: " + shown);
         var victim = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "FangVictim"));
+        com.vylorq.anticheat.feature.ScareWarning.accept(victim);
         victim.setPosition(at.add(3, 0, 0));
         victim.setHealth(20f);
         victim.timeUntilRegen = 0;
