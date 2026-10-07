@@ -665,6 +665,97 @@ public final class BuilderTools {
         }), (hollow ? "hollow pyramid " : "pyramid ") + size + " " + pat.describe());
     }
 
+    // ---------------------------------------------------------------- terrain
+
+    /**
+     * A mountain (or hills) filling the selection's ground: rough peaks up to {@code height} blocks above the selection's
+     * bottom, stone inside, dirt and grass on top, snow on the high peaks. Hills are lower and rounder, with several bumps.
+     */
+    public static void terrain(ServerPlayerEntity p, int height, boolean hills) {
+        if (!check(p)) {
+            return;
+        }
+        BlockPos[] b = box(p);
+        if (b == null) {
+            return;
+        }
+        if (height < 3 || height > 256) {
+            Msg.send(p, "build.bad-radius", 256);
+            return;
+        }
+        BlockPos min = b[0];
+        BlockPos max = new BlockPos(b[1].getX(), Math.min(min.getY() + height, p.getEntityWorld().getTopYInclusive()), b[1].getZ());
+        long vol = (long) (max.getX() - min.getX() + 1) * (max.getY() - min.getY() + 1) * (max.getZ() - min.getZ() + 1);
+        if (vol > MAX_EDIT) {
+            Msg.send(p, "build.too-big", vol, MAX_EDIT);
+            return;
+        }
+        int w = max.getX() - min.getX() + 1;
+        int l = max.getZ() - min.getZ() + 1;
+        long seed = p.getRandom().nextLong();
+        int[] top = new int[w * l];
+        for (int x = 0; x < w; x++) {
+            for (int z = 0; z < l; z++) {
+                // 0 at the selection's edge, 1 in its middle
+                double nx = (x + 0.5) / w * 2 - 1;
+                double nz = (z + 0.5) / l * 2 - 1;
+                double d = Math.min(1, Math.sqrt(nx * nx + nz * nz));
+                double shape;
+                double n = noise(seed, x / 14.0, z / 14.0) * 0.6 + noise(seed + 1, x / 6.0, z / 6.0) * 0.3
+                        + noise(seed + 2, x / 2.5, z / 2.5) * 0.1;
+                if (hills) {
+                    double fall = Math.cos(d * Math.PI / 2);
+                    shape = fall * (0.35 + 0.65 * noise(seed + 3, x / 18.0, z / 18.0)) * (0.8 + 0.2 * n);
+                } else {
+                    double fall = Math.pow(1 - d, 1.6);
+                    shape = fall * (0.65 + 0.55 * n);
+                }
+                top[x * l + z] = (int) Math.round(Math.max(0, Math.min(1, shape)) * height);
+            }
+        }
+        int snow = (int) (height * 0.78);
+        start(p, boxSource(min, max, (pos, old) -> {
+            int x = pos.getX() - min.getX();
+            int z = pos.getZ() - min.getZ();
+            int y = pos.getY() - min.getY();
+            int t = top[x * l + z];
+            if (y > t) {
+                return y == t + 1 && t >= snow && !hills ? Blocks.SNOW.getDefaultState() : null;
+            }
+            if (y == t) {
+                return t >= snow && !hills ? Blocks.SNOW_BLOCK.getDefaultState()
+                        : t > height * 0.55 && !hills ? Blocks.STONE.getDefaultState() : Blocks.GRASS_BLOCK.getDefaultState();
+            }
+            if (y >= t - 3 && (hills || t <= height * 0.55)) {
+                return Blocks.DIRT.getDefaultState();
+            }
+            return (x * 31 + y * 17 + z * 7) % 23 == 0 ? Blocks.ANDESITE.getDefaultState() : Blocks.STONE.getDefaultState();
+        }), (hills ? "hills " : "mountain ") + height);
+    }
+
+    /** Smooth value noise in 0..1. */
+    private static double noise(long seed, double x, double z) {
+        int x0 = (int) Math.floor(x);
+        int z0 = (int) Math.floor(z);
+        double fx = x - x0;
+        double fz = z - z0;
+        fx = fx * fx * (3 - 2 * fx);
+        fz = fz * fz * (3 - 2 * fz);
+        double a = hash(seed, x0, z0);
+        double b = hash(seed, x0 + 1, z0);
+        double c = hash(seed, x0, z0 + 1);
+        double d = hash(seed, x0 + 1, z0 + 1);
+        return (a + (b - a) * fx) + ((c + (d - c) * fx) - (a + (b - a) * fx)) * fz;
+    }
+
+    private static double hash(long seed, int x, int z) {
+        long h = seed ^ (x * 0x9E3779B97F4A7C15L) ^ (z * 0xC2B2AE3D27D4EB4FL);
+        h ^= h >>> 33;
+        h *= 0xFF51AFD7ED558CCDL;
+        h ^= h >>> 33;
+        return (h >>> 11) / (double) (1L << 53);
+    }
+
     // ---------------------------------------------------------------- brushes
 
     public static void setBrush(ServerPlayerEntity p, BrushMode mode, Pattern pat, int radius) {
