@@ -147,6 +147,10 @@ public final class BuilderMode {
      * @param live build straight in the real lobby (no draft to approve)
      */
     public static void start(ServerPlayerEntity by, ServerPlayerEntity p, long durationMs, boolean anywhere, boolean live) {
+        if (WaitingRoomFeature.waiting(p)) {
+            // Made a builder straight from the waiting room: they're let in first (or they'd stay stuck there).
+            WaitingRoomFeature.letIn(by, p);
+        }
         Ac.get().misc.builderNames.put(p.getUuid(), p.getGameProfile().name());
         BuilderDrafts.backup("builder-start-" + p.getGameProfile().name());
         Builder b = new Builder();
