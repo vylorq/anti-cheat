@@ -2721,5 +2721,6 @@
   "boiled.dawn": "The Lantern of Dawn is lit",
   "boiled.dawn-sub": "It can't come near you until morning.",
   "boiled.survived": "§6You lived through The Boiling Night without it ever seeing you. Take this.",
-  "boiled.lantern-given": "§6You got a Lantern of Dawn."
+  "boiled.lantern-given": "§6You got a Lantern of Dawn.",
+  "waiting.arrived": "§e{0} §7({1}) is in the waiting room."
 }

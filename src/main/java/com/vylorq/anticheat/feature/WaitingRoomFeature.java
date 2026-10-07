@@ -54,7 +54,33 @@ public final class WaitingRoomFeature {
         } else {
             Mc.title(p, Msg.tr("waiting.title"), Msg.tr("waiting.subtitle"), 10, 200, 20);
             Msg.send(p, "waiting.instructions");
+            if (Ac.session(p).bedrock) {
+                // Bedrock players rarely see chat: open the questions form for them.
+                UUID id = p.getUuid();
+                OwnerPowers.later(80, () -> {
+                    ServerPlayerEntity online = Ac.server().getPlayerManager().getPlayer(id);
+                    if (online != null && waiting(online)) {
+                        requestJoin(online);
+                    }
+                });
+            }
         }
+        // Staff hear about everyone who lands in the waiting room, request or not.
+        for (ServerPlayerEntity admin : Staff.online()) {
+            admin.sendMessage(arrivedText(p));
+        }
+    }
+
+    /** "X (Bedrock) is in the waiting room [Teleport] [Accept]". */
+    public static MutableText arrivedText(ServerPlayerEntity p) {
+        String name = p.getGameProfile().name();
+        String n = Msg.q(name);
+        MutableText t = Msg.prefixed(Msg.tr("waiting.arrived", name, Ac.session(p).bedrock ? "Bedrock" : "Java"));
+        t.append(Text.literal(" "));
+        t.append(Msg.button("§e[Teleport]", "/requests tp " + n, "Teleport to question them"));
+        t.append(Text.literal(" "));
+        t.append(Msg.button("§a[Accept]", "/requests accept " + n, "Let them play"));
+        return t;
     }
 
     /** Seeds the accepted list with everyone known when the room is first set, so existing players never wait. */
@@ -211,13 +237,20 @@ public final class WaitingRoomFeature {
     public static void accept(ServerPlayerEntity admin, UUID id) {
         Ac ac = Ac.get();
         WaitingRoom.Request r = ac.waitingRoom.decide(id, true, Staff.name(admin));
-        if (r == null) {
+        ServerPlayerEntity p = ac.server.getPlayerManager().getPlayer(id);
+        String name;
+        if (r != null) {
+            name = r.name;
+        } else if (ac.waitingRoom.isSet() && !ac.waitingRoom.isAccepted(id)) {
+            // No finished request (e.g. a Bedrock form that never came through): let them in anyway.
+            ac.waitingRoom.accept(id);
+            name = p != null ? p.getGameProfile().name() : com.vylorq.anticheat.command.Args.nameOf(id, id.toString());
+        } else {
             Msg.send(admin, "waiting.no-request");
             return;
         }
         Ac.markDirty("waiting");
-        Staff.log(admin, "request-accept", id, r.name, "");
-        ServerPlayerEntity p = ac.server.getPlayerManager().getPlayer(id);
+        Staff.log(admin, "request-accept", id, name, "");
         if (p != null) {
             p.removeStatusEffect(StatusEffects.DARKNESS);
             if (ac.lobby.isSet()) {
@@ -228,7 +261,7 @@ public final class WaitingRoomFeature {
             }
             Mc.title(p, Msg.tr("waiting.accepted-title"), Msg.tr("waiting.accepted-subtitle"), 10, 60, 20);
         }
-        Msg.send(admin, "waiting.accepted", r.name);
+        Msg.send(admin, "waiting.accepted", name);
     }
 
     public static void deny(ServerPlayerEntity admin, UUID id) {
