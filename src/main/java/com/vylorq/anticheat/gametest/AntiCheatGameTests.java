@@ -359,12 +359,18 @@ public final class AntiCheatGameTests {
         check(boss != null, "the boss didn't spawn");
         var owner = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Slayer"));
         com.vylorq.anticheat.feature.OwnerCombat.slayForTest(owner, boss);
-        check(!boss.isAlive(), "the Godslayer didn't kill the boss in one blow");
+        check(!boss.isAlive(), "the Doom Blade didn't kill the boss in one blow");
         var zombie = net.minecraft.entity.EntityType.ZOMBIE.create(w, net.minecraft.entity.SpawnReason.EVENT);
         zombie.refreshPositionAndAngles(at.x, at.y, at.z + 2, 0, 0);
         w.spawnEntity(zombie);
         com.vylorq.anticheat.feature.OwnerCombat.slayForTest(owner, zombie);
-        check(!zombie.isAlive(), "the Godslayer didn't kill a zombie");
+        check(!zombie.isAlive(), "the Doom Blade didn't kill a zombie");
+        var creative = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "CreativeOne"));
+        com.vylorq.anticheat.feature.ScareWarning.accept(creative);
+        creative.changeGameMode(net.minecraft.world.GameMode.CREATIVE);
+        creative.setHealth(20f);
+        com.vylorq.anticheat.feature.OwnerCombat.slayForTest(owner, creative);
+        check(creative.isDead() || creative.getHealth() <= 0f, "the Doom Blade didn't kill a creative player");
         ctx.complete();
     }
 
@@ -429,6 +435,37 @@ public final class AntiCheatGameTests {
         check(com.vylorq.anticheat.feature.BoiledOmens.isLantern(com.vylorq.anticheat.feature.BoiledOmens.lantern()),
                 "the Lantern of Dawn isn't recognised");
         check(!com.vylorq.anticheat.feature.BoiledOmens.isProtected(victim), "nobody is protected before lighting a lantern");
+        ctx.complete();
+    }
+
+    @GameTest
+    public void secretWeaponsHitBossesHardButNotPlayers(TestContext ctx) {
+        var w = ctx.getWorld();
+        var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
+        var boss = com.vylorq.anticheat.feature.Bosses.spawn(w, at, "forgemaster");
+        check(boss != null, "the boss didn't spawn");
+        var p = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "FangTester"));
+        var fang = new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD);
+        fang.set(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA, new net.minecraft.component.type.CustomModelDataComponent(
+                java.util.List.of(), java.util.List.of(), java.util.List.of(com.vylorq.anticheat.util.PackIds.model("storm_fang")), java.util.List.of()));
+        p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND, fang);
+        check("storm_fang".equals(com.vylorq.anticheat.feature.SecretItems.idOf(fang)), "the test fang isn't recognised");
+        float scale = com.vylorq.anticheat.feature.Bosses.damageScale(boss);
+        boss.removeStatusEffect(net.minecraft.entity.effect.StatusEffects.RESISTANCE); // the 3 seconds it can't be hurt as it rises
+        boss.timeUntilRegen = 0;
+        float before = boss.getHealth();
+        boss.damage(w, w.getDamageSources().playerAttack(p), 7f);
+        float shown = (before - boss.getHealth()) * scale;
+        check(shown >= 19f && shown <= 41f, "a secret weapon should take 20-40 off a boss: " + shown);
+        var victim = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "FangVictim"));
+        com.vylorq.anticheat.feature.ScareWarning.accept(victim);
+        victim.setPosition(at.add(3, 0, 0));
+        victim.setHealth(20f);
+        victim.timeUntilRegen = 0;
+        victim.damage(w, w.getDamageSources().playerAttack(p), 30f);
+        check(20f - victim.getHealth() <= com.vylorq.anticheat.feature.SecretItems.PLAYER_CAP + 0.01f,
+                "a secret weapon hit a player too hard: " + (20f - victim.getHealth()));
+        boss.discard();
         ctx.complete();
     }
 

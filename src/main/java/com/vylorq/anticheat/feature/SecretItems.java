@@ -287,8 +287,48 @@ public final class SecretItems {
 
     // ---------------------------------------------------------------- hits
 
+    /** How charged each player's last swing was (read before the game resets it). */
+    private static final Map<java.util.UUID, Float> CHARGE = new java.util.concurrent.ConcurrentHashMap<>();
+    /** Most a secret weapon can take off a player in one hit (after armour): 4 hearts. */
+    public static final float PLAYER_CAP = 8f;
+    public static final float BOSS_MIN = 20f;
+    public static final float BOSS_MAX = 40f;
+
+    /** The secret weapon behind this damage ("voidblade", a boss weapon...), or null. */
+    public static String weaponOf(DamageSource src) {
+        if (!(src.getAttacker() instanceof PlayerEntity)) {
+            return null;
+        }
+        String id = idOf(src.getWeaponStack());
+        return id != null && (BOSS_WEAPONS.contains(id) || id.equals(VOIDBLADE) || id.equals(STORMBREAKER)
+                || id.equals(TIDECALLER)) ? id : null;
+    }
+
+    /**
+     * A secret weapon's hit on a boss: 20, plus 2 for each level of Sharpness / Impaling / Density (40 at level 10),
+     * less for a half-charged swing the same way the game does it.
+     */
+    public static float bossHit(DamageSource src) {
+        ItemStack s = src.getWeaponStack();
+        int level = 0;
+        for (var en : s.getEnchantments().getEnchantmentEntries()) {
+            var k = en.getKey();
+            if (k.matchesKey(net.minecraft.enchantment.Enchantments.SHARPNESS) || k.matchesKey(net.minecraft.enchantment.Enchantments.IMPALING)
+                    || k.matchesKey(net.minecraft.enchantment.Enchantments.DENSITY)) {
+                level = Math.max(level, en.getIntValue());
+            }
+        }
+        float hit = Math.min(BOSS_MAX, BOSS_MIN + 2f * Math.min(10, level));
+        if (src.getSource() == src.getAttacker()) {
+            float c = CHARGE.getOrDefault(src.getAttacker().getUuid(), 1f);
+            hit *= 0.2f + c * c * 0.8f;
+        }
+        return hit;
+    }
+
     /** A player hit something (the hit was allowed). */
     public static void onHit(ServerPlayerEntity p, Entity target) {
+        CHARGE.put(p.getUuid(), p.getAttackCooldownProgress(0.5f));
         shadowBreak(p);
         if (!(target instanceof LivingEntity e) || !e.isAlive()) {
             return;

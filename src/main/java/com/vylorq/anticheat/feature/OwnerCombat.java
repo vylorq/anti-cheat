@@ -107,8 +107,8 @@ public final class OwnerCombat {
     }
 
     public static ItemStack godslayer() {
-        return OwnerTools.make(Items.NETHERITE_SWORD, GODSLAYER, "§4☠ Godslayer",
-                "Hit: kills anything in one blow", "Players, mobs and bosses (all their phases)", "§8Owner only");
+        return OwnerTools.make(Items.NETHERITE_SWORD, GODSLAYER, "§4☠ Doom Blade",
+                "Hit: kills anything in one blow", "Players (even in creative), mobs and bosses", "§8Owner only");
     }
 
     public static List<ItemStack> weapons() {
@@ -262,17 +262,17 @@ public final class OwnerCombat {
         return true;
     }
 
-    // ---------------------------------------------------------------- the Godslayer
+    // ---------------------------------------------------------------- the Doom Blade
 
     /** For the game tests. */
     public static void slayForTest(ServerPlayerEntity p, Entity target) {
         slay(p, target);
     }
 
-    /** One blow, and whatever it hits is dead: a boss skips straight past its phases, a totem doesn't save anyone. */
+    /** One blow, and whatever it hits is dead (creative players too): a boss skips straight past its phases, a totem doesn't save anyone. */
     private static void slay(ServerPlayerEntity p, Entity target) {
         Entity t = target instanceof net.minecraft.entity.boss.dragon.EnderDragonPart part ? part.owner : target;
-        if (!(t instanceof LivingEntity e) || !e.isAlive() || (e instanceof ServerPlayerEntity sp && (sp.isCreative() || sp.isSpectator()))) {
+        if (!(t instanceof LivingEntity e) || !e.isAlive() || (e instanceof ServerPlayerEntity sp && sp.isSpectator())) {
             return;
         }
         if (e instanceof ServerPlayerEntity victim && LobbyFeature.in(victim) && com.vylorq.anticheat.Ac.config().lobby.noPvp) {
@@ -287,6 +287,11 @@ public final class OwnerCombat {
             e.damage(w, w.getDamageSources().genericKill(), Float.MAX_VALUE);
             if (e.isAlive()) {
                 e.kill(w);
+            }
+            if (e.isAlive() && e instanceof ServerPlayerEntity sp) {
+                // Creative (or just-joined) players shrug off damage: end them directly.
+                sp.setHealth(0f);
+                sp.onDeath(w.getDamageSources().genericKill());
             }
         } finally {
             dealing--;
