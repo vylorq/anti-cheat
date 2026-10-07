@@ -146,23 +146,48 @@ def recipe(item_id):
 
 # ------------------------------------------------------------------ chest loot
 
-# Good things in chests are rare: they're a small share of each roll, one at a time, and most rolls are junk or nothing.
-VALUABLE = {"diamond", "netherite_scrap", "heart_of_the_sea", "golden_apple", "echo_shard", "emerald", "ender_pearl",
-            "gold_ingot", "blaze_rod", "phantom_membrane"}
-JUNK = [("rotten_flesh", 14, 1, 4), ("bone", 12, 1, 3), ("string", 12, 1, 3), ("stick", 12, 1, 4), ("coal", 8, 1, 3),
-        ("cobweb", 5, 1, 2), ("arrow", 8, 2, 6), ("bread", 6, 1, 2)]
+# Chests are worth opening: the structure's own loot every time (no junk), plus a roll of something good.
+# Useful supplies keep the rolls from all being treasure.
+SUPPLIES = [("arrow", 6, 4, 12), ("cooked_beef", 6, 2, 6), ("torch", 4, 4, 12), ("experience_bottle", 6, 2, 6)]
 
 
-def filler(entries, rolls=(2, 4)):
-    out = [{"type": "minecraft:empty", "weight": 40}]
-    for name, weight, lo, hi in list(entries) + JUNK:
-        if name in VALUABLE:
-            weight, lo, hi = 1, 1, 1 if name in ("diamond", "netherite_scrap", "heart_of_the_sea", "golden_apple", "echo_shard") else min(hi, 2)
+def filler(entries, rolls=(3, 5)):
+    out = [{"type": "minecraft:empty", "weight": 6}]
+    for name, weight, lo, hi in list(entries) + SUPPLIES:
         e = {"type": "minecraft:item", "name": f"minecraft:{name}", "weight": weight}
         if hi > 1:
             e["functions"] = [{"function": "minecraft:set_count", "count": {"type": "minecraft:uniform", "min": lo, "max": hi}}]
         out.append(e)
     return {"rolls": {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]}, "entries": out}
+
+
+def enchanted(name, weight, levels=(20, 30), count=1):
+    e = {"type": "minecraft:item", "name": f"minecraft:{name}", "weight": weight,
+         "functions": [{"function": "minecraft:enchant_with_levels",
+                        "levels": {"type": "minecraft:uniform", "min": levels[0], "max": levels[1]}}]}
+    return e
+
+
+def item(name, weight, lo=1, hi=1):
+    e = {"type": "minecraft:item", "name": f"minecraft:{name}", "weight": weight}
+    if hi > 1:
+        e["functions"] = [{"function": "minecraft:set_count", "count": {"type": "minecraft:uniform", "min": lo, "max": hi}}]
+    return e
+
+
+def bonus():
+    """Something good in every chest: books, enchanted gear, apples, pearls, gems; now and then something great."""
+    book = {"type": "minecraft:item", "name": "minecraft:book", "weight": 14,
+            "functions": [{"function": "minecraft:enchant_randomly"}]}
+    return {"rolls": {"type": "minecraft:uniform", "min": 1, "max": 2}, "entries": [
+        {"type": "minecraft:empty", "weight": 6}, book,
+        enchanted("iron_sword", 6), enchanted("iron_chestplate", 5), enchanted("iron_pickaxe", 5),
+        enchanted("diamond_sword", 3, (25, 35)), enchanted("diamond_pickaxe", 3, (25, 35)),
+        enchanted("diamond_chestplate", 2, (25, 35)), enchanted("diamond_helmet", 2, (25, 35)), enchanted("bow", 4, (20, 30)),
+        item("golden_apple", 8, 1, 3), item("ender_pearl", 8, 2, 4), item("diamond", 9, 1, 4), item("emerald", 8, 3, 9),
+        item("experience_bottle", 8, 4, 10), item("gold_ingot", 6, 3, 8), item("name_tag", 2), item("saddle", 2),
+        item("netherite_scrap", 2, 1, 2), item("enchanted_golden_apple", 1), item("totem_of_undying", 1),
+        item("netherite_ingot", 1)]}
 
 
 # How rare each secret item is in a structure chest: 1 in this many per roll, the stronger the rarer.
@@ -193,7 +218,7 @@ CHESTS = {
                      filler([("gold_ingot", 10, 2, 6), ("blaze_rod", 8, 1, 4), ("magma_cream", 6, 1, 4), ("quartz", 8, 3, 9),
                              ("iron_ingot", 8, 2, 6), ("netherite_scrap", 2, 1, 1)])],
     "desert_tomb": [secret([("seeker_compass", 3), ("shadow_cloak", 2), ("voidblade", 1)]),
-                    filler([("gold_ingot", 10, 2, 6), ("bone", 10, 2, 6), ("emerald", 6, 1, 4), ("rotten_flesh", 8, 2, 6),
+                    filler([("gold_ingot", 10, 2, 6), ("lapis_lazuli", 8, 4, 10), ("emerald", 6, 1, 4), ("golden_apple", 4, 1, 2),
                             ("iron_ingot", 6, 1, 4), ("diamond", 2, 1, 2)])],
     "frozen_bastion": [secret([("tidecaller", 2), ("seeker_compass", 1)]),
                        filler([("blue_ice", 8, 2, 6), ("snowball", 10, 4, 12), ("iron_ingot", 8, 2, 6), ("emerald", 5, 1, 3),
@@ -1686,7 +1711,7 @@ def build():
     for item_id in RECIPES:
         write(f"recipe/{item_id}.json", recipe(item_id))
     for name, pools in CHESTS.items():
-        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools})
+        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [bonus()]})
     for name, (fn, biomes, step, height, heightmap, spacing, sep, salt, terrain) in STRUCTURES.items():
         arena = arena_doors(name, fn())
         # The old single-piece name stays, so structures generated before still find their template.
@@ -1702,7 +1727,7 @@ def build():
         write(f"worldgen/template_pool/{name}/caps.json", pool([f"{name}/cap"]))
         # Room chests: the structure's everyday loot, now and then one of its secret items.
         write(f"loot_table/chests/{name}_room.json", {"type": "minecraft:chest", "pools": [
-            CHESTS[name][-1], CHESTS[name][0]]})
+            CHESTS[name][-1], CHESTS[name][0], bonus()]})
         s = {"type": "minecraft:jigsaw", "biomes": biomes, "step": step, "spawn_overrides": {}, "terrain_adaptation": terrain,
              "start_pool": f"vigil:{name}/start", "size": 12, "start_height": {"absolute": height}, "max_distance_from_center": 116,
              "use_expansion_hack": False}
