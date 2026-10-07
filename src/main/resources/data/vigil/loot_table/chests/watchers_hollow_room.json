@@ -181,16 +181,6 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:book",
-          "weight": 14,
-          "functions": [
-            {
-              "function": "minecraft:enchant_randomly"
-            }
-          ]
-        },
-        {
-          "type": "minecraft:item",
           "name": "minecraft:iron_sword",
           "weight": 6,
           "functions": [
@@ -438,6 +428,25 @@
           "type": "minecraft:item",
           "name": "minecraft:netherite_ingot",
           "weight": 1
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 999
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:enchant_randomly"
+            }
+          ]
         }
       ]
     }

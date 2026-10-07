@@ -177,10 +177,8 @@ def item(name, weight, lo=1, hi=1):
 
 def bonus():
     """Something good in every chest: books, enchanted gear, apples, pearls, gems; now and then something great."""
-    book = {"type": "minecraft:item", "name": "minecraft:book", "weight": 14,
-            "functions": [{"function": "minecraft:enchant_randomly"}]}
     return {"rolls": {"type": "minecraft:uniform", "min": 1, "max": 2}, "entries": [
-        {"type": "minecraft:empty", "weight": 6}, book,
+        {"type": "minecraft:empty", "weight": 6},
         enchanted("iron_sword", 6), enchanted("iron_chestplate", 5), enchanted("iron_pickaxe", 5),
         enchanted("diamond_sword", 3, (25, 35)), enchanted("diamond_pickaxe", 3, (25, 35)),
         enchanted("diamond_chestplate", 2, (25, 35)), enchanted("diamond_helmet", 2, (25, 35)), enchanted("bow", 4, (20, 30)),
@@ -188,6 +186,13 @@ def bonus():
         item("experience_bottle", 8, 4, 10), item("gold_ingot", 6, 3, 8), item("name_tag", 2), item("saddle", 2),
         item("netherite_scrap", 2, 1, 2), item("enchanted_golden_apple", 1), item("totem_of_undying", 1),
         item("netherite_ingot", 1)]}
+
+
+def book():
+    """An enchanted book: 1 chest in 1,000."""
+    return {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": 999},
+                                    {"type": "minecraft:item", "name": "minecraft:book", "weight": 1,
+                                     "functions": [{"function": "minecraft:enchant_randomly"}]}]}
 
 
 # How rare each secret item is in a structure chest: 1 in this many per roll, the stronger the rarer.
@@ -1711,7 +1716,7 @@ def build():
     for item_id in RECIPES:
         write(f"recipe/{item_id}.json", recipe(item_id))
     for name, pools in CHESTS.items():
-        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [bonus()]})
+        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [bonus(), book()]})
     for name, (fn, biomes, step, height, heightmap, spacing, sep, salt, terrain) in STRUCTURES.items():
         arena = arena_doors(name, fn())
         # The old single-piece name stays, so structures generated before still find their template.
@@ -1727,7 +1732,7 @@ def build():
         write(f"worldgen/template_pool/{name}/caps.json", pool([f"{name}/cap"]))
         # Room chests: the structure's everyday loot, now and then one of its secret items.
         write(f"loot_table/chests/{name}_room.json", {"type": "minecraft:chest", "pools": [
-            CHESTS[name][-1], CHESTS[name][0], bonus()]})
+            CHESTS[name][-1], CHESTS[name][0], bonus(), book()]})
         s = {"type": "minecraft:jigsaw", "biomes": biomes, "step": step, "spawn_overrides": {}, "terrain_adaptation": terrain,
              "start_pool": f"vigil:{name}/start", "size": 12, "start_height": {"absolute": height}, "max_distance_from_center": 116,
              "use_expansion_hack": False}
