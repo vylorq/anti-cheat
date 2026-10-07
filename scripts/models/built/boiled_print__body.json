@@ -1,0 +1,1 @@
+{"textures":{"p":"vigil:item/boiled_print","particle":"vigil:item/boiled_print"},"elements":[{"from":[4,8,2],"to":[12,8.05,14],"faces":{"up":{"uv":[4,2,12,14],"texture":"#p"}}}]}

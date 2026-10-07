@@ -65,7 +65,7 @@ public final class BoiledOne {
     public static final String TAG = "vigil_boiled_one";
     static final String MODEL = "boiled_one";
 
-    enum Mode { STALK, SCARE, PEEK, BEHIND, RUSH, BREAK_IN, GRAB }
+    enum Mode { STALK, SCARE, PEEK, BEHIND, RUSH, BREAK_IN, GRAB, GLIMPSE }
 
     /** One break-in, remembered: who it came for and whose base it was. */
     public static final class BreakIn {
@@ -144,6 +144,9 @@ public final class BoiledOne {
         int room = 4;
         /** Its hand pressed against the tunnel roof (a separate model), when it crouches over someone. */
         UUID hand;
+        /** Seconds-ish its victim has spent hiding from it. */
+        int hidden;
+        boolean leftFoot;
 
         Hunt(MobEntity mob, UUID victim, Mode mode, long now) {
             this.mob = mob;
@@ -219,9 +222,23 @@ public final class BoiledOne {
         return HUNTS.values().stream().anyMatch(h -> h.victim.equals(p.getUuid()));
     }
 
-    private static boolean canHunt(ServerPlayerEntity p) {
+    /** Someone it could come for at all (alive, playing, in the overworld, not in an arena). */
+    static boolean huntable(ServerPlayerEntity p) {
         return p.isAlive() && !p.isCreative() && !p.isSpectator() && World.OVERWORLD.equals(p.getEntityWorld().getRegistryKey())
-                && !Arenas.inMatch(p) && !busy(p);
+                && !Arenas.inMatch(p);
+    }
+
+    private static boolean canHunt(ServerPlayerEntity p) {
+        return huntable(p) && !busy(p) && !BoiledOmens.isProtected(p);
+    }
+
+    /** The Lantern of Dawn was lit: whatever is after them now is gone. */
+    static void protect(ServerPlayerEntity p) {
+        for (Hunt h : HUNTS.values().toArray(new Hunt[0])) {
+            if (h.victim.equals(p.getUuid()) && h.mode != Mode.GRAB) {
+                vanish(h);
+            }
+        }
     }
 
     public static boolean eventOn() {
@@ -257,6 +274,16 @@ public final class BoiledOne {
             if (cave) {
                 int r = rng.nextInt(3);
                 m = r == 0 ? Mode.SCARE : r == 1 ? Mode.PEEK : Mode.STALK;
+                if (rng.nextBoolean()) {
+                    // The torches go out first.
+                    Mode then = m;
+                    BoiledOmens.snuff(p, () -> {
+                        if (canHunt(p)) {
+                            appear(p, then);
+                        }
+                    });
+                    continue;
+                }
             }
             appear(p, m);
         }
@@ -310,6 +337,7 @@ public final class BoiledOne {
     }
 
     static void startEvent() {
+        BoiledOmens.FAILED.clear();
         long t = Ac.server().getOverworld().getTimeOfDay() % 24000L;
         // Until sunrise (or ten minutes, if it's started in the day).
         eventUntil = now + (t >= 13000 && t < 23000 ? 23000 - t : 12000);
@@ -327,6 +355,11 @@ public final class BoiledOne {
     static void stopEvent(boolean early) {
         eventUntil = -1;
         MARKED.clear();
+        if (!early) {
+            BoiledOmens.survivors();
+        } else {
+            BoiledOmens.FAILED.clear();
+        }
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
             Msg.send(p, early ? "boiled.event-stopped" : "boiled.event-over");
         }
@@ -513,7 +546,13 @@ public final class BoiledOne {
                 // Bent over them, looking down; in a tunnel, crouched, a hand pressed on the roof above them.
                 breathe(victim, m, 0.5f);
             }
+            case GLIMPSE -> {
+                // Off to the side of their view; nothing to hear.
+            }
             default -> Mc.sound(victim, SoundEvents.AMBIENT_CAVE.value(), 0.7f, 0.5f);
+        }
+        if (mode == Mode.STALK || mode == Mode.BREAK_IN) {
+            BoiledOmens.panic(w, at);
         }
         posture(h, true);
         if (mode == Mode.BEHIND && h.room < 4) {
@@ -607,6 +646,54 @@ public final class BoiledOne {
         pack(p, "boiled_breath", m.getEyePos(), volume, 0.95f + p.getRandom().nextFloat() * 0.1f);
     }
 
+    // ---------------------------------------------------------------- glimpses
+
+    /**
+     * A glimpse: it stands off to the side, at the very edge of the screen (38-48 degrees from where they're looking;
+     * the normal view reaches about 50 to each side), close enough to make out, with nothing in the way. The moment they start to turn toward it, it's gone,
+     * so they're never sure they saw it.
+     */
+    static MobEntity glimpse(ServerPlayerEntity p) {
+        if (!canHunt(p)) {
+            return null;
+        }
+        ServerWorld w = p.getEntityWorld();
+        boolean cave = inCave(p);
+        var rng = w.getRandom();
+        for (int tries = 0; tries < 30; tries++) {
+            double side = (rng.nextBoolean() ? 1 : -1) * (38 + rng.nextDouble() * 10);
+            double ang = Math.toRadians(p.getYaw() + 90 + side);
+            double d = cave ? 8 + rng.nextDouble() * 8 : 12 + rng.nextDouble() * 12;
+            int x = MathHelper.floor(p.getX() + Math.cos(ang) * d);
+            int z = MathHelper.floor(p.getZ() + Math.sin(ang) * d);
+            for (int dy = 4; dy >= -4; dy--) {
+                BlockPos at = new BlockPos(x, p.getBlockY() + dy, z);
+                if (!standable(w, at, cave ? 2 : 4)) {
+                    continue;
+                }
+                Vec3d spot = Vec3d.ofBottomCenter(at);
+                // It must be in plain sight from their eyes.
+                var hit = w.raycast(new net.minecraft.world.RaycastContext(p.getEyePos(), spot.add(0, 1.5, 0),
+                        net.minecraft.world.RaycastContext.ShapeType.COLLIDER, net.minecraft.world.RaycastContext.FluidHandling.NONE, p));
+                if (hit.getType() != net.minecraft.util.hit.HitResult.Type.MISS) {
+                    continue;
+                }
+                return spawn(w, spot, p, Mode.GLIMPSE);
+            }
+        }
+        return null;
+    }
+
+    /** How far (degrees) from where they look it stands. */
+    static double offView(ServerPlayerEntity p, MobEntity m) {
+        Vec3d to = m.getBoundingBox().getCenter().subtract(p.getEyePos());
+        if (to.lengthSquared() < 1e-4) {
+            return 0;
+        }
+        double c = p.getRotationVec(1f).dotProduct(to.normalize());
+        return Math.toDegrees(Math.acos(Math.max(-1, Math.min(1, c))));
+    }
+
     // ---------------------------------------------------------------- every tick
 
     public static void tick(long ticks) {
@@ -617,6 +704,7 @@ public final class BoiledOne {
         if (ticks % 20 == 0) {
             pursue();
             nightfall();
+            BoiledOmens.tick(ticks);
         }
         for (Hunt h : HUNTS.values()) {
             step(h);
@@ -653,7 +741,29 @@ public final class BoiledOne {
         if (now % 5 == 0 && h.mode != Mode.BEHIND) {
             posture(h, false);
         }
+        if (h.mode != Mode.BEHIND && h.mode != Mode.GLIMPSE && h.mode != Mode.GRAB) {
+            BoiledOmens.interference(p, m, dist, now);
+            // Hiding (crouched, still, in a tight dark spot or behind a closed door): it loses them.
+            if (now % 10 == 0) {
+                h.hidden = BoiledOmens.hiding(p) && dist > 3 ? h.hidden + 1 : 0;
+                if (h.hidden >= 6) {
+                    breathe(p, m, 0.9f);
+                    Msg.actionBar(p, "§8" + Msg.trFor(p, "boiled.lost-you"));
+                    vanish(h);
+                    return;
+                }
+            }
+        }
         switch (h.mode) {
+            case GLIMPSE -> {
+                face(m, p);
+                // Gone the moment they turn toward it.
+                if (offView(p, m) < 24 || now - h.born > 50 || dist < 5) {
+                    HUNTS.remove(m.getUuid());
+                    ModelMobs.remove(m);
+                    return;
+                }
+            }
             case STALK, SCARE, PEEK -> {
                 face(m, p);
                 boolean seen = looking(p, m);
@@ -723,6 +833,10 @@ public final class BoiledOne {
                     }
                     if (now % 3 == 0) {
                         smash(w, m, d);
+                    }
+                    if (now % 9 == 0 && m.getVelocity().horizontalLengthSquared() > 0.005) {
+                        h.leftFoot = !h.leftFoot;
+                        BoiledOmens.footprint(w, m, h.leftFoot);
                     }
                 }
                 if (dist < 2.4) {
@@ -797,6 +911,7 @@ public final class BoiledOne {
         for (ServerPlayerEntity o : w.getPlayers()) {
             if (o != victim && !o.isCreative() && !o.isSpectator() && !MARKED.contains(o.getUuid()) && looking(o, m)) {
                 MARKED.add(o.getUuid());
+                BoiledOmens.FAILED.add(o.getUuid());
                 NEXT.put(o.getUuid(), now + 20L * (10 + o.getRandom().nextInt(20)));
                 Msg.actionBar(o, "§4" + Msg.trFor(o, "boiled.marked"));
                 Mc.sound(o, SoundEvents.ENTITY_WARDEN_HEARTBEAT, 1f, 0.5f);
@@ -892,6 +1007,9 @@ public final class BoiledOne {
 
     /** A player died: if it was following them, it's done. */
     private static void killed(ServerPlayerEntity p) {
+        if (eventOn()) {
+            BoiledOmens.FAILED.add(p.getUuid());
+        }
         State s = state();
         MARKED.remove(p.getUuid());
         if (s.hunted.remove(p.getUuidAsString()) != null) {
@@ -1033,6 +1151,40 @@ public final class BoiledOne {
             Msg.send(owner, "boiled.no-player");
             return;
         }
+        switch (how) {
+            case "footsteps" -> {
+                BoiledOmens.footsteps(target);
+                Msg.send(owner, "boiled.sent", target.getGameProfile().name());
+                return;
+            }
+            case "knock" -> {
+                BoiledOmens.knock(target);
+                Msg.send(owner, "boiled.sent", target.getGameProfile().name());
+                return;
+            }
+            case "door" -> {
+                BoiledOmens.door(target);
+                Msg.send(owner, "boiled.sent", target.getGameProfile().name());
+                return;
+            }
+            case "whisper" -> {
+                BoiledOmens.whisper(target);
+                Msg.send(owner, "boiled.sent", target.getGameProfile().name());
+                return;
+            }
+            case "torches" -> {
+                BoiledOmens.snuff(target, null);
+                Msg.send(owner, "boiled.sent", target.getGameProfile().name());
+                return;
+            }
+            case "glimpse" -> {
+                MobEntity g = glimpse(target);
+                Msg.send(owner, g == null ? "boiled.nowhere" : "boiled.sent", target.getGameProfile().name());
+                return;
+            }
+            default -> {
+            }
+        }
         Mode mode = switch (how) {
             case "scare" -> Mode.SCARE;
             case "peek" -> Mode.PEEK;
@@ -1045,6 +1197,14 @@ public final class BoiledOne {
         if (m != null) {
             Staff.log(owner, "boiled-one", target.getUuid(), target.getGameProfile().name(), how);
         }
+    }
+
+    public static void ownerLantern(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        p.getInventory().offerOrDrop(BoiledOmens.lantern());
+        Msg.send(p, "boiled.lantern-given");
     }
 
     public static void ownerRemoveAll(ServerPlayerEntity p) {

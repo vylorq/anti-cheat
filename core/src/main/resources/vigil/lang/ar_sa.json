@@ -2708,5 +2708,18 @@
   "boiled.event-sub": "لا تنظر إليه.",
   "boiled.event-over": "§7أشرقت الشمس. انتهت ليلة الغليان.",
   "boiled.event-stopped": "§7تم إيقاف ليلة الغليان.",
-  "boiled.marked": "نظرت إليه. لقد رآك."
+  "boiled.marked": "نظرت إليه. لقد رآك.",
+  "boiled.whisper.see": "أراك يا {0}...",
+  "boiled.whisper.behind": "لا تلتفت يا {0}",
+  "boiled.whisper.found": "وجدتك",
+  "boiled.whisper.close": "أقرب... أقرب...",
+  "boiled.whisper.door": "{0}، افتح الباب",
+  "boiled.whisper.look": "انظر إليّ يا {0}",
+  "boiled.whisper.alone": "لست وحدك هناك في الأسفل",
+  "boiled.whisper.hungry": "جائع جداً...",
+  "boiled.lost-you": "...فقدك. لا تتحرك.",
+  "boiled.dawn": "أُشعل فانوس الفجر",
+  "boiled.dawn-sub": "لا يستطيع الاقتراب منك حتى الصباح.",
+  "boiled.survived": "§6نجوت من ليلة الغليان دون أن يراك أبداً. خذ هذا.",
+  "boiled.lantern-given": "§6حصلت على فانوس الفجر."
 }

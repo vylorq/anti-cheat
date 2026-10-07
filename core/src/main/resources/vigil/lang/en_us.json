@@ -2708,5 +2708,18 @@
   "boiled.event-sub": "Don't look at it.",
   "boiled.event-over": "§7The sun rises. The Boiling Night is over.",
   "boiled.event-stopped": "§7The Boiling Night was stopped.",
-  "boiled.marked": "You looked at it. It saw you."
+  "boiled.marked": "You looked at it. It saw you.",
+  "boiled.whisper.see": "I see you, {0}...",
+  "boiled.whisper.behind": "don't turn around, {0}",
+  "boiled.whisper.found": "found you",
+  "boiled.whisper.close": "closer... closer...",
+  "boiled.whisper.door": "{0}, open the door",
+  "boiled.whisper.look": "look at me, {0}",
+  "boiled.whisper.alone": "you're not alone down there",
+  "boiled.whisper.hungry": "so hungry...",
+  "boiled.lost-you": "...it lost you. Don't move.",
+  "boiled.dawn": "The Lantern of Dawn is lit",
+  "boiled.dawn-sub": "It can't come near you until morning.",
+  "boiled.survived": "§6You lived through The Boiling Night without it ever seeing you. Take this.",
+  "boiled.lantern-given": "§6You got a Lantern of Dawn."
 }
