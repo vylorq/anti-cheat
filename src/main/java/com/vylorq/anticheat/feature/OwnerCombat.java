@@ -288,6 +288,11 @@ public final class OwnerCombat {
             if (e.isAlive()) {
                 e.kill(w);
             }
+            if (e.isAlive() && e instanceof ServerPlayerEntity sp) {
+                // Creative (or just-joined) players shrug off damage: end them directly.
+                sp.setHealth(0f);
+                sp.onDeath(w.getDamageSources().genericKill());
+            }
         } finally {
             dealing--;
         }
