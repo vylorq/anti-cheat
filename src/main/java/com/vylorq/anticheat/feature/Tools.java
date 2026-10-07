@@ -37,7 +37,7 @@ public final class Tools {
     }
 
     public static ItemStack inspector() {
-        ItemStack s = Icons.glint(Icons.of(Items.SPYGLASS, "§bBlock Inspector",
+        ItemStack s = Icons.glint(Icons.of(Items.STICK, "§bBlock Inspector",
                 "Right-click or left-click a block", "to see who placed or broke it"));
         ItemConv.setTag(s, KEY, INSPECTOR);
         return s;

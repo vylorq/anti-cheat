@@ -222,10 +222,15 @@ public final class BoiledOne {
         return HUNTS.values().stream().anyMatch(h -> h.victim.equals(p.getUuid()));
     }
 
-    /** Someone it could come for at all (alive, playing, in the overworld, not in an arena). */
+    /** Someone it could come for at all (alive, playing or in creative, in the overworld, not in an arena). */
     static boolean huntable(ServerPlayerEntity p) {
-        return p.isAlive() && !p.isCreative() && !p.isSpectator() && World.OVERWORLD.equals(p.getEntityWorld().getRegistryKey())
+        return p.isAlive() && !p.isSpectator() && World.OVERWORLD.equals(p.getEntityWorld().getRegistryKey())
                 && !Arenas.inMatch(p);
+    }
+
+    /** The owner is never picked at random (only when sent or hunted on purpose). */
+    private static boolean owner(ServerPlayerEntity p) {
+        return com.vylorq.anticheat.perm.Perms.isOwner(p.getUuid());
     }
 
     private static boolean canHunt(ServerPlayerEntity p) {
@@ -253,7 +258,7 @@ public final class BoiledOne {
         }
         var rng = Ac.server().getOverworld().getRandom();
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
-            if (!canHunt(p) || s.hunted.containsKey(p.getUuidAsString())) {
+            if (!canHunt(p) || s.hunted.containsKey(p.getUuidAsString()) || owner(p)) {
                 continue;
             }
             boolean cave = inCave(p);
@@ -905,6 +910,14 @@ public final class BoiledOne {
             w.playSound(null, head.x, head.y, head.z, SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE, 2f, 0.6f);
             jumpscare(p);
             p.damage(w, m.getDamageSources().mobAttack(m), 1000f);
+            if (p.isAlive()) {
+                // Creative players can't be hurt: it kills them anyway.
+                p.damage(w, w.getDamageSources().genericKill(), Float.MAX_VALUE);
+            }
+            if (p.isAlive()) {
+                p.setHealth(0f);
+                p.onDeath(m.getDamageSources().mobAttack(m));
+            }
         }
         if (t > 50) {
             vanish(h);
@@ -914,7 +927,7 @@ public final class BoiledOne {
     /** The Boiling Night: anyone else looking at it while it stalks is marked, and it will come for them. */
     private static void markWatchers(ServerWorld w, MobEntity m, ServerPlayerEntity victim) {
         for (ServerPlayerEntity o : w.getPlayers()) {
-            if (o != victim && !o.isCreative() && !o.isSpectator() && !MARKED.contains(o.getUuid()) && looking(o, m)) {
+            if (o != victim && !o.isSpectator() && !MARKED.contains(o.getUuid()) && looking(o, m)) {
                 MARKED.add(o.getUuid());
                 BoiledOmens.FAILED.add(o.getUuid());
                 NEXT.put(o.getUuid(), now + 20L * (10 + o.getRandom().nextInt(20)));
@@ -1035,7 +1048,7 @@ public final class BoiledOne {
     /** Mining underground: now and then it's right behind you. */
     private static void mining(ServerPlayerEntity p) {
         State s = state();
-        if (!s.enabled || !canHunt(p) || !inCave(p) || now < NEXT_BEHIND.getOrDefault(p.getUuid(), 0L)) {
+        if (!s.enabled || !canHunt(p) || owner(p) || !inCave(p) || now < NEXT_BEHIND.getOrDefault(p.getUuid(), 0L)) {
             return;
         }
         boolean focus = s.hunted.containsKey(p.getUuidAsString()) || eventOn();
