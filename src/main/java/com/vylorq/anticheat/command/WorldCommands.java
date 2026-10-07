@@ -375,6 +375,10 @@ final class WorldCommands {
                                 com.vylorq.anticheat.feature.BuilderTools.setBrush(p, m, pat, n(ctx, "radius"));
                             }
                         }))))))
+                .then(literal("mountain").then(num("height").executes(ctx -> builderRun(ctx, p ->
+                        com.vylorq.anticheat.feature.BuilderTools.terrain(p, n(ctx, "height"), false)))))
+                .then(literal("hills").then(num("height").executes(ctx -> builderRun(ctx, p ->
+                        com.vylorq.anticheat.feature.BuilderTools.terrain(p, n(ctx, "height"), true)))))
                 .then(literal("copy").executes(ctx -> builderRun(ctx, com.vylorq.anticheat.feature.BuilderTools::copy)))
                 .then(literal("paste").executes(ctx -> builderRun(ctx, p -> com.vylorq.anticheat.feature.BuilderTools.paste(p, true)))
                         .then(literal("noair").executes(ctx -> builderRun(ctx, p -> com.vylorq.anticheat.feature.BuilderTools.paste(p, false))))

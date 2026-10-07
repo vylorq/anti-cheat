@@ -44,7 +44,7 @@ public final class Tools {
     }
 
     public static ItemStack builderWand() {
-        ItemStack s = Icons.glint(Icons.of(Items.GOLDEN_AXE, "§6Builder Wand",
+        ItemStack s = Icons.glint(Icons.of(Items.STICK, "§6Builder Wand",
                 "Left-click a block: first corner", "Right-click a block: second corner",
                 "Then use the Builder Menu or /build"));
         ItemConv.setTag(s, KEY, BUILDER_WAND);
