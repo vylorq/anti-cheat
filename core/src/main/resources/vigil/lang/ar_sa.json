@@ -2727,5 +2727,22 @@
   "boiled.locate-off": "§7تم إيقاف المحدد.",
   "boiled.locate-entry": "§4☠ §f{0} {1} {2} {3} §7يطارد §c{4} §8({5})",
   "boiled.locate-none": "لا يوجد أحد الآن",
-  "owner.goto": "§aتم النقل إلى §f{0} {1} {2}§a."
+  "owner.goto": "§aتم النقل إلى §f{0} {1} {2}§a.",
+  "build.menu.break": "§cتكسير",
+  "build.menu.break-desc": "يكسر الكتل داخل التحديد",
+  "build.menu.break-all": "تكسير كل شيء",
+  "build.menu.break-one": "اختر كتلة واحدة لتكسيرها",
+  "build.menu.terrain": "§aجبال وتلال",
+  "build.menu.terrain-desc": "ينشئ تضاريس داخل التحديد من أسفله",
+  "build.menu.mountain": "جبل",
+  "build.menu.hills": "تلال",
+  "team.map-you": "§fأنت هنا",
+  "team.map-own": "§aأرض فريقك",
+  "team.map-ally": "§bحليف: {0}",
+  "team.map-wild": "§7أرض حرة",
+  "team.map-chunk": "الكتل من {0}, {1} إلى {2}, {3}",
+  "team.map-north": "§eالشمال للأعلى",
+  "team.map-legend": "كل مربع قطعة واحدة (16×16 كتلة)",
+  "team.map-count": "أرضك في هذه الخريطة: {0} قطعة",
+  "team.map-refresh": "تحديث"
 }

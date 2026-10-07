@@ -2727,5 +2727,22 @@
   "boiled.locate-off": "§7Locator off.",
   "boiled.locate-entry": "§4☠ §f{0} {1} {2} {3} §7hunting §c{4} §8({5})",
   "boiled.locate-none": "No Boiled One out right now",
-  "owner.goto": "§aTeleported to §f{0} {1} {2}§a."
+  "owner.goto": "§aTeleported to §f{0} {1} {2}§a.",
+  "build.menu.break": "§cBreak",
+  "build.menu.break-desc": "Breaks the blocks in your selection",
+  "build.menu.break-all": "break everything",
+  "build.menu.break-one": "pick one block to break",
+  "build.menu.terrain": "§aMountains & Hills",
+  "build.menu.terrain-desc": "Grows terrain in your selection, from its bottom",
+  "build.menu.mountain": "mountain",
+  "build.menu.hills": "hills",
+  "team.map-you": "§fYou are here",
+  "team.map-own": "§aYour team's land",
+  "team.map-ally": "§bAlly: {0}",
+  "team.map-wild": "§7Wilderness",
+  "team.map-chunk": "Blocks {0}, {1} to {2}, {3}",
+  "team.map-north": "§eNorth is up",
+  "team.map-legend": "Each square is one chunk (16×16 blocks)",
+  "team.map-count": "Your land on this map: {0} chunks",
+  "team.map-refresh": "refresh"
 }
