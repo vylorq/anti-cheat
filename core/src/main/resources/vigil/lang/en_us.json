@@ -2726,5 +2726,6 @@
   "boiled.locate-on": "§aLocator on. §7{0} Boiled One(s) out now. Run it again to turn it off.",
   "boiled.locate-off": "§7Locator off.",
   "boiled.locate-entry": "§4☠ §f{0} {1} {2} {3} §7hunting §c{4} §8({5})",
-  "boiled.locate-none": "No Boiled One out right now"
+  "boiled.locate-none": "No Boiled One out right now",
+  "owner.goto": "§aTeleported to §f{0} {1} {2}§a."
 }
