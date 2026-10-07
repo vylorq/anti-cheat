@@ -252,7 +252,13 @@ public abstract class ServerPlayNetworkHandlerMixin {
         }
     }
 
-    /** Builders can't drop anything (Q, Ctrl+Q). */
+    /** Admin and builder tools (wand, brush, menu, inspector, sticks) never leave their owner's hands. */
+    @org.spongepowered.asm.mixin.Unique
+    private static boolean ac$tool(net.minecraft.item.ItemStack s) {
+        return s != null && !s.isEmpty() && com.vylorq.anticheat.feature.Tools.toolOf(s) != null;
+    }
+
+    /** Builders can't drop anything (Q, Ctrl+Q), and nobody can drop a tool. */
     @Inject(method = "onPlayerAction", cancellable = true, at = @At(value = "INVOKE",
             target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
             shift = At.Shift.AFTER))
@@ -263,7 +269,8 @@ public abstract class ServerPlayNetworkHandlerMixin {
             com.vylorq.anticheat.feature.PacketChecks.watchedItem(player, "dropped",
                     packet.getAction() == PlayerActionC2SPacket.Action.DROP_ITEM ? held.copyWithCount(1) : held.copy());
         }
-        if (Ac.running() && BuilderMode.is(player) && (packet.getAction() == PlayerActionC2SPacket.Action.DROP_ITEM
+        if (Ac.running() && (BuilderMode.is(player) || ac$tool(player.getMainHandStack()))
+                && (packet.getAction() == PlayerActionC2SPacket.Action.DROP_ITEM
                 || packet.getAction() == PlayerActionC2SPacket.Action.DROP_ALL_ITEMS)) {
             ci.cancel();
             BuilderMode.denied(player);
@@ -276,7 +283,16 @@ public abstract class ServerPlayNetworkHandlerMixin {
             target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
             shift = At.Shift.AFTER))
     private void ac$builderThrow(ClickSlotC2SPacket packet, CallbackInfo ci) {
-        if (Ac.running() && BuilderMode.is(player)
+        boolean toolThrown = false;
+        if (Ac.running()) {
+            ScreenHandler h = player.currentScreenHandler;
+            if (packet.actionType() == SlotActionType.THROW && packet.slot() >= 0 && packet.slot() < h.slots.size()) {
+                toolThrown = ac$tool(h.getSlot(packet.slot()).getStack());
+            } else if (packet.slot() == ScreenHandler.EMPTY_SPACE_SLOT_INDEX) {
+                toolThrown = ac$tool(h.getCursorStack());
+            }
+        }
+        if (Ac.running() && (BuilderMode.is(player) || toolThrown)
                 && (packet.actionType() == SlotActionType.THROW || packet.slot() == ScreenHandler.EMPTY_SPACE_SLOT_INDEX)) {
             ci.cancel();
             BuilderMode.denied(player);
@@ -289,6 +305,13 @@ public abstract class ServerPlayNetworkHandlerMixin {
             target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
             shift = At.Shift.AFTER))
     private void ac$builderCreative(CreativeInventoryActionC2SPacket packet, CallbackInfo ci) {
+        if (Ac.running() && packet.slot() < 0 && ac$tool(packet.stack())) {
+            // Admin tools (wand, brush, inspector...) can't be thrown out of the creative menu either: back in the bag.
+            ci.cancel();
+            player.getInventory().insertStack(packet.stack().copy());
+            player.playerScreenHandler.syncState();
+            return;
+        }
         if (Ac.running() && BuilderMode.is(player)) {
             if (packet.slot() < 0 || !BuilderMode.allowed(packet.stack())) {
                 ci.cancel();

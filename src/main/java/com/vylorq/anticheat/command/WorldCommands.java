@@ -375,6 +375,18 @@ final class WorldCommands {
                                 com.vylorq.anticheat.feature.BuilderTools.setBrush(p, m, pat, n(ctx, "radius"));
                             }
                         }))))))
+                // /build break: empties the selection; /build break <block>: only that block goes
+                .then(literal("break").executes(ctx -> builderRun(ctx, p ->
+                                com.vylorq.anticheat.feature.BuilderTools.set(p, net.minecraft.block.Blocks.AIR.getDefaultState())))
+                        .then(Args.word("block").executes(ctx -> {
+                            var from = com.vylorq.anticheat.feature.BuilderTools.block(Args.str(ctx, "block"));
+                            if (from == null) {
+                                Msg.err(ctx.getSource(), "build.unknown-block", Args.str(ctx, "block"));
+                                return 0;
+                            }
+                            return builderRun(ctx, p -> com.vylorq.anticheat.feature.BuilderTools.replace(p, from.getBlock(),
+                                    net.minecraft.block.Blocks.AIR.getDefaultState()));
+                        })))
                 .then(literal("mountain").then(num("height").executes(ctx -> builderRun(ctx, p ->
                         com.vylorq.anticheat.feature.BuilderTools.terrain(p, n(ctx, "height"), false)))))
                 .then(literal("hills").then(num("height").executes(ctx -> builderRun(ctx, p ->
