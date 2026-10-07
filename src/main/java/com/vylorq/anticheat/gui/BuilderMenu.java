@@ -93,6 +93,26 @@ public final class BuilderMenu {
                 pl.closeHandledScreen();
                 BuilderTools.undo(pl);
             });
+            menu.set(33, Btn.of(Items.TNT).name(Msg.tr("build.menu.break")).desc(Msg.tr("build.menu.break-desc"))
+                    .left(Msg.tr("build.menu.break-all")).right(Msg.tr("build.menu.break-one")).build(), null, (pl, c) -> {
+                if (c.isRight()) {
+                    pickInSelection(pl, menu, from -> {
+                        pl.closeHandledScreen();
+                        BuilderTools.replace(pl, from, net.minecraft.block.Blocks.AIR.getDefaultState());
+                    });
+                } else {
+                    pl.closeHandledScreen();
+                    BuilderTools.set(pl, net.minecraft.block.Blocks.AIR.getDefaultState());
+                }
+            });
+            menu.set(43, Btn.of(Items.GRASS_BLOCK).name(Msg.tr("build.menu.terrain")).desc(Msg.tr("build.menu.terrain-desc"))
+                    .left(Msg.tr("build.menu.mountain")).right(Msg.tr("build.menu.hills")).build(), null, (pl, c) -> {
+                boolean hills = c.isRight();
+                size(pl, menu, Msg.trFor(pl, hills ? "build.menu.hills" : "build.menu.mountain"), TERRAIN_SIZES, n -> {
+                    pl.closeHandledScreen();
+                    BuilderTools.terrain(pl, n, hills);
+                });
+            });
             var draft = BuilderDrafts.get(p.getUuid());
             if (draft != null) {
                 menu.set(34, Btn.of(Items.LIME_BANNER).name(Msg.tr("build.menu.submit")).desc(Msg.tr("build.menu.submit-desc"))
@@ -119,6 +139,7 @@ public final class BuilderMenu {
 
     private static final int[] SIZES = {3, 5, 8, 12, 16, 24, 32};
     private static final int[] BRUSH_SIZES = {2, 3, 5, 8, 12, 16};
+    private static final int[] TERRAIN_SIZES = {8, 15, 25, 40, 60, 80, 120};
 
     /** Spheres, cylinders and pyramids at your position. */
     static void shapes(ServerPlayerEntity p, Menu parent) {

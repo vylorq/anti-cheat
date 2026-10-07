@@ -331,7 +331,7 @@ public final class TeamCommands {
                 .then(literal("map").executes(ctx -> {
                     ServerPlayerEntity p = self(ctx);
                     if (p == null || mine(ctx, p, null) == null) return 0;
-                    Teams.showMap(p);
+                    TeamMenu.map(p, null);
                     return 1;
                 }))
                 .then(literal("mapshare").executes(ctx -> leaderSet(ctx, t -> {

@@ -236,10 +236,8 @@ public final class TeamMenu {
                 pl.closeHandledScreen();
                 Msg.send(pl, Teams.toggleBorder(pl) ? "team.border-on" : "team.border-off");
             });
-            menu.set(16, Btn.of(Items.FILLED_MAP).name(Msg.tr("team.menu.map")).desc(Msg.tr("team.menu.map-desc")).build(), null, (pl, c) -> {
-                pl.closeHandledScreen();
-                Teams.showMap(pl);
-            });
+            menu.set(16, Btn.of(Items.FILLED_MAP).name(Msg.tr("team.menu.map")).desc(Msg.tr("team.menu.map-desc")).build(), null,
+                    (pl, c) -> map(pl, menu));
             menu.set(15, Btn.of(Items.GOLD_INGOT).name(Msg.tr("team.menu.top")).desc(Msg.tr("team.menu.top-desc"))
                     .left(Msg.tr("team.top.land")).right(Msg.tr("team.top.members")).shift(Msg.tr("team.top.kills")).build(), null, (pl, c) -> {
                 pl.closeHandledScreen();
@@ -361,6 +359,51 @@ public final class TeamMenu {
                     Msg.sendRaw(pl, Msg.suggest("§b[/team ally <team>]", "/team ally ", ""));
                 });
             }
+        });
+        m.open(p);
+    }
+
+    /**
+     * The land around the player as a map in a menu: north is up, one square per chunk (16x16 blocks). Only their own
+     * team's land and allies who share their map show; everything else is wilderness to them.
+     */
+    public static void map(ServerPlayerEntity p, Menu parent) {
+        Menu m = Menu.std(Theme.Category.PLAYER, 6, Msg.trFor(p, "team.menu.title"), Msg.trFor(p, "team.map-head"));
+        if (parent != null) {
+            m.parent(parent);
+        }
+        m.renderer(menu -> {
+            String w = Mc.worldId(p.getEntityWorld());
+            ChunkPos c = p.getChunkPos();
+            Team mine = Teams.tm().teamOf(p.getUuid());
+            int own = 0;
+            for (int row = 0; row < 5; row++) {
+                for (int col = 0; col < 9; col++) {
+                    int dx = col - 4;
+                    int dz = row - 2;
+                    int cx = c.x + dx;
+                    int cz = c.z + dz;
+                    String where = Msg.tr("team.map-chunk", String.valueOf(cx * 16), String.valueOf(cz * 16),
+                            String.valueOf(cx * 16 + 15), String.valueOf(cz * 16 + 15));
+                    Btn b;
+                    if (dx == 0 && dz == 0) {
+                        b = Btn.of(Items.PLAYER_HEAD).name(Msg.tr("team.map-you")).desc(where);
+                    } else {
+                        Team t = Teams.tm().at(w, cx, cz);
+                        if (!Teams.visible(t, mine)) {
+                            b = Btn.of(Items.GRAY_STAINED_GLASS_PANE).name(Msg.tr("team.map-wild")).desc(where);
+                        } else if (t == mine) {
+                            own++;
+                            b = Btn.of(Items.LIME_STAINED_GLASS_PANE).name(Msg.tr("team.map-own")).desc(where);
+                        } else {
+                            b = Btn.of(Items.LIGHT_BLUE_STAINED_GLASS_PANE).name(Msg.tr("team.map-ally", t.name)).desc(where);
+                        }
+                    }
+                    menu.set(row * 9 + col, b.build(), null, null);
+                }
+            }
+            menu.set(49, Btn.of(Items.COMPASS).name(Msg.tr("team.map-north")).desc(Msg.tr("team.map-legend"))
+                    .line(Msg.tr("team.map-count", own)).left(Msg.tr("team.map-refresh")).build(), null, (pl, cl) -> menu.refresh());
         });
         m.open(p);
     }

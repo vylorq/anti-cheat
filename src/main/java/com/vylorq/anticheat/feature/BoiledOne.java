@@ -329,8 +329,9 @@ public final class BoiledOne {
         ServerWorld ow = Ac.server().getOverworld();
         long t = ow.getTimeOfDay() % 24000L;
         long day = ow.getTimeOfDay() / 24000L;
-        if (eventOn()) {
-            if (t >= 23000 || t < 12000) {
+        if (eventUntil >= 0) {
+            // It runs its 5-20 minutes, then ends (and survivors get their reward).
+            if (now >= eventUntil) {
                 stopEvent(false);
             }
             return;
@@ -346,9 +347,8 @@ public final class BoiledOne {
     static void startEvent() {
         BoiledOmens.FAILED.clear();
         BoiledOmens.FACED.clear();
-        long t = Ac.server().getOverworld().getTimeOfDay() % 24000L;
-        // Until sunrise (or ten minutes, if it's started in the day).
-        eventUntil = now + (t >= 13000 && t < 23000 ? 23000 - t : 12000);
+        // Lasts between 5 and 20 minutes.
+        eventUntil = now + 20L * 60 * (5 + Ac.server().getOverworld().getRandom().nextInt(16));
         MARKED.clear();
         NEXT.clear();
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {

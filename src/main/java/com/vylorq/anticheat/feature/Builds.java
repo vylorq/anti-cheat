@@ -61,7 +61,7 @@ public final class Builds {
     private Builds() {
     }
 
-    public static final List<String> NAMES = List.of("the_prison", "pvp_arena", "lobby", "castle");
+    public static final List<String> NAMES = List.of("the_prison", "pvp_arena", "lobby", "castle", "ice_spawn");
     private static final String TAG = "vigil_build";
     /** Blocks placed per tick (the rest follow over the next ticks, so the server keeps up). */
     private static final int PER_TICK = 60_000;
