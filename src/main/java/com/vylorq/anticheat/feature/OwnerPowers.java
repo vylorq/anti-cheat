@@ -387,6 +387,41 @@ public final class OwnerPowers {
         return on(p, Power.GOD);
     }
 
+    // ---------------------------------------------------------------- goto
+
+    /** Takes the owner to x, z (any distance): on the ground there, or at y when given. Stays inside the world border. */
+    public static void goTo(ServerPlayerEntity p, int x, int z, Integer y) {
+        if (!require(p)) {
+            return;
+        }
+        net.minecraft.server.world.ServerWorld w = p.getEntityWorld();
+        var border = w.getWorldBorder();
+        x = (int) Math.max(border.getBoundWest() + 1, Math.min(border.getBoundEast() - 1, x));
+        z = (int) Math.max(border.getBoundNorth() + 1, Math.min(border.getBoundSouth() - 1, z));
+        w.getChunk(x >> 4, z >> 4); // generates it if nobody has been there
+        int ty;
+        if (y != null) {
+            ty = y;
+        } else if (w.getDimension().hasCeiling()) {
+            // The Nether: the first space with room to stand, from the bottom up (not on its roof).
+            ty = w.getBottomY() + 1;
+            for (int yy = w.getBottomY() + 1; yy < 120; yy++) {
+                var pos = new net.minecraft.util.math.BlockPos(x, yy, z);
+                if (w.getBlockState(pos.down()).isSolidBlock(w, pos.down()) && w.getBlockState(pos).isAir() && w.getBlockState(pos.up()).isAir()) {
+                    ty = yy;
+                    break;
+                }
+            }
+        } else {
+            ty = w.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING, x, z);
+            if (ty <= w.getBottomY()) {
+                ty = 100; // nothing there (the End's void): stay up and fly
+            }
+        }
+        Mc.teleport(p, w, x + 0.5, ty, z + 0.5, p.getYaw(), p.getPitch());
+        Msg.send(p, "owner.goto", x, ty, z);
+    }
+
     // ---------------------------------------------------------------- radar
 
     /** Entity flag byte as the server would send it, with or without the glow bit. */

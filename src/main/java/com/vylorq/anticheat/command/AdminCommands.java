@@ -106,6 +106,16 @@ public final class AdminCommands {
         owner.then(literal("freezeradius").then(CommandManager.argument("blocks", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 100))
                 .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerPowers.setFreezeRadius(p,
                         com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "blocks"))))));
+        // /owner goto <x> <z> [y]: straight there, standing on safe ground (any distance, inside the world border)
+        var gx = CommandManager.argument("x", IntegerArgumentType.integer(-30_000_000, 30_000_000));
+        var gz = CommandManager.argument("z", IntegerArgumentType.integer(-30_000_000, 30_000_000));
+        owner.then(literal("goto").then(gx.then(gz
+                .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerPowers.goTo(p,
+                        IntegerArgumentType.getInteger(ctx, "x"), IntegerArgumentType.getInteger(ctx, "z"), null)))
+                .then(CommandManager.argument("y", IntegerArgumentType.integer(-64, 320))
+                        .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerPowers.goTo(p,
+                                IntegerArgumentType.getInteger(ctx, "x"), IntegerArgumentType.getInteger(ctx, "z"),
+                                IntegerArgumentType.getInteger(ctx, "y"))))))));
         owner.then(literal("combat").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::combat)));
         owner.then(literal("weapons").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerCombat.weapons()
                 .forEach(t -> com.vylorq.anticheat.feature.OwnerTools.give(p, t)))));
