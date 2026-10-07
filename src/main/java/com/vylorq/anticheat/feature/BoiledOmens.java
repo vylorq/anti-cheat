@@ -51,6 +51,10 @@ public final class BoiledOmens {
     private static final Map<UUID, Long> DAWN = new ConcurrentHashMap<>();
     /** Players who died or were marked during The Boiling Night (no trophy for them). */
     static final Set<UUID> FAILED = ConcurrentHashMap.newKeySet();
+    /** Players it actually came for during The Boiling Night (only they can earn the trophy). */
+    static final Set<UUID> FACED = ConcurrentHashMap.newKeySet();
+    /** Even then, one survivor in this many gets the Boiled Tooth. */
+    static final int TOOTH_ODDS = 10;
 
     // ---------------------------------------------------------------- now and then, an omen
 
@@ -368,6 +372,9 @@ public final class BoiledOmens {
         // Until the next sunrise (if it's daytime now, until the end of the coming night).
         long until = t - tod + (tod < 23000 ? 23000 : 47000);
         DAWN.put(p.getUuid(), until);
+        if (BoiledOne.eventOn()) {
+            FAILED.add(p.getUuid());       // hiding behind the lantern doesn't count as getting through it
+        }
         held.decrement(1);
         BoiledOne.protect(p);
         Mc.title(p, "§6" + Msg.trFor(p, "boiled.dawn"), "§7" + Msg.trFor(p, "boiled.dawn-sub"), 10, 50, 20);
@@ -377,10 +384,15 @@ public final class BoiledOmens {
         return ActionResult.SUCCESS;
     }
 
-    /** The Boiling Night is over: everyone who got through it unnoticed gets a trophy (and maybe a Lantern of Dawn). */
+    /**
+     * The Boiling Night is over. The Boiled Tooth is very rare: only someone it actually came for, who lived, was
+     * never marked, never hid behind a Lantern of Dawn and is still out there at sunrise, has a chance at it (1 in
+     * {@link #TOOTH_ODDS}).
+     */
     static void survivors() {
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
-            if (FAILED.contains(p.getUuid()) || p.isCreative() || p.isSpectator()) {
+            if (FAILED.contains(p.getUuid()) || !FACED.contains(p.getUuid()) || p.isCreative() || p.isSpectator()
+                    || p.getRandom().nextInt(TOOTH_ODDS) != 0) {
                 continue;
             }
             p.getInventory().offerOrDrop(tooth(p));
@@ -391,6 +403,7 @@ public final class BoiledOmens {
             Mc.sound(p, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 1f, 0.8f);
         }
         FAILED.clear();
+        FACED.clear();
     }
 
     static ItemStack tooth(ServerPlayerEntity p) {

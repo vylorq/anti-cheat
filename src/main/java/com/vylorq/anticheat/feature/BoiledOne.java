@@ -338,6 +338,7 @@ public final class BoiledOne {
 
     static void startEvent() {
         BoiledOmens.FAILED.clear();
+        BoiledOmens.FACED.clear();
         long t = Ac.server().getOverworld().getTimeOfDay() % 24000L;
         // Until sunrise (or ten minutes, if it's started in the day).
         eventUntil = now + (t >= 13000 && t < 23000 ? 23000 - t : 12000);
@@ -359,6 +360,7 @@ public final class BoiledOne {
             BoiledOmens.survivors();
         } else {
             BoiledOmens.FAILED.clear();
+            BoiledOmens.FACED.clear();
         }
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
             Msg.send(p, early ? "boiled.event-stopped" : "boiled.event-over");
@@ -529,6 +531,9 @@ public final class BoiledOne {
         face(m, victim);
         w.spawnEntity(m);
         Hunt h = new Hunt(m, victim.getUuid(), mode, now);
+        if (eventOn() && mode != Mode.GLIMPSE) {
+            BoiledOmens.FACED.add(victim.getUuid());
+        }
         h.breathes = mode == Mode.BEHIND || w.getRandom().nextBoolean();
         HUNTS.put(m.getUuid(), h);
         switch (mode) {
