@@ -173,6 +173,33 @@ def bedrock_geo(name, strips, tex_size):
                                     "bones": list(bones.values())}]}
 
 
+def footprint(specs):
+    """A long, smeared, bloody print of a bare foot: a flat plane lying on the floor."""
+    size = 64
+    yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
+    rng = np.random.default_rng(3)
+    a = np.zeros((size, size), np.float32)
+    # sole and heel, toes as blots, a smear dragged behind
+    for cx, cy, rx, ry in ((32, 30, 9, 15), (32, 46, 8, 7), (25, 11, 3, 3), (30, 8, 3, 3.5), (35, 8, 2.8, 3),
+                           (39, 10, 2.5, 2.6), (42, 13, 2.2, 2.2)):
+        a = np.maximum(a, np.clip(1.4 - np.sqrt(((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2), 0, 1))
+    smear = np.clip(1 - np.abs(xx - 32 - (yy - 52) * 0.15) / 6, 0, 1) * ((yy > 50) & (yy < 63)) * 0.6
+    a = np.maximum(a, smear)
+    a *= 0.7 + 0.3 * rng.random((size, size))
+    alpha = (a > 0.45).astype(np.float32)
+    shade = 0.5 + 0.5 * rng.random((size, size))
+    rgb = np.dstack([0.32 + 0.22 * shade, 0.01 + 0.02 * shade, 0.02 + 0.02 * shade])
+    Image.fromarray((np.dstack([rgb, alpha]) * 255).astype(np.uint8), "RGBA").save(os.path.join(OUT, "boiled_print.png"))
+    tex = "vigil:item/boiled_print"
+    model = {"textures": {"p": tex, "particle": tex},
+             "elements": [{"from": [4, 8, 2], "to": [12, 8.05, 14],
+                           "faces": {"up": {"uv": [4, 2, 12, 14], "texture": "#p"}}}]}
+    with open(os.path.join(OUT, "boiled_print__body.json"), "w") as f:
+        json.dump(model, f, separators=(",", ":"))
+    specs["boiled_print"] = {"scale": 1.0, "parts": [{"id": "boiled_print__body", "role": "static", "side": 0,
+                                                      "parent": None, "phase": 0.0, "pivot": [0.0, 0.5, 0.0]}]}
+
+
 def main():
     path = os.path.join(ROOT, "src", "main", "resources", "vigil", "models.json")
     specs = json.load(open(path))
@@ -202,6 +229,10 @@ def main():
         if name in PARTS:
             specs[name]["creepy"] = True
         print(name, height, "blocks")
+    with open(path, "w") as f:
+        json.dump(specs, f, indent=1, sort_keys=True)
+    # A bloody footprint, lying flat (left by it when it breaks in)
+    footprint(specs)
     with open(path, "w") as f:
         json.dump(specs, f, indent=1, sort_keys=True)
     for name, (art, box) in FACES.items():

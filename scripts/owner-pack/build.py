@@ -1452,6 +1452,19 @@ def s_boiled_breath():
 
 SOUNDS4["boiled_breath"] = s_boiled_breath
 
+
+def s_boiled_static():
+    """Radio static breaking up, with a low drone under it: what you hear when it's close."""
+    n = int(SR * 2.0)
+    crackle = noise(2.0) * (rng.random(n) < 0.35) * 1.4
+    hiss = lowpass(noise(2.0), 2) * 0.8
+    gate = np.repeat(rng.random(40) > 0.3, n // 40 + 1)[:n]
+    drone = saw(np.full(n, 46.0), 2.0, 0.02) * 0.35
+    return env((crackle + hiss) * gate + drone, 0.05, 0.4)
+
+
+SOUNDS4["boiled_static"] = s_boiled_static
+
 SOUNDS = {"zap": s_zap, "mode": s_mode, "launch": s_launch,
           "heal": s_heal, "repair": s_repair, "give": s_give, "owner_join": s_owner_join, **SOUNDS2, **SOUNDS3, **SOUNDS4}
 
@@ -1623,7 +1636,7 @@ def bedrock_pack():
     out["font/glyph_E2.png"] = png(sheet)
     # The scream, under the coded name the mod plays it by (with and without the namespace, whichever Geyser sends).
     defs = {}
-    for snd in ("boiled_scream", "boiled_breath"):
+    for snd in ("boiled_scream", "boiled_breath", "boiled_static"):
         out[f"sounds/vigil/{snd}.ogg"] = ogg(SOUNDS[snd]())
         entry = {"category": "hostile", "sounds": [{"name": f"sounds/vigil/{snd}", "volume": 1.0, "load_on_low_memory": True}]}
         defs["vigil:" + code(snd)] = entry

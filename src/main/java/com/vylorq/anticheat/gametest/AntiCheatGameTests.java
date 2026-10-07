@@ -410,6 +410,9 @@ public final class AntiCheatGameTests {
         com.vylorq.anticheat.feature.BoiledOne.eventForTest(true);
         check(com.vylorq.anticheat.feature.BoiledOne.eventOn(), "The Boiling Night didn't start");
         com.vylorq.anticheat.feature.BoiledOne.eventForTest(false);
+        check(com.vylorq.anticheat.feature.BoiledOmens.isLantern(com.vylorq.anticheat.feature.BoiledOmens.lantern()),
+                "the Lantern of Dawn isn't recognised");
+        check(!com.vylorq.anticheat.feature.BoiledOmens.isProtected(victim), "nobody is protected before lighting a lantern");
         ctx.complete();
     }
 
