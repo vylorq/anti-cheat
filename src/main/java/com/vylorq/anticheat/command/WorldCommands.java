@@ -1011,11 +1011,21 @@ final class WorldCommands {
                     ServerPlayerEntity p = staff(ctx, Perm.WAITING_ROOM);
                     if (p == null) return 0;
                     var list = Ac.get().waitingRoom.pending();
-                    if (list.isEmpty()) {
-                        Msg.ok(ctx.getSource(), "waiting.none");
-                    }
+                    int shown = 0;
                     for (WaitingRoom.Request r : list) {
                         p.sendMessage(WaitingRoomFeature.requestText(r, p));
+                        shown++;
+                    }
+                    // Online players still waiting without a finished request.
+                    for (ServerPlayerEntity w : Ac.get().server.getPlayerManager().getPlayerList()) {
+                        WaitingRoom.Request r = Ac.get().waitingRoom.request(w.getUuid());
+                        if (WaitingRoomFeature.waiting(w) && (r == null || r.status != WaitingRoom.Status.PENDING)) {
+                            p.sendMessage(WaitingRoomFeature.arrivedText(w));
+                            shown++;
+                        }
+                    }
+                    if (shown == 0) {
+                        Msg.ok(ctx.getSource(), "waiting.none");
                     }
                     return 1;
                 })
