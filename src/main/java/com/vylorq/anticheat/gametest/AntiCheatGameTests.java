@@ -433,6 +433,36 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void secretWeaponsHitBossesHardButNotPlayers(TestContext ctx) {
+        var w = ctx.getWorld();
+        var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
+        var boss = com.vylorq.anticheat.feature.Bosses.spawn(w, at, "forgemaster");
+        check(boss != null, "the boss didn't spawn");
+        var p = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "FangTester"));
+        var fang = new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD);
+        fang.set(net.minecraft.component.DataComponentTypes.CUSTOM_MODEL_DATA, new net.minecraft.component.type.CustomModelDataComponent(
+                java.util.List.of(), java.util.List.of(), java.util.List.of(com.vylorq.anticheat.util.PackIds.model("storm_fang")), java.util.List.of()));
+        p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND, fang);
+        check("storm_fang".equals(com.vylorq.anticheat.feature.SecretItems.idOf(fang)), "the test fang isn't recognised");
+        float scale = com.vylorq.anticheat.feature.Bosses.damageScale(boss);
+        boss.removeStatusEffect(net.minecraft.entity.effect.StatusEffects.RESISTANCE); // the 3 seconds it can't be hurt as it rises
+        boss.timeUntilRegen = 0;
+        float before = boss.getHealth();
+        boss.damage(w, w.getDamageSources().playerAttack(p), 7f);
+        float shown = (before - boss.getHealth()) * scale;
+        check(shown >= 19f && shown <= 41f, "a secret weapon should take 20-40 off a boss: " + shown);
+        var victim = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "FangVictim"));
+        victim.setPosition(at.add(3, 0, 0));
+        victim.setHealth(20f);
+        victim.timeUntilRegen = 0;
+        victim.damage(w, w.getDamageSources().playerAttack(p), 30f);
+        check(20f - victim.getHealth() <= com.vylorq.anticheat.feature.SecretItems.PLAYER_CAP + 0.01f,
+                "a secret weapon hit a player too hard: " + (20f - victim.getHealth()));
+        boss.discard();
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
