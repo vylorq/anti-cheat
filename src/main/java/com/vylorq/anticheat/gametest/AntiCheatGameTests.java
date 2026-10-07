@@ -359,12 +359,17 @@ public final class AntiCheatGameTests {
         check(boss != null, "the boss didn't spawn");
         var owner = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Slayer"));
         com.vylorq.anticheat.feature.OwnerCombat.slayForTest(owner, boss);
-        check(!boss.isAlive(), "the Godslayer didn't kill the boss in one blow");
+        check(!boss.isAlive(), "the Doom Blade didn't kill the boss in one blow");
         var zombie = net.minecraft.entity.EntityType.ZOMBIE.create(w, net.minecraft.entity.SpawnReason.EVENT);
         zombie.refreshPositionAndAngles(at.x, at.y, at.z + 2, 0, 0);
         w.spawnEntity(zombie);
         com.vylorq.anticheat.feature.OwnerCombat.slayForTest(owner, zombie);
-        check(!zombie.isAlive(), "the Godslayer didn't kill a zombie");
+        check(!zombie.isAlive(), "the Doom Blade didn't kill a zombie");
+        var creative = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "CreativeOne"));
+        creative.changeGameMode(net.minecraft.world.GameMode.CREATIVE);
+        creative.setHealth(20f);
+        com.vylorq.anticheat.feature.OwnerCombat.slayForTest(owner, creative);
+        check(creative.isDead() || creative.getHealth() <= 0f, "the Doom Blade didn't kill a creative player");
         ctx.complete();
     }
 
