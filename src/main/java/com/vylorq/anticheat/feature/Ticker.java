@@ -54,6 +54,7 @@ public final class Ticker {
         Bosses.tick(ticks);
         BoiledOne.tick(ticks);
         BoiledFight.tick(ticks);
+        CustomEnchants.tick(ticks);
         TempestKeep.tick(ticks);
         Builds.tick(ticks);
         ModelMobs.tick(ticks);

@@ -284,6 +284,9 @@ public final class BoiledRitual {
             p.getInventory().offerOrDrop(new ItemStack(Items.DIAMOND, 6));
             p.getInventory().offerOrDrop(new ItemStack(Items.GOLDEN_APPLE, 2));
             BoiledHaunts.givePage(p);
+            if (p.getRandom().nextInt(3) == 0) {
+                p.getInventory().offerOrDrop(CustomEnchants.randomBook(p.getRandom()));
+            }
             if (p.getRandom().nextInt(CURSE_ODDS) == 0) {
                 p.getInventory().offerOrDrop(BoiledDread.cursedBone());
             }

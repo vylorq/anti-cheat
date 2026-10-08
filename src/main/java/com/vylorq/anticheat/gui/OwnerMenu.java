@@ -98,6 +98,8 @@ public final class OwnerMenu {
                 OwnerPowers.setJoinStyle(pl, next);
                 menu.refresh();
             });
+            menu.set(32, Btn.of(Items.ENCHANTED_BOOK).color(Theme.GOLD_LIGHT).name(Msg.tr("enchants.title"))
+                    .desc(Msg.tr("enchants.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> enchants(pl));
             menu.set(30, Btn.of(Items.WITHER_SKELETON_SKULL).color(Theme.RED).name(Msg.tr("bmenu.title"))
                     .desc(Msg.tr("bmenu.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> BoiledMenu.open(pl));
             menu.set(38, Btn.of(icon(Items.BLAZE_POWDER, "icon_berserk")).color(Theme.RED).name(Msg.tr("owner.combat"))
@@ -459,6 +461,38 @@ public final class OwnerMenu {
             new Secret("magnet_charm", Items.IRON_NUGGET, "Magnet Charm", 0xFF6060, "craft"),
             new Secret("ender_pouch", Items.RABBIT_HIDE, "Ender Pouch", 0xB05CFF, "craft"),
             new Secret("backpack", Items.LEATHER, "Backpack", 0xC8823C, "craft"));
+
+    /** Every custom enchantment, as books at each level (and straight onto the held item). */
+    public static void enchants(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        Menu m = Menu.std(Category.VIGIL, Msg.trFor(p, "owner.title"), Msg.trFor(p, "enchants.title"));
+        m.renderer(menu -> {
+            List<String[]> all = new ArrayList<>();
+            for (String id : com.vylorq.anticheat.feature.CustomEnchants.ALL) {
+                for (int lv = 1; lv <= com.vylorq.anticheat.feature.CustomEnchants.maxLevel(id); lv++) {
+                    all.add(new String[]{id, String.valueOf(lv)});
+                }
+            }
+            menu.list(all, e -> {
+                        ItemStack b = com.vylorq.anticheat.feature.CustomEnchants.book(e[0], Integer.parseInt(e[1]));
+                        return Btn.of(b).line(Msg.tr("enchants.desc." + e[0])).left(Msg.tr("enchants.take"))
+                                .right(Msg.tr("enchants.apply")).build();
+                    },
+                    e -> (pl, c) -> {
+                        int lv = Integer.parseInt(e[1]);
+                        if (c.isRight()) {
+                            boolean ok = com.vylorq.anticheat.feature.CustomEnchants.apply(pl.getMainHandStack(), e[0], lv);
+                            Msg.send(pl, ok ? "enchants.applied" : "enchants.hold");
+                        } else {
+                            pl.getInventory().offerOrDrop(com.vylorq.anticheat.feature.CustomEnchants.book(e[0], lv));
+                        }
+                    },
+                    e -> e[0], List.of(), Msg.tr("owner.items.none"), "");
+        });
+        m.open(p);
+    }
 
     static ItemStack secretIcon(String id) {
         for (Secret x : SECRETS) {

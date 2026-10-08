@@ -1,0 +1,68 @@
+{
+  "values": [
+    {
+      "id": "#minecraft:swords",
+      "required": false
+    },
+    {
+      "id": "#minecraft:axes",
+      "required": false
+    },
+    {
+      "id": "#minecraft:pickaxes",
+      "required": false
+    },
+    {
+      "id": "#minecraft:shovels",
+      "required": false
+    },
+    {
+      "id": "#minecraft:hoes",
+      "required": false
+    },
+    {
+      "id": "#minecraft:head_armor",
+      "required": false
+    },
+    {
+      "id": "#minecraft:chest_armor",
+      "required": false
+    },
+    {
+      "id": "#minecraft:leg_armor",
+      "required": false
+    },
+    {
+      "id": "#minecraft:foot_armor",
+      "required": false
+    },
+    {
+      "id": "minecraft:bow",
+      "required": false
+    },
+    {
+      "id": "minecraft:crossbow",
+      "required": false
+    },
+    {
+      "id": "minecraft:trident",
+      "required": false
+    },
+    {
+      "id": "minecraft:mace",
+      "required": false
+    },
+    {
+      "id": "minecraft:shield",
+      "required": false
+    },
+    {
+      "id": "minecraft:elytra",
+      "required": false
+    },
+    {
+      "id": "minecraft:fishing_rod",
+      "required": false
+    }
+  ]
+}

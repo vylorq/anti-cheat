@@ -600,6 +600,21 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void customEnchantmentsLoadAndWork(TestContext ctx) {
+        check(com.vylorq.anticheat.feature.CustomEnchants.loadedForTest(), "the custom enchantments didn't load from the mod's data");
+        var sword = new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD);
+        check(com.vylorq.anticheat.feature.CustomEnchants.apply(sword, "lifesteal", 3), "couldn't put Lifesteal on a sword");
+        check(com.vylorq.anticheat.feature.CustomEnchants.level(sword, "lifesteal") == 3, "Lifesteal isn't level 3");
+        check(com.vylorq.anticheat.feature.CustomEnchants.level(sword, "venom") == 0, "a sword has Venom from nowhere");
+        var book = com.vylorq.anticheat.feature.CustomEnchants.book("vein_miner", 1);
+        var stored = book.get(net.minecraft.component.DataComponentTypes.STORED_ENCHANTMENTS);
+        check(book.isOf(net.minecraft.item.Items.ENCHANTED_BOOK) && stored != null
+                        && stored.getLevel(com.vylorq.anticheat.feature.CustomEnchants.entry("vein_miner")) == 1,
+                "no Vein Miner book");
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
