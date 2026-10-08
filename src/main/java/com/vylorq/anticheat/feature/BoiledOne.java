@@ -154,6 +154,8 @@ public final class BoiledOne {
         /** Stalking: it has taken over their eyes once (they can't look away until this tick). */
         boolean possessed;
         long possessedUntil;
+        /** It has spoken to them (once a hunt). */
+        boolean spoke;
 
         Hunt(MobEntity mob, UUID victim, Mode mode, long now) {
             this.mob = mob;
@@ -315,12 +317,13 @@ public final class BoiledOne {
         }
         boolean event = eventOn();
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
-            boolean hunted = s.hunted.containsKey(p.getUuidAsString());
+            boolean cursed = BoiledDread.cursed(p);
+            boolean hunted = s.hunted.containsKey(p.getUuidAsString()) || cursed;
             boolean marked = event && MARKED.contains(p.getUuid());
             if (!(hunted || event) || !canHunt(p) || now < NEXT.getOrDefault(p.getUuid(), 0L)) {
                 continue;
             }
-            NEXT.put(p.getUuid(), now + 20L * (marked ? 20 : hunted ? 60 : 90));
+            NEXT.put(p.getUuid(), now + 20L * (marked ? 20 : cursed ? 45 : hunted ? 60 : 90));
             if (inBase(p)) {
                 if (hunted || marked) {
                     appear(p, Mode.BREAK_IN);
@@ -791,6 +794,13 @@ public final class BoiledOne {
         if (now % 5 == 0 && h.mode != Mode.BEHIND) {
             posture(h, false);
         }
+        if (now % 40 == 0 && dist < 48 && switch (h.mode) {
+            case STALK, PEEK, RUSH, BREAK_IN, PASS -> true;
+            default -> false;
+        }) {
+            // While it hunts them, the dark closes in around them like fog.
+            p.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, 70, 0, false, false));
+        }
         if (h.mode != Mode.BEHIND && h.mode != Mode.GLIMPSE && h.mode != Mode.GRAB && h.mode != Mode.DOOR && h.mode != Mode.PASS
                 && h.mode != Mode.PARALYSIS) {
             BoiledOmens.interference(p, m, dist, now);
@@ -821,6 +831,11 @@ public final class BoiledOne {
                 boolean seen = looking(p, m);
                 if (seen) {
                     h.seen++;
+                    if (!h.spoke && (h.mode == Mode.STALK || h.mode == Mode.PEEK)) {
+                        // It noticed them noticing it: its voice.
+                        h.spoke = true;
+                        pack(p, "boiled_voice", m.getEyePos(), 1.6f, 0.95f + p.getRandom().nextFloat() * 0.1f);
+                    }
                     h.lastSeen = now;
                 } else {
                     h.seen = 0;
@@ -1105,6 +1120,7 @@ public final class BoiledOne {
             w.playSound(null, head.x, head.y, head.z, SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE, 2f, 0.6f);
             jumpscare(p);
             BoiledHaunts.taking(p, true);          // its own death message
+            BoiledDread.lift(p);                   // the curse is spent
             p.damage(w, m.getDamageSources().mobAttack(m), 1000f);
             if (p.isAlive()) {
                 // Creative players can't be hurt: it kills them anyway.

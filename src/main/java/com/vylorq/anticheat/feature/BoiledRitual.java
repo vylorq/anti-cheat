@@ -45,6 +45,7 @@ public final class BoiledRitual {
     /** Real minutes between rituals (server-wide). */
     static final long COOLDOWN = 30L * 60 * 1000;
     static final int ARMOR_ODDS = 10;
+    static final int CURSE_ODDS = 4;
 
     private static MobEntity boss;
     private static ServerBossBar bar;
@@ -283,6 +284,9 @@ public final class BoiledRitual {
             p.getInventory().offerOrDrop(new ItemStack(Items.DIAMOND, 6));
             p.getInventory().offerOrDrop(new ItemStack(Items.GOLDEN_APPLE, 2));
             BoiledHaunts.givePage(p);
+            if (p.getRandom().nextInt(CURSE_ODDS) == 0) {
+                p.getInventory().offerOrDrop(BoiledDread.cursedBone());
+            }
             if (p.getRandom().nextInt(ARMOR_ODDS) == 0) {
                 p.getInventory().offerOrDrop(BoiledFight.armor(p.getRandom().nextInt(4)));
             }
@@ -300,7 +304,7 @@ public final class BoiledRitual {
                 return ActionResult.PASS;
             }
             ItemStack held = p.getStackInHand(hand);
-            if (!held.isOf(Items.BONE) || !altar(w, hit.getBlockPos())) {
+            if (!held.isOf(Items.BONE) || BoiledDread.isCursed(held) || !altar(w, hit.getBlockPos())) {
                 return ActionResult.PASS;
             }
             return use(p, w, hit.getBlockPos(), held);

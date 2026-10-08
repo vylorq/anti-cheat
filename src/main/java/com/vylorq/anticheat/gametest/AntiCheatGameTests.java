@@ -594,6 +594,8 @@ public final class AntiCheatGameTests {
         p.getInventory().setStack(0, map);
         com.vylorq.anticheat.feature.BoiledDread.markMapsForTest(p, c);
         check(com.vylorq.anticheat.feature.BoiledDread.markedForTest(p.getInventory().getStack(0)), "no red X on the map");
+        check(com.vylorq.anticheat.feature.BoiledDread.isCursed(com.vylorq.anticheat.feature.BoiledDread.cursedBone()), "the Cursed Bone isn't recognised");
+        check(!com.vylorq.anticheat.feature.BoiledDread.isCursed(new net.minecraft.item.ItemStack(net.minecraft.item.Items.BONE)), "a plain bone is cursed");
         ctx.complete();
     }
 
