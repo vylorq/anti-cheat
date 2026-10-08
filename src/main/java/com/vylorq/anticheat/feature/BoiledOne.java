@@ -1292,6 +1292,77 @@ public final class BoiledOne {
         Staff.log(p, on ? "boiled-event" : "boiled-event-stop", null, null, "");
     }
 
+    // ---------------------------------------------------------------- for the owner menu
+
+    /** One Boiled One out right now: who it's after, what it's doing, where. */
+    public record Sighting(UUID mob, String victim, String mode, ServerWorld world, BlockPos pos) {
+    }
+
+    public static List<Sighting> sightings() {
+        List<Sighting> out = new ArrayList<>();
+        for (Hunt h : HUNTS.values()) {
+            ServerPlayerEntity v = Ac.server().getPlayerManager().getPlayer(h.victim);
+            out.add(new Sighting(h.mob.getUuid(), v == null ? "?" : v.getGameProfile().name(), h.mode.name().toLowerCase(java.util.Locale.ROOT),
+                    (ServerWorld) h.mob.getEntityWorld(), h.mob.getBlockPos()));
+        }
+        return out;
+    }
+
+    public static boolean enabled() {
+        return state().enabled;
+    }
+
+    public static int minutes() {
+        return state().minutes;
+    }
+
+    public static boolean breakInsAlways() {
+        return state().breakInOdds <= 1;
+    }
+
+    public static int eventNights() {
+        return state().eventNights;
+    }
+
+    /** Followed players: uuid -> name. */
+    public static Map<String, String> huntedPlayers() {
+        return new HashMap<>(state().hunted);
+    }
+
+    public static boolean locating(ServerPlayerEntity p) {
+        return ESP.contains(p.getUuid());
+    }
+
+    /** One night in this many starts The Boiling Night by itself (0 = never). */
+    public static void ownerEventNights(ServerPlayerEntity p, int nights) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        state().eventNights = Math.max(0, nights);
+        save();
+    }
+
+    /** Unfollow by uuid (they may be offline). */
+    public static void ownerUnhunt(ServerPlayerEntity p, String uuid) {
+        if (OwnerPowers.require(p) && state().hunted.remove(uuid) != null) {
+            save();
+        }
+    }
+
+    /** The owner goes to see one (a few blocks away from it). */
+    public static void ownerGoto(ServerPlayerEntity p, UUID mob) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        Hunt h = HUNTS.get(mob);
+        if (h == null || h.mob.isRemoved()) {
+            Msg.send(p, "bmenu.gone");
+            return;
+        }
+        MobEntity m = h.mob;
+        Mc.teleport(p, (ServerWorld) m.getEntityWorld(), m.getX() + 4, m.getY(), m.getZ() + 4, 135, 0);
+    }
+
     public static void ownerInfo(ServerPlayerEntity p) {
         if (!OwnerPowers.require(p)) {
             return;

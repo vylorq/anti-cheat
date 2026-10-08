@@ -233,7 +233,7 @@ public final class AdminCommands {
             boiledSend.then(literal(how).then(Args.player("player").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerSend(p,
                     Args.online(Args.str(ctx, "player")), how)))));
         }
-        owner.then(literal("boiledone")
+        owner.then(literal("boiledone").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.BoiledMenu::open))
                 .then(literal("on").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerToggle(p, true))))
                 .then(literal("off").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerToggle(p, false))))
                 .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerInfo)))
