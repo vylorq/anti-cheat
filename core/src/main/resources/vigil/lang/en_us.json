@@ -2802,5 +2802,6 @@
   "boilfight.door-placed": "§4The Boiled Door stands in front of you.",
   "boilfight.door-no-room": "§cNo room for the door here.",
   "boilfight.stopped": "§7The Boiling is closed.",
-  "boilfight.info": "§7Fights {0}, won {1}. Door: {2}. Next door in {3}. Now: {4}"
+  "boilfight.info": "§7Fights {0}, won {1}. Door: {2}. Next door in {3}. Now: {4}",
+  "boilfight.top": "§6§l{0}§6 hurt it the most ({1} damage) and takes a secret weapon home."
 }

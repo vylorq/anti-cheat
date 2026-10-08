@@ -77,6 +77,8 @@ public final class BoiledFight {
     public static final RegistryKey<World> BOILING = RegistryKey.of(RegistryKeys.WORLD, Identifier.of("vigil", "boiling"));
     public static final int PHASES = 5;
     public static final double PHASE_HP = 20_000;
+    /** It's this many times harder to hurt than its health says: every hit counts this much less. */
+    public static final double HARDNESS = 5;
     /** The door turns up at most once in this long (real time). */
     static final long DOOR_COOLDOWN = 7L * 24 * 60 * 60 * 1000;
     /** Unopened, the door crumbles after this long. */
@@ -167,6 +169,8 @@ public final class BoiledFight {
         long nextScare;
         boolean won;
         ServerBossBar bar;
+        /** How much each player took off it, for the top damage reward. */
+        final Map<UUID, Double> dealt = new HashMap<>();
     }
 
     private static Fight fight;
@@ -893,11 +897,13 @@ public final class BoiledFight {
         if (SecretItems.weaponOf(source) != null) {
             hit = SecretItems.bossHit(source);
         }
+        hit /= HARDNESS;
         if (amount >= 100_000) {
             // The Doom Blade: every phase at once.
             f.phase = PHASES;
             hit = f.hp;
         }
+        f.dealt.merge(p.getUuid(), Math.min(hit, Math.max(0, f.hp)), Double::sum);
         f.hp -= hit;
         ServerWorld w = (ServerWorld) f.boss.getEntityWorld();
         w.spawnParticles(new DustParticleEffect(0x9A0000, 1.5f), f.boss.getX(), f.boss.getY() + 2.5, f.boss.getZ(), 12, 0.4, 0.8, 0.4, 0);
@@ -993,6 +999,27 @@ public final class BoiledFight {
         }
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
             Msg.send(p, "boilfight.won-all", String.join(", ", names));
+        }
+        // Whoever hurt it most takes one of the secret weapons home.
+        UUID top = null;
+        for (var e : f.dealt.entrySet()) {
+            if (online(e.getKey()) != null && (top == null || e.getValue() > f.dealt.get(top))) {
+                top = e.getKey();
+            }
+        }
+        ServerPlayerEntity best = online(top);
+        if (best != null) {
+            List<String> weapons = new ArrayList<>(SecretItems.BOSS_WEAPONS);
+            weapons.add(SecretItems.VOIDBLADE);
+            weapons.add(SecretItems.STORMBREAKER);
+            weapons.add(SecretItems.TIDECALLER);
+            String weapon = weapons.get(best.getRandom().nextInt(weapons.size()));
+            SecretItems.give(best, weapon);
+            int dealt = (int) Math.round(f.dealt.get(top));
+            for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
+                Msg.send(p, "boilfight.top", best.getGameProfile().name(), dealt);
+            }
+            Ac.LOG.info("The Boiling: {} did the most damage ({}) and got {}", best.getGameProfile().name(), dealt, weapon);
         }
         Ac.LOG.info("The Boiled One was killed in The Boiling by {}", names);
     }
