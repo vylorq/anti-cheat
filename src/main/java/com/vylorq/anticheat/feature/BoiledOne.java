@@ -65,7 +65,7 @@ public final class BoiledOne {
     public static final String TAG = "vigil_boiled_one";
     static final String MODEL = "boiled_one";
 
-    enum Mode { STALK, SCARE, PEEK, BEHIND, RUSH, BREAK_IN, GRAB, GLIMPSE }
+    enum Mode { STALK, SCARE, PEEK, BEHIND, RUSH, BREAK_IN, GRAB, GLIMPSE, DOOR, PASS }
 
     /** One break-in, remembered: who it came for and whose base it was. */
     public static final class BreakIn {
@@ -149,6 +149,8 @@ public final class BoiledOne {
         boolean leftFoot;
         /** Stalking: it stands frozen until this tick after being looked at. */
         long frozenUntil;
+        /** Walking past someone hiding: the way it goes. */
+        Vec3d passDir;
 
         Hunt(MobEntity mob, UUID victim, Mode mode, long now) {
             this.mob = mob;
@@ -173,6 +175,7 @@ public final class BoiledOne {
     static final double RUSH_SPEED = 0.46;
 
     public static void register() {
+        BoiledHaunts.register();
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, w) -> {
             if (e.getCommandTags().contains(TAG) && !HUNTS.containsKey(e.getUuid()) && e instanceof MobEntity m) {
                 // Left over from before a restart: gone.
@@ -561,6 +564,7 @@ public final class BoiledOne {
             case GLIMPSE -> {
                 // Off to the side of their view; nothing to hear.
             }
+            case DOOR -> jumpscare(victim);
             default -> Mc.sound(victim, SoundEvents.AMBIENT_CAVE.value(), 0.7f, 0.5f);
         }
         if (mode == Mode.STALK || mode == Mode.BREAK_IN) {
@@ -721,13 +725,22 @@ public final class BoiledOne {
         for (Hunt h : HUNTS.values()) {
             step(h);
         }
+        BoiledHaunts.tick(ticks);
         if (ticks % 10 == 0 && !ESP.isEmpty()) {
             espTick();
         }
     }
 
     private static void vanish(Hunt h) {
-        HUNTS.remove(h.mob.getUuid());
+        if (HUNTS.remove(h.mob.getUuid()) != null && !h.mob.isRemoved() && switch (h.mode) {
+            case STALK, PEEK, RUSH, BREAK_IN, PASS -> true;
+            default -> false;
+        }) {
+            ServerPlayerEntity p = Ac.server().getPlayerManager().getPlayer(h.victim);
+            if (p != null && p.isAlive() && p.getEntityWorld() == h.mob.getEntityWorld()) {
+                BoiledHaunts.escaped(p, h.mob.getEntityPos());   // got away: sometimes it leaves a page behind
+            }
+        }
         if (h.hand != null) {
             var d = ((ServerWorld) h.mob.getEntityWorld()).getEntity(h.hand);
             if (d != null) {
@@ -756,15 +769,16 @@ public final class BoiledOne {
         if (now % 5 == 0 && h.mode != Mode.BEHIND) {
             posture(h, false);
         }
-        if (h.mode != Mode.BEHIND && h.mode != Mode.GLIMPSE && h.mode != Mode.GRAB) {
+        if (h.mode != Mode.BEHIND && h.mode != Mode.GLIMPSE && h.mode != Mode.GRAB && h.mode != Mode.DOOR && h.mode != Mode.PASS) {
             BoiledOmens.interference(p, m, dist, now);
-            // Hiding (crouched, still, in a tight dark spot or behind a closed door): it loses them.
+            // Hiding (crouched or dead still, in a tight dark spot, a closet or behind a closed door): it loses them,
+            // and walks right past.
             if (now % 10 == 0) {
                 h.hidden = BoiledOmens.hiding(p) && dist > 3 ? h.hidden + 1 : 0;
                 if (h.hidden >= 6) {
                     breathe(p, m, 0.9f);
                     Msg.actionBar(p, "§8" + Msg.trFor(p, "boiled.lost-you"));
-                    vanish(h);
+                    pass(h, p);
                     return;
                 }
             }
@@ -849,6 +863,32 @@ public final class BoiledOne {
                 }
             }
             case GRAB -> held(h, p, w);
+            case DOOR -> {
+                // Standing right outside the door they just opened.
+                face(m, p);
+                if (now - h.born > 40) {
+                    vanish(h);
+                }
+            }
+            case PASS -> {
+                // Walking right past the hiding place, not seeing them; then gone.
+                Vec3d v = h.passDir.multiply(0.13);
+                m.move(net.minecraft.entity.MovementType.SELF, new Vec3d(v.x, -0.5, v.z));
+                float yaw = (float) (MathHelper.atan2(h.passDir.z, h.passDir.x) * 57.2958) - 90f;
+                m.setYaw(yaw);
+                m.setBodyYaw(yaw);
+                m.setHeadYaw(yaw);
+                if (now % 9 == 0) {
+                    h.leftFoot = !h.leftFoot;
+                    BoiledOmens.footprint(w, m, h.leftFoot);
+                }
+                if (now % 30 == 0) {
+                    breathe(p, m, 0.7f);
+                }
+                if (now - h.modeSince > 20 * 7) {
+                    vanish(h);
+                }
+            }
             case RUSH, BREAK_IN -> {
                 m.setTarget(p);
                 face(m, p);
@@ -877,6 +917,73 @@ public final class BoiledOne {
                 }
             }
         }
+    }
+
+    /** They hid well: it walks on past them (beside their hiding place), never looking, and is gone. */
+    private static void pass(Hunt h, ServerPlayerEntity p) {
+        MobEntity m = h.mob;
+        Vec3d d = p.getEntityPos().subtract(m.getEntityPos()).multiply(1, 0, 1);
+        if (d.lengthSquared() < 1e-3) {
+            d = new Vec3d(1, 0, 0);
+        }
+        d = d.normalize();
+        // Aimed a few blocks to one side of them, so it brushes past.
+        Vec3d side = new Vec3d(-d.z, 0, d.x).multiply(p.getRandom().nextBoolean() ? 1 : -1);
+        Vec3d aim = p.getEntityPos().add(side.multiply(3)).subtract(m.getEntityPos()).multiply(1, 0, 1);
+        h.passDir = aim.lengthSquared() < 1e-3 ? d : aim.normalize();
+        h.mode = Mode.PASS;
+        h.modeSince = now;
+        m.setTarget(null);
+        m.setAiDisabled(true);
+        m.setVelocity(Vec3d.ZERO);
+        set(m, EntityAttributes.STEP_HEIGHT, 1.1);
+    }
+
+    /** Players it's after right now (not a glimpse), and where it is. */
+    static Map<UUID, net.minecraft.entity.Entity> hunting() {
+        Map<UUID, net.minecraft.entity.Entity> out = new HashMap<>();
+        for (Hunt h : HUNTS.values()) {
+            if (h.mode != Mode.GLIMPSE && !h.mob.isRemoved()) {
+                out.put(h.victim, h.mob);
+            }
+        }
+        return out;
+    }
+
+    /** Somewhere ahead of them it could stand, this far off. */
+    static Vec3d spotNear(ServerPlayerEntity p, double min, double max) {
+        return spot(p, min, max, inCave(p), true);
+    }
+
+    /** A thing it was pretending to be, right here, shows what it is, and comes for them. */
+    static MobEntity transform(ServerPlayerEntity p, Vec3d at) {
+        MobEntity m = spawn(p.getEntityWorld(), at, p, Mode.STALK);
+        Hunt h = m == null ? null : HUNTS.get(m.getUuid());
+        if (h != null) {
+            rush(h, p, false);
+        }
+        return m;
+    }
+
+    /** It's standing outside the door they just opened (after the knocking). */
+    static MobEntity atDoor(ServerPlayerEntity p, BlockPos door) {
+        if (!canHunt(p)) {
+            return null;
+        }
+        ServerWorld w = p.getEntityWorld();
+        Vec3d c = Vec3d.ofBottomCenter(door);
+        Vec3d out = c.subtract(p.getEntityPos()).multiply(1, 0, 1);
+        out = out.lengthSquared() < 1e-3 ? new Vec3d(1, 0, 0) : out.normalize();
+        for (double d : new double[]{1.3, 1.8, 2.4}) {
+            Vec3d at = c.add(out.multiply(d));
+            for (int dy = 0; dy >= -1; dy--) {
+                BlockPos b = BlockPos.ofFloored(at.x, door.getY() + dy, at.z);
+                if (standable(w, b, 2)) {
+                    return spawn(w, Vec3d.ofBottomCenter(b), p, Mode.DOOR);
+                }
+            }
+        }
+        return null;
     }
 
     /** It caught them: it grabs them and lifts them up to its face. */
@@ -927,6 +1034,7 @@ public final class BoiledOne {
             w.playSound(null, head.x, head.y, head.z, SoundEvents.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, SoundCategory.HOSTILE, 2f, 1.4f);
             w.playSound(null, head.x, head.y, head.z, SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE, 2f, 0.6f);
             jumpscare(p);
+            BoiledHaunts.taking(p, true);          // its own death message
             p.damage(w, m.getDamageSources().mobAttack(m), 1000f);
             if (p.isAlive()) {
                 // Creative players can't be hurt: it kills them anyway.
@@ -936,6 +1044,9 @@ public final class BoiledOne {
                 p.setHealth(0f);
                 p.onDeath(m.getDamageSources().mobAttack(m));
             }
+            BoiledHaunts.taking(p, false);
+            // Its face stays on the death screen.
+            OwnerPowers.later(2, () -> Mc.title(p, "§f" + SCARE, "§4" + Msg.trFor(p, "boiled.death-sub"), 0, 70, 20));
         }
         if (t > 50) {
             vanish(h);
@@ -1288,6 +1399,25 @@ public final class BoiledOne {
                 Msg.send(owner, "boiled.sent", target.getGameProfile().name());
                 return;
             }
+            case "fakechat" -> {
+                Msg.send(owner, BoiledHaunts.impersonate(target) ? "boiled.sent" : "boiled.nowhere", target.getGameProfile().name());
+                return;
+            }
+            case "trail" -> {
+                BoiledHaunts.trail(target);
+                Msg.send(owner, "boiled.sent", target.getGameProfile().name());
+                return;
+            }
+            case "mimic", "mimicplayer" -> {
+                boolean ok = BoiledHaunts.mimic(target, how.equals("mimicplayer"));
+                Msg.send(owner, ok ? "boiled.sent" : "boiled.nowhere", target.getGameProfile().name());
+                return;
+            }
+            case "atdoor" -> {
+                Msg.send(owner, atDoor(target, target.getBlockPos().offset(target.getHorizontalFacing(), 2)) != null
+                        ? "boiled.sent" : "boiled.nowhere", target.getGameProfile().name());
+                return;
+            }
             case "glimpse" -> {
                 MobEntity g = glimpse(target);
                 Msg.send(owner, g == null ? "boiled.nowhere" : "boiled.sent", target.getGameProfile().name());
@@ -1307,6 +1437,12 @@ public final class BoiledOne {
         Msg.send(owner, m == null ? "boiled.nowhere" : "boiled.sent", target.getGameProfile().name());
         if (m != null) {
             Staff.log(owner, "boiled-one", target.getUuid(), target.getGameProfile().name(), how);
+        }
+    }
+
+    public static void ownerPages(ServerPlayerEntity p) {
+        if (OwnerPowers.require(p)) {
+            BoiledHaunts.ownerPages(p);
         }
     }
 

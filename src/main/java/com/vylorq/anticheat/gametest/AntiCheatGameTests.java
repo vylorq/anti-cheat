@@ -528,6 +528,43 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void theBoiledOneLeavesPagesHidesAndKillsInItsOwnWords(TestContext ctx) {
+        var w = ctx.getWorld();
+        var p = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "PageReader"));
+        for (int n = 1; n <= 8; n++) {
+            check(com.vylorq.anticheat.feature.BoiledHaunts.pageOfForTest(com.vylorq.anticheat.feature.BoiledHaunts.page(p, n)) == n,
+                    "torn page " + n + " isn't recognised");
+        }
+        check(com.vylorq.anticheat.feature.BoiledHaunts.pageOfForTest(new net.minecraft.item.ItemStack(net.minecraft.item.Items.PAPER)) == 0,
+                "plain paper counts as a torn page");
+        check(com.vylorq.anticheat.feature.BoiledHaunts.eye(p).isOf(net.minecraft.item.Items.ENDER_EYE), "no Boiled Eye");
+
+        // A closet of barrels with a trapdoor roof, in the dark: crouching in it hides you.
+        BlockPos feet = ctx.getAbsolutePos(new BlockPos(2, 1, 2));
+        BlockPos head = feet.up();
+        for (var d : net.minecraft.util.math.Direction.Type.HORIZONTAL) {
+            w.setBlockState(feet.offset(d), net.minecraft.block.Blocks.BARREL.getDefaultState());
+            w.setBlockState(head.offset(d), net.minecraft.block.Blocks.BARREL.getDefaultState());
+        }
+        w.setBlockState(head.up(), net.minecraft.block.Blocks.OAK_TRAPDOOR.getDefaultState());
+        p.refreshPositionAndAngles(feet.getX() + 0.5, feet.getY(), feet.getZ() + 0.5, 0, 0);
+        p.setSneaking(true);
+        check(com.vylorq.anticheat.feature.BoiledHaunts.hidingForTest(p), "crouching in a barrel closet doesn't hide you");
+        p.setSneaking(false);
+        p.refreshPositionAndAngles(feet.getX() + 0.5, feet.getY() + 0.3, feet.getZ() + 0.5, 0, 0);
+        check(!com.vylorq.anticheat.feature.BoiledHaunts.hidingForTest(p), "standing up and moving still hides you");
+
+        // Its kills have their own death message.
+        String plain = p.getDamageTracker().getDeathMessage().getString();
+        com.vylorq.anticheat.feature.BoiledHaunts.taking(p, true);
+        String its = p.getDamageTracker().getDeathMessage().getString();
+        com.vylorq.anticheat.feature.BoiledHaunts.taking(p, false);
+        check(its.contains("PageReader"), "no death message of its own: " + its);
+        check(!plain.equals(its), "the death message didn't change");
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
