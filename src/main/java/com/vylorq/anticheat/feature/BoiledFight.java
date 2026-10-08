@@ -737,8 +737,7 @@ public final class BoiledFight {
             ServerPlayerEntity t = in.get(w.getRandom().nextInt(in.size()));
             Vec3d d = t.getEntityPos().subtract(m.getEntityPos());
             Vec3d v = d.multiply(1, 0, 1).normalize().multiply(Math.min(2.2, 0.25 + d.horizontalLength() * 0.11));
-            m.setVelocity(v.x, 0.45, v.z);
-            m.velocityModified = true;
+            OwnerCombat.push(m, new Vec3d(v.x, 0.45, v.z));
             w.playSound(null, m.getX(), m.getY(), m.getZ(), SoundEvents.ENTITY_WARDEN_ROAR, SoundCategory.HOSTILE, 2.5f, 0.6f);
             f.lungeHit = now + 14;
             f.nextLunge = now + (long) ((p >= 2 ? 120 : 160) * pace);
@@ -748,8 +747,7 @@ public final class BoiledFight {
             for (ServerPlayerEntity t : in) {
                 if (t.squaredDistanceTo(m) < 3.5 * 3.5) {
                     t.damage(w, m.getDamageSources().mobAttack(m), 7f);
-                    t.addVelocity(t.getEntityPos().subtract(m.getEntityPos()).normalize().multiply(0.9).add(0, 0.4, 0));
-                    t.velocityModified = true;
+                    OwnerCombat.push(t, t.getEntityPos().subtract(m.getEntityPos()).normalize().multiply(0.9).add(0, 0.4, 0));
                 }
             }
             w.spawnParticles(ParticleTypes.SWEEP_ATTACK, m.getX(), m.getY() + 1, m.getZ(), 6, 1.2, 0.5, 1.2, 0);
@@ -832,8 +830,7 @@ public final class BoiledFight {
                     f.grabbed = t.getUuid();
                     ModelMobs.act(m, ModelMobs.GRAB);
                     t.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 30, 6, false, false));
-                    t.addVelocity(0, 0.6, 0);
-                    t.velocityModified = true;
+                    OwnerCombat.push(t, new Vec3d(0, 0.6, 0));
                 }
             }
             if (f.grabbing >= 0) {
