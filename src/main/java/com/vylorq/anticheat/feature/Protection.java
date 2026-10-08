@@ -103,7 +103,13 @@ public final class Protection {
                 Movement.ghostBlock(p);
                 return false;
             }
-            if (!LobbyFeature.allowed(p, w, pos, Lobby.Action.BREAK) || !Claims.check(p, w, pos, ClaimAction.BREAK)) {
+            if (Zones.darkRefuses(p, w, pos)) {
+                Movement.ghostBlock(p);
+                return false;
+            }
+            // A build spot in the lobby lets players break the blocks picked for it there.
+            if ((!Zones.buildAllowed(w, pos, state.getBlock()) && !LobbyFeature.allowed(p, w, pos, Lobby.Action.BREAK))
+                    || !Claims.check(p, w, pos, ClaimAction.BREAK)) {
                 Movement.ghostBlock(p);
                 return false;
             }
@@ -693,7 +699,7 @@ public final class Protection {
     }
 
     /** Block placement (called from the BlockItem mixin). @return false to cancel. */
-    public static boolean canPlace(ServerPlayerEntity p, ServerWorld w, BlockPos pos) {
+    public static boolean canPlace(ServerPlayerEntity p, ServerWorld w, BlockPos pos, net.minecraft.block.Block block) {
         if (!Ac.running()) {
             return true;
         }
@@ -704,7 +710,12 @@ public final class Protection {
             Msg.actionBar(p, Msg.trFor(p, "builder.lobby-only"));
             return false;
         }
-        if (!LobbyFeature.allowed(p, w, pos, Lobby.Action.PLACE) || !Claims.check(p, w, pos, ClaimAction.PLACE)) {
+        if (Zones.darkRefuses(p, w, pos)) {
+            return false;
+        }
+        // A build spot in the lobby lets players place the blocks picked for it there.
+        if ((!Zones.buildAllowed(w, pos, block) && !LobbyFeature.allowed(p, w, pos, Lobby.Action.PLACE))
+                || !Claims.check(p, w, pos, ClaimAction.PLACE)) {
             return false;
         }
         return true;

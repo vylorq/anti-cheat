@@ -26,7 +26,7 @@ public abstract class BlockItemMixin {
             return;
         }
         BlockPos pos = ctx.getBlockPos();
-        if (!Protection.canPlace(p, w, pos)) {
+        if (!Protection.canPlace(p, w, pos, ((BlockItem) (Object) this).getBlock())) {
             com.vylorq.anticheat.feature.Movement.ghostBlock(p);
             p.currentScreenHandler.syncState();
             p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket(w, pos));

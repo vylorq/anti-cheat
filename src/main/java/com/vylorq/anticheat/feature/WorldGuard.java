@@ -57,7 +57,8 @@ public final class WorldGuard {
         if (!serverSide(w) || blocks.isEmpty()) {
             return;
         }
-        blocks.removeIf(pos -> HomeTeleport.isPad(w, pos) || (w instanceof ServerWorld sw && TempestKeep.protects(sw, pos)));
+        blocks.removeIf(pos -> HomeTeleport.isPad(w, pos) || (w instanceof ServerWorld sw && TempestKeep.protects(sw, pos))
+                || Zones.darkAt(w, pos) != null);
         // The owner's orbital strike: its own block-damage rules inside its area.
         OrbitalStrike.Zone strike = OrbitalStrike.zoneAt(w, blocks.get(0));
         if (strike != null && !strike.breakBlocks()) {
