@@ -229,7 +229,7 @@ public final class AdminCommands {
                 .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::info))));
         var boiledSend = literal("send");
         for (String how : new String[]{"watch", "scare", "peek", "behind", "breakin", "glimpse", "footsteps", "knock", "door",
-                "whisper", "torches", "fakechat", "trail", "mimic", "mimicplayer", "atdoor"}) {
+                "whisper", "torches", "fakechat", "trail", "mimic", "mimicplayer", "atdoor", "sounds", "reflection", "shadow", "paralysis"}) {
             boiledSend.then(literal(how).then(Args.player("player").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerSend(p,
                     Args.online(Args.str(ctx, "player")), how)))));
         }
@@ -264,6 +264,8 @@ public final class AdminCommands {
                 .then(literal("bases").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerBases)))
                 .then(literal("lantern").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerLantern)))
                 .then(literal("pages").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerPages)))
+                .then(literal("altar").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledRitual::ownerAltar)))
+                .then(literal("summon").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledRitual::ownerSummon)))
                 .then(literal("event")
                         .then(literal("start").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerEvent(p, true))))
                         .then(literal("stop").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerEvent(p, false)))))

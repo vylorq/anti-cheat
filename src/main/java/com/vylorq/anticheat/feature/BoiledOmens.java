@@ -100,6 +100,17 @@ public final class BoiledOmens {
         if (!base) {
             can.add(() -> BoiledHaunts.trail(p));
         }
+        can.add(() -> BoiledDread.wrongSound(p));
+        if (base) {
+            can.add(() -> BoiledDread.reflection(p));
+        }
+        if (BoiledHaunts.dark(p) && p.getRandom().nextBoolean()) {
+            can.add(() -> {
+                if (!BoiledDread.shadow(p)) {
+                    footsteps(p);
+                }
+            });
+        }
         if (BoiledHaunts.dark(p)) {
             can.add(() -> {
                 if (!BoiledHaunts.mimic(p, null)) {

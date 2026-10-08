@@ -146,6 +146,15 @@ public final class BoiledMenu {
                     BoiledFight.ownerEnter(pl);
                 }
             });
+            menu.set(33, Btn.of(Items.CANDLE).color(Theme.RED).name(Msg.tr("bmenu.ritual")).desc(Msg.tr("bmenu.ritual.desc"))
+                    .left(Msg.tr("bmenu.ritual-altar")).right(Msg.tr("bmenu.ritual-summon")).build(), null, (pl, c) -> {
+                pl.closeHandledScreen();
+                if (c.isRight()) {
+                    com.vylorq.anticheat.feature.BoiledRitual.ownerSummon(pl);
+                } else {
+                    com.vylorq.anticheat.feature.BoiledRitual.ownerAltar(pl);
+                }
+            });
             menu.set(32, Btn.of(Items.GOLDEN_HELMET).name(Msg.tr("bmenu.records")).desc(Msg.tr("bmenu.records.desc"))
                     .left(Msg.tr("bmenu.show")).build(), null, (pl, c) -> {
                 pl.closeHandledScreen();
@@ -191,10 +200,11 @@ public final class BoiledMenu {
 
     /** What it does to them: every way it can come, every omen, and following them. */
     private static final String[] HOW = {"watch", "scare", "peek", "behind", "breakin", "glimpse", "atdoor", "mimic", "mimicplayer",
-            "footsteps", "knock", "door", "whisper", "fakechat", "trail", "torches"};
+            "footsteps", "knock", "door", "whisper", "fakechat", "trail", "torches", "sounds", "reflection", "shadow", "paralysis"};
     private static final Item[] HOW_ICONS = {Items.WITHER_SKELETON_SKULL, Items.GHAST_TEAR, Items.STONE, Items.SOUL_LANTERN,
             Items.IRON_DOOR, Items.GLASS_PANE, Items.OAK_DOOR, Items.COW_SPAWN_EGG, Items.PLAYER_HEAD, Items.LEATHER_BOOTS,
-            Items.OAK_BUTTON, Items.SPRUCE_DOOR, Items.PAPER, Items.WRITABLE_BOOK, Items.REDSTONE, Items.TORCH};
+            Items.OAK_BUTTON, Items.SPRUCE_DOOR, Items.PAPER, Items.WRITABLE_BOOK, Items.REDSTONE, Items.TORCH, Items.CREEPER_HEAD,
+            Items.ITEM_FRAME, Items.BLACK_CARPET, Items.RED_BED};
 
     private static void actions(ServerPlayerEntity p, UUID target) {
         ServerPlayerEntity t0 = Ac.server().getPlayerManager().getPlayer(target);
@@ -215,7 +225,7 @@ public final class BoiledMenu {
                 });
             }
             boolean followed = BoiledOne.huntedPlayers().containsKey(target.toString());
-            menu.set(Menu.CONTENT[HOW.length + 2], Btn.of(followed ? Items.REDSTONE_BLOCK : Items.BONE_BLOCK).color(Theme.RED)
+            menu.set(Menu.CONTENT[HOW.length + 1], Btn.of(followed ? Items.REDSTONE_BLOCK : Items.BONE_BLOCK).color(Theme.RED)
                     .name(Msg.tr("bmenu.follow")).desc(Msg.tr("bmenu.follow.desc")).onOff(followed).left(Msg.tr("owner.toggle"))
                     .glint(followed).build(), null, (pl, c) -> {
                 BoiledOne.ownerHunt(pl, Ac.server().getPlayerManager().getPlayer(target), !followed);

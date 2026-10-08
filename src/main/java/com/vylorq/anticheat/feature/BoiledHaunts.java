@@ -414,6 +414,11 @@ public final class BoiledHaunts {
         return missing.get(p.getRandom().nextInt(missing.size()));
     }
 
+    /** A torn page into their inventory (one they don't have yet, most of the time). */
+    static void givePage(ServerPlayerEntity p) {
+        p.getInventory().offerOrDrop(page(p, nextPage(p)));
+    }
+
     /** They got away from it: sometimes it leaves a torn page behind. */
     static void escaped(ServerPlayerEntity p, Vec3d at) {
         if (p.getRandom().nextInt(PAGE_ODDS) != 0) {
