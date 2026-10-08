@@ -607,7 +607,9 @@ public final class AntiCheatGameTests {
         check(com.vylorq.anticheat.feature.CustomEnchants.level(sword, "lifesteal") == 3, "Lifesteal isn't level 3");
         check(com.vylorq.anticheat.feature.CustomEnchants.level(sword, "venom") == 0, "a sword has Venom from nowhere");
         var book = com.vylorq.anticheat.feature.CustomEnchants.book("vein_miner", 1);
-        check(book.isOf(net.minecraft.item.Items.ENCHANTED_BOOK) && com.vylorq.anticheat.feature.CustomEnchants.level(book, "vein_miner") == 1,
+        var stored = book.get(net.minecraft.component.DataComponentTypes.STORED_ENCHANTMENTS);
+        check(book.isOf(net.minecraft.item.Items.ENCHANTED_BOOK) && stored != null
+                        && stored.getLevel(com.vylorq.anticheat.feature.CustomEnchants.entry("vein_miner")) == 1,
                 "no Vein Miner book");
         ctx.complete();
     }
