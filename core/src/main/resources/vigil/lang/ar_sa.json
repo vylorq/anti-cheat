@@ -3007,5 +3007,20 @@
   "bmenu.how.shadow.desc": "شكل مظلم يتبعهم على الأرض.",
   "bmenu.how.paralysis": "شلل النوم",
   "bmenu.how.paralysis.desc": "لا يستطيعون الحركة؛ يقف عند نهاية سريرهم.",
-  "bmenu.item-curse": "العظمة الملعونة"
+  "bmenu.item-curse": "العظمة الملعونة",
+  "enchants.title": "السحريات المخصصة",
+  "enchants.desc": "كتب لكل سحر مخصص (تسقطها الزعماء).",
+  "enchants.take": "خذ الكتاب",
+  "enchants.apply": "ضعه على الغرض في يدك",
+  "enchants.applied": "§aتم السحر.",
+  "enchants.hold": "§cأمسك الغرض لتسحره.",
+  "enchants.desc.lifesteal": "يشفيك 10% من الضرر لكل مستوى.",
+  "enchants.desc.venom": "يسمم ما تضربه.",
+  "enchants.desc.thunderstrike": "ضربة من كل 8 تنزل صاعقة على الهدف.",
+  "enchants.desc.auto_smelt": "الكتل تسقط مصهورة.",
+  "enchants.desc.telepathy": "الأغراض تذهب مباشرة لحقيبتك.",
+  "enchants.desc.vein_miner": "يكسر عرق الخام كاملًا (حتى 24).",
+  "enchants.desc.swiftness": "سرعة عند لبسه.",
+  "enchants.desc.night_vision": "رؤية ليلية عند لبسه.",
+  "enchants.desc.soulbound": "يبقى معك عند الموت."
 }

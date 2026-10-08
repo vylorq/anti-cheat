@@ -1362,6 +1362,9 @@ public final class Bosses {
             drops.add(new ItemStack(Items.NETHERITE_INGOT));
         }
         drops.add(trophy(l.kind, by, l.cursed));
+        for (int i = 0; i < times; i++) {
+            drops.add(CustomEnchants.randomBook(w.getRandom()));      // a rare enchantment, only from bosses
+        }
         if (w.getRandom().nextInt(4) == 0) {
             drops.add(cursedKey());
         }

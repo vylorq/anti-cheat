@@ -270,6 +270,18 @@ public final class AdminCommands {
                         .then(literal("start").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerEvent(p, true))))
                         .then(literal("stop").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerEvent(p, false)))))
                 .then(boiledSend));
+        var enchant = literal("enchant").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::enchants));
+        for (String id : com.vylorq.anticheat.feature.CustomEnchants.ALL) {
+            enchant.then(literal(id).then(CommandManager.argument("level", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 10))
+                    .executes(ctx -> owner(ctx, p -> {
+                        if (com.vylorq.anticheat.feature.OwnerPowers.require(p)) {
+                            boolean ok = com.vylorq.anticheat.feature.CustomEnchants.apply(p.getMainHandStack(), id,
+                                    com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "level"));
+                            Msg.send(p, ok ? "enchants.applied" : "enchants.hold");
+                        }
+                    }))));
+        }
+        owner.then(enchant);
         owner.then(literal("smite").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerCombat::smite)));
         owner.then(literal("items").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::items)));
         owner.then(literal("pack").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerPowers::sendPack)));

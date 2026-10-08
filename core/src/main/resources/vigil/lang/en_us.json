@@ -3007,5 +3007,20 @@
   "bmenu.how.shadow.desc": "A dark shape follows them on the ground.",
   "bmenu.how.paralysis": "Sleep paralysis",
   "bmenu.how.paralysis.desc": "They can't move; it stands at the end of their bed.",
-  "bmenu.item-curse": "Cursed Bone"
+  "bmenu.item-curse": "Cursed Bone",
+  "enchants.title": "Custom enchantments",
+  "enchants.desc": "Books of every custom enchantment (bosses drop them).",
+  "enchants.take": "Take the book",
+  "enchants.apply": "Put on held item",
+  "enchants.applied": "§aEnchanted.",
+  "enchants.hold": "§cHold the item to enchant.",
+  "enchants.desc.lifesteal": "Heals 10% of the damage you deal per level.",
+  "enchants.desc.venom": "Poisons what you hit.",
+  "enchants.desc.thunderstrike": "1 hit in 8 calls lightning on the target.",
+  "enchants.desc.auto_smelt": "Blocks drop already smelted.",
+  "enchants.desc.telepathy": "Drops go straight into your inventory.",
+  "enchants.desc.vein_miner": "Mines the whole ore vein (up to 24).",
+  "enchants.desc.swiftness": "Speed while worn.",
+  "enchants.desc.night_vision": "Night vision while worn.",
+  "enchants.desc.soulbound": "Stays with you when you die."
 }
