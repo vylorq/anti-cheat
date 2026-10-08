@@ -2744,5 +2744,21 @@
   "team.map-north": "§eالشمال للأعلى",
   "team.map-legend": "كل مربع قطعة واحدة (16×16 كتلة)",
   "team.map-count": "أرضك في هذه الخريطة: {0} قطعة",
-  "team.map-refresh": "تحديث"
+  "team.map-refresh": "تحديث",
+  "zone.stick": "§aتم إعطاء عصا التحديد. §7انقر بالزر الأيمن على زاويتين متقابلتين ثم: §f/owner zone build <الاسم> <الكتل>§7 أو §f/owner zone dark <الاسم>",
+  "zone.need-corners": "§cاختر زاويتين بعصا التحديد أولاً (§f/owner zone stick§c).",
+  "zone.unknown-block": "§cلا توجد كتلة باسم §f{0}§c.",
+  "zone.no-blocks": "§cاكتب كتلة واحدة على الأقل، مثل §f/owner zone build garden oak_sapling, poppy",
+  "zone.name-used": "§cتوجد منطقة باسم §f{0}§c بالفعل.",
+  "zone.build-made": "§aمكان البناء §f{0}§a ({1}): يمكن للاعبين وضع وكسر §f{2}§a هناك.",
+  "zone.build-not-lobby": "§eملاحظة: هذا المكان ليس في الردهة، والبناء مسموح هناك أصلاً.",
+  "zone.too-big": "§cالمنطقة المظلمة لا تتجاوز {0} كتلة في كل اتجاه.",
+  "zone.too-small": "§cالمنطقة المظلمة تحتاج 3 كتل على الأقل في كل اتجاه.",
+  "zone.dark-made": "§aتم إنشاء المنطقة المظلمة §f{0}§a ({1}): جدران سوداء ({2} كتلة)، ولا يدخلها إلا الإدارة.",
+  "zone.dark-protected": "هذا المكان مغلق.",
+  "zone.none": "§cلا توجد منطقة باسم §f{0}§c.",
+  "zone.removed": "§aتمت إزالة المنطقة §f{0}§a (أزيلت {1} كتلة من الجدران).",
+  "zone.list-empty": "§7لا توجد مناطق بعد.",
+  "zone.list-entry": "§e{0} §7{1} {2} §8({3}) §f{4}",
+  "zone.dark-word": "منطقة مظلمة"
 }

@@ -2744,5 +2744,21 @@
   "team.map-north": "§eNorth is up",
   "team.map-legend": "Each square is one chunk (16×16 blocks)",
   "team.map-count": "Your land on this map: {0} chunks",
-  "team.map-refresh": "refresh"
+  "team.map-refresh": "refresh",
+  "zone.stick": "§aClaim Stick given. §7Right-click two opposite corners, then: §f/owner zone build <name> <blocks>§7 or §f/owner zone dark <name>",
+  "zone.need-corners": "§cPick two corners with the Claim Stick first (§f/owner zone stick§c).",
+  "zone.unknown-block": "§cThere's no block called §f{0}§c.",
+  "zone.no-blocks": "§cName at least one block, e.g. §f/owner zone build garden oak_sapling, poppy",
+  "zone.name-used": "§cA zone called §f{0}§c already exists.",
+  "zone.build-made": "§aBuild spot §f{0}§a ({1}): players can place and break §f{2}§a there.",
+  "zone.build-not-lobby": "§eNote: this spot isn't in the lobby, where building is already allowed anyway.",
+  "zone.too-big": "§cA dark zone can be at most {0} blocks on each side.",
+  "zone.too-small": "§cA dark zone needs to be at least 3 blocks on each side.",
+  "zone.dark-made": "§aDark zone §f{0}§a ({1}) made: black walls ({2} blocks), and nobody but staff can get in.",
+  "zone.dark-protected": "This place is sealed off.",
+  "zone.none": "§cThere's no zone called §f{0}§c.",
+  "zone.removed": "§aZone §f{0}§a removed ({1} wall blocks taken away).",
+  "zone.list-empty": "§7No zones yet.",
+  "zone.list-entry": "§e{0} §7{1} {2} §8({3}) §f{4}",
+  "zone.dark-word": "dark zone"
 }

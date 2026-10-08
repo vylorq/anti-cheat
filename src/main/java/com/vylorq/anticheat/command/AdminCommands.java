@@ -184,6 +184,20 @@ public final class AdminCommands {
         }
         owner.then(build.then(buildPlace).then(buildRemove)
                 .then(literal("list").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.Builds::list))));
+        // Zones drawn with the Claim Stick: build spots in the lobby, dark zones nobody sees or gets into.
+        owner.then(literal("zone")
+                .then(literal("stick").executes(ctx -> owner(ctx, p -> {
+                    p.getInventory().insertStack(com.vylorq.anticheat.feature.Tools.claimStick());
+                    Msg.send(p, "zone.stick");
+                })))
+                .then(literal("build").then(Args.word("name").then(CommandManager.argument("blocks",
+                        com.mojang.brigadier.arguments.StringArgumentType.greedyString()).executes(ctx -> owner(ctx, p ->
+                        com.vylorq.anticheat.feature.Zones.build(p, Args.str(ctx, "name"), Args.str(ctx, "blocks")))))))
+                .then(literal("dark").then(Args.word("name").executes(ctx -> owner(ctx, p ->
+                        com.vylorq.anticheat.feature.Zones.dark(p, Args.str(ctx, "name"))))))
+                .then(literal("remove").then(Args.word("name").executes(ctx -> owner(ctx, p ->
+                        com.vylorq.anticheat.feature.Zones.remove(p, Args.str(ctx, "name"))))))
+                .then(literal("list").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.Zones::list))));
         owner.then(literal("tempest")
                 .then(literal("place").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::place)))
                 .then(literal("remove").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::remove)))

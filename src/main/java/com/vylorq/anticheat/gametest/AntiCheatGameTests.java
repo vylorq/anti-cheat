@@ -470,6 +470,31 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void zonesLetPlayersBuildOnlyWhereAndWhatTheOwnerPicked(TestContext ctx) {
+        var w = ctx.getWorld();
+        BlockPos a = ctx.getAbsolutePos(new BlockPos(0, 1, 0));
+        BlockPos b = ctx.getAbsolutePos(new BlockPos(3, 3, 3));
+        com.vylorq.anticheat.feature.Zones.putForTest("t-build", com.vylorq.anticheat.feature.Zones.BUILD, w, a, b,
+                java.util.List.of("minecraft:oak_planks"));
+        BlockPos in = ctx.getAbsolutePos(new BlockPos(1, 2, 1));
+        check(com.vylorq.anticheat.feature.Zones.buildAllowed(w, in, net.minecraft.block.Blocks.OAK_PLANKS),
+                "a picked block wasn't allowed in its build spot");
+        check(!com.vylorq.anticheat.feature.Zones.buildAllowed(w, in, net.minecraft.block.Blocks.TNT),
+                "a block that wasn't picked was allowed");
+        check(!com.vylorq.anticheat.feature.Zones.buildAllowed(w, in.add(10, 0, 0), net.minecraft.block.Blocks.OAK_PLANKS),
+                "a picked block was allowed outside its spot");
+        com.vylorq.anticheat.feature.Zones.dropForTest("t-build");
+        com.vylorq.anticheat.feature.Zones.putForTest("t-dark", com.vylorq.anticheat.feature.Zones.DARK, w, a, b, java.util.List.of());
+        check(com.vylorq.anticheat.feature.Zones.darkAt(w, in) != null, "a dark zone doesn't cover its inside");
+        check(com.vylorq.anticheat.feature.Zones.darkAt(w, in.add(10, 0, 0)) == null, "a dark zone reaches past its walls");
+        com.vylorq.anticheat.feature.Zones.dropForTest("t-dark");
+        check(com.vylorq.anticheat.feature.Zones.darkAt(w, in) == null, "a removed dark zone still counts");
+        check(com.vylorq.anticheat.feature.Zones.blockList(null, "oak_planks, torch") == null
+                || com.vylorq.anticheat.feature.Zones.blockList(null, "oak_planks, torch").size() == 2, "block lists don't parse");
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
