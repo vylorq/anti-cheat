@@ -103,7 +103,7 @@ public final class Protection {
                 Movement.ghostBlock(p);
                 return false;
             }
-            if (Zones.darkRefuses(p, w, pos)) {
+            if (Zones.darkRefuses(p, w, pos) || BoiledFight.protects(p)) {
                 Movement.ghostBlock(p);
                 return false;
             }
@@ -710,7 +710,7 @@ public final class Protection {
             Msg.actionBar(p, Msg.trFor(p, "builder.lobby-only"));
             return false;
         }
-        if (Zones.darkRefuses(p, w, pos)) {
+        if (Zones.darkRefuses(p, w, pos) || BoiledFight.protects(p)) {
             return false;
         }
         // A build spot in the lobby lets players place the blocks picked for it there.

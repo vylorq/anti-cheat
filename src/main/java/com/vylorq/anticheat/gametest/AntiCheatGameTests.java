@@ -514,6 +514,16 @@ public final class AntiCheatGameTests {
         com.vylorq.anticheat.feature.ModelMobs.remove(m);
         check(com.vylorq.anticheat.feature.BoiledFight.heart(net.fabricmc.fabric.api.entity.FakePlayer.get(ctx.getWorld()))
                 .isOf(net.minecraft.item.Items.NETHER_STAR), "no heart trophy");
+        var wearer = net.fabricmc.fabric.api.entity.FakePlayer.get(ctx.getWorld(), new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Armored"));
+        check(!com.vylorq.anticheat.feature.BoiledFight.wearsFullSet(wearer), "a bare player counts as wearing the Boiled Armor");
+        var slots = new net.minecraft.entity.EquipmentSlot[]{net.minecraft.entity.EquipmentSlot.HEAD, net.minecraft.entity.EquipmentSlot.CHEST,
+                net.minecraft.entity.EquipmentSlot.LEGS, net.minecraft.entity.EquipmentSlot.FEET};
+        for (int i = 0; i < 4; i++) {
+            wearer.equipStack(slots[i], com.vylorq.anticheat.feature.BoiledFight.armor(i));
+        }
+        check(com.vylorq.anticheat.feature.BoiledFight.wearsFullSet(wearer), "the full Boiled Armor isn't recognised");
+        wearer.equipStack(net.minecraft.entity.EquipmentSlot.HEAD, new net.minecraft.item.ItemStack(net.minecraft.item.Items.NETHERITE_HELMET));
+        check(!com.vylorq.anticheat.feature.BoiledFight.wearsFullSet(wearer), "a plain helmet counts as Boiled Armor");
         ctx.complete();
     }
 

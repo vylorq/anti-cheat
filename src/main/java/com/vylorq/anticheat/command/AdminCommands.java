@@ -104,6 +104,13 @@ public final class AdminCommands {
                         com.vylorq.anticheat.feature.BoiledFight.leave(p);
                     }
                     return 1;
+                }))
+                .then(literal("top").executes(ctx -> {
+                    ServerPlayerEntity p = ctx.getSource().getPlayer();
+                    if (p != null) {
+                        com.vylorq.anticheat.feature.BoiledFight.records(p);
+                    }
+                    return 1;
                 })));
 
         // ---- owner powers (only the owner sees these commands) ----
@@ -235,6 +242,13 @@ public final class AdminCommands {
                 .then(literal("door").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledFight::ownerDoor)))
                 .then(literal("fightstop").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledFight::ownerStop)))
                 .then(literal("fightinfo").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledFight::ownerInfo)))
+                .then(literal("armor").executes(ctx -> owner(ctx, p -> {
+                    if (com.vylorq.anticheat.feature.OwnerPowers.require(p)) {
+                        for (int i = 0; i < 4; i++) {
+                            p.getInventory().insertStack(com.vylorq.anticheat.feature.BoiledFight.armor(i));
+                        }
+                    }
+                })))
                 .then(literal("removeall").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerRemoveAll)))
                 .then(literal("minutes").then(CommandManager.argument("minutes", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 10000))
                         .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerMinutes(p,
