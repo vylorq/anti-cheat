@@ -177,7 +177,7 @@ public final class BlockLog {
                                 + (c.rolledBack ? " §8(rolled back)" : "")));
                     }
                     // One click: undo everything each of these players did around here (the last 7 days, 20 blocks).
-                    if (com.vylorq.anticheat.perm.Perms.has(admin, com.vylorq.anticheat.perm.Perm.ROLLBACK)) {
+                    if (com.vylorq.anticheat.perm.Perms.has(admin, com.vylorq.anticheat.core.perm.Perm.ROLLBACK)) {
                         java.util.Set<String> who = new java.util.LinkedHashSet<>();
                         for (BlockChange c : list) {
                             if (c.actor != null && c.actorName != null && !c.rolledBack) {
