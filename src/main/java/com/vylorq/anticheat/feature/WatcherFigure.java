@@ -62,6 +62,8 @@ public final class WatcherFigure {
     private boolean skull;
     /** Invisible body: only the armour and the skull show, floating, with no hands. */
     private boolean hollow;
+    /** Its name tag shows over its head (no hiding team is sent). */
+    private boolean named;
     public Vec3d pos = Vec3d.ZERO;
     public float yaw;
     public float pitch;
@@ -113,6 +115,12 @@ public final class WatcherFigure {
                 net.minecraft.network.packet.s2c.play.EntityAnimationS2CPacket.SWING_MAIN_HAND));
     }
 
+    /** Shows its name over its head, like a real player's. */
+    public WatcherFigure named() {
+        this.named = true;
+        return this;
+    }
+
     /** Gives it a face: a dark skull instead of the faceless hood. */
     public WatcherFigure skull() {
         this.skull = true;
@@ -142,12 +150,14 @@ public final class WatcherFigure {
     public void show(ServerPlayerEntity viewer) {
                 // Only ADD_PLAYER: the client learns the skin but doesn't list it in the tab list.
         Watcher.send(viewer, new PlayerListS2CPacket(EnumSet.of(PlayerListS2CPacket.Action.ADD_PLAYER), List.<ServerPlayerEntity>of(fake)));
-        Scoreboard board = new Scoreboard();
-        Team team = board.addTeam(teamName);
-        team.setNameTagVisibilityRule(AbstractTeam.VisibilityRule.NEVER);
-        team.setCollisionRule(AbstractTeam.CollisionRule.NEVER);
-        board.addScoreHolderToTeam(profile.name(), team);
-        Watcher.send(viewer, TeamS2CPacket.updateTeam(team, true));
+        if (!named) {
+            Scoreboard board = new Scoreboard();
+            Team team = board.addTeam(teamName);
+            team.setNameTagVisibilityRule(AbstractTeam.VisibilityRule.NEVER);
+            team.setCollisionRule(AbstractTeam.CollisionRule.NEVER);
+            board.addScoreHolderToTeam(profile.name(), team);
+            Watcher.send(viewer, TeamS2CPacket.updateTeam(team, true));
+        }
         Watcher.send(viewer, new EntitySpawnS2CPacket(id(), profile.id(), pos.x, pos.y, pos.z, pitch, yaw, EntityType.PLAYER, 0,
                 Vec3d.ZERO, yaw));
         // Show every skin layer (hood, sleeves...).
@@ -215,8 +225,10 @@ public final class WatcherFigure {
     public void hide(ServerPlayerEntity viewer) {
                 Watcher.send(viewer, new EntitiesDestroyS2CPacket(id()));
         Watcher.send(viewer, new PlayerRemoveS2CPacket(List.of(profile.id())));
-        Scoreboard board = new Scoreboard();
-        Team team = board.addTeam(teamName);
-        Watcher.send(viewer, TeamS2CPacket.updateRemovedTeam(team));
+        if (!named) {
+            Scoreboard board = new Scoreboard();
+            Team team = board.addTeam(teamName);
+            Watcher.send(viewer, TeamS2CPacket.updateRemovedTeam(team));
+        }
     }
 }

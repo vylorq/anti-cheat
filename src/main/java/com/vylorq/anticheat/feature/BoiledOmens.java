@@ -90,6 +90,23 @@ public final class BoiledOmens {
         if (p.getRandom().nextInt(3) == 0) {
             can.add(() -> whisper(p));
         }
+        if (p.getRandom().nextInt(3) == 0) {
+            can.add(() -> {
+                if (!BoiledHaunts.impersonate(p)) {
+                    whisper(p);
+                }
+            });
+        }
+        if (!base) {
+            can.add(() -> BoiledHaunts.trail(p));
+        }
+        if (BoiledHaunts.dark(p)) {
+            can.add(() -> {
+                if (!BoiledHaunts.mimic(p, null)) {
+                    BoiledOne.glimpse(p);
+                }
+            });
+        }
         if (cave) {
             can.add(() -> snuff(p, null));
         }
@@ -141,6 +158,7 @@ public final class BoiledOmens {
             return;
         }
         Vec3d at = Vec3d.ofCenter(door);
+        BoiledHaunts.knocked(p, door);
         int[] when = {0, 14, 28, 70, 80};
         for (int i = 0; i < (p.getRandom().nextBoolean() ? 3 : 5); i++) {
             OwnerPowers.later(when[i], () -> sound(p, SoundEvents.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR, at, 0.55f, 0.6f));
@@ -276,9 +294,14 @@ public final class BoiledOmens {
         if (!w.getBlockState(feet.down()).isSolidBlock(w, feet.down())) {
             return;
         }
-        Vec3d fwd = Vec3d.fromPolar(0, m.getYaw());
+        footprintAt(w, new Vec3d(m.getX(), feet.getY(), m.getZ()), m.getYaw(), left);
+    }
+
+    /** A bloody footprint at these feet (y = the top of the ground), walking this way. */
+    static void footprintAt(ServerWorld w, Vec3d feet, float yaw, boolean left) {
+        Vec3d fwd = Vec3d.fromPolar(0, yaw);
         Vec3d side = new Vec3d(-fwd.z, 0, fwd.x).multiply(left ? 0.28 : -0.28);
-        Vec3d at = new Vec3d(m.getX() + side.x, feet.getY() + 0.015, m.getZ() + side.z);
+        Vec3d at = new Vec3d(feet.x + side.x, Math.floor(feet.y) + 0.015, feet.z + side.z);
         UUID id = OwnerCombat.Display.summon(w, at, "minecraft:nautilus_shell", "boiled_print__body",
                 "{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.7f,0.7f,0.7f]}");
         if (id == null) {
@@ -286,7 +309,7 @@ public final class BoiledOmens {
         }
         var d = w.getEntity(id);
         if (d != null) {
-            d.refreshPositionAndAngles(at.x, at.y, at.z, m.getYaw() + 180, 0);
+            d.refreshPositionAndAngles(at.x, at.y, at.z, yaw + 180, 0);
             d.addCommandTag(ModelMobs.DISPLAY_TAG);
             try {
                 Ac.server().getCommandManager().parseAndExecute(Ac.server().getCommandSource().withWorld(w).withSilent(),
@@ -310,7 +333,15 @@ public final class BoiledOmens {
      * closed door, it can't find them.
      */
     static boolean hiding(ServerPlayerEntity p) {
-        if (!p.isSneaking()) {
+        // Crouched, or standing perfectly still for a few seconds.
+        Vec3d pos = p.getEntityPos();
+        Still st0 = STILL.get(p.getUuid());
+        if (st0 == null || st0.at.squaredDistanceTo(pos) > 0.0025) {
+            STILL.put(p.getUuid(), st0 = new Still(pos));
+        } else {
+            st0.checks++;
+        }
+        if (!p.isSneaking() && st0.checks < 4) {
             return false;
         }
         ServerWorld w = p.getEntityWorld();
@@ -328,17 +359,37 @@ public final class BoiledOmens {
                 }
             }
             BlockState st = w.getBlockState(head.offset(d));
-            if (st.isSolidBlock(w, head.offset(d)) || st.getBlock() instanceof DoorBlock && !st.get(DoorBlock.OPEN)) {
+            if (st.isSolidBlock(w, head.offset(d)) || st.getBlock() instanceof DoorBlock && !st.get(DoorBlock.OPEN) || closet(st)) {
                 walls++;
             }
         }
         boolean roof = false;
         for (int up = 1; up <= 2; up++) {
-            if (w.getBlockState(head.up(up)).isSolidBlock(w, head.up(up))) {
+            BlockState st = w.getBlockState(head.up(up));
+            if (st.isSolidBlock(w, head.up(up)) || closet(st)) {
                 roof = true;
             }
         }
         return roof && (walls >= 3 || door && walls >= 2);
+    }
+
+    private static final class Still {
+        final Vec3d at;
+        int checks;
+
+        Still(Vec3d at) {
+            this.at = at;
+        }
+    }
+
+    private static final Map<UUID, Still> STILL = new ConcurrentHashMap<>();
+
+    /** What a closet is made of: barrels, chests, shelves, closed trapdoors. */
+    private static boolean closet(BlockState st) {
+        var b = st.getBlock();
+        return b instanceof net.minecraft.block.BarrelBlock || b instanceof net.minecraft.block.ChestBlock
+                || b instanceof net.minecraft.block.ChiseledBookshelfBlock || st.isOf(Blocks.BOOKSHELF)
+                || b instanceof net.minecraft.block.TrapdoorBlock && !st.get(net.minecraft.block.TrapdoorBlock.OPEN);
     }
 
     // The Lantern of Dawn: keeps it away for one night.

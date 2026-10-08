@@ -91,6 +91,9 @@ public final class BoiledFight {
     /** Hard mode: its hits land this much harder and it does everything this much sooner. */
     static final double HARD_HIT = 1.6;
     static final double HARD_PACE = 0.7;
+    /** Every win makes the next fight this much harder (hits and pace), up to {@link #MAX_RAGE} wins. */
+    static final double RAGE_STEP = 0.1;
+    static final int MAX_RAGE = 5;
     private static final String TAG = "vigil_boiling";
     private static final String NAME = "The Boiled One";
     private static final String[] PHASE_NAMES = {"The Stalker", "Boiling Blood", "Many of Him", "Lights Out", "Rage"};
@@ -184,6 +187,8 @@ public final class BoiledFight {
         /** Fell and chose to watch from the glass box above the arena. */
         final Set<UUID> watching = new LinkedHashSet<>();
         boolean hard;
+        /** Its rage: one step for every time it has been beaten before (up to 5), each making it hit harder and faster. */
+        int rage;
         long rose;
     }
 
@@ -709,10 +714,10 @@ public final class BoiledFight {
         fight.stage = Stage.FIGHT;
         fight.calmUntil = now + 60;
         fight.rose = now;
-        if (fight.hard) {
-            set(m, EntityAttributes.ATTACK_DAMAGE, 9 * HARD_HIT);
-            set(m, EntityAttributes.MOVEMENT_SPEED, 0.34);
-        }
+        fight.rage = Math.min(MAX_RAGE, state().wins);
+        double rage = 1 + RAGE_STEP * fight.rage;
+        set(m, EntityAttributes.ATTACK_DAMAGE, 9 * (fight.hard ? HARD_HIT : 1) * rage);
+        set(m, EntityAttributes.MOVEMENT_SPEED, (fight.hard ? 0.34 : 0.3) + 0.01 * fight.rage);
         fight.nextLunge = now + 120;
         fight.nextPools = now + 200;
         fight.nextGrab = now + 200;
@@ -722,6 +727,9 @@ public final class BoiledFight {
         for (ServerPlayerEntity p : insidePlayers()) {
             fight.bar.addPlayer(p);
             BoiledOne.jumpscare(p);
+            if (fight.rage > 0) {
+                Msg.send(p, "boilfight.rage", fight.rage, Math.round(RAGE_STEP * fight.rage * 100));
+            }
         }
         phaseTitle();
     }
@@ -802,8 +810,8 @@ public final class BoiledFight {
             return;
         }
         int p = f.phase;
-        double pace = (p >= 5 ? 0.5 : 1.0) * (f.hard ? HARD_PACE : 1.0);
-        float power = f.hard ? (float) HARD_HIT : 1f;
+        double pace = (p >= 5 ? 0.5 : 1.0) * (f.hard ? HARD_PACE : 1.0) / (1 + RAGE_STEP * f.rage);
+        float power = (float) ((f.hard ? HARD_HIT : 1) * (1 + RAGE_STEP * f.rage));
         // 1+: it lunges at someone, roaring; anyone close when it lands is torn.
         if (now >= f.nextLunge && !in.isEmpty()) {
             ServerPlayerEntity t = in.get(w.getRandom().nextInt(in.size()));
@@ -1033,7 +1041,7 @@ public final class BoiledFight {
         f.nextShuffle = now + 160;
         f.boss.refreshPositionAndAngles(0.5, FLOOR + 1, 0.5, f.boss.getYaw(), 0);
         if (f.phase >= 5) {
-            set(f.boss, EntityAttributes.MOVEMENT_SPEED, 0.38);
+            set(f.boss, EntityAttributes.MOVEMENT_SPEED, 0.38 + 0.01 * f.rage);
         }
         for (ServerPlayerEntity p : insidePlayers()) {
             BoiledOne.jumpscare(p);

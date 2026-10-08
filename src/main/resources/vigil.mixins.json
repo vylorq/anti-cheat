@@ -11,6 +11,7 @@
     "ClientConnectionMixin",
     "CommandManagerMixin",
     "CraftingResultSlotMixin",
+    "DamageTrackerMixin",
     "DispenserBlockMixin",
     "EndPortalBlockMixin",
     "EndermanPickUpMixin",
