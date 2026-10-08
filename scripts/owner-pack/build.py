@@ -1549,7 +1549,13 @@ def build():
     for name, parts in MODELS3D.items():
         files[f"assets/vigil/textures/item/{name}.png"] = open(os.path.join(mdir, name + ".png"), "rb").read()
         for part in parts:
-            files[f"assets/vigil/models/item/{part}.json"] = open(os.path.join(mdir, part + ".json"), "rb").read()
+            model = open(os.path.join(mdir, part + ".json"), "rb").read()
+            files[f"assets/vigil/models/item/{part}.json"] = model
+            # a part can have its own picture too (The Boiled One's sharper head)
+            for tex in json.loads(model).get("textures", {}).values():
+                extra = os.path.join(mdir, tex[len("vigil:item/"):] + ".png")
+                if tex.startswith("vigil:item/") and tex[len("vigil:item/"):] != name and os.path.exists(extra):
+                    files[f"assets/vigil/textures/item/{tex[len('vigil:item/'):]}.png"] = open(extra, "rb").read()
             by_base.setdefault("nautilus_shell", []).append(part)
     files["assets/vigil/textures/item/grappling_hook_cast.png"] = png(grappling_hook(True))
     files["assets/vigil/models/item/grappling_hook_cast.json"] = json.dumps(
