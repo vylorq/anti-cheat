@@ -65,7 +65,7 @@ public final class BoiledOne {
     public static final String TAG = "vigil_boiled_one";
     static final String MODEL = "boiled_one";
 
-    enum Mode { STALK, SCARE, PEEK, BEHIND, RUSH, BREAK_IN, GRAB, GLIMPSE, DOOR, PASS }
+    enum Mode { STALK, SCARE, PEEK, BEHIND, RUSH, BREAK_IN, GRAB, GLIMPSE, DOOR, PASS, PARALYSIS }
 
     /** One break-in, remembered: who it came for and whose base it was. */
     public static final class BreakIn {
@@ -151,6 +151,9 @@ public final class BoiledOne {
         long frozenUntil;
         /** Walking past someone hiding: the way it goes. */
         Vec3d passDir;
+        /** Stalking: it has taken over their eyes once (they can't look away until this tick). */
+        boolean possessed;
+        long possessedUntil;
 
         Hunt(MobEntity mob, UUID victim, Mode mode, long now) {
             this.mob = mob;
@@ -176,6 +179,8 @@ public final class BoiledOne {
 
     public static void register() {
         BoiledHaunts.register();
+        BoiledDread.register();
+        BoiledRitual.register();
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, w) -> {
             if (e.getCommandTags().contains(TAG) && !HUNTS.containsKey(e.getUuid()) && e instanceof MobEntity m) {
                 // Left over from before a restart: gone.
@@ -565,10 +570,19 @@ public final class BoiledOne {
                 // Off to the side of their view; nothing to hear.
             }
             case DOOR -> jumpscare(victim);
+            case PARALYSIS -> {
+                breathe(victim, m, 1f);
+                Msg.actionBar(victim, "§4" + Msg.trFor(victim, "boiled.paralysed"));
+                victim.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, 140, 0, false, false));
+                victim.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 120, 255, false, false));
+            }
             default -> Mc.sound(victim, SoundEvents.AMBIENT_CAVE.value(), 0.7f, 0.5f);
         }
         if (mode == Mode.STALK || mode == Mode.BREAK_IN) {
             BoiledOmens.panic(w, at);
+        }
+        if (mode != Mode.GLIMPSE) {
+            BoiledDread.touch(w, at);
         }
         posture(h, true);
         if (mode == Mode.BEHIND && h.room < 4) {
@@ -726,6 +740,8 @@ public final class BoiledOne {
             step(h);
         }
         BoiledHaunts.tick(ticks);
+        BoiledDread.tick(ticks);
+        BoiledRitual.tick(ticks);
         if (ticks % 10 == 0 && !ESP.isEmpty()) {
             espTick();
         }
@@ -739,6 +755,12 @@ public final class BoiledOne {
             ServerPlayerEntity p = Ac.server().getPlayerManager().getPlayer(h.victim);
             if (p != null && p.isAlive() && p.getEntityWorld() == h.mob.getEntityWorld()) {
                 BoiledHaunts.escaped(p, h.mob.getEntityPos());   // got away: sometimes it leaves a page behind
+            }
+        }
+        if (h.mode != Mode.GLIMPSE) {
+            ServerPlayerEntity p = Ac.server().getPlayerManager().getPlayer(h.victim);
+            if (p != null && p.isAlive()) {
+                BoiledDread.markMaps(p, p.getBlockPos());        // a red X where it last saw them
             }
         }
         if (h.hand != null) {
@@ -769,7 +791,8 @@ public final class BoiledOne {
         if (now % 5 == 0 && h.mode != Mode.BEHIND) {
             posture(h, false);
         }
-        if (h.mode != Mode.BEHIND && h.mode != Mode.GLIMPSE && h.mode != Mode.GRAB && h.mode != Mode.DOOR && h.mode != Mode.PASS) {
+        if (h.mode != Mode.BEHIND && h.mode != Mode.GLIMPSE && h.mode != Mode.GRAB && h.mode != Mode.DOOR && h.mode != Mode.PASS
+                && h.mode != Mode.PARALYSIS) {
             BoiledOmens.interference(p, m, dist, now);
             // Hiding (crouched or dead still, in a tight dark spot, a closet or behind a closed door): it loses them,
             // and walks right past.
@@ -814,6 +837,17 @@ public final class BoiledOne {
                     // It slips back behind the rock.
                     vanish(h);
                     return;
+                }
+                if (h.mode == Mode.STALK && !h.possessed && !seen && dist > 8 && dist < 40 && now % 20 == 0
+                        && p.getRandom().nextInt(25) == 0) {
+                    // It takes over their eyes: they turn to look at it, and can't look away.
+                    h.possessed = true;
+                    h.possessedUntil = now + 60;
+                    Msg.actionBar(p, "§4" + Msg.trFor(p, "boiled.possessed"));
+                    BoiledOmens.pack(p, "boiled_static", p.getEyePos(), 1f, 0.6f);
+                }
+                if (now < h.possessedUntil) {
+                    lookAt(p, m.getEyePos());
                 }
                 if (h.mode == Mode.STALK) {
                     // Looked at: it freezes for a few seconds, then keeps coming (slower while watched).
@@ -863,6 +897,22 @@ public final class BoiledOne {
                 }
             }
             case GRAB -> held(h, p, w);
+            case PARALYSIS -> {
+                // They can't move, and can't look away. It stands at the end of the bed, breathing.
+                face(m, p);
+                lookAt(p, m.getEyePos());
+                p.setVelocity(Vec3d.ZERO);
+                long t = now - h.born;
+                if (t % 40 == 0) {
+                    breathe(p, m, 1f);
+                }
+                if (t == 110) {
+                    jumpscare(p);
+                }
+                if (t > 116) {
+                    vanish(h);
+                }
+            }
             case DOOR -> {
                 // Standing right outside the door they just opened.
                 face(m, p);
@@ -937,6 +987,26 @@ public final class BoiledOne {
         m.setAiDisabled(true);
         m.setVelocity(Vec3d.ZERO);
         set(m, EntityAttributes.STEP_HEIGHT, 1.1);
+    }
+
+    /** Turns their head to look at a point (their feet stay where they are). */
+    private static void lookAt(ServerPlayerEntity p, Vec3d at) {
+        Vec3d to = at.subtract(p.getEyePos());
+        float yaw = (float) (MathHelper.atan2(to.z, to.x) * 57.2958) - 90f;
+        float pitch = (float) -(MathHelper.atan2(to.y, to.horizontalLength()) * 57.2958);
+        p.networkHandler.requestTeleport(p.getX(), p.getY(), p.getZ(), yaw, pitch);
+    }
+
+    /** Sleep paralysis: it stands here, at the end of their bed, and they can't move. */
+    static MobEntity paralysis(ServerPlayerEntity p, BlockPos at) {
+        ServerWorld w = p.getEntityWorld();
+        for (BlockPos b : new BlockPos[]{at, at.up(), at.down()}) {
+            if (standable(w, b, 2)) {
+                return spawn(w, Vec3d.ofBottomCenter(b), p, Mode.PARALYSIS);
+            }
+        }
+        Vec3d near = spot(p, 2, 4, true, true);
+        return near == null ? null : spawn(w, near, p, Mode.PARALYSIS);
     }
 
     /** Players it's after right now (not a glimpse), and where it is. */
@@ -1468,6 +1538,25 @@ public final class BoiledOne {
             case "torches" -> {
                 BoiledOmens.snuff(target, null);
                 Msg.send(owner, "boiled.sent", target.getGameProfile().name());
+                return;
+            }
+            case "sounds" -> {
+                BoiledDread.wrongSound(target);
+                Msg.send(owner, "boiled.sent", target.getGameProfile().name());
+                return;
+            }
+            case "reflection" -> {
+                BoiledDread.reflection(target);
+                Msg.send(owner, "boiled.sent", target.getGameProfile().name());
+                return;
+            }
+            case "shadow" -> {
+                Msg.send(owner, BoiledDread.shadow(target) ? "boiled.sent" : "boiled.nowhere", target.getGameProfile().name());
+                return;
+            }
+            case "paralysis" -> {
+                Msg.send(owner, BoiledDread.paralyse(target, target.getSleepingPosition().orElse(null)) ? "boiled.sent" : "boiled.nowhere",
+                        target.getGameProfile().name());
                 return;
             }
             case "fakechat" -> {

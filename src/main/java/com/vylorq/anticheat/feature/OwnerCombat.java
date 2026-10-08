@@ -920,7 +920,7 @@ public final class OwnerCombat {
         private Display() {
         }
 
-        private static String uuidNbt(UUID u) {
+        static String uuidNbt(UUID u) {
             long m = u.getMostSignificantBits();
             long l = u.getLeastSignificantBits();
             return "[I;" + (int) (m >> 32) + "," + (int) m + "," + (int) (l >> 32) + "," + (int) l + "]";

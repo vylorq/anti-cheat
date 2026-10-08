@@ -565,6 +565,39 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void theRitualAltarAndMapMarksWork(TestContext ctx) {
+        var w = ctx.getWorld();
+        BlockPos c = ctx.getAbsolutePos(new BlockPos(2, 1, 2));
+        w.setBlockState(c, net.minecraft.block.Blocks.CHISELED_POLISHED_BLACKSTONE.getDefaultState());
+        java.util.List<BlockPos> tops = new java.util.ArrayList<>();
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                if (dx != 0 || dz != 0) {
+                    w.setBlockState(c.add(dx, 0, dz), net.minecraft.block.Blocks.POLISHED_BLACKSTONE.getDefaultState());
+                    tops.add(c.add(dx, 1, dz));
+                }
+            }
+        }
+        for (BlockPos b : tops) {
+            w.setBlockState(b, net.minecraft.block.Blocks.CANDLE.getDefaultState());
+        }
+        check(!com.vylorq.anticheat.feature.BoiledRitual.altarForTest(w, c), "unlit candles make an altar");
+        for (BlockPos b : tops) {
+            w.setBlockState(b, net.minecraft.block.Blocks.CANDLE.getDefaultState().with(net.minecraft.block.AbstractCandleBlock.LIT, true));
+        }
+        check(com.vylorq.anticheat.feature.BoiledRitual.altarForTest(w, c), "eight lit candles round the blackstone aren't an altar");
+        w.setBlockState(tops.get(3), net.minecraft.block.Blocks.AIR.getDefaultState());
+        check(!com.vylorq.anticheat.feature.BoiledRitual.altarForTest(w, c), "seven candles make an altar");
+
+        var p = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "MapHolder"));
+        var map = new net.minecraft.item.ItemStack(net.minecraft.item.Items.FILLED_MAP);
+        p.getInventory().setStack(0, map);
+        com.vylorq.anticheat.feature.BoiledDread.markMapsForTest(p, c);
+        check(com.vylorq.anticheat.feature.BoiledDread.markedForTest(p.getInventory().getStack(0)), "no red X on the map");
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
