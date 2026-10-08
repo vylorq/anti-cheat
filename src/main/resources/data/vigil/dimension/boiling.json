@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:the_nether",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "minecraft:crimson_forest",
+      "features": false,
+      "lakes": false,
+      "layers": [
+        {"block": "minecraft:bedrock", "height": 1},
+        {"block": "minecraft:blackstone", "height": 3},
+        {"block": "minecraft:crimson_nylium", "height": 1}
+      ],
+      "structure_overrides": []
+    }
+  }
+}

@@ -495,6 +495,23 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void theBoilingExistsAndItCanRiseThere(TestContext ctx) {
+        check(com.vylorq.anticheat.feature.BoiledFight.dimensionLoadedForTest(), "The Boiling dimension didn't load");
+        var b = com.vylorq.anticheat.feature.BoiledFight.boiling();
+        check(b.getRegistryKey() == com.vylorq.anticheat.feature.BoiledFight.BOILING, "wrong world");
+        b.getChunk(0, 0);
+        check(b.getBlockState(new BlockPos(0, com.vylorq.anticheat.feature.BoiledFight.FLOOR - 1, 0)).isOf(net.minecraft.block.Blocks.CRIMSON_NYLIUM)
+                || b.getBlockState(new BlockPos(0, com.vylorq.anticheat.feature.BoiledFight.FLOOR - 1, 0)).isOf(net.minecraft.block.Blocks.POLISHED_BLACKSTONE),
+                "The Boiling's ground isn't where the fight expects it: " + b.getBlockState(new BlockPos(0, com.vylorq.anticheat.feature.BoiledFight.FLOOR - 1, 0)));
+        var m = com.vylorq.anticheat.feature.BoiledFight.bodyForTest(b, new net.minecraft.util.math.Vec3d(0.5, com.vylorq.anticheat.feature.BoiledFight.FLOOR, 0.5));
+        check(m != null && m.getCommandTags().contains("vigil_model:boiled_one"), "it didn't rise in its painted body");
+        com.vylorq.anticheat.feature.ModelMobs.remove(m);
+        check(com.vylorq.anticheat.feature.BoiledFight.heart(net.fabricmc.fabric.api.entity.FakePlayer.get(ctx.getWorld()))
+                .isOf(net.minecraft.item.Items.NETHER_STAR), "no heart trophy");
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
