@@ -1472,6 +1472,41 @@ def s_boiled_static():
 
 SOUNDS4["boiled_static"] = s_boiled_static
 
+def s_boiled_voice():
+    """Its voice, when it notices you: a deep, slowed, distorted "I... see... you", with an echo."""
+    from scipy.signal import lfilter
+
+    def formant(x, f, bw):
+        r = np.exp(-np.pi * bw / SR)
+        th = 2 * np.pi * f / SR
+        return lfilter([1 - r], [1, -2 * r * np.cos(th), r * r], x)
+
+    def vowel(sec, f1, f2, f3, pitch):
+        n = int(SR * sec)
+        src = saw(np.linspace(pitch[0], pitch[1], n), sec, 0.03) + lowpass(noise(sec), 3) * 0.4
+        out = np.zeros(n)
+        fa = np.linspace(f1[0], f1[1], n)
+        fb = np.linspace(f2[0], f2[1], n)
+        # Formants that move: filter in short blocks.
+        step = 512
+        for a in range(0, n, step):
+            b = min(n, a + step)
+            seg = src[a:b]
+            out[a:b] = (formant(seg, fa[a], 90) * 1.0 + formant(seg, fb[a], 120) * 0.7 + formant(seg, f3, 160) * 0.3)
+        return env(out / (np.abs(out).max() + 1e-9), 0.08, 0.25)
+
+    i_ = vowel(0.9, (720, 300), (1100, 2100), 2700, (58, 50))
+    s_ = env(hp(hp(noise(0.35))) * 0.25, 0.08, 0.15)
+    ee = vowel(0.9, (300, 280), (2200, 2300), 3000, (52, 46))
+    yu = vowel(1.2, (320, 340), (2000, 800), 2400, (50, 40))
+    v = mix(3.9, [(0, i_), (1.15, s_), (1.4, ee), (2.6, yu)])
+    sub = saw(np.full(len(v), 29.0), len(v) / SR, 0.02) * 0.25 * (np.abs(lowpass(v, 400)) > 0.02)
+    voice = np.tanh((v + sub) * 3.0) * 0.55
+    return echo(voice, 0.32, 0.35, 3)
+
+
+SOUNDS4["boiled_voice"] = s_boiled_voice
+
 SOUNDS = {"zap": s_zap, "mode": s_mode, "launch": s_launch,
           "heal": s_heal, "repair": s_repair, "give": s_give, "owner_join": s_owner_join, **SOUNDS2, **SOUNDS3, **SOUNDS4}
 

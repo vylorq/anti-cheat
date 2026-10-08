@@ -304,6 +304,49 @@ public final class BoiledDread {
         }
     }
 
+    // ---------------------------------------------------------------- the Cursed Bone
+
+    static final String CURSE = "vigil_cursed_bone";
+
+    /** Whoever carries it, it hunts, until it has killed them. Pass it on (quietly) before it finds you. */
+    public static ItemStack cursedBone() {
+        ItemStack s = new ItemStack(Items.BONE);
+        s.set(DataComponentTypes.CUSTOM_NAME, net.minecraft.text.Text.literal("§4§lCursed Bone").styled(st -> st.withItalic(false)));
+        s.set(DataComponentTypes.LORE, new net.minecraft.component.type.LoreComponent(List.of(
+                net.minecraft.text.Text.literal("§7The Boiled One hunts whoever carries it.").styled(st -> st.withItalic(false)),
+                net.minecraft.text.Text.literal("§7Give it away before it finds you.").styled(st -> st.withItalic(false)),
+                net.minecraft.text.Text.literal("§8It crumbles once it has taken someone.").styled(st -> st.withItalic(false)))));
+        s.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
+        s.set(DataComponentTypes.MAX_STACK_SIZE, 1);
+        com.vylorq.anticheat.util.ItemConv.setTag(s, CURSE, "1");
+        return s;
+    }
+
+    public static boolean isCursed(ItemStack s) {
+        return s.isOf(Items.BONE) && "1".equals(com.vylorq.anticheat.util.ItemConv.tag(s, CURSE));
+    }
+
+    /** Whether they carry a Cursed Bone (anywhere in their inventory). */
+    static boolean cursed(ServerPlayerEntity p) {
+        var inv = p.getInventory();
+        for (int i = 0; i < inv.size(); i++) {
+            if (isCursed(inv.getStack(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** It took them: the bone they carried crumbles. */
+    static void lift(ServerPlayerEntity p) {
+        var inv = p.getInventory();
+        for (int i = 0; i < inv.size(); i++) {
+            if (isCursed(inv.getStack(i))) {
+                inv.setStack(i, ItemStack.EMPTY);
+            }
+        }
+    }
+
     // ---------------------------------------------------------------- every tick
 
     static void tick(long now) {

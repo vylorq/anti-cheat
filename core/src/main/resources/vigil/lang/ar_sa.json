@@ -3006,5 +3006,6 @@
   "bmenu.how.shadow": "ظل ثانٍ",
   "bmenu.how.shadow.desc": "شكل مظلم يتبعهم على الأرض.",
   "bmenu.how.paralysis": "شلل النوم",
-  "bmenu.how.paralysis.desc": "لا يستطيعون الحركة؛ يقف عند نهاية سريرهم."
+  "bmenu.how.paralysis.desc": "لا يستطيعون الحركة؛ يقف عند نهاية سريرهم.",
+  "bmenu.item-curse": "العظمة الملعونة"
 }

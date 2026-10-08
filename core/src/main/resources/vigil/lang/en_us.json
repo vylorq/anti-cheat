@@ -3006,5 +3006,6 @@
   "bmenu.how.shadow": "Second shadow",
   "bmenu.how.shadow.desc": "A dark shape follows them on the ground.",
   "bmenu.how.paralysis": "Sleep paralysis",
-  "bmenu.how.paralysis.desc": "They can't move; it stands at the end of their bed."
+  "bmenu.how.paralysis.desc": "They can't move; it stands at the end of their bed.",
+  "bmenu.item-curse": "Cursed Bone"
 }

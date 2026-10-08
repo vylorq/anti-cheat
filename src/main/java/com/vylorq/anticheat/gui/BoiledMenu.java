@@ -172,6 +172,7 @@ public final class BoiledMenu {
             });
             item(menu, 41, Items.NETHERITE_SWORD, "bmenu.item-edge", pl -> SecretItems.give(pl, SecretItems.BOILING_EDGE));
             item(menu, 42, Items.NETHER_STAR, "bmenu.item-heart", pl -> pl.getInventory().offerOrDrop(BoiledFight.heart(pl)));
+            item(menu, 43, Items.BONE, "bmenu.item-curse", pl -> pl.getInventory().offerOrDrop(com.vylorq.anticheat.feature.BoiledDread.cursedBone()));
         });
         m.open(p);
     }
