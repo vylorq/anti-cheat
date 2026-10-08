@@ -85,6 +85,12 @@ public final class BoiledFight {
     static final long DOOR_LIFE = 10L * 60 * 1000;
     public static final int FLOOR = 5;          // where you stand in The Boiling (bedrock, blackstone, nylium below)
     static final int ARENA = 30;         // the arena's radius (its world border is a little wider)
+    static final int BOX_Y = FLOOR + 22; // the floor of the glass box above the middle, where the fallen can watch
+    /** One hit on it in this many drops a piece of the Boiled Armor (twice as likely in hard mode). */
+    static final int ARMOR_ODDS = 25_000;
+    /** Hard mode: its hits land this much harder and it does everything this much sooner. */
+    static final double HARD_HIT = 1.6;
+    static final double HARD_PACE = 0.7;
     private static final String TAG = "vigil_boiling";
     private static final String NAME = "The Boiled One";
     private static final String[] PHASE_NAMES = {"The Stalker", "Boiling Blood", "Many of Him", "Lights Out", "Rage"};
@@ -101,6 +107,10 @@ public final class BoiledFight {
         public long door;
         public String doorFacing;
         public long doorAt;
+        /** Fastest win (ticks from it rising to its death) and who was there. */
+        public long bestTicks;
+        public String bestBy;
+        public int hardWins;
     }
 
     private static State state;
@@ -171,6 +181,10 @@ public final class BoiledFight {
         ServerBossBar bar;
         /** How much each player took off it, for the top damage reward. */
         final Map<UUID, Double> dealt = new HashMap<>();
+        /** Fell and chose to watch from the glass box above the arena. */
+        final Set<UUID> watching = new LinkedHashSet<>();
+        boolean hard;
+        long rose;
     }
 
     private static Fight fight;
@@ -225,8 +239,20 @@ public final class BoiledFight {
             p.getHungerManager().setFoodLevel(20);
             if (fight != null && fight.inside.remove(p.getUuid())) {
                 fight.fallen.add(p.getUuid());
-                Msg.send(p, "boilfight.fell");
                 tellInside("boilfight.someone-fell", p.getGameProfile().name());
+                if (fight.stage == Stage.FIGHT) {
+                    // Into the glass box above the arena, and they choose: watch the rest, or go home.
+                    fight.watching.add(p.getUuid());
+                    Mc.teleport(p, (ServerWorld) p.getEntityWorld(), 0.5, BOX_Y + 1, 0.5, p.getYaw(), 30);
+                    Msg.send(p, "boilfight.fell-choose");
+                    OwnerPowers.later(2, () -> afterFall(p));
+                    return false;
+                }
+                Msg.send(p, "boilfight.fell");
+            }
+            if (fight != null && fight.watching.contains(p.getUuid())) {
+                Mc.teleport(p, (ServerWorld) p.getEntityWorld(), 0.5, BOX_Y + 1, 0.5, p.getYaw(), 30);
+                return false;
             }
             sendBack(p);
             return false;
@@ -235,7 +261,8 @@ public final class BoiledFight {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity p = handler.player;
             server.execute(() -> {
-                if (Ac.running() && inBoiling(p) && (fight == null || !fight.inside.contains(p.getUuid()))) {
+                if (Ac.running() && inBoiling(p) && (fight == null || (!fight.inside.contains(p.getUuid())
+                        && !fight.watching.contains(p.getUuid())))) {
                     sendBack(p);
                 }
             });
@@ -253,6 +280,14 @@ public final class BoiledFight {
         }
         if (fight == null) {
             return;
+        }
+        // The whole server sees red while it's being fought (sent again now and then: changing worlds resets it).
+        if ((fight.stage == Stage.ENTER || fight.stage == Stage.FIGHT) && ticks % 600 == 0) {
+            for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
+                if (!inBoiling(p)) {
+                    redSky(p, true);
+                }
+            }
         }
         switch (fight.stage) {
             case INVITE -> {
@@ -451,7 +486,17 @@ public final class BoiledFight {
     /** The menu: bring everyone, or pick players (click their heads), then open the door. */
     static void choose(ServerPlayerEntity p, Set<UUID> picked) {
         Menu m = Menu.std(Theme.Category.PLAYER, 6, Msg.trFor(p, "boilfight.menu-title"));
+        boolean[] hard = {false};
         m.renderer(menu -> {
+            if (state().wins > 0) {
+                // Hard mode: only once someone has killed it.
+                menu.set(Menu.SEARCH, Btn.of(hard[0] ? Items.WITHER_SKELETON_SKULL : Items.SKELETON_SKULL)
+                        .name((hard[0] ? "§4§l" : "§7") + Msg.tr("boilfight.menu-hard")).desc(Msg.tr("boilfight.menu-hard-desc"))
+                        .onOff(hard[0]).build(), null, (pl, c) -> {
+                    hard[0] = !hard[0];
+                    menu.refresh();
+                });
+            }
             menu.set(Menu.INFO, Btn.of(Items.CRIMSON_DOOR).name("§4" + Msg.tr("boilfight.menu-title"))
                     .desc(Msg.tr("boilfight.menu-desc")).build(), null, null);
             int i = 0;
@@ -478,19 +523,19 @@ public final class BoiledFight {
                         all.add(o.getUuid());
                     }
                 }
-                start(pl, all);
+                start(pl, all, hard[0]);
             });
             menu.set(Menu.SEARCH + 2, Btn.of(Items.LIME_DYE).name("§a" + Msg.tr("boilfight.menu-go"))
                     .desc(Msg.tr("boilfight.menu-go-desc", picked.size())).build(), null, (pl, c) -> {
                 pl.closeHandledScreen();
-                start(pl, picked);
+                start(pl, picked, hard[0]);
             });
         });
         m.open(p);
     }
 
     /** The door opens: everyone chosen gets 30 seconds to say they're coming. */
-    static void start(ServerPlayerEntity finder, Set<UUID> who) {
+    static void start(ServerPlayerEntity finder, Set<UUID> who, boolean hard) {
         if (fight != null) {
             Msg.send(finder, "boilfight.busy");
             return;
@@ -498,6 +543,7 @@ public final class BoiledFight {
         removeDoor();
         fight = new Fight();
         fight.finder = finder.getUuid();
+        fight.hard = hard;
         fight.joined.add(finder.getUuid());
         fight.invited.addAll(who);
         fight.invited.remove(finder.getUuid());
@@ -588,6 +634,12 @@ public final class BoiledFight {
         }
         fight.stage = Stage.ENTER;
         fight.stageUntil = now + 20 * 6;
+        for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
+            if (!inBoiling(p)) {
+                redSky(p, true);
+                Msg.send(p, fight.hard ? "boilfight.opened-hard" : "boilfight.opened", going.size());
+            }
+        }
         Ac.LOG.info("{} players entered The Boiling", going.size());
     }
 
@@ -631,6 +683,16 @@ public final class BoiledFight {
             }
         }
         w.setBlockState(new BlockPos(0, FLOOR, 0), Blocks.CHISELED_POLISHED_BLACKSTONE.getDefaultState(), Block.NOTIFY_LISTENERS);
+        // The watchers' box: glass all round, high over the altar.
+        for (int x = -3; x <= 3; x++) {
+            for (int y = 0; y <= 4; y++) {
+                for (int z = -3; z <= 3; z++) {
+                    boolean shell = Math.abs(x) == 3 || Math.abs(z) == 3 || y == 0 || y == 4;
+                    w.setBlockState(new BlockPos(x, BOX_Y + y, z), shell ? Blocks.GLASS.getDefaultState() : Blocks.AIR.getDefaultState(),
+                            Block.NOTIFY_LISTENERS);
+                }
+            }
+        }
         s.arenaBuilt = true;
         save();
     }
@@ -646,6 +708,11 @@ public final class BoiledFight {
         fight.boss = m;
         fight.stage = Stage.FIGHT;
         fight.calmUntil = now + 60;
+        fight.rose = now;
+        if (fight.hard) {
+            set(m, EntityAttributes.ATTACK_DAMAGE, 9 * HARD_HIT);
+            set(m, EntityAttributes.MOVEMENT_SPEED, 0.34);
+        }
         fight.nextLunge = now + 120;
         fight.nextPools = now + 200;
         fight.nextGrab = now + 200;
@@ -735,7 +802,8 @@ public final class BoiledFight {
             return;
         }
         int p = f.phase;
-        double pace = p >= 5 ? 0.5 : 1.0;
+        double pace = (p >= 5 ? 0.5 : 1.0) * (f.hard ? HARD_PACE : 1.0);
+        float power = f.hard ? (float) HARD_HIT : 1f;
         // 1+: it lunges at someone, roaring; anyone close when it lands is torn.
         if (now >= f.nextLunge && !in.isEmpty()) {
             ServerPlayerEntity t = in.get(w.getRandom().nextInt(in.size()));
@@ -750,7 +818,7 @@ public final class BoiledFight {
             f.lungeHit = -1;
             for (ServerPlayerEntity t : in) {
                 if (t.squaredDistanceTo(m) < 3.5 * 3.5) {
-                    t.damage(w, m.getDamageSources().mobAttack(m), 7f);
+                    t.damage(w, m.getDamageSources().mobAttack(m), 7f * power);
                     OwnerCombat.push(t, t.getEntityPos().subtract(m.getEntityPos()).normalize().multiply(0.9).add(0, 0.4, 0));
                 }
             }
@@ -781,7 +849,7 @@ public final class BoiledFight {
             w.playSound(null, pool.at().x, FLOOR, pool.at().z, SoundEvents.ENTITY_PLAYER_SPLASH_HIGH_SPEED, SoundCategory.HOSTILE, 1.5f, 0.5f);
             for (ServerPlayerEntity t : in) {
                 if (t.getEntityPos().squaredDistanceTo(pool.at()) < 2.5 * 2.5) {
-                    t.damage(w, m.getDamageSources().mobAttack(m), 9f);
+                    t.damage(w, m.getDamageSources().mobAttack(m), 9f * power);
                     t.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 1, false, true));
                 }
             }
@@ -845,7 +913,7 @@ public final class BoiledFight {
                 if (now - f.grabbing >= 24) {
                     if (t != null && f.inside.contains(t.getUuid())) {
                         BoiledOne.jumpscare(t);
-                        t.damage(w, m.getDamageSources().mobAttack(m), 12f);
+                        t.damage(w, m.getDamageSources().mobAttack(m), 12f * power);
                         w.spawnParticles(blood, t.getX(), t.getEyeY(), t.getZ(), 60, 0.3, 0.3, 0.3, 0);
                     }
                     ModelMobs.act(m, 0);
@@ -916,6 +984,17 @@ public final class BoiledFight {
             hit = f.hp;
         }
         f.dealt.merge(p.getUuid(), Math.min(hit, Math.max(0, f.hp)), Double::sum);
+        // Incredibly rare: a piece of its armor tears off into your hands.
+        if (hit > 0 && p.getRandom().nextInt(f.hard ? ARMOR_ODDS / 2 : ARMOR_ODDS) == 0) {
+            ItemStack piece = armor(p.getRandom().nextInt(4));
+            String piece_name = piece.getName().getString();
+            give(p, piece);
+            for (ServerPlayerEntity o : Ac.server().getPlayerManager().getPlayerList()) {
+                Msg.send(o, "boilfight.armor-drop", p.getGameProfile().name(), piece_name);
+                Mc.sound(o, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 1f, 0.5f);
+            }
+            Ac.LOG.info("The Boiling: {} got {}", p.getGameProfile().name(), piece_name);
+        }
         f.hp -= hit;
         ServerWorld w = (ServerWorld) f.boss.getEntityWorld();
         w.spawnParticles(new DustParticleEffect(0x9A0000, 1.5f), f.boss.getX(), f.boss.getY() + 2.5, f.boss.getZ(), 12, 0.4, 0.8, 0.4, 0);
@@ -974,15 +1053,22 @@ public final class BoiledFight {
         if (f == null || f.bar == null) {
             return;
         }
-        f.bar.setName(Text.literal("§4" + NAME + " §7· " + PHASE_NAMES[f.phase - 1] + " §8(" + f.phase + "/" + PHASES + ")"));
+        f.bar.setName(Text.literal("§4" + (f.hard ? "§l" : "") + NAME + (f.hard ? " §c(Hard)" : "") + " §7· " + PHASE_NAMES[f.phase - 1] + " §8(" + f.phase + "/" + PHASES + ")"));
         f.bar.setPercent((float) Math.max(0, Math.min(1, f.hp / PHASE_HP)));
-        for (ServerPlayerEntity p : insidePlayers()) {
+        List<ServerPlayerEntity> see = insidePlayers();
+        for (UUID id : f.watching) {
+            ServerPlayerEntity p = online(id);
+            if (p != null && inBoiling(p)) {
+                see.add(p);
+            }
+        }
+        for (ServerPlayerEntity p : see) {
             if (!f.bar.getPlayers().contains(p)) {
                 f.bar.addPlayer(p);
             }
         }
         for (ServerPlayerEntity p : new ArrayList<>(f.bar.getPlayers())) {
-            if (!f.inside.contains(p.getUuid())) {
+            if (!f.inside.contains(p.getUuid()) && !f.watching.contains(p.getUuid())) {
                 f.bar.removePlayer(p);
             }
         }
@@ -996,8 +1082,13 @@ public final class BoiledFight {
         f.stage = Stage.OVER;
         f.stageUntil = now + 20 * 15;
         clearBodies();
-        state().wins++;
-        save();
+        State st = state();
+        st.wins++;
+        if (f.hard) {
+            st.hardWins++;
+        }
+        long took = now - f.rose;
+        boolean record = st.bestTicks == 0 || took < st.bestTicks;
         List<String> names = new ArrayList<>();
         for (ServerPlayerEntity p : insidePlayers()) {
             names.add(p.getGameProfile().name());
@@ -1007,8 +1098,22 @@ public final class BoiledFight {
             give(p, new ItemStack(Items.ENCHANTED_GOLDEN_APPLE));
             give(p, new ItemStack(Items.TOTEM_OF_UNDYING));
             give(p, new ItemStack(Items.DIAMOND, 8));
+            if (f.hard) {
+                give(p, new ItemStack(Items.NETHERITE_INGOT, 2));
+                give(p, new ItemStack(Items.ENCHANTED_GOLDEN_APPLE));
+            }
             p.addExperienceLevels(30);
         }
+        if (record) {
+            st.bestTicks = took;
+            st.bestBy = String.join(", ", names);
+        }
+        save();
+        String time = com.vylorq.anticheat.core.util.Durations.format(took * 50);
+        for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
+            Msg.send(p, record ? "boilfight.record" : "boilfight.time", time);
+        }
+        leaderboard();
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
             Msg.send(p, "boilfight.won-all", String.join(", ", names));
         }
@@ -1045,6 +1150,7 @@ public final class BoiledFight {
                 Msg.send(p, "boilfight.lost");
             }
         }
+        leaderboard();
         Ac.LOG.info("The Boiling: nobody's left standing");
     }
 
@@ -1054,6 +1160,17 @@ public final class BoiledFight {
         for (ServerPlayerEntity p : insidePlayers()) {
             sendBack(p);
         }
+        for (UUID id : f.watching) {
+            ServerPlayerEntity p = online(id);
+            if (p != null && inBoiling(p)) {
+                sendBack(p);
+            }
+        }
+        fight = null;
+        for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
+            redSky(p, false);
+        }
+        fight = f;
         if (f.bar != null) {
             f.bar.clearPlayers();
         }
@@ -1148,6 +1265,111 @@ public final class BoiledFight {
         for (Entity e : gone) {
             e.discard();
         }
+    }
+
+    // ---------------------------------------------------------------- the fallen, the board, the armor, the sky
+
+    /** Just fell: watch the rest from the glass box, or go home. Closing the menu means watching. */
+    private static void afterFall(ServerPlayerEntity p) {
+        if (fight == null || !fight.watching.contains(p.getUuid())) {
+            return;
+        }
+        Menu m = Menu.std(Theme.Category.PLAYER, 3, Msg.trFor(p, "boilfight.fell-title"));
+        m.renderer(menu -> {
+            menu.set(11, Btn.of(Items.ENDER_EYE).name("§b" + Msg.tr("boilfight.watch")).desc(Msg.tr("boilfight.watch-desc")).build(),
+                    null, (pl, c) -> pl.closeHandledScreen());
+            menu.set(15, Btn.of(Items.RED_BED).name("§c" + Msg.tr("boilfight.home")).desc(Msg.tr("boilfight.home-desc")).build(),
+                    null, (pl, c) -> {
+                        pl.closeHandledScreen();
+                        if (fight != null) {
+                            fight.watching.remove(pl.getUuid());
+                        }
+                        sendBack(pl);
+                    });
+        });
+        m.open(p);
+    }
+
+    /** The top five who hurt it most, told to everyone who was in the fight. */
+    private static void leaderboard() {
+        Fight f = fight;
+        List<Map.Entry<UUID, Double>> top = new ArrayList<>(f.dealt.entrySet());
+        top.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+        Set<UUID> told = new LinkedHashSet<>(f.joined);
+        told.addAll(f.fallen);
+        told.addAll(f.watching);
+        for (UUID id : told) {
+            ServerPlayerEntity p = online(id);
+            if (p == null) {
+                continue;
+            }
+            Msg.send(p, "boilfight.board-head");
+            for (int i = 0; i < Math.min(5, top.size()); i++) {
+                var e = top.get(i);
+                Msg.send(p, "boilfight.board-line", i + 1, com.vylorq.anticheat.command.Args.nameOf(e.getKey(), "?"),
+                        String.valueOf(Math.round(e.getValue())));
+            }
+        }
+    }
+
+    /** /boiledfight top: its records. */
+    public static void records(ServerPlayerEntity p) {
+        State s = state();
+        Msg.send(p, "boilfight.records", s.fights, s.wins, s.hardWins,
+                s.bestTicks == 0 ? "-" : com.vylorq.anticheat.core.util.Durations.format(s.bestTicks * 50),
+                s.bestBy == null ? "-" : s.bestBy);
+    }
+
+    static final String[] ARMOR_NAMES = {"Boiled Helm", "Boiled Chestplate", "Boiled Leggings", "Boiled Boots"};
+    static final net.minecraft.item.Item[] ARMOR_ITEMS = {Items.NETHERITE_HELMET, Items.NETHERITE_CHESTPLATE,
+            Items.NETHERITE_LEGGINGS, Items.NETHERITE_BOOTS};
+    static final net.minecraft.entity.EquipmentSlot[] ARMOR_SLOTS = {net.minecraft.entity.EquipmentSlot.HEAD,
+            net.minecraft.entity.EquipmentSlot.CHEST, net.minecraft.entity.EquipmentSlot.LEGS, net.minecraft.entity.EquipmentSlot.FEET};
+    private static final String ARMOR_TAG = "vigil_boiled_armor";
+
+    /** A piece of the Boiled Armor (0 helm, 1 chest, 2 legs, 3 boots). */
+    public static ItemStack armor(int piece) {
+        ItemStack s = new ItemStack(ARMOR_ITEMS[piece]);
+        s.set(DataComponentTypes.CUSTOM_NAME, Text.literal("§4§l" + ARMOR_NAMES[piece]).styled(st -> st.withItalic(false)));
+        s.set(DataComponentTypes.LORE, new net.minecraft.component.type.LoreComponent(List.of(
+                Text.literal("§7Torn off The Boiled One in The Boiling").styled(st -> st.withItalic(false)),
+                Text.literal("§7Wear all four: its omens pass you by,").styled(st -> st.withItalic(false)),
+                Text.literal("§7and it never comes for you by chance").styled(st -> st.withItalic(false)),
+                Text.literal("§81 in " + ARMOR_ODDS + " hits").styled(st -> st.withItalic(false)))));
+        s.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
+        s.set(DataComponentTypes.MAX_STACK_SIZE, 1);
+        com.vylorq.anticheat.util.ItemConv.setTag(s, ARMOR_TAG, String.valueOf(piece));
+        return s;
+    }
+
+    /** Wearing all four pieces. */
+    public static boolean wearsFullSet(ServerPlayerEntity p) {
+        for (net.minecraft.entity.EquipmentSlot slot : ARMOR_SLOTS) {
+            ItemStack s = p.getEquippedStack(slot);
+            if (s.isEmpty() || com.vylorq.anticheat.util.ItemConv.tag(s, ARMOR_TAG) == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * While a fight goes on, the whole server's screen bleeds red at the edges (the world border's warning tint,
+     * sent to each player on its own: the real border never changes).
+     */
+    static void redSky(ServerPlayerEntity p, boolean on) {
+        var real = p.getEntityWorld().getWorldBorder();
+        var fake = new net.minecraft.world.border.WorldBorder();
+        fake.setCenter(real.getCenterX(), real.getCenterZ());
+        fake.setSize(real.getSize());
+        fake.setWarningTime(real.getWarningTime());
+        fake.setWarningBlocks(on ? 29_999_984 : real.getWarningBlocks());
+        p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.WorldBorderWarningBlocksChangedS2CPacket(fake));
+    }
+
+    /** Nobody but staff breaks or places anything in The Boiling. @return true when this is refused */
+    public static boolean protects(ServerPlayerEntity p) {
+        return Ac.running() && inBoiling(p) && !com.vylorq.anticheat.perm.Perms.isActiveStaff(p);
     }
 
     // ---------------------------------------------------------------- owner

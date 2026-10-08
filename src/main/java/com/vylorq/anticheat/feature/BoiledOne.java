@@ -260,7 +260,7 @@ public final class BoiledOne {
         }
         var rng = Ac.server().getOverworld().getRandom();
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
-            if (!canHunt(p) || s.hunted.containsKey(p.getUuidAsString()) || owner(p)) {
+            if (!canHunt(p) || s.hunted.containsKey(p.getUuidAsString()) || owner(p) || BoiledFight.wearsFullSet(p)) {
                 continue;
             }
             boolean cave = inCave(p);

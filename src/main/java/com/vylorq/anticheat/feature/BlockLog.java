@@ -176,6 +176,20 @@ public final class BlockLog {
                         admin.sendMessage(Msg.text("§7" + f.format(new Date(c.time)) + " §e" + c.actorName + " " + what
                                 + (c.rolledBack ? " §8(rolled back)" : "")));
                     }
+                    // One click: undo everything each of these players did around here (the last 7 days, 20 blocks).
+                    if (com.vylorq.anticheat.perm.Perms.has(admin, com.vylorq.anticheat.perm.Perm.ROLLBACK)) {
+                        java.util.Set<String> who = new java.util.LinkedHashSet<>();
+                        for (BlockChange c : list) {
+                            if (c.actor != null && c.actorName != null && !c.rolledBack) {
+                                who.add(c.actorName);
+                            }
+                        }
+                        for (String name : who) {
+                            admin.sendMessage(Msg.prefixed("§7" + Msg.trFor(admin, "inspector.undo-line", name) + " ")
+                                    .append(Msg.button("§c[" + Msg.trFor(admin, "inspector.undo") + "]",
+                                            "/rollback " + Msg.q(name) + " 7d 20", Msg.trFor(admin, "inspector.undo-hover", name))));
+                        }
+                    }
                 });
             } catch (Exception e) {
                 Ac.LOG.error("Inspector query failed", e);

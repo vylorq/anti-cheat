@@ -65,7 +65,7 @@ public final class BoiledOmens {
             return;
         }
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
-            if (!BoiledOne.huntable(p) || isProtected(p)) {
+            if (!BoiledOne.huntable(p) || isProtected(p) || BoiledFight.wearsFullSet(p)) {
                 continue;
             }
             boolean cave = BoiledOne.inCave(p);
