@@ -3,7 +3,7 @@
     "text": "Soulbound",
     "color": "light_purple"
   },
-  "supported_items": "#minecraft:enchantable/vanishing",
+  "supported_items": "#vigil:enchantable/any",
   "weight": 1,
   "max_level": 1,
   "min_cost": {

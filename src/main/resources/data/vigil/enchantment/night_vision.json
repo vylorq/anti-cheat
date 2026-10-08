@@ -3,7 +3,7 @@
     "text": "Night Vision",
     "color": "light_purple"
   },
-  "supported_items": "#minecraft:enchantable/head_armor",
+  "supported_items": "#vigil:enchantable/helmet",
   "weight": 1,
   "max_level": 1,
   "min_cost": {

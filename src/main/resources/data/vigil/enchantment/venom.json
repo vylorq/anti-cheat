@@ -3,7 +3,7 @@
     "text": "Venom",
     "color": "light_purple"
   },
-  "supported_items": "#minecraft:enchantable/sword",
+  "supported_items": "#vigil:enchantable/sword",
   "weight": 1,
   "max_level": 2,
   "min_cost": {

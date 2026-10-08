@@ -3,7 +3,7 @@
     "text": "Lifesteal",
     "color": "light_purple"
   },
-  "supported_items": "#minecraft:enchantable/weapon",
+  "supported_items": "#vigil:enchantable/weapon",
   "weight": 1,
   "max_level": 3,
   "min_cost": {

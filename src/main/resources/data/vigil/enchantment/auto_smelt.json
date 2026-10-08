@@ -3,7 +3,7 @@
     "text": "Auto-Smelt",
     "color": "light_purple"
   },
-  "supported_items": "#minecraft:enchantable/mining_loot",
+  "supported_items": "#vigil:enchantable/tool",
   "weight": 1,
   "max_level": 1,
   "min_cost": {

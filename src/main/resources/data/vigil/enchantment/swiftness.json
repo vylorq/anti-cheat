@@ -3,7 +3,7 @@
     "text": "Swiftness",
     "color": "light_purple"
   },
-  "supported_items": "#minecraft:enchantable/foot_armor",
+  "supported_items": "#vigil:enchantable/boots",
   "weight": 1,
   "max_level": 2,
   "min_cost": {
