@@ -89,6 +89,23 @@ public final class AdminCommands {
                 }).then(literal("on").executes(ctx -> feature(ctx, true)))
                         .then(literal("off").executes(ctx -> feature(ctx, false)))));
 
+        // ---- The Boiling: anyone invited says they're coming, or leaves ----
+        d.register(literal("boiledfight")
+                .then(literal("join").executes(ctx -> {
+                    ServerPlayerEntity p = ctx.getSource().getPlayer();
+                    if (p != null) {
+                        com.vylorq.anticheat.feature.BoiledFight.join(p);
+                    }
+                    return 1;
+                }))
+                .then(literal("leave").executes(ctx -> {
+                    ServerPlayerEntity p = ctx.getSource().getPlayer();
+                    if (p != null) {
+                        com.vylorq.anticheat.feature.BoiledFight.leave(p);
+                    }
+                    return 1;
+                })));
+
         // ---- owner powers (only the owner sees these commands) ----
         java.util.function.Predicate<ServerCommandSource> ownerOnly = s -> s.getPlayer() != null
                 && com.vylorq.anticheat.perm.Perms.isOwner(s.getPlayer().getUuid());
@@ -214,6 +231,10 @@ public final class AdminCommands {
                 .then(literal("off").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerToggle(p, false))))
                 .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerInfo)))
                 .then(literal("locate").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerLocate)))
+                .then(literal("fight").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledFight::ownerFight)))
+                .then(literal("door").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledFight::ownerDoor)))
+                .then(literal("fightstop").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledFight::ownerStop)))
+                .then(literal("fightinfo").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledFight::ownerInfo)))
                 .then(literal("removeall").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.BoiledOne::ownerRemoveAll)))
                 .then(literal("minutes").then(CommandManager.argument("minutes", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 10000))
                         .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerMinutes(p,

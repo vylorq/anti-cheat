@@ -495,6 +495,29 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void theBoilingExistsAndItCanRiseThere(TestContext ctx) throws Exception {
+        // The test server only has its own worlds, so read the dimension file the way the game reads it on a real one.
+        String json;
+        try (var in = com.vylorq.anticheat.feature.BoiledFight.class.getResourceAsStream("/data/vigil/dimension/boiling.json")) {
+            check(in != null, "boiling.json isn't in the mod");
+            json = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+        var ops = net.minecraft.registry.RegistryOps.of(com.mojang.serialization.JsonOps.INSTANCE, ctx.getWorld().getRegistryManager());
+        var parsed = net.minecraft.world.dimension.DimensionOptions.CODEC.parse(ops, com.google.gson.JsonParser.parseString(json));
+        check(parsed.result().isPresent(), "The Boiling's dimension file doesn't load: " + parsed.error().map(Object::toString).orElse("?"));
+        var w = com.vylorq.anticheat.feature.BoiledFight.boiling() != null ? com.vylorq.anticheat.feature.BoiledFight.boiling() : ctx.getWorld();
+        var at = com.vylorq.anticheat.feature.BoiledFight.boiling() != null
+                ? new net.minecraft.util.math.Vec3d(0.5, com.vylorq.anticheat.feature.BoiledFight.FLOOR, 0.5)
+                : net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(1, 1, 1)));
+        var m = com.vylorq.anticheat.feature.BoiledFight.bodyForTest(w, at);
+        check(m != null && m.getCommandTags().contains("vigil_model:boiled_one"), "it didn't rise in its painted body");
+        com.vylorq.anticheat.feature.ModelMobs.remove(m);
+        check(com.vylorq.anticheat.feature.BoiledFight.heart(net.fabricmc.fabric.api.entity.FakePlayer.get(ctx.getWorld()))
+                .isOf(net.minecraft.item.Items.NETHER_STAR), "no heart trophy");
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
