@@ -1425,6 +1425,63 @@ public final class BoiledFight {
                 com.vylorq.anticheat.core.util.Durations.format(wait), stage);
     }
 
+    /** Where owners were before going to look at The Boiling. */
+    private static final Map<UUID, Back> OWNER_BACK = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** The owner goes into The Boiling (the arena is built first if it isn't there). */
+    public static void ownerEnter(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        ServerWorld b = boiling();
+        if (b == null) {
+            Msg.send(p, "bmenu.no-boiling");
+            return;
+        }
+        buildArena(b);
+        if (!inBoiling(p)) {
+            OWNER_BACK.put(p.getUuid(), new Back(p.getEntityWorld().getRegistryKey(), p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch()));
+        }
+        Mc.teleport(p, b, 0.5, FLOOR, ARENA - 6 + 0.5, 180, 0);
+    }
+
+    /** Back to where the owner was before (or spawn). */
+    public static void ownerLeave(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        Back back = OWNER_BACK.remove(p.getUuid());
+        ServerWorld w = back == null ? null : Ac.server().getWorld(back.world());
+        if (w != null && w.getRegistryKey() != BOILING) {
+            Mc.teleport(p, w, back.x(), back.y(), back.z(), back.yaw(), back.pitch());
+            return;
+        }
+        BlockPos spawn = Mc.worldSpawn(Ac.server());
+        Mc.teleport(p, Ac.server().getOverworld(), spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, 0, 0);
+    }
+
+    /** What the fight is doing right now, in a few words ("-" when there's none). */
+    public static String status() {
+        if (fight == null) {
+            return "-";
+        }
+        return fight.stage.name().toLowerCase(java.util.Locale.ROOT) + (fight.stage == Stage.FIGHT
+                ? " · phase " + fight.phase + "/" + PHASES + " · " + (int) Math.max(0, fight.hp) + " hp" : "")
+                + " · " + fight.inside.size() + " inside" + (fight.hard ? " · hard" : "");
+    }
+
+    public static boolean doorOut() {
+        return state().doorWorld != null;
+    }
+
+    public static int wins() {
+        return state().wins;
+    }
+
+    public static int fights() {
+        return state().fights;
+    }
+
     // ---------------------------------------------------------------- tests
 
     public static boolean dimensionLoadedForTest() {

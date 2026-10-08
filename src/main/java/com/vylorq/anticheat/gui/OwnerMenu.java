@@ -98,6 +98,8 @@ public final class OwnerMenu {
                 OwnerPowers.setJoinStyle(pl, next);
                 menu.refresh();
             });
+            menu.set(30, Btn.of(Items.WITHER_SKELETON_SKULL).color(Theme.RED).name(Msg.tr("bmenu.title"))
+                    .desc(Msg.tr("bmenu.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> BoiledMenu.open(pl));
             menu.set(38, Btn.of(icon(Items.BLAZE_POWDER, "icon_berserk")).color(Theme.RED).name(Msg.tr("owner.combat"))
                     .desc(Msg.tr("owner.combat.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> combat(pl));
             menu.set(40, Btn.of(icon(Items.PAINTING, "icon_pack")).color(Theme.SOFT).name(Msg.tr("owner.pack")).desc(Msg.tr("owner.pack.desc"))
