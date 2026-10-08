@@ -450,6 +450,7 @@ public final class OwnerMenu {
             new Secret("glacier_axe", Items.DIAMOND_AXE, "Glacier Axe", 0xBFF4FF, "boss"),
             new Secret("thornspine", Items.DIAMOND_SWORD, "Thornspine", 0x6FD05A, "boss"),
             new Secret("hollow_edge", Items.NETHERITE_SWORD, "Hollow Edge", 0x9A7BD0, "boss"),
+            new Secret("boiling_edge", Items.NETHERITE_SWORD, "Boiling Edge", 0xE0102E, "boss"),
             new Secret("hammer", Items.IRON_PICKAXE, "Hammer", 0xE0E0E0, "craft"),
             new Secret("lumber_axe", Items.IRON_AXE, "Lumber Axe", 0xE0B070, "craft"),
             new Secret("grappling_hook", Items.FISHING_ROD, "Grappling Hook", 0xC0C8D0, "craft"),

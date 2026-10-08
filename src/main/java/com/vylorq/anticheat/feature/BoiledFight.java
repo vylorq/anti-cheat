@@ -77,7 +77,7 @@ public final class BoiledFight {
     public static final RegistryKey<World> BOILING = RegistryKey.of(RegistryKeys.WORLD, Identifier.of("vigil", "boiling"));
     public static final int PHASES = 5;
     public static final double PHASE_HP = 20_000;
-    /** It's this many times harder to hurt than its health says: every hit counts this much less. */
+    /** Hits with anything but a sword or a secret weapon count this much less. */
     public static final double HARDNESS = 5;
     /** The door turns up at most once in this long (real time). */
     static final long DOOR_COOLDOWN = 7L * 24 * 60 * 60 * 1000;
@@ -893,11 +893,23 @@ public final class BoiledFight {
         if (f.stage != Stage.FIGHT || now < f.calmUntil || !(source.getAttacker() instanceof ServerPlayerEntity p)) {
             return;
         }
-        double hit = amount;
-        if (SecretItems.weaponOf(source) != null) {
-            hit = SecretItems.bossHit(source);
+        // What a hit counts for here: a diamond sword 3, a netherite one 7, a secret weapon 4 (unenchanted) up to
+        // 100 (Sharpness X), the Boiling Edge always 100; anything else a fifth of its damage. Weak swings count less.
+        double hit;
+        ItemStack weapon = source.getWeaponStack() == null ? ItemStack.EMPTY : source.getWeaponStack();
+        String secret = SecretItems.weaponOf(source);
+        float charge = SecretItems.charge(source);
+        if (SecretItems.BOILING_EDGE.equals(secret)) {
+            hit = 100 * charge;
+        } else if (secret != null) {
+            hit = (4 + 9.6 * SecretItems.damageLevel(weapon)) * charge;
+        } else if (weapon.isOf(Items.NETHERITE_SWORD)) {
+            hit = 7 * charge;
+        } else if (weapon.isOf(Items.DIAMOND_SWORD)) {
+            hit = 3 * charge;
+        } else {
+            hit = amount / HARDNESS;
         }
-        hit /= HARDNESS;
         if (amount >= 100_000) {
             // The Doom Blade: every phase at once.
             f.phase = PHASES;
@@ -1009,11 +1021,7 @@ public final class BoiledFight {
         }
         ServerPlayerEntity best = online(top);
         if (best != null) {
-            List<String> weapons = new ArrayList<>(SecretItems.BOSS_WEAPONS);
-            weapons.add(SecretItems.VOIDBLADE);
-            weapons.add(SecretItems.STORMBREAKER);
-            weapons.add(SecretItems.TIDECALLER);
-            String weapon = weapons.get(best.getRandom().nextInt(weapons.size()));
+            String weapon = SecretItems.BOILING_EDGE;
             SecretItems.give(best, weapon);
             int dealt = (int) Math.round(f.dealt.get(top));
             for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {

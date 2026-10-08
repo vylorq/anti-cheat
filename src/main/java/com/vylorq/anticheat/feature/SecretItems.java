@@ -94,8 +94,12 @@ public final class SecretItems {
     public static final List<String> BOSS_WEAPONS = List.of("tide_trident", "colossus_maul", "storm_fang", "forge_cleaver",
             "dune_blade", "glacier_axe", "thornspine", "hollow_edge");
 
-    public static final List<String> ALL = java.util.stream.Stream.concat(List.of(VOIDBLADE, STORMBREAKER, TIDECALLER, PHOENIX, SHADOW, SEEKER,
-            HAMMER, LUMBER, GRAPPLE, MAGNET, POUCH, BACKPACK).stream(), BOSS_WEAPONS.stream()).toList();
+    /** The Boiling's prize: whoever hurts The Boiled One most there takes it home. */
+    public static final String BOILING_EDGE = "boiling_edge";
+
+    public static final List<String> ALL = java.util.stream.Stream.concat(java.util.stream.Stream.concat(List.of(VOIDBLADE, STORMBREAKER,
+            TIDECALLER, PHOENIX, SHADOW, SEEKER, HAMMER, LUMBER, GRAPPLE, MAGNET, POUCH, BACKPACK).stream(), BOSS_WEAPONS.stream()),
+            java.util.stream.Stream.of(BOILING_EDGE)).toList();
     public static final List<String> CRAFTABLE = List.of(HAMMER, LUMBER, GRAPPLE, MAGNET, POUCH, BACKPACK);
 
     public static final TagKey<Structure> SECRET_STRUCTURES = TagKey.of(RegistryKeys.STRUCTURE, Identifier.of("vigil", "secret"));
@@ -158,7 +162,8 @@ public final class SecretItems {
             Map.entry(SHADOW, 900), Map.entry(SEEKER, 200), Map.entry(HAMMER, 8), Map.entry(LUMBER, 60), Map.entry(GRAPPLE, 60),
             Map.entry(MAGNET, 20), Map.entry(POUCH, 100), Map.entry(BACKPACK, 20), Map.entry("tide_trident", 160),
             Map.entry("colossus_maul", 200), Map.entry("storm_fang", 120), Map.entry("forge_cleaver", 100),
-            Map.entry("dune_blade", 240), Map.entry("glacier_axe", 200), Map.entry("thornspine", 160), Map.entry("hollow_edge", 200));
+            Map.entry("dune_blade", 240), Map.entry("glacier_axe", 200), Map.entry("thornspine", 160), Map.entry("hollow_edge", 200),
+            Map.entry(BOILING_EDGE, 80));
 
     /** The cooldown in seconds the owner set for this item, or null for its own. */
     private static Integer setCooldown(String id) {
@@ -301,7 +306,29 @@ public final class SecretItems {
         }
         String id = idOf(src.getWeaponStack());
         return id != null && (BOSS_WEAPONS.contains(id) || id.equals(VOIDBLADE) || id.equals(STORMBREAKER)
-                || id.equals(TIDECALLER)) ? id : null;
+                || id.equals(TIDECALLER) || id.equals(BOILING_EDGE)) ? id : null;
+    }
+
+    /** The highest Sharpness / Impaling / Density on a weapon (0-10). */
+    public static int damageLevel(ItemStack s) {
+        int level = 0;
+        for (var en : s.getEnchantments().getEnchantmentEntries()) {
+            var k = en.getKey();
+            if (k.matchesKey(net.minecraft.enchantment.Enchantments.SHARPNESS) || k.matchesKey(net.minecraft.enchantment.Enchantments.IMPALING)
+                    || k.matchesKey(net.minecraft.enchantment.Enchantments.DENSITY)) {
+                level = Math.max(level, en.getIntValue());
+            }
+        }
+        return Math.min(10, level);
+    }
+
+    /** How much a hit counts for how charged the swing was (1 for a full swing or a thrown weapon), like the game. */
+    public static float charge(DamageSource src) {
+        if (src.getAttacker() == null || src.getSource() != src.getAttacker()) {
+            return 1f;
+        }
+        float c = CHARGE.getOrDefault(src.getAttacker().getUuid(), 1f);
+        return 0.2f + c * c * 0.8f;
     }
 
     /**
@@ -354,6 +381,8 @@ public final class SecretItems {
                 w.spawnParticles(ParticleTypes.REVERSE_PORTAL, e.getX(), e.getY() + 1, e.getZ(), 20, 0.3, 0.5, 0.3, 0.05);
                 sound(w, e.getEntityPos(), "voidblade", 1f);
             });
+        } else if (BOILING_EDGE.equals(id)) {
+            boil(p, s, e, w);
         } else if (BOSS_WEAPONS.contains(id)) {
             bossWeaponHit(p, s, id, e, w);
         } else if (STORMBREAKER.equals(id) && p.getRandom().nextFloat() < 0.25f) {
@@ -452,6 +481,26 @@ public final class SecretItems {
             }
             default -> {
             }
+        }
+    }
+
+    private static final DustParticleEffect BOIL = new DustParticleEffect(0xB0001A, 1.6f);
+
+    /** The Boiling Edge: the blood around the one you hit boils; everything close is burnt, you drink some of it. */
+    private static void boil(ServerPlayerEntity p, ItemStack s, LivingEntity e, ServerWorld w) {
+        cool(p, s, 80);
+        int hit = 0;
+        for (LivingEntity o : w.getEntitiesByClass(LivingEntity.class, e.getBoundingBox().expand(4),
+                o -> o != p && o != e && o.isAlive() && !(o instanceof net.minecraft.entity.decoration.ArmorStandEntity))) {
+            o.damage(w, p.getDamageSources().playerAttack(p), 8f);
+            hit++;
+        }
+        p.heal(4f);
+        w.spawnParticles(BOIL, e.getX(), e.getY() + 1, e.getZ(), 80, 2.2, 0.6, 2.2, 0);
+        w.spawnParticles(ParticleTypes.LAVA, e.getX(), e.getY() + 0.5, e.getZ(), 8, 1.5, 0.2, 1.5, 0);
+        w.playSound(null, e.getX(), e.getY(), e.getZ(), SoundEvents.BLOCK_LAVA_EXTINGUISH, SoundCategory.PLAYERS, 1.2f, 0.6f);
+        if (hit > 0) {
+            sound(w, e.getEntityPos(), "lifesteal_hit", 1f);
         }
     }
 
