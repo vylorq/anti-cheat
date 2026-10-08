@@ -1,0 +1,64 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_sword",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "text": "Boiling Edge",
+                  "color": "#E0102E"
+                },
+                "minecraft:lore": [
+                  {
+                    "text": "Cut from The Boiled One's own bone",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "Hits make the blood around them boil:",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "everything close takes damage, you heal",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "(every 4 seconds)",
+                    "color": "gray",
+                    "italic": false
+                  },
+                  {
+                    "text": "Tears The Boiled One apart",
+                    "color": "gray",
+                    "italic": false
+                  }
+                ],
+                "minecraft:custom_model_data": {
+                  "strings": [
+                    "vigil:x86e1fea25f"
+                  ]
+                },
+                "minecraft:item_model": "vigil:x86e1fea25f",
+                "minecraft:use_cooldown": {
+                  "seconds": 0.05,
+                  "cooldown_group": "vigil:boiling_edge"
+                },
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

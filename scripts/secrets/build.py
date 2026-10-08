@@ -82,6 +82,11 @@ ITEMS = {
                    ["Thornback Beast's spine", "Hits poison the target (Poison II, 3s)", "(every 8 seconds)"]),
     "hollow_edge": ("netherite_sword", "Hollow Edge", "#9A7BD0", "epic", True, None,
                     ["The Hollow Watcher's blade", "Hits drain life: heal 3 hearts", "(every 10 seconds)"]),
+    # The Boiling: whoever hurts The Boiled One most in its own dimension takes this home
+    "boiling_edge": ("netherite_sword", "Boiling Edge", "#E0102E", "epic", True, None,
+                     ["Cut from The Boiled One's own bone", "Hits make the blood around them boil:",
+                      "everything close takes damage, you heal", "(every 4 seconds)",
+                      "Tears The Boiled One apart"]),
     # Craftable tools
     "hammer": ("iron_pickaxe", "Hammer", "#E0E0E0", "uncommon", False, None,
                ["Mines 3×3 (sneak to mine one block)", "A little slower than a pickaxe"]),

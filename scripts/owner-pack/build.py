@@ -811,6 +811,12 @@ def hollow_edge():
                      [(9, 3, "#9a7bd0", 200), (12, 1, "#d65cff", 170), (14, 4, "#6a2bd6", 160), (6, 5, "#9a7bd0", 130)])
 
 
+def boiling_edge():
+    return sword_art("#ffd6d6", "#ff3a3a", "#5a0008", "#1a0a0a", "#ffe27a", "#2a0a0a", "#b0001a",
+                     [(9, 3, "#ff3a3a", 230), (12, 1, "#ffb0b0", 200), (14, 4, "#b0001a", 190), (6, 5, "#ff3a3a", 170),
+                      (11, 6, "#7a0010", 150)])
+
+
 def axe_art(head, edge, shine, handle, handle_dark, accent):
     return pix([
         "........SSSS....",
@@ -874,6 +880,7 @@ SECRET = {"voidblade": ("diamond_sword", voidblade, "minecraft:item/handheld"),
           "dune_blade": ("diamond_sword", dune_blade, "minecraft:item/handheld"),
           "thornspine": ("diamond_sword", thornspine, "minecraft:item/handheld"),
           "hollow_edge": ("netherite_sword", hollow_edge, "minecraft:item/handheld"),
+          "boiling_edge": ("netherite_sword", boiling_edge, "minecraft:item/handheld"),
           "forge_cleaver": ("netherite_axe", forge_cleaver, "minecraft:item/handheld"),
           "glacier_axe": ("diamond_axe", glacier_axe, "minecraft:item/handheld"),
           "colossus_maul": ("mace", colossus_maul, "minecraft:item/handheld")}
