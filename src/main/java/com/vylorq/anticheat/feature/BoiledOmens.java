@@ -102,6 +102,15 @@ public final class BoiledOmens {
         }
         can.add(() -> BoiledDread.wrongSound(p));
         can.add(() -> BoiledFear.earWhisper(p));
+        can.add(() -> BoiledGlitch.snap(p));
+        if (!cave && !BoiledOne.night(p.getEntityWorld()) && p.getRandom().nextInt(3) == 0) {
+            can.add(() -> BoiledGlitch.midnight(p));
+        }
+        can.add(() -> {
+            if (!BoiledGlitch.bodyDouble(p)) {
+                footsteps(p);
+            }
+        });
         if (BoiledFear.dark(p)) {
             can.add(() -> {
                 if (!BoiledFear.eyes(p)) {

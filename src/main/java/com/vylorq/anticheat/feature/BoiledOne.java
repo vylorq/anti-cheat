@@ -65,7 +65,7 @@ public final class BoiledOne {
     public static final String TAG = "vigil_boiled_one";
     static final String MODEL = "boiled_one";
 
-    enum Mode { STALK, SCARE, PEEK, BEHIND, RUSH, BREAK_IN, GRAB, GLIMPSE, DOOR, PASS, PARALYSIS }
+    enum Mode { STALK, SCARE, PEEK, BEHIND, RUSH, BREAK_IN, GRAB, GLIMPSE, DOOR, PASS, PARALYSIS, HALL }
 
     /** One break-in, remembered: who it came for and whose base it was. */
     public static final class BreakIn {
@@ -158,6 +158,8 @@ public final class BoiledOne {
         boolean spoke;
         /** Their heartbeat: the next beat (faster the closer it is). */
         long nextBeat;
+        /** Down a tunnel: they've looked at it since it last moved. */
+        boolean hallLooked;
 
         Hunt(MobEntity mob, UUID victim, Mode mode, long now) {
             this.mob = mob;
@@ -186,6 +188,7 @@ public final class BoiledOne {
         BoiledDread.register();
         BoiledRitual.register();
         BoiledFear.register();
+        BoiledGlitch.register();
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, w) -> {
             if (e.getCommandTags().contains(TAG) && !HUNTS.containsKey(e.getUuid()) && e instanceof MobEntity m) {
                 // Left over from before a restart: gone.
@@ -297,6 +300,10 @@ public final class BoiledOne {
                 continue;
             }
             Mode m = Mode.STALK;
+            if (cave && room(p.getEntityWorld(), p.getBlockPos()) <= 3 && rng.nextInt(3) == 0 && hall(p) != null) {
+                appear(p, Mode.HALL);       // at the far end of the tunnel
+                continue;
+            }
             if (cave) {
                 int r = rng.nextInt(3);
                 m = r == 0 ? Mode.SCARE : r == 1 ? Mode.PEEK : Mode.STALK;
@@ -521,6 +528,7 @@ public final class BoiledOne {
             case BREAK_IN -> spot(p, 10, 16, false, false);
             case SCARE -> spot(p, 12, 22, true, true);
             case PEEK -> corner(p);
+            case HALL -> hall(p);
             case BEHIND -> behind(p);
             default -> cave ? spot(p, 16, 30, true, true) : spot(p, 30, 46, false, true);
         };
@@ -759,6 +767,7 @@ public final class BoiledOne {
         BoiledDread.tick(ticks);
         BoiledRitual.tick(ticks);
         BoiledFear.tick(ticks);
+        BoiledGlitch.tick(ticks);
         if (ticks % 10 == 0 && !ESP.isEmpty()) {
             espTick();
         }
@@ -810,7 +819,7 @@ public final class BoiledOne {
         }
         // Their heartbeat: louder and faster the closer it gets... and then, right before it takes them, nothing.
         if (dist < 48 && dist > 3.2 && now >= h.nextBeat && switch (h.mode) {
-            case STALK, RUSH, BREAK_IN, PASS, PEEK -> true;
+            case STALK, RUSH, BREAK_IN, PASS, PEEK, HALL -> true;
             default -> false;
         }) {
             float near = (float) (1 - dist / 48);
@@ -825,7 +834,7 @@ public final class BoiledOne {
             p.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, 70, 0, false, false));
         }
         if (h.mode != Mode.BEHIND && h.mode != Mode.GLIMPSE && h.mode != Mode.GRAB && h.mode != Mode.DOOR && h.mode != Mode.PASS
-                && h.mode != Mode.PARALYSIS) {
+                && h.mode != Mode.PARALYSIS && h.mode != Mode.HALL) {
             BoiledOmens.interference(p, m, dist, now);
             // Hiding (crouched or dead still, in a tight dark spot, a closet or behind a closed door): it loses them,
             // and walks right past.
@@ -936,6 +945,40 @@ public final class BoiledOne {
                 }
             }
             case GRAB -> held(h, p, w);
+            case HALL -> {
+                // At the end of the tunnel. It never moves while watched; every time they look away, a block closer.
+                face(m, p);
+                if (looking(p, m)) {
+                    if (!h.hallLooked) {
+                        BoiledFear.scare(p, 3);
+                    }
+                    h.hallLooked = true;
+                } else if (h.hallLooked && offView(p, m) > 70) {
+                    h.hallLooked = false;
+                    Vec3d d = p.getEntityPos().subtract(m.getEntityPos()).multiply(1, 0, 1);
+                    if (d.lengthSquared() > 1) {
+                        Vec3d to = m.getEntityPos().add(d.normalize());
+                        for (int dy = 1; dy >= -1; dy--) {
+                            BlockPos b = BlockPos.ofFloored(to.x, m.getY() + dy, to.z);
+                            if (standable(w, b, 2)) {
+                                m.refreshPositionAndAngles(to.x, b.getY(), to.z, m.getYaw(), 0);
+                                posture(h, true);
+                                BoiledOmens.sound(p, SoundEvents.ENTITY_WARDEN_STEP, m.getEntityPos(), 0.6f, 0.5f);
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (dist < 2.6) {
+                    jumpscare(p);
+                    vanish(h);
+                    return;
+                }
+                if (now - h.born > 20 * 120) {
+                    vanish(h);
+                    return;
+                }
+            }
             case PARALYSIS -> {
                 // They can't move, and can't look away. It stands at the end of the bed, breathing.
                 face(m, p);
@@ -1034,6 +1077,32 @@ public final class BoiledOne {
         float yaw = (float) (MathHelper.atan2(to.z, to.x) * 57.2958) - 90f;
         float pitch = (float) -(MathHelper.atan2(to.y, to.horizontalLength()) * 57.2958);
         p.networkHandler.requestTeleport(p.getX(), p.getY(), p.getZ(), yaw, pitch);
+    }
+
+    /** The far end of the tunnel they're looking down: in plain sight, 10 to 22 blocks off. */
+    static Vec3d hall(ServerPlayerEntity p) {
+        ServerWorld w = p.getEntityWorld();
+        Vec3d look = p.getRotationVec(1f).multiply(1, 0, 1);
+        if (look.lengthSquared() < 1e-4) {
+            return null;
+        }
+        look = look.normalize();
+        for (int d = 22; d >= 10; d--) {
+            Vec3d c = p.getEyePos().add(look.multiply(d));
+            for (int dy = 1; dy >= -2; dy--) {
+                BlockPos b = BlockPos.ofFloored(c.x, p.getBlockY() + dy, c.z);
+                if (!standable(w, b, 2)) {
+                    continue;
+                }
+                Vec3d head = Vec3d.ofBottomCenter(b).add(0, 1.4, 0);
+                var hit = w.raycast(new net.minecraft.world.RaycastContext(p.getEyePos(), head,
+                        net.minecraft.world.RaycastContext.ShapeType.COLLIDER, net.minecraft.world.RaycastContext.FluidHandling.NONE, p));
+                if (hit.getType() == net.minecraft.util.hit.HitResult.Type.MISS) {
+                    return Vec3d.ofBottomCenter(b);
+                }
+            }
+        }
+        return null;
     }
 
     /** They just came to a place they go all the time: it's already there, waiting. */
@@ -1601,6 +1670,20 @@ public final class BoiledOne {
                 Msg.send(owner, "boiled.sent", target.getGameProfile().name());
                 return;
             }
+            case "midnight" -> {
+                BoiledGlitch.midnight(target);
+                Msg.send(owner, "boiled.sent", target.getGameProfile().name());
+                return;
+            }
+            case "double" -> {
+                Msg.send(owner, BoiledGlitch.bodyDouble(target) ? "boiled.sent" : "boiled.nowhere", target.getGameProfile().name());
+                return;
+            }
+            case "snap" -> {
+                BoiledGlitch.snap(target);
+                Msg.send(owner, "boiled.sent", target.getGameProfile().name());
+                return;
+            }
             case "eyes" -> {
                 Msg.send(owner, BoiledFear.eyes(target) ? "boiled.sent" : "boiled.nowhere", target.getGameProfile().name());
                 return;
@@ -1661,6 +1744,7 @@ public final class BoiledOne {
             case "peek" -> Mode.PEEK;
             case "behind" -> Mode.BEHIND;
             case "breakin" -> Mode.BREAK_IN;
+            case "hall" -> Mode.HALL;
             default -> Mode.STALK;
         };
         MobEntity m = appear(target, mode);

@@ -3033,5 +3033,14 @@
   "bmenu.how.eyes": "Red eyes",
   "bmenu.how.eyes.desc": "Two red eyes in the dark; gone when looked at.",
   "bmenu.how.ear": "Whisper in the ear",
-  "bmenu.how.ear.desc": "Its breath beside their ear, and their name."
+  "bmenu.how.ear.desc": "Its breath beside their ear, and their name.",
+  "boiled.waited": "I waited.",
+  "bmenu.how.hall": "End of the tunnel",
+  "bmenu.how.hall.desc": "At the far end; a block closer every time they look away.",
+  "bmenu.how.midnight": "Midnight at noon",
+  "bmenu.how.midnight.desc": "Their sky turns to midnight for 20 seconds.",
+  "bmenu.how.double": "Body double",
+  "bmenu.how.double.desc": "They see themselves far away, staring back.",
+  "bmenu.how.snap": "Camera snap",
+  "bmenu.how.snap.desc": "Their view snaps round to look behind them."
 }

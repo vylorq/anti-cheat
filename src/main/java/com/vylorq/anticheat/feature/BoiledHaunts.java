@@ -631,6 +631,20 @@ public final class BoiledHaunts {
     // ---------------------------------------------------------------- every tick
 
     static void tick(long now) {
+        if (now % 20 == 0 && !KNOCKED.isEmpty()) {
+            // Nobody answered the door: it leaves a note.
+            for (var e : new ArrayList<>(KNOCKED.entrySet())) {
+                ServerPlayerEntity p = Ac.server().getPlayerManager().getPlayer(e.getKey());
+                if (p == null) {
+                    KNOCKED.remove(e.getKey());
+                } else if (p.getEntityWorld().getTime() > e.getValue().until()) {
+                    KNOCKED.remove(e.getKey());
+                    if (p.getRandom().nextInt(2) == 0) {
+                        BoiledGlitch.waited(p, e.getValue().door());
+                    }
+                }
+            }
+        }
         if (!MIMICS.isEmpty() && now % 2 == 0) {
             mimics(now);
         }
