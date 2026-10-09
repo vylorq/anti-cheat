@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"bloodstone\"}"
+    },
+    "A": "minecraft:netherite_boots"
+  },
+  "result": {
+    "id": "minecraft:netherite_boots",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "boiled:3"
+      },
+      "minecraft:item_name": {
+        "text": "Boiled Boots",
+        "color": "dark_red"
+      }
+    }
+  }
+}

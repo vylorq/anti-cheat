@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:obsidian",
+    "A": "minecraft:diamond_chestplate"
+  },
+  "result": {
+    "id": "minecraft:diamond_chestplate",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:obsidian:1"
+      },
+      "minecraft:item_name": {
+        "text": "Obsidian Chestplate",
+        "color": "#aa66ff"
+      },
+      "minecraft:item_model": "vigil:xb9ab1a0a15",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:xb9ab1a0a15"
+        ]
+      }
+    }
+  }
+}

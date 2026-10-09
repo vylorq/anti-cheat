@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "vigil:item/x8d3c986b2f"
+  }
+}

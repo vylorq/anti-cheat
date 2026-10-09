@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "vigil:x3bda50d0f6"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "vigil:x3bda50d0f6"
+      }
+    ]
+  }
+}

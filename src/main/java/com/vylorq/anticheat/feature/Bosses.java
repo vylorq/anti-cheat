@@ -1364,6 +1364,10 @@ public final class Bosses {
         drops.add(trophy(l.kind, by, l.cursed));
         for (int i = 0; i < times; i++) {
             drops.add(CustomEnchants.randomBook(w.getRandom()));      // a rare enchantment, only from bosses
+            ItemStack piece = ArmorSets.bossDrop(l.kind.id(), w.getRandom());   // a piece of its own armour set
+            if (!piece.isEmpty()) {
+                drops.add(piece);
+            }
         }
         if (w.getRandom().nextInt(4) == 0) {
             drops.add(cursedKey());

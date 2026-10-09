@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "vigil:item/x71e4cd8e3f"
+  }
+}

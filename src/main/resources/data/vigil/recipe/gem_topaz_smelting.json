@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": {
+    "fabric:type": "fabric:custom_data",
+    "base": "minecraft:disc_fragment_5",
+    "nbt": "{vigil_raw:\"topaz\"}"
+  },
+  "result": {
+    "id": "minecraft:disc_fragment_5",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_gem": "topaz"
+      },
+      "minecraft:custom_name": {
+        "text": "Topaz",
+        "color": "#ffaa22",
+        "italic": false
+      },
+      "minecraft:lore": [
+        {
+          "text": "Burns 4x longer than coal.",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:rarity": "rare",
+      "minecraft:item_model": "vigil:xd78681dfed",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:xd78681dfed"
+        ]
+      }
+    }
+  },
+  "experience": 1.0,
+  "cookingtime": 200
+}

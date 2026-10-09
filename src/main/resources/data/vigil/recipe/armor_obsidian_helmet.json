@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:obsidian",
+    "A": "minecraft:diamond_helmet"
+  },
+  "result": {
+    "id": "minecraft:diamond_helmet",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:obsidian:0"
+      },
+      "minecraft:item_name": {
+        "text": "Obsidian Helmet",
+        "color": "#aa66ff"
+      },
+      "minecraft:item_model": "vigil:x120c9c66cf",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x120c9c66cf"
+        ]
+      }
+    }
+  }
+}

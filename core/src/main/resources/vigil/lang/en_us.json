@@ -3042,5 +3042,11 @@
   "bmenu.how.double": "Body double",
   "bmenu.how.double.desc": "They see themselves far away, staring back.",
   "bmenu.how.snap": "Camera snap",
-  "bmenu.how.snap.desc": "Their view snaps round to look behind them."
+  "bmenu.how.snap.desc": "Their view snaps round to look behind them.",
+  "gearmenu.title": "Armor & gems",
+  "gearmenu.desc": "Every armor set, the gems, raw chunks, ores and Ruby tools.",
+  "gearmenu.full-set": "Gives the whole set",
+  "gems.void-hold": "Hold netherite gear in your other hand.",
+  "gems.void-already": "That's already Void-touched.",
+  "gems.void-done": "The void sinks into it."
 }

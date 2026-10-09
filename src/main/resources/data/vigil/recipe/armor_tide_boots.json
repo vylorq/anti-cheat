@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:prismarine_shard",
+    "A": "minecraft:iron_boots"
+  },
+  "result": {
+    "id": "minecraft:iron_boots",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:tide:3"
+      },
+      "minecraft:item_name": {
+        "text": "Tide Boots",
+        "color": "#33ccbb"
+      },
+      "minecraft:item_model": "vigil:xbd2a752c26",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:xbd2a752c26"
+        ]
+      }
+    }
+  }
+}

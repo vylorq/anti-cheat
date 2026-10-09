@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:emerald",
+    "A": "minecraft:iron_boots"
+  },
+  "result": {
+    "id": "minecraft:iron_boots",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:emerald:3"
+      },
+      "minecraft:item_name": {
+        "text": "Emerald Boots",
+        "color": "#55ff77"
+      },
+      "minecraft:item_model": "vigil:xffee2c4ea8",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:xffee2c4ea8"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "XX",
+    " S",
+    " S"
+  ],
+  "key": {
+    "X": {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"ruby\"}"
+    },
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "minecraft:diamond_hoe",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "ruby_tool:hoe"
+      },
+      "minecraft:item_name": {
+        "text": "Ruby Hoe",
+        "color": "#ff5566"
+      },
+      "minecraft:item_model": "vigil:x8d3c986b2f",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x8d3c986b2f"
+        ]
+      }
+    }
+  }
+}

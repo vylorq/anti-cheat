@@ -1,0 +1,59 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "instrument": "dragon",
+        "note": "5",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/ore_bloodstone"
+      }
+    },
+    {
+      "when": {
+        "instrument": "dragon",
+        "note": "1",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/ore_ruby"
+      }
+    },
+    {
+      "when": {
+        "instrument": "dragon",
+        "note": "2",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/ore_sapphire"
+      }
+    },
+    {
+      "when": {
+        "instrument": "dragon",
+        "note": "3",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/ore_topaz"
+      }
+    },
+    {
+      "when": {
+        "instrument": "dragon",
+        "note": "4",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/ore_voidstone"
+      }
+    },
+    {
+      "apply": {
+        "model": "minecraft:block/note_block"
+      }
+    }
+  ]
+}

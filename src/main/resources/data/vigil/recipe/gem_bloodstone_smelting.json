@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": {
+    "fabric:type": "fabric:custom_data",
+    "base": "minecraft:disc_fragment_5",
+    "nbt": "{vigil_raw:\"bloodstone\"}"
+  },
+  "result": {
+    "id": "minecraft:disc_fragment_5",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_gem": "bloodstone"
+      },
+      "minecraft:custom_name": {
+        "text": "Bloodstone",
+        "color": "#bb1111",
+        "italic": false
+      },
+      "minecraft:lore": [
+        {
+          "text": "Makes the Lantern of Dawn and Boiled Armor.",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:rarity": "rare",
+      "minecraft:item_model": "vigil:x7d765eaf58",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x7d765eaf58"
+        ]
+      }
+    }
+  },
+  "experience": 1.0,
+  "cookingtime": 200
+}
