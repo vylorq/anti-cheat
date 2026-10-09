@@ -27,7 +27,7 @@ RAMPS = {
     "ruby": ["#36000a", "#77091c", "#bb1530", "#ec4a5c", "#ffc6cc"],
     "sapphire": ["#000d36", "#0a2878", "#1445bd", "#3f7ff0", "#c2dbff"],
     "topaz": ["#3a1d00", "#874800", "#d68812", "#ffc94a", "#fff4c9"],
-    "voidstone": ["#000000", "#10031f", "#280a4b", "#58209b", "#c890ff"],
+    "voidstone": ["#0a0214", "#25094a", "#4a1890", "#8040e0", "#e0c0ff"],
     "bloodstone": ["#100000", "#3d0000", "#7a0606", "#bf1717", "#ff6a6a"],
 }
 # Which of the game's armour each set is drawn from.
