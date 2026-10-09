@@ -10,6 +10,7 @@
     "ChunkSectionMixin",
     "ClientConnectionMixin",
     "CommandManagerMixin",
+    "CraftingResultMixin",
     "CraftingResultSlotMixin",
     "DamageTrackerMixin",
     "DispenserBlockMixin",

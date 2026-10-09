@@ -416,7 +416,7 @@ public final class BoiledHaunts {
 
     /** A torn page into their inventory (one they don't have yet, most of the time). */
     static void givePage(ServerPlayerEntity p) {
-        p.getInventory().offerOrDrop(page(p, nextPage(p)));
+        ContentToggles.give(p, page(p, nextPage(p)));
     }
 
     /** They got away from it: sometimes it leaves a torn page behind. */
@@ -428,6 +428,9 @@ public final class BoiledHaunts {
     }
 
     private static void dropPage(ServerPlayerEntity p, Vec3d at) {
+        if (!ContentToggles.on("boiled:pages")) {
+            return;
+        }
         ServerWorld w = p.getEntityWorld();
         var item = new net.minecraft.entity.ItemEntity(w, at.x, at.y + 0.5, at.z, page(p, nextPage(p)));
         item.setPickupDelay(20);

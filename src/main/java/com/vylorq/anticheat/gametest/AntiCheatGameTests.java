@@ -649,6 +649,20 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void contentCanBeTurnedOff(TestContext ctx) {
+        var ruby = com.vylorq.anticheat.feature.Gems.gem(com.vylorq.anticheat.feature.Gems.all().get(0), 1);
+        check("gem:ruby".equals(com.vylorq.anticheat.feature.ContentToggles.key(ruby)), "a ruby isn't keyed as gem:ruby");
+        check(com.vylorq.anticheat.feature.ContentToggles.allowed(ruby), "rubies are off by default");
+        com.vylorq.anticheat.feature.ContentToggles.set("gem:ruby", false);
+        check(!com.vylorq.anticheat.feature.ContentToggles.allowed(ruby), "turning rubies off didn't stop them");
+        com.vylorq.anticheat.feature.ContentToggles.set("gem:ruby", true);
+        check(com.vylorq.anticheat.feature.ContentToggles.allowed(new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIRT)), "dirt is blocked");
+        check("vanilla:mace".equals(com.vylorq.anticheat.feature.ContentToggles.key(new net.minecraft.item.ItemStack(net.minecraft.item.Items.HEAVY_CORE))),
+                "the Heavy Core isn't keyed");
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
