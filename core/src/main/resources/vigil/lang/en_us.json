@@ -3022,5 +3022,8 @@
   "enchants.desc.vein_miner": "Mines the whole ore vein (up to 24).",
   "enchants.desc.swiftness": "Speed while worn.",
   "enchants.desc.night_vision": "Night vision while worn.",
-  "enchants.desc.soulbound": "Stays with you when you die."
+  "enchants.desc.soulbound": "Stays with you when you die.",
+  "builder.queued": "§a{0} isn't online: they become a builder ({1}, {2}) as soon as they join.",
+  "builder.unqueued": "§a{0} won't become a builder when they join.",
+  "builder.queued-entry": "§7{0} §8(waiting to join) §7· {1} · {2}"
 }
