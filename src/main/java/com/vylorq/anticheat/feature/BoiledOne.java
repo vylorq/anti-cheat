@@ -156,6 +156,8 @@ public final class BoiledOne {
         long possessedUntil;
         /** It has spoken to them (once a hunt). */
         boolean spoke;
+        /** Their heartbeat: the next beat (faster the closer it is). */
+        long nextBeat;
 
         Hunt(MobEntity mob, UUID victim, Mode mode, long now) {
             this.mob = mob;
@@ -183,6 +185,7 @@ public final class BoiledOne {
         BoiledHaunts.register();
         BoiledDread.register();
         BoiledRitual.register();
+        BoiledFear.register();
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, w) -> {
             if (e.getCommandTags().contains(TAG) && !HUNTS.containsKey(e.getUuid()) && e instanceof MobEntity m) {
                 // Left over from before a restart: gone.
@@ -277,7 +280,13 @@ public final class BoiledOne {
             if (!cave && !night(p.getEntityWorld())) {
                 continue;
             }
-            if (rng.nextInt(Math.max(1, s.minutes)) != 0) {
+            // Alone, in the dark, underground, afraid: it comes far more often.
+            if (rng.nextInt(Math.max(1, (int) (s.minutes / BoiledFear.pull(p)))) != 0) {
+                continue;
+            }
+            if (!cave && inBase(p) && BoiledFear.fear(p) >= 95 && rng.nextInt(2) == 0) {
+                // Too afraid for anywhere to be safe: it's in the house, right behind them.
+                appear(p, Mode.BEHIND);
                 continue;
             }
             if (!cave && inBase(p)) {
@@ -553,6 +562,10 @@ public final class BoiledOne {
             BoiledOmens.FACED.add(victim.getUuid());
         }
         h.breathes = mode == Mode.BEHIND || w.getRandom().nextBoolean();
+        if (mode != Mode.GLIMPSE && mode != Mode.DOOR) {
+            BoiledFear.silence(victim, 80);       // the world goes quiet
+            BoiledFear.scare(victim, 4);
+        }
         HUNTS.put(m.getUuid(), h);
         switch (mode) {
             case BREAK_IN -> {
@@ -745,6 +758,7 @@ public final class BoiledOne {
         BoiledHaunts.tick(ticks);
         BoiledDread.tick(ticks);
         BoiledRitual.tick(ticks);
+        BoiledFear.tick(ticks);
         if (ticks % 10 == 0 && !ESP.isEmpty()) {
             espTick();
         }
@@ -794,6 +808,15 @@ public final class BoiledOne {
         if (now % 5 == 0 && h.mode != Mode.BEHIND) {
             posture(h, false);
         }
+        // Their heartbeat: louder and faster the closer it gets... and then, right before it takes them, nothing.
+        if (dist < 48 && dist > 3.2 && now >= h.nextBeat && switch (h.mode) {
+            case STALK, RUSH, BREAK_IN, PASS, PEEK -> true;
+            default -> false;
+        }) {
+            float near = (float) (1 - dist / 48);
+            Mc.sound(p, SoundEvents.ENTITY_WARDEN_HEARTBEAT, 0.25f + near * 0.9f, 0.55f + near * 0.45f);
+            h.nextBeat = now + Math.max(5, (long) (6 + dist * 0.75));
+        }
         if (now % 40 == 0 && dist < 48 && switch (h.mode) {
             case STALK, PEEK, RUSH, BREAK_IN, PASS -> true;
             default -> false;
@@ -831,6 +854,9 @@ public final class BoiledOne {
                 boolean seen = looking(p, m);
                 if (seen) {
                     h.seen++;
+                    if (h.seen == 1) {
+                        BoiledFear.scare(p, 6);
+                    }
                     if (!h.spoke && (h.mode == Mode.STALK || h.mode == Mode.PEEK)) {
                         // It noticed them noticing it: its voice.
                         h.spoke = true;
@@ -888,8 +914,6 @@ public final class BoiledOne {
                 }
                 if (h.breathes && now % 90 == 0 && dist < 30) {
                     breathe(p, m, (float) Math.max(0.3, 1.2 - dist / 30));
-                } else if (h.mode == Mode.STALK && now % 30 == 0 && dist < 48) {
-                    Mc.sound(p, SoundEvents.ENTITY_WARDEN_HEARTBEAT, (float) Math.max(0.15, 1 - dist / 48), 0.6f);
                 }
                 // Far off and unwatched, it closes the gap out of sight.
                 if (!seen && h.mode == Mode.STALK && now - h.lastMove > 20 * 15 && dist > 40) {
@@ -1010,6 +1034,14 @@ public final class BoiledOne {
         float yaw = (float) (MathHelper.atan2(to.z, to.x) * 57.2958) - 90f;
         float pitch = (float) -(MathHelper.atan2(to.y, to.horizontalLength()) * 57.2958);
         p.networkHandler.requestTeleport(p.getX(), p.getY(), p.getZ(), yaw, pitch);
+    }
+
+    /** They just came to a place they go all the time: it's already there, waiting. */
+    static void waitingAt(ServerPlayerEntity p) {
+        if (!canHunt(p) || owner(p) || BoiledFight.wearsFullSet(p)) {
+            return;
+        }
+        appear(p, inCave(p) ? Mode.PEEK : Mode.STALK);
     }
 
     /** Sleep paralysis: it stands here, at the end of their bed, and they can't move. */
@@ -1156,10 +1188,23 @@ public final class BoiledOne {
     static final char SCARE = '';
 
     static void jumpscare(ServerPlayerEntity p) {
-        Mc.title(p, "§f" + SCARE, "", 0, 16, 6);
-        for (float pitch : new float[]{1.0f, 0.85f, 1.15f}) {
+        // Frozen for a heartbeat, then its face, a red flash, the screen shaking, and a scream that won't stop.
+        p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 14, 255, false, false));
+        Mc.title(p, "§f" + SCARE, "", 0, 22, 8);
+        for (float pitch : new float[]{1.0f, 0.85f, 1.15f, 0.7f}) {
             pack(p, "boiled_scream", p.getEntityPos(), 1f, pitch);
         }
+        OwnerPowers.later(10, () -> pack(p, "boiled_scream", p.getEntityPos(), 1f, 0.6f));
+        BoiledFear.shake(p, 4f, 10);
+        if (!BoiledFight.active() || BoiledFight.inBoiling(p)) {
+            BoiledFight.redSky(p, true);
+            OwnerPowers.later(14, () -> {
+                if (!p.isRemoved() && (!BoiledFight.active() || BoiledFight.inBoiling(p))) {
+                    BoiledFight.redSky(p, false);
+                }
+            });
+        }
+        BoiledFear.scare(p, 25);
         Mc.sound(p, SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, 1f, 0.7f);
         Mc.sound(p, SoundEvents.ENTITY_GHAST_SCREAM, 1f, 0.55f);
         Mc.sound(p, SoundEvents.ENTITY_WARDEN_ROAR, 1f, 1.3f);
@@ -1553,6 +1598,15 @@ public final class BoiledOne {
             }
             case "torches" -> {
                 BoiledOmens.snuff(target, null);
+                Msg.send(owner, "boiled.sent", target.getGameProfile().name());
+                return;
+            }
+            case "eyes" -> {
+                Msg.send(owner, BoiledFear.eyes(target) ? "boiled.sent" : "boiled.nowhere", target.getGameProfile().name());
+                return;
+            }
+            case "ear" -> {
+                BoiledFear.earWhisper(target);
                 Msg.send(owner, "boiled.sent", target.getGameProfile().name());
                 return;
             }
