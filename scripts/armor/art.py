@@ -39,7 +39,7 @@ PIECES = ["helmet", "chestplate", "leggings", "boots"]
 GEMS = {"ruby": "emerald", "sapphire": "diamond", "topaz": "quartz", "voidstone": "echo_shard", "bloodstone": "amethyst_shard"}
 # Raw chunk and ore each gem is drawn from (ore: the game's ore, its spots recoloured; deepslate or stone).
 RAWS = {"ruby": "raw_copper", "sapphire": "raw_iron", "topaz": "raw_gold", "voidstone": "raw_iron", "bloodstone": "raw_copper"}
-ORE_FROM = {"ruby": ("emerald_ore", True), "sapphire": ("diamond_ore", False), "topaz": ("gold_ore", False),
+ORE_FROM = {"ruby": ("emerald_ore", True), "sapphire": ("lapis_ore", False), "topaz": ("gold_ore", False),
             "voidstone": ("diamond_ore", True), "bloodstone": ("redstone_ore", False)}
 # Which gems grow in deepslate (the rest in stone).
 ORES = {"ruby": True, "sapphire": False, "topaz": False, "voidstone": True, "bloodstone": False}
@@ -155,10 +155,21 @@ def main(src):
         ps = spots.load()
         for y in range(o.height):
             for x in range(o.width):
-                a_, b_ = po[x, y], pb[x, y]
-                if abs(a_[0] - b_[0]) + abs(a_[1] - b_[1]) + abs(a_[2] - b_[2]) > 40:
+                a_ = po[x, y]
+                hi_, lo_ = max(a_[:3]), min(a_[:3])
+                # only the ore's coloured pixels (the stone around them is grey)
+                if hi_ > 0 and (hi_ - lo_) / hi_ > 0.28 and hi_ > 40:
                     ps[x, y] = a_
         out = bg.copy()
+        # a dark rim round each spot (the gem sits in the rock), then the recoloured spots
+        pout = out.load()
+        dark = hexc(RAMPS[g][0])
+        for y in range(o.height):
+            for x in range(o.width):
+                if ps[x, y][3] == 0 and any(0 <= x + dx < o.width and 0 <= y + dy < o.height and ps[x + dx, y + dy][3] > 0
+                                            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                    r_, g_, b_, a_ = pout[x, y]
+                    pout[x, y] = ((r_ + dark[0]) // 3, (g_ + dark[1]) // 3, (b_ + dark[2]) // 3, 255)
         out.alpha_composite(recolor(spots, RAMPS[g]))
         out.save(os.path.join(OUT, f"ore_{g}.png"))
         recolor(Image.open(os.path.join(src, "items", RAWS[g] + ".png")), RAMPS[g]).save(os.path.join(OUT, f"raw_{g}.png"))
