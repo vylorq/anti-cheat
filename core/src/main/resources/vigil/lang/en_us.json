@@ -3025,5 +3025,13 @@
   "enchants.desc.soulbound": "Stays with you when you die.",
   "builder.queued": "§a{0} isn't online: they become a builder ({1}, {2}) as soon as they join.",
   "builder.unqueued": "§a{0} won't become a builder when they join.",
-  "builder.queued-entry": "§7{0} §8(waiting to join) §7· {1} · {2}"
+  "builder.queued-entry": "§7{0} §8(waiting to join) §7· {1} · {2}",
+  "fear.1": "Your breathing is getting loud...",
+  "fear.2": "Your hands are shaking.",
+  "fear.3": "You can't stop shaking. It knows.",
+  "fear.4": "Nowhere is safe now.",
+  "bmenu.how.eyes": "Red eyes",
+  "bmenu.how.eyes.desc": "Two red eyes in the dark; gone when looked at.",
+  "bmenu.how.ear": "Whisper in the ear",
+  "bmenu.how.ear.desc": "Its breath beside their ear, and their name."
 }

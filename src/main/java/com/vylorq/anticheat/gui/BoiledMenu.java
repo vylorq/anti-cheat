@@ -201,11 +201,11 @@ public final class BoiledMenu {
 
     /** What it does to them: every way it can come, every omen, and following them. */
     private static final String[] HOW = {"watch", "scare", "peek", "behind", "breakin", "glimpse", "atdoor", "mimic", "mimicplayer",
-            "footsteps", "knock", "door", "whisper", "fakechat", "trail", "torches", "sounds", "reflection", "shadow", "paralysis"};
+            "footsteps", "knock", "door", "whisper", "fakechat", "trail", "torches", "sounds", "reflection", "shadow", "paralysis", "eyes", "ear"};
     private static final Item[] HOW_ICONS = {Items.WITHER_SKELETON_SKULL, Items.GHAST_TEAR, Items.STONE, Items.SOUL_LANTERN,
             Items.IRON_DOOR, Items.GLASS_PANE, Items.OAK_DOOR, Items.COW_SPAWN_EGG, Items.PLAYER_HEAD, Items.LEATHER_BOOTS,
             Items.OAK_BUTTON, Items.SPRUCE_DOOR, Items.PAPER, Items.WRITABLE_BOOK, Items.REDSTONE, Items.TORCH, Items.CREEPER_HEAD,
-            Items.ITEM_FRAME, Items.BLACK_CARPET, Items.RED_BED};
+            Items.ITEM_FRAME, Items.BLACK_CARPET, Items.RED_BED, Items.REDSTONE_TORCH, Items.ECHO_SHARD};
 
     private static void actions(ServerPlayerEntity p, UUID target) {
         ServerPlayerEntity t0 = Ac.server().getPlayerManager().getPlayer(target);

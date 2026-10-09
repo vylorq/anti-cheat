@@ -74,7 +74,7 @@ public final class BoiledOmens {
                 continue;
             }
             boolean focus = s.hunted.containsKey(p.getUuidAsString()) || BoiledOne.eventOn();
-            if (p.getRandom().nextInt(focus ? 120 : 420) != 0) {
+            if (p.getRandom().nextInt(Math.max(20, (int) ((focus ? 120 : 420) / BoiledFear.pull(p)))) != 0) {
                 continue;
             }
             omen(p, cave, BoiledOne.inBase(p));
@@ -101,6 +101,19 @@ public final class BoiledOmens {
             can.add(() -> BoiledHaunts.trail(p));
         }
         can.add(() -> BoiledDread.wrongSound(p));
+        can.add(() -> BoiledFear.earWhisper(p));
+        if (BoiledFear.dark(p)) {
+            can.add(() -> {
+                if (!BoiledFear.eyes(p)) {
+                    footsteps(p);
+                }
+            });
+            can.add(() -> {
+                if (!BoiledFear.eyes(p)) {
+                    footsteps(p);
+                }
+            });
+        }
         if (base) {
             can.add(() -> BoiledDread.reflection(p));
         }
