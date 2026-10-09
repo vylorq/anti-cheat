@@ -143,25 +143,7 @@ def main(src):
         for piece in PIECES:
             img = Image.open(os.path.join(src, "items", f"{shape}_{piece}.png"))
             trim(recolor(img, RAMPS[s]), ACCENT[s], piece).save(os.path.join(OUT, f"{s}_{piece}.png"))
-    # Ore blocks: the game's diamond ore with its gems recoloured (stone or deepslate), and raw chunks from raw iron.
-    for g, deep in ORES.items():
-        ore = Image.open(os.path.join(src, "blocks", ("deepslate_" if deep else "") + "diamond_ore.png")).convert("RGBA")
-        bg = Image.open(os.path.join(src, "blocks", "deepslate.png" if deep else "stone.png")).convert("RGBA")
-        po, pb = ore.load(), bg.load()
-        spots = Image.new("RGBA", ore.size, (0, 0, 0, 0))
-        ps = spots.load()
-        for y in range(ore.height):
-            for x in range(ore.width):
-                a_, b_ = po[x, y], pb[x, y]
-                if abs(a_[0] - b_[0]) + abs(a_[1] - b_[1]) + abs(a_[2] - b_[2]) > 30:
-                    ps[x, y] = a_
-        spots = recolor(spots, RAMPS[g])
-        out = bg.copy()
-        out.alpha_composite(spots)
-        out.save(os.path.join(OUT, f"ore_{g}.png"))
-        recolor(Image.open(os.path.join(src, "items", "raw_iron.png")), RAMPS[g]).save(os.path.join(OUT, f"raw_{g}.png"))
-    for g, base in GEMS.items():
-        recolor(Image.open(os.path.join(src, "items", base + ".png")), RAMPS[g]).save(os.path.join(OUT, f"gem_{g}.png"))
+    # Gems, raw chunks and ores are drawn by hand: scripts/armor/gems_art.py
     for tool in TOOLS:
         img = Image.open(os.path.join(src, "items", f"diamond_{tool}.png"))
         recolor(img, RAMPS["ruby"], cyan).save(os.path.join(OUT, f"ruby_{tool}.png"))
