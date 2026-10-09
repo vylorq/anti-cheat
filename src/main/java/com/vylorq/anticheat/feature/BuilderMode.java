@@ -53,6 +53,49 @@ public final class BuilderMode {
         public int warned;
     }
 
+    /** Made a builder while offline: starts when they next join (the time counts from then). */
+    public static final class Pending {
+        public String name;
+        public long durationMs;
+        public boolean anywhere;
+        public boolean live;
+        public String by;
+        public long at;
+    }
+
+    private static Map<String, Pending> pending() {
+        if (Ac.get().misc.pendingBuilders == null) {
+            Ac.get().misc.pendingBuilders = new java.util.LinkedHashMap<>();
+        }
+        return Ac.get().misc.pendingBuilders;
+    }
+
+    /** Queues a builder grant for someone who isn't online. */
+    public static void queue(String name, long durationMs, boolean anywhere, boolean live, String by) {
+        Pending q = new Pending();
+        q.name = name;
+        q.durationMs = durationMs;
+        q.anywhere = anywhere;
+        q.live = live;
+        q.by = by;
+        q.at = System.currentTimeMillis();
+        pending().put(name.toLowerCase(java.util.Locale.ROOT), q);
+        Ac.markDirty("misc");
+    }
+
+    /** Cancels a queued grant. @return whether there was one */
+    public static boolean unqueue(String name) {
+        boolean had = pending().remove(name.toLowerCase(java.util.Locale.ROOT)) != null;
+        if (had) {
+            Ac.markDirty("misc");
+        }
+        return had;
+    }
+
+    public static java.util.Collection<Pending> queued() {
+        return pending().values();
+    }
+
     /** Blocks that aren't allowed even though they're blocks. */
     private static final Set<Block> DENIED = Set.of(Blocks.TNT, Blocks.BARRIER, Blocks.LIGHT, Blocks.STRUCTURE_VOID,
             Blocks.END_PORTAL_FRAME, Blocks.DRAGON_EGG, Blocks.BEDROCK, Blocks.REINFORCED_DEEPSLATE, Blocks.RESPAWN_ANCHOR,
@@ -225,6 +268,22 @@ public final class BuilderMode {
     }
 
     public static void onJoin(ServerPlayerEntity p) {
+        Pending q = pending().remove(p.getGameProfile().name().toLowerCase(java.util.Locale.ROOT));
+        if (q == null && p.getGameProfile().name().startsWith(".")) {
+            q = pending().remove(p.getGameProfile().name().substring(1).toLowerCase(java.util.Locale.ROOT));   // Bedrock prefix
+        }
+        if (q != null && !builders().containsKey(p.getUuid())) {
+            Ac.markDirty("misc");
+            Pending grant = q;
+            // A moment after joining (after the waiting room has had its say: it lets them straight in).
+            OwnerPowers.later(20, () -> {
+                if (!p.isRemoved() && !builders().containsKey(p.getUuid())) {
+                    start(null, p, grant.durationMs, grant.anywhere, grant.live);
+                    Ac.LOG.info("{} became a builder on joining (queued by {})", p.getGameProfile().name(), grant.by);
+                }
+            });
+            return;
+        }
         Builder b = builders().get(p.getUuid());
         if (b == null) {
             return;

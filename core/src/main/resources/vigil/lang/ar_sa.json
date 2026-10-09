@@ -3022,5 +3022,8 @@
   "enchants.desc.vein_miner": "يكسر عرق الخام كاملًا (حتى 24).",
   "enchants.desc.swiftness": "سرعة عند لبسه.",
   "enchants.desc.night_vision": "رؤية ليلية عند لبسه.",
-  "enchants.desc.soulbound": "يبقى معك عند الموت."
+  "enchants.desc.soulbound": "يبقى معك عند الموت.",
+  "builder.queued": "§a{0} غير متصل: سيصبح بناءً ({1}، {2}) فور دخوله.",
+  "builder.unqueued": "§a{0} لن يصبح بناءً عند دخوله.",
+  "builder.queued-entry": "§7{0} §8(بانتظار دخوله) §7· {1} · {2}"
 }

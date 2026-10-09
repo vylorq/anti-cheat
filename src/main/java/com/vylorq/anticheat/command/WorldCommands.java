@@ -150,6 +150,10 @@ final class WorldCommands {
                 .then(literal("add").then(add))
                 .then(literal("remove").then(Args.player("player").executes(ctx -> {
                     if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
+                    if (com.vylorq.anticheat.feature.BuilderMode.unqueue(Args.str(ctx, "player"))) {
+                        Msg.ok(ctx.getSource(), "builder.unqueued", Args.str(ctx, "player"));
+                        return 1;
+                    }
                     ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
                     if (t == null) return 0;
                     if (!com.vylorq.anticheat.feature.BuilderMode.end(ctx.getSource().getPlayer(), t)) {
@@ -162,8 +166,12 @@ final class WorldCommands {
                 .then(literal("list").executes(ctx -> {
                     if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) return 0;
                     var all = Ac.get().misc.builders.values();
-                    if (all.isEmpty()) {
+                    if (all.isEmpty() && com.vylorq.anticheat.feature.BuilderMode.queued().isEmpty()) {
                         Msg.ok(ctx.getSource(), "builder.none");
+                    }
+                    for (var q : com.vylorq.anticheat.feature.BuilderMode.queued()) {
+                        Msg.ok(ctx.getSource(), "builder.queued-entry", q.name, q.anywhere ? "anywhere" : "lobby",
+                                q.durationMs > 0 ? Durations.format(q.durationMs) : "-");
                     }
                     for (var b : all) {
                         String left = b.until > 0 ? Durations.format(Math.max(0, b.until - System.currentTimeMillis())) : "-";
@@ -421,10 +429,6 @@ final class WorldCommands {
         if (!Perms.check(ctx.getSource(), Perm.MANAGE_ADMINS)) {
             return 0;
         }
-        ServerPlayerEntity t = Args.requireOnline(ctx.getSource(), Args.str(ctx, "player"));
-        if (t == null) {
-            return 0;
-        }
         long ms = 0;
         if (time != null) {
             OptionalLong dur = Args.duration(ctx.getSource(), time);
@@ -432,6 +436,16 @@ final class WorldCommands {
                 return 0;
             }
             ms = dur.getAsLong();
+        }
+        String name = Args.str(ctx, "player");
+        ServerPlayerEntity t = Ac.server().getPlayerManager().getPlayer(name);
+        if (t == null) {
+            // Not online: it starts when they next join.
+            ServerPlayerEntity by = ctx.getSource().getPlayer();
+            com.vylorq.anticheat.feature.BuilderMode.queue(name, ms, anywhere, live, by == null ? "console" : by.getGameProfile().name());
+            Msg.ok(ctx.getSource(), "builder.queued", name, anywhere ? Msg.tr("builder.where-anywhere") : Msg.tr("builder.where-lobby"),
+                    ms > 0 ? Durations.format(ms) : Msg.tr("builder.until-removed"));
+            return 1;
         }
         if (com.vylorq.anticheat.feature.BuilderMode.is(t) || com.vylorq.anticheat.feature.TempAdmins.isTemp(t.getUuid())) {
             Msg.err(ctx.getSource(), "builder.already", t.getGameProfile().name());
