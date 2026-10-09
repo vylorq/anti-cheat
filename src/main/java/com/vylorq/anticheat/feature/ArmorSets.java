@@ -47,7 +47,7 @@ public final class ArmorSets {
     static final String[] ICON = {"helmet", "chestplate", "leggings", "boots"};
 
     /** What the full set does to whoever hits its wearer. */
-    enum OnHit { NONE, BURN, LIGHTNING, FREEZE, THORNS }
+    public enum OnHit { NONE, BURN, LIGHTNING, FREEZE, THORNS }
 
     /**
      * @param base     leather, chainmail, iron, gold, diamond or netherite
@@ -57,7 +57,7 @@ public final class ArmorSets {
      * @param trim     trim pattern and material (null: none), or a dye colour for leather
      * @param effects  the full-set bonus (effect, amplifier)
      */
-    record Set(String id, String name, String color, boolean secret, String source, Item[] base, int[] armor, double toughness,
+    public record Set(String id, String name, String color, boolean secret, String source, Item[] base, int[] armor, double toughness,
                double knockback, double health, double speed, String trimPattern, String trimMaterial, int dye,
                List<Map.Entry<RegistryEntry<StatusEffect>, Integer>> effects, OnHit onHit, String bonus) {
     }

@@ -58,7 +58,7 @@ public final class Gems {
     static final String MAKE = "vigil_make";
     static final String VOID = "vigil_void";
 
-    record Gem(String id, String name, String color, int note, int tier, int xpMin, int xpMax) {
+    public record Gem(String id, String name, String color, int note, int tier, int xpMin, int xpMax) {
     }
 
     /** tier: 1 = iron pickaxe or better, 2 = diamond or better. */
