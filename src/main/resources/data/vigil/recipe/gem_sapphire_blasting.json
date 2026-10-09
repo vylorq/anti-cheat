@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": {
+    "fabric:type": "fabric:custom_data",
+    "base": "minecraft:disc_fragment_5",
+    "nbt": "{vigil_raw:\"sapphire\"}"
+  },
+  "result": {
+    "id": "minecraft:disc_fragment_5",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_gem": "sapphire"
+      },
+      "minecraft:custom_name": {
+        "text": "Sapphire",
+        "color": "#5588ff",
+        "italic": false
+      },
+      "minecraft:lore": [
+        {
+          "text": "Makes Sapphire armor.",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:rarity": "rare",
+      "minecraft:item_model": "vigil:xe43e72e3db",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:xe43e72e3db"
+        ]
+      }
+    }
+  },
+  "experience": 1.0,
+  "cookingtime": 100
+}

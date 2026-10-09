@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "XXX",
+    "X X",
+    "X X"
+  ],
+  "key": {
+    "X": {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"ruby\"}"
+    }
+  },
+  "result": {
+    "id": "minecraft:diamond_leggings",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:ruby:2"
+      },
+      "minecraft:item_name": {
+        "text": "Ruby Leggings",
+        "color": "#ff5566"
+      },
+      "minecraft:item_model": "vigil:x642232f24f",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x642232f24f"
+        ]
+      }
+    }
+  }
+}

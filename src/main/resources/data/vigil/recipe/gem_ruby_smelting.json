@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": {
+    "fabric:type": "fabric:custom_data",
+    "base": "minecraft:disc_fragment_5",
+    "nbt": "{vigil_raw:\"ruby\"}"
+  },
+  "result": {
+    "id": "minecraft:disc_fragment_5",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_gem": "ruby"
+      },
+      "minecraft:custom_name": {
+        "text": "Ruby",
+        "color": "#ff5566",
+        "italic": false
+      },
+      "minecraft:lore": [
+        {
+          "text": "Makes Ruby armor and tools.",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:rarity": "rare",
+      "minecraft:item_model": "vigil:x4a1ff819cd",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x4a1ff819cd"
+        ]
+      }
+    }
+  },
+  "experience": 1.0,
+  "cookingtime": 200
+}

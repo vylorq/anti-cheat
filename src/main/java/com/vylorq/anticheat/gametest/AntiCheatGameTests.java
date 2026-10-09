@@ -615,6 +615,40 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void armorSetsGemsAndOresWork(TestContext ctx) {
+        var w = ctx.getWorld();
+        for (var set : com.vylorq.anticheat.feature.ArmorSets.all()) {
+            var pieces = com.vylorq.anticheat.feature.ArmorSets.full(set);
+            check(pieces.size() == 4, "a set isn't four pieces");
+            for (var st : pieces) {
+                check(com.vylorq.anticheat.feature.ArmorSets.setOf(st) == set, "a piece doesn't know its set: " + set.id());
+                check(st.get(net.minecraft.component.DataComponentTypes.EQUIPPABLE) != null, "a piece has no worn look: " + set.id());
+            }
+        }
+        var wearer = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "SetWearer"));
+        var inferno = com.vylorq.anticheat.feature.ArmorSets.full(com.vylorq.anticheat.feature.ArmorSets.ofBoss("forgemaster"));
+        var slots = new net.minecraft.entity.EquipmentSlot[]{net.minecraft.entity.EquipmentSlot.HEAD, net.minecraft.entity.EquipmentSlot.CHEST,
+                net.minecraft.entity.EquipmentSlot.LEGS, net.minecraft.entity.EquipmentSlot.FEET};
+        for (int i = 0; i < 4; i++) {
+            wearer.equipStack(slots[i], inferno.get(i));
+        }
+        check(com.vylorq.anticheat.feature.ArmorSets.wearing(wearer) != null, "the full Inferno set isn't recognised");
+        BlockPos at = ctx.getAbsolutePos(new BlockPos(1, 1, 1));
+        for (var g : com.vylorq.anticheat.feature.Gems.all()) {
+            w.setBlockState(at, com.vylorq.anticheat.feature.Gems.oreState(g));
+            check(com.vylorq.anticheat.feature.Gems.oreOf(w.getBlockState(at)) == g, "the " + g.id() + " ore isn't recognised");
+            // A block put above it must not turn it back into a note block.
+            w.setBlockState(at.up(), net.minecraft.block.Blocks.STONE.getDefaultState());
+            w.setBlockState(at.up(), net.minecraft.block.Blocks.AIR.getDefaultState());
+            check(com.vylorq.anticheat.feature.Gems.oreOf(w.getBlockState(at)) == g, "the " + g.id() + " ore changed when its neighbour did");
+            check(com.vylorq.anticheat.feature.Gems.gemOf(com.vylorq.anticheat.feature.Gems.gem(g, 1)) == g, "gem item " + g.id());
+        }
+        check(com.vylorq.anticheat.feature.Gems.oreOf(net.minecraft.block.Blocks.NOTE_BLOCK.getDefaultState()) == null, "a plain note block is an ore");
+        check(com.vylorq.anticheat.feature.Gems.rubyTool(0).isOf(net.minecraft.item.Items.DIAMOND_SWORD), "no Ruby sword");
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossHasThreeHealthBars(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));

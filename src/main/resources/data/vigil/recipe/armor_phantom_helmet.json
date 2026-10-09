@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:phantom_membrane",
+    "A": "minecraft:iron_helmet"
+  },
+  "result": {
+    "id": "minecraft:chainmail_helmet",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:phantom:0"
+      },
+      "minecraft:item_name": {
+        "text": "Phantom Helmet",
+        "color": "#aaddee"
+      },
+      "minecraft:item_model": "vigil:x8bfc602223",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x8bfc602223"
+        ]
+      }
+    }
+  }
+}

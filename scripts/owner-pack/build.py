@@ -1614,12 +1614,27 @@ def build():
         stem = fname[:-4]
         if stem.endswith("_humanoid") or stem.endswith("_humanoid_leggings"):
             continue
-        name = stem if stem.startswith(("gem_", "ruby_sword", "ruby_pickaxe", "ruby_axe", "ruby_shovel", "ruby_hoe")) else "armor_" + stem
+        if stem.startswith("ore_"):
+            # The ore block: drawn a hair outside the note block state it really is, so it covers it.
+            files[f"assets/vigil/textures/block/{stem}.png"] = open(os.path.join(adir, fname), "rb").read()
+            faces = {d: {"uv": [0, 0, 16, 16], "texture": "#all", "cullface": d} for d in ("north", "south", "east", "west", "up", "down")}
+            files[f"assets/vigil/models/block/{stem}.json"] = json.dumps({"parent": "minecraft:block/block", "textures": {
+                "all": f"vigil:block/{stem}", "particle": f"vigil:block/{stem}"}, "elements": [
+                {"from": [-0.01, -0.01, -0.01], "to": [16.01, 16.01, 16.01], "faces": faces}]}, indent=2).encode()
+            files[f"assets/vigil/models/item/{stem}.json"] = json.dumps({"parent": f"vigil:block/{stem}"}, indent=2).encode()
+            by_base.setdefault("armor", []).append(stem)
+            continue
+        name = stem if stem.startswith(("gem_", "raw_", "ruby_sword", "ruby_pickaxe", "ruby_axe", "ruby_shovel", "ruby_hoe")) else "armor_" + stem
         files[f"assets/vigil/textures/item/{name}.png"] = open(os.path.join(adir, fname), "rb").read()
         parent = "minecraft:item/handheld" if stem.startswith("ruby_") and not stem.endswith(("_helmet", "_chestplate", "_leggings", "_boots")) \
             else "minecraft:item/generated"
         files[f"assets/vigil/models/item/{name}.json"] = json.dumps({"parent": parent, "textures": {"layer0": f"vigil:item/{name}"}}, indent=2).encode()
         by_base.setdefault("armor", []).append(name)
+    ores = sorted(f[4:-4] for f in os.listdir(adir) if f.startswith("ore_"))
+    notes = {"ruby": 1, "sapphire": 2, "topaz": 3, "voidstone": 4, "bloodstone": 5}
+    files["assets/minecraft/blockstates/note_block.json"] = json.dumps({"multipart": [
+        {"when": {"instrument": "dragon", "note": str(notes[o]), "powered": "false"}, "apply": {"model": f"vigil:block/ore_{o}"}}
+        for o in ores] + [{"apply": {"model": "minecraft:block/note_block"}}]}, indent=2).encode()
     for fname in sorted(os.listdir(adir)):
         if fname.endswith("_humanoid.png"):
             sid = fname[:-len("_humanoid.png")]

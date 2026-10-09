@@ -98,6 +98,8 @@ public final class OwnerMenu {
                 OwnerPowers.setJoinStyle(pl, next);
                 menu.refresh();
             });
+            menu.set(34, Btn.of(Items.NETHERITE_CHESTPLATE).color(Theme.GOLD_LIGHT).name(Msg.tr("gearmenu.title"))
+                    .desc(Msg.tr("gearmenu.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> gear(pl));
             menu.set(32, Btn.of(Items.ENCHANTED_BOOK).color(Theme.GOLD_LIGHT).name(Msg.tr("enchants.title"))
                     .desc(Msg.tr("enchants.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> enchants(pl));
             menu.set(30, Btn.of(Items.WITHER_SKELETON_SKULL).color(Theme.RED).name(Msg.tr("bmenu.title"))
@@ -461,6 +463,41 @@ public final class OwnerMenu {
             new Secret("magnet_charm", Items.IRON_NUGGET, "Magnet Charm", 0xFF6060, "craft"),
             new Secret("ender_pouch", Items.RABBIT_HIDE, "Ender Pouch", 0xB05CFF, "craft"),
             new Secret("backpack", Items.LEATHER, "Backpack", 0xC8823C, "craft"));
+
+    /** Every armour set (whole sets), the gems, their raw chunks and ores, and the Ruby tools. */
+    public static void gear(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        Menu m = Menu.std(Category.VIGIL, Msg.trFor(p, "owner.title"), Msg.trFor(p, "gearmenu.title"));
+        m.renderer(menu -> {
+            List<java.util.function.Supplier<List<ItemStack>>> all = new ArrayList<>();
+            for (var s : com.vylorq.anticheat.feature.ArmorSets.all()) {
+                all.add(() -> com.vylorq.anticheat.feature.ArmorSets.full(s));
+            }
+            for (var g : com.vylorq.anticheat.feature.Gems.all()) {
+                all.add(() -> List.of(com.vylorq.anticheat.feature.Gems.gem(g, 16)));
+                all.add(() -> List.of(com.vylorq.anticheat.feature.Gems.raw(g, 16)));
+                all.add(() -> List.of(com.vylorq.anticheat.feature.Gems.oreItem(g)));
+            }
+            for (int i = 0; i < 5; i++) {
+                int k = i;
+                all.add(() -> List.of(com.vylorq.anticheat.feature.Gems.rubyTool(k)));
+            }
+            menu.list(all, sup -> {
+                        List<ItemStack> items = sup.get();
+                        ItemStack icon = items.get(items.size() > 1 ? 1 : 0).copy();
+                        return Btn.of(icon).line(items.size() > 1 ? Msg.tr("gearmenu.full-set") : "").left(Msg.tr("enchants.take")).build();
+                    },
+                    sup -> (pl, c) -> {
+                        for (ItemStack s : sup.get()) {
+                            pl.getInventory().offerOrDrop(s);
+                        }
+                    },
+                    sup -> sup.get().get(0).getName().getString(), List.of(), Msg.tr("owner.items.none"), "");
+        });
+        m.open(p);
+    }
 
     /** Every custom enchantment, as books at each level (and straight onto the held item). */
     public static void enchants(ServerPlayerEntity p) {

@@ -1,0 +1,40 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:lantern",
+    {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"bloodstone\"}"
+    },
+    {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"bloodstone\"}"
+    },
+    {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"bloodstone\"}"
+    },
+    {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"bloodstone\"}"
+    }
+  ],
+  "result": {
+    "id": "minecraft:lantern",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "dawn_lantern"
+      },
+      "minecraft:item_name": {
+        "text": "Lantern of Dawn",
+        "color": "gold"
+      }
+    }
+  }
+}

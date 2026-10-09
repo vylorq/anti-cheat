@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "XXX",
+    "X X",
+    "X X"
+  ],
+  "key": {
+    "X": {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"sapphire\"}"
+    }
+  },
+  "result": {
+    "id": "minecraft:diamond_leggings",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:sapphire:2"
+      },
+      "minecraft:item_name": {
+        "text": "Sapphire Leggings",
+        "color": "#5588ff"
+      },
+      "minecraft:item_model": "vigil:xe606e30005",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:xe606e30005"
+        ]
+      }
+    }
+  }
+}

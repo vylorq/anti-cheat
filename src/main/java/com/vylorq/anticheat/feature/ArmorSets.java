@@ -5,7 +5,6 @@ import com.vylorq.anticheat.util.ItemConv;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
@@ -18,8 +17,6 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.item.equipment.trim.ArmorTrim;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -47,6 +44,7 @@ public final class ArmorSets {
     static final String READY = "vigil_armor_v";
     static final EquipmentSlot[] SLOTS = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
     static final String[] PIECE = {"Helm", "Chestplate", "Leggings", "Boots"};
+    static final String[] ICON = {"helmet", "chestplate", "leggings", "boots"};
 
     /** What the full set does to whoever hits its wearer. */
     enum OnHit { NONE, BURN, LIGHTNING, FREEZE, THORNS }
@@ -93,9 +91,14 @@ public final class ArmorSets {
         add(new Set("obsidian", "Obsidian Armor", "§5", false, "craft", items("diamond"), new int[]{4, 9, 7, 4}, 3, 0.15, 0, -0.02,
                 "rib", "netherite", 0, List.of(fx(StatusEffects.FIRE_RESISTANCE, 0), fx(StatusEffects.RESISTANCE, 0)), OnHit.NONE,
                 "Fire Resistance, Resistance"));
-        add(new Set("phantom", "Phantom Armor", "§b", false, "craft", items("leather"), new int[]{2, 5, 4, 2}, 0, 0, 0, 0.03,
+        add(new Set("phantom", "Phantom Armor", "§b", false, "craft", items("chain"), new int[]{2, 5, 4, 2}, 0, 0, 0, 0.03,
                 null, null, 0x9FD8E8, List.of(fx(StatusEffects.SLOW_FALLING, 0), fx(StatusEffects.SPEED, 0), fx(StatusEffects.JUMP_BOOST, 0)),
                 OnHit.NONE, "Slow Falling, Speed, Jump Boost"));
+        add(new Set("ruby", "Ruby Armor", "§c", false, "craft", items("diamond"), new int[]{3, 8, 6, 3}, 2.5, 0.05, 0, 0,
+                null, null, 0, List.of(fx(StatusEffects.STRENGTH, 0)), OnHit.NONE, "Strength"));
+        add(new Set("sapphire", "Sapphire Armor", "§9", false, "craft", items("diamond"), new int[]{3, 8, 6, 3}, 2, 0, 0, 0,
+                null, null, 0, List.of(fx(StatusEffects.WATER_BREATHING, 0), fx(StatusEffects.HASTE, 0)), OnHit.NONE,
+                "Water Breathing, Haste"));
         add(new Set("tide", "Tide Armor", "§3", false, "craft", items("iron"), new int[]{3, 7, 6, 3}, 1, 0, 0, 0,
                 "tide", "diamond", 0, List.of(fx(StatusEffects.WATER_BREATHING, 0), fx(StatusEffects.DOLPHINS_GRACE, 0)), OnHit.NONE,
                 "Water Breathing, Dolphin's Grace"));
@@ -170,17 +173,14 @@ public final class ArmorSets {
                     s.speed(), EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE), ms);
         }
         st.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, b.build());
-        if (s.trimPattern() != null) {
-            var reg = Ac.server().getRegistryManager();
-            var mat = reg.getOrThrow(RegistryKeys.TRIM_MATERIAL).getEntry(Identifier.ofVanilla(s.trimMaterial()));
-            var pat = reg.getOrThrow(RegistryKeys.TRIM_PATTERN).getEntry(Identifier.ofVanilla(s.trimPattern()));
-            if (mat.isPresent() && pat.isPresent()) {
-                st.set(DataComponentTypes.TRIM, new ArmorTrim(mat.get(), pat.get()));
-            }
-        }
-        if (s.dye() != 0) {
-            st.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(s.dye()));
-        }
+        // Its own look (the resource pack): the icon, and the armour as worn.
+        com.vylorq.anticheat.util.PackIds.apply(st, "armor_" + s.id() + "_" + ICON[slot]);
+        st.set(DataComponentTypes.EQUIPPABLE, net.minecraft.component.type.EquippableComponent.builder(es)
+                .equipSound(s.base()[0] == Items.NETHERITE_HELMET ? net.minecraft.sound.SoundEvents.ITEM_ARMOR_EQUIP_NETHERITE
+                        : net.minecraft.sound.SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND)
+                .model(net.minecraft.registry.RegistryKey.of(net.minecraft.item.equipment.EquipmentAssetKeys.REGISTRY_KEY,
+                        Identifier.of("vigil", com.vylorq.anticheat.util.PackIds.code("armor_" + s.id()))))
+                .build());
         ItemConv.setTag(st, TAG, s.id());
         ItemConv.setTag(st, READY, "1");
         return st;
@@ -219,7 +219,7 @@ public final class ArmorSets {
     }
 
     /** A crafted piece comes out of the crafting table plain (just tagged): it gets its stats and look here. */
-    private static void finish(ServerPlayerEntity p) {
+    static void finish(ServerPlayerEntity p) {
         var inv = p.getInventory();
         for (int i = 0; i < inv.size(); i++) {
             ItemStack st = inv.getStack(i);
@@ -303,6 +303,7 @@ public final class ArmorSets {
         }
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
             finish(p);
+            Gems.finish(p);
             bonus(p);
         }
     }

@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "XX",
+    "XS",
+    " S"
+  ],
+  "key": {
+    "X": {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"ruby\"}"
+    },
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "minecraft:diamond_axe",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "ruby_tool:axe"
+      },
+      "minecraft:item_name": {
+        "text": "Ruby Axe",
+        "color": "#ff5566"
+      },
+      "minecraft:item_model": "vigil:x7c711ff7d8",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x7c711ff7d8"
+        ]
+      }
+    }
+  }
+}

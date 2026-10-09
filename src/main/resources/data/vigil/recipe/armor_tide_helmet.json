@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:prismarine_shard",
+    "A": "minecraft:iron_helmet"
+  },
+  "result": {
+    "id": "minecraft:iron_helmet",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:tide:0"
+      },
+      "minecraft:item_name": {
+        "text": "Tide Helmet",
+        "color": "#33ccbb"
+      },
+      "minecraft:item_model": "vigil:x438d19dcd8",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x438d19dcd8"
+        ]
+      }
+    }
+  }
+}

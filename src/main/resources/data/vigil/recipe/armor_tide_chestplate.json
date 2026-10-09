@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:prismarine_shard",
+    "A": "minecraft:iron_chestplate"
+  },
+  "result": {
+    "id": "minecraft:iron_chestplate",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:tide:1"
+      },
+      "minecraft:item_name": {
+        "text": "Tide Chestplate",
+        "color": "#33ccbb"
+      },
+      "minecraft:item_model": "vigil:xe58d0b757c",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:xe58d0b757c"
+        ]
+      }
+    }
+  }
+}

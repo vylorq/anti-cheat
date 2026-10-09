@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": {
+    "fabric:type": "fabric:custom_data",
+    "base": "minecraft:disc_fragment_5",
+    "nbt": "{vigil_raw:\"voidstone\"}"
+  },
+  "result": {
+    "id": "minecraft:disc_fragment_5",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_gem": "voidstone"
+      },
+      "minecraft:custom_name": {
+        "text": "Voidstone",
+        "color": "#aa55ff",
+        "italic": false
+      },
+      "minecraft:lore": [
+        {
+          "text": "Use it with netherite gear in your other hand.",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:rarity": "rare",
+      "minecraft:item_model": "vigil:x3e4419ceae",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x3e4419ceae"
+        ]
+      }
+    }
+  },
+  "experience": 1.0,
+  "cookingtime": 100
+}

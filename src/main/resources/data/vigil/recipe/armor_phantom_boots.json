@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:phantom_membrane",
+    "A": "minecraft:iron_boots"
+  },
+  "result": {
+    "id": "minecraft:chainmail_boots",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:phantom:3"
+      },
+      "minecraft:item_name": {
+        "text": "Phantom Boots",
+        "color": "#aaddee"
+      },
+      "minecraft:item_model": "vigil:xd8f20829d3",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:xd8f20829d3"
+        ]
+      }
+    }
+  }
+}

@@ -64,6 +64,8 @@ public final class AntiCheatMod implements ModInitializer {
         com.vylorq.anticheat.feature.BoiledOmens.register();
         com.vylorq.anticheat.feature.BoiledFight.register();
         com.vylorq.anticheat.feature.CustomEnchants.register();
+        com.vylorq.anticheat.feature.ArmorSets.register();
+        com.vylorq.anticheat.feature.Gems.register();
         com.vylorq.anticheat.feature.StructureLoot.register();
         com.vylorq.anticheat.feature.BuilderLog.register();
         com.vylorq.anticheat.feature.WorldEvents.register();

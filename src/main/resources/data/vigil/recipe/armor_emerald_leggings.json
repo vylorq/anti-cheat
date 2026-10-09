@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:emerald",
+    "A": "minecraft:iron_leggings"
+  },
+  "result": {
+    "id": "minecraft:iron_leggings",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:emerald:2"
+      },
+      "minecraft:item_name": {
+        "text": "Emerald Leggings",
+        "color": "#55ff77"
+      },
+      "minecraft:item_model": "vigil:x556b398db5",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x556b398db5"
+        ]
+      }
+    }
+  }
+}

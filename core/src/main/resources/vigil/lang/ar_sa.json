@@ -3042,5 +3042,11 @@
   "bmenu.how.double": "النسخة المطابقة",
   "bmenu.how.double.desc": "يرون أنفسهم بعيدًا، يحدقون بهم.",
   "bmenu.how.snap": "التفاف الكاميرا",
-  "bmenu.how.snap.desc": "نظرهم يلتف فجأة لينظر خلفهم."
+  "bmenu.how.snap.desc": "نظرهم يلتف فجأة لينظر خلفهم.",
+  "gearmenu.title": "الدروع والجواهر",
+  "gearmenu.desc": "كل أطقم الدروع والجواهر والخامات وأدوات الياقوت.",
+  "gearmenu.full-set": "يعطيك الطقم كامل",
+  "gems.void-hold": "أمسك غرض نذرايت في يدك الأخرى.",
+  "gems.void-already": "هذا الغرض معزز بالفعل.",
+  "gems.void-done": "الفراغ يتغلغل فيه."
 }
