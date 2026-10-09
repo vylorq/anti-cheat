@@ -3033,5 +3033,14 @@
   "bmenu.how.eyes": "عيون حمراء",
   "bmenu.how.eyes.desc": "عينان حمراوان في الظلام؛ تختفيان عند النظر.",
   "bmenu.how.ear": "همس في الأذن",
-  "bmenu.how.ear.desc": "أنفاسه بجانب أذنهم، واسمهم."
+  "bmenu.how.ear.desc": "أنفاسه بجانب أذنهم، واسمهم.",
+  "boiled.waited": "لقد انتظرت.",
+  "bmenu.how.hall": "نهاية النفق",
+  "bmenu.how.hall.desc": "في نهاية النفق؛ يقترب كلما أداروا نظرهم.",
+  "bmenu.how.midnight": "منتصف الليل في النهار",
+  "bmenu.how.midnight.desc": "سماؤهم تصبح منتصف الليل لمدة 20 ثانية.",
+  "bmenu.how.double": "النسخة المطابقة",
+  "bmenu.how.double.desc": "يرون أنفسهم بعيدًا، يحدقون بهم.",
+  "bmenu.how.snap": "التفاف الكاميرا",
+  "bmenu.how.snap.desc": "نظرهم يلتف فجأة لينظر خلفهم."
 }

@@ -229,7 +229,7 @@ public final class AdminCommands {
                 .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::info))));
         var boiledSend = literal("send");
         for (String how : new String[]{"watch", "scare", "peek", "behind", "breakin", "glimpse", "footsteps", "knock", "door",
-                "whisper", "torches", "fakechat", "trail", "mimic", "mimicplayer", "atdoor", "sounds", "reflection", "shadow", "paralysis", "eyes", "ear"}) {
+                "whisper", "torches", "fakechat", "trail", "mimic", "mimicplayer", "atdoor", "sounds", "reflection", "shadow", "paralysis", "eyes", "ear", "hall", "midnight", "double", "snap"}) {
             boiledSend.then(literal(how).then(Args.player("player").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.BoiledOne.ownerSend(p,
                     Args.online(Args.str(ctx, "player")), how)))));
         }
