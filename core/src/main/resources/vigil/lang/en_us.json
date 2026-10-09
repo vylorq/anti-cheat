@@ -3048,5 +3048,9 @@
   "gearmenu.full-set": "Gives the whole set",
   "gems.void-hold": "Hold netherite gear in your other hand.",
   "gems.void-already": "That's already Void-touched.",
-  "gems.void-done": "The void sinks into it."
+  "gems.void-done": "The void sinks into it.",
+  "content.title": "Findable content",
+  "content.desc": "Turn each secret item, armor set, gem, enchantment and more on or off for players.",
+  "content.on": "§aOn: players can find it",
+  "content.off": "§cOff: nobody can get it (what they have stays)"
 }

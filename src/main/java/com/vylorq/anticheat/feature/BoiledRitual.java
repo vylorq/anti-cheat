@@ -285,13 +285,13 @@ public final class BoiledRitual {
             p.getInventory().offerOrDrop(new ItemStack(Items.GOLDEN_APPLE, 2));
             BoiledHaunts.givePage(p);
             if (p.getRandom().nextInt(3) == 0) {
-                p.getInventory().offerOrDrop(CustomEnchants.randomBook(p.getRandom()));
+                ContentToggles.give(p, CustomEnchants.randomBook(p.getRandom()));
             }
             if (p.getRandom().nextInt(CURSE_ODDS) == 0) {
-                p.getInventory().offerOrDrop(BoiledDread.cursedBone());
+                ContentToggles.give(p, BoiledDread.cursedBone());
             }
             if (p.getRandom().nextInt(ARMOR_ODDS) == 0) {
-                p.getInventory().offerOrDrop(BoiledFight.armor(p.getRandom().nextInt(4)));
+                ContentToggles.give(p, BoiledFight.armor(p.getRandom().nextInt(4)));
             }
             p.addExperienceLevels(15);
             Mc.sound(p, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 1f, 0.8f);

@@ -98,6 +98,8 @@ public final class OwnerMenu {
                 OwnerPowers.setJoinStyle(pl, next);
                 menu.refresh();
             });
+            menu.set(23, Btn.of(Items.LEVER).color(Theme.GOLD_LIGHT).name(Msg.tr("content.title"))
+                    .desc(Msg.tr("content.desc")).left(Msg.tr("owner.open")).build(), null, (pl, c) -> content(pl));
             menu.set(34, Btn.of(Items.NETHERITE_CHESTPLATE).color(Theme.GOLD_LIGHT).name(Msg.tr("gearmenu.title"))
                     .desc(Msg.tr("gearmenu.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> gear(pl));
             menu.set(32, Btn.of(Items.ENCHANTED_BOOK).color(Theme.GOLD_LIGHT).name(Msg.tr("enchants.title"))
@@ -464,6 +466,47 @@ public final class OwnerMenu {
             new Secret("ender_pouch", Items.RABBIT_HIDE, "Ender Pouch", 0xB05CFF, "craft"),
             new Secret("backpack", Items.LEATHER, "Backpack", 0xC8823C, "craft"));
 
+    private record Content(String key, ItemStack icon, String name) {
+    }
+
+    /** Everything from the mod that players can find, each one on or off. */
+    public static void content(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        List<Content> all = new ArrayList<>();
+        for (Secret x : SECRETS) {
+            all.add(new Content("secret:" + x.id(), icon(x.base(), x.id()), x.name()));
+        }
+        for (var s : com.vylorq.anticheat.feature.ArmorSets.all()) {
+            all.add(new Content("armor:" + s.id(), com.vylorq.anticheat.feature.ArmorSets.piece(s, 1), s.name()));
+        }
+        for (var g : com.vylorq.anticheat.feature.Gems.all()) {
+            all.add(new Content("gem:" + g.id(), com.vylorq.anticheat.feature.Gems.gem(g, 1), g.name() + " (ore, gem)"));
+        }
+        all.add(new Content("ruby_tools", com.vylorq.anticheat.feature.Gems.rubyTool(0), "Ruby tools"));
+        for (String id : com.vylorq.anticheat.feature.CustomEnchants.ALL) {
+            all.add(new Content("enchant:" + id, com.vylorq.anticheat.feature.CustomEnchants.book(id, 1), Msg.tr("enchants.title") + ": " + id));
+        }
+        all.add(new Content("boiled:armor", com.vylorq.anticheat.feature.BoiledFight.armor(1), "Boiled Armor"));
+        all.add(new Content("boiled:lantern", com.vylorq.anticheat.feature.BoiledOmens.lantern(), "Lantern of Dawn"));
+        all.add(new Content("boiled:pages", com.vylorq.anticheat.feature.BoiledHaunts.page(p, 1), "Torn Pages"));
+        all.add(new Content("boiled:cursed_bone", com.vylorq.anticheat.feature.BoiledDread.cursedBone(), "Cursed Bone"));
+        all.add(new Content("vanilla:mace", new ItemStack(Items.HEAVY_CORE), "Heavy Core (mace)"));
+        Menu m = Menu.std(Category.VIGIL, Msg.trFor(p, "owner.title"), Msg.trFor(p, "content.title"));
+        m.renderer(menu -> menu.list(all, x -> {
+                    boolean on = com.vylorq.anticheat.feature.ContentToggles.on(x.key());
+                    return Btn.of(x.icon().copy()).name(x.name()).onOff(on)
+                            .line(Msg.tr(on ? "content.on" : "content.off")).left(Msg.tr("owner.toggle")).glint(on).build();
+                },
+                x -> (pl, c) -> {
+                    com.vylorq.anticheat.feature.ContentToggles.set(x.key(), !com.vylorq.anticheat.feature.ContentToggles.on(x.key()));
+                    menu.refresh();
+                },
+                Content::name, List.of(), Msg.tr("owner.items.none"), ""));
+        m.open(p);
+    }
+
     /** Every armour set (whole sets), the gems, their raw chunks and ores, and the Ruby tools. */
     public static void gear(ServerPlayerEntity p) {
         if (!OwnerPowers.require(p)) {
@@ -548,7 +591,7 @@ public final class OwnerMenu {
         Menu m = Menu.std(Category.VIGIL, Msg.trFor(p, "owner.title"), Msg.trFor(p, "owner.secrets"));
         m.renderer(menu -> menu.list(SECRETS, x -> Btn.of(icon(x.base(), x.id())).color(x.colour()).name(x.name())
                         .line(Msg.tr("owner.secrets.from." + x.from())).left(Msg.tr("owner.secrets.take")).glint(true).build(),
-                x -> (pl, c) -> com.vylorq.anticheat.feature.SecretItems.give(pl, x.id()),
+                x -> (pl, c) -> com.vylorq.anticheat.feature.ContentToggles.asOwner(() -> com.vylorq.anticheat.feature.SecretItems.give(pl, x.id())),
                 x -> x.name(), List.of(), Msg.tr("owner.items.none"), ""));
         m.open(p);
     }

@@ -1216,6 +1216,9 @@ public final class BoiledFight {
     }
 
     private static void give(ServerPlayerEntity p, ItemStack s) {
+        if (!ContentToggles.allowed(s)) {
+            return;
+        }
         if (!p.getInventory().insertStack(s)) {
             p.dropItem(s, false);
         }

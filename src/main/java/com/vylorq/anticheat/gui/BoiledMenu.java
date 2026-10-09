@@ -170,7 +170,7 @@ public final class BoiledMenu {
                     pl.getInventory().offerOrDrop(BoiledFight.armor(i));
                 }
             });
-            item(menu, 41, Items.NETHERITE_SWORD, "bmenu.item-edge", pl -> SecretItems.give(pl, SecretItems.BOILING_EDGE));
+            item(menu, 41, Items.NETHERITE_SWORD, "bmenu.item-edge", pl -> com.vylorq.anticheat.feature.ContentToggles.asOwner(() -> SecretItems.give(pl, SecretItems.BOILING_EDGE)));
             item(menu, 42, Items.NETHER_STAR, "bmenu.item-heart", pl -> pl.getInventory().offerOrDrop(BoiledFight.heart(pl)));
             item(menu, 43, Items.BONE, "bmenu.item-curse", pl -> pl.getInventory().offerOrDrop(com.vylorq.anticheat.feature.BoiledDread.cursedBone()));
         });

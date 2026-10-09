@@ -1372,6 +1372,7 @@ public final class Bosses {
         if (w.getRandom().nextInt(4) == 0) {
             drops.add(cursedKey());
         }
+        drops.removeIf(s -> s.isEmpty() || !ContentToggles.allowed(s));     // what the owner turned off
         for (ItemStack s : drops) {
             ItemEntity it = new ItemEntity(w, at.x, at.y + 1, at.z, s);
             it.setVelocity((w.getRandom().nextDouble() - 0.5) * 0.3, 0.3, (w.getRandom().nextDouble() - 0.5) * 0.3);

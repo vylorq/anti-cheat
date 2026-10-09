@@ -481,7 +481,7 @@ public final class BoiledOmens {
             }
             p.getInventory().offerOrDrop(tooth(p));
             if (p.getRandom().nextInt(4) == 0) {
-                p.getInventory().offerOrDrop(lantern());
+                ContentToggles.give(p, lantern());
             }
             Msg.send(p, "boiled.survived");
             Mc.sound(p, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 1f, 0.8f);

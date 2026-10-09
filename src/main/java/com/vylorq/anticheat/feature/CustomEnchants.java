@@ -97,7 +97,11 @@ public final class CustomEnchants {
 
     /** A random one, at a random level (a boss's drop). */
     public static ItemStack randomBook(Random r) {
-        String id = ALL.get(r.nextInt(ALL.size()));
+        List<String> on = ALL.stream().filter(id -> ContentToggles.on("enchant:" + id)).toList();
+        if (on.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        String id = on.get(r.nextInt(on.size()));
         return book(id, 1 + r.nextInt(maxLevel(id)));
     }
 
