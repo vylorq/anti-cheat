@@ -28,7 +28,7 @@ RAMPS = {
     "sapphire": ["#000d36", "#0a2878", "#1445bd", "#3f7ff0", "#c2dbff"],
     "topaz": ["#3a1d00", "#874800", "#d68812", "#ffc94a", "#fff4c9"],
     "voidstone": ["#000000", "#10031f", "#280a4b", "#58209b", "#c890ff"],
-    "bloodstone": ["#080000", "#2a0000", "#560404", "#951010", "#d63c3c"],
+    "bloodstone": ["#100000", "#3d0000", "#7a0606", "#bf1717", "#ff6a6a"],
 }
 # Which of the game's armour each set is drawn from.
 SHAPE = {"abyssal": "netherite", "colossus": "netherite", "tempest": "netherite", "inferno": "netherite",
@@ -36,7 +36,11 @@ SHAPE = {"abyssal": "netherite", "colossus": "netherite", "tempest": "netherite"
 ARMOR_SETS = ["emerald", "obsidian", "phantom", "tide", "abyssal", "colossus", "tempest", "inferno", "dune", "glacier",
               "thornback", "hollow", "ruby", "sapphire"]
 PIECES = ["helmet", "chestplate", "leggings", "boots"]
-GEMS = {"ruby": "diamond", "sapphire": "diamond", "topaz": "emerald", "voidstone": "echo_shard", "bloodstone": "amethyst_shard"}
+GEMS = {"ruby": "emerald", "sapphire": "diamond", "topaz": "quartz", "voidstone": "echo_shard", "bloodstone": "amethyst_shard"}
+# Raw chunk and ore each gem is drawn from (ore: the game's ore, its spots recoloured; deepslate or stone).
+RAWS = {"ruby": "raw_copper", "sapphire": "raw_iron", "topaz": "raw_gold", "voidstone": "raw_iron", "bloodstone": "raw_copper"}
+ORE_FROM = {"ruby": ("emerald_ore", True), "sapphire": ("diamond_ore", False), "topaz": ("gold_ore", False),
+            "voidstone": ("diamond_ore", True), "bloodstone": ("redstone_ore", False)}
 # Which gems grow in deepslate (the rest in stone).
 ORES = {"ruby": True, "sapphire": False, "topaz": False, "voidstone": True, "bloodstone": False}
 TOOLS = ["sword", "pickaxe", "axe", "shovel", "hoe"]
@@ -143,7 +147,23 @@ def main(src):
         for piece in PIECES:
             img = Image.open(os.path.join(src, "items", f"{shape}_{piece}.png"))
             trim(recolor(img, RAMPS[s]), ACCENT[s], piece).save(os.path.join(OUT, f"{s}_{piece}.png"))
-    # Gems, raw chunks and ores are drawn by hand: scripts/armor/gems_art.py
+    for g, (ore, deep) in ORE_FROM.items():
+        o = Image.open(os.path.join(src, "blocks", ("deepslate_" if deep else "") + ore + ".png")).convert("RGBA")
+        bg = Image.open(os.path.join(src, "blocks", "deepslate.png" if deep else "stone.png")).convert("RGBA")
+        po, pb = o.load(), bg.load()
+        spots = Image.new("RGBA", o.size, (0, 0, 0, 0))
+        ps = spots.load()
+        for y in range(o.height):
+            for x in range(o.width):
+                a_, b_ = po[x, y], pb[x, y]
+                if abs(a_[0] - b_[0]) + abs(a_[1] - b_[1]) + abs(a_[2] - b_[2]) > 40:
+                    ps[x, y] = a_
+        out = bg.copy()
+        out.alpha_composite(recolor(spots, RAMPS[g]))
+        out.save(os.path.join(OUT, f"ore_{g}.png"))
+        recolor(Image.open(os.path.join(src, "items", RAWS[g] + ".png")), RAMPS[g]).save(os.path.join(OUT, f"raw_{g}.png"))
+    for g, base in GEMS.items():
+        recolor(Image.open(os.path.join(src, "items", base + ".png")), RAMPS[g]).save(os.path.join(OUT, f"gem_{g}.png"))
     for tool in TOOLS:
         img = Image.open(os.path.join(src, "items", f"diamond_{tool}.png"))
         recolor(img, RAMPS["ruby"], cyan).save(os.path.join(OUT, f"ruby_{tool}.png"))
