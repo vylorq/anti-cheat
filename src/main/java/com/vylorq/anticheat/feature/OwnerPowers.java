@@ -49,11 +49,16 @@ public final class OwnerPowers {
     }
 
     public enum Power { FLY, GOD, SPEED, NIGHT_VISION, INSTA_BREAK, RADAR, GHOST,
-        ONE_PUNCH, LIFESTEAL, MEGA_KNOCKBACK, NO_COOLDOWN, FORCE_FIELD }
+        ONE_PUNCH, LIFESTEAL, MEGA_KNOCKBACK, NO_COOLDOWN, FORCE_FIELD, UNDYING, PVP_BUFFS }
 
     /** The combat toggles (shown in the combat menu, not the main one). */
     public static boolean combat(Power p) {
-        return p.ordinal() >= Power.ONE_PUNCH.ordinal();
+        return p.ordinal() >= Power.ONE_PUNCH.ordinal() && !pvp(p);
+    }
+
+    /** The PvP toggles (their own menu). */
+    public static boolean pvp(Power p) {
+        return p == Power.UNDYING || p == Power.PVP_BUFFS;
     }
 
     /** Saved in config/vigil/owner.json. */
@@ -79,6 +84,10 @@ public final class OwnerPowers {
         public boolean megaKnockback;
         public boolean noCooldown;
         public boolean forceField;
+        /** Never dies: every killing blow is a totem instead, forever. */
+        public boolean undying;
+        /** Strength, Regeneration, Resistance and the rest, always on. */
+        public boolean pvpBuffs;
         /** Mob wipe: how far it reaches. */
         public int wipeRadius = 32;
         /** Orbital strike settings. */
@@ -171,6 +180,8 @@ public final class OwnerPowers {
             case MEGA_KNOCKBACK -> s.megaKnockback;
             case NO_COOLDOWN -> s.noCooldown;
             case FORCE_FIELD -> s.forceField;
+            case UNDYING -> s.undying;
+            case PVP_BUFFS -> s.pvpBuffs;
         };
     }
 
@@ -181,7 +192,8 @@ public final class OwnerPowers {
         }
         State s = state();
         return s.fly || s.god || s.speed > 0 || s.instaBreak || s.ghost != null
-                || s.onePunch || s.lifesteal || s.megaKnockback || s.noCooldown || s.forceField || OwnerCombat.berserk(id)
+                || s.onePunch || s.lifesteal || s.megaKnockback || s.noCooldown || s.forceField || s.undying || s.pvpBuffs
+                || OwnerCombat.berserk(id)
                 || System.currentTimeMillis() - lastToolUse < 10_000;
     }
 
@@ -227,6 +239,13 @@ public final class OwnerPowers {
             case MEGA_KNOCKBACK -> now = s.megaKnockback = !s.megaKnockback;
             case NO_COOLDOWN -> now = s.noCooldown = !s.noCooldown;
             case FORCE_FIELD -> now = s.forceField = !s.forceField;
+            case UNDYING -> now = s.undying = !s.undying;
+            case PVP_BUFFS -> {
+                now = s.pvpBuffs = !s.pvpBuffs;
+                if (!now) {
+                    OwnerPvp.clearBuffs(p);
+                }
+            }
             default -> now = false;
         }
         save();
@@ -281,6 +300,9 @@ public final class OwnerPowers {
     public static void apply(ServerPlayerEntity p) {
         boolean ok = owner(p);
         State s = state();
+        if (ok && s.pvpBuffs) {
+            OwnerPvp.buffs(p);
+        }
         boolean creativeLike = p.isCreative() || p.isSpectator();
         // Fly
         if (!creativeLike) {

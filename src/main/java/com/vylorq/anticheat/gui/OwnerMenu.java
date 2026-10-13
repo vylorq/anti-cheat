@@ -98,6 +98,8 @@ public final class OwnerMenu {
                 OwnerPowers.setJoinStyle(pl, next);
                 menu.refresh();
             });
+            menu.set(21, Btn.of(Items.TOTEM_OF_UNDYING).color(Theme.RED).name(Msg.tr("owner.pvp"))
+                    .desc(Msg.tr("owner.pvp.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> pvp(pl));
             menu.set(23, Btn.of(Items.LEVER).color(Theme.GOLD_LIGHT).name(Msg.tr("content.title"))
                     .desc(Msg.tr("content.desc")).left(Msg.tr("owner.open")).build(), null, (pl, c) -> content(pl));
             menu.set(34, Btn.of(Items.NETHERITE_CHESTPLATE).color(Theme.GOLD_LIGHT).name(Msg.tr("gearmenu.title"))
@@ -465,6 +467,31 @@ public final class OwnerMenu {
             new Secret("magnet_charm", Items.IRON_NUGGET, "Magnet Charm", 0xFF6060, "craft"),
             new Secret("ender_pouch", Items.RABBIT_HIDE, "Ender Pouch", 0xB05CFF, "craft"),
             new Secret("backpack", Items.LEATHER, "Backpack", 0xC8823C, "craft"));
+
+    /** PvP: the owner's fight powers. */
+    public static void pvp(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        Menu m = Menu.std(Category.VIGIL, 3, Msg.trFor(p, "owner.title"), Msg.trFor(p, "owner.pvp"));
+        m.renderer(menu -> {
+            Power[] powers = {Power.UNDYING, Power.PVP_BUFFS};
+            Item[] icons = {Items.TOTEM_OF_UNDYING, Items.POTION};
+            int[] slots = {11, 15};
+            for (int i = 0; i < powers.length; i++) {
+                Power pw = powers[i];
+                boolean on = OwnerPowers.on(p, pw);
+                String key = "owner.power." + pw.name().toLowerCase(Locale.ROOT);
+                menu.set(slots[i], Btn.of(icons[i]).color(on ? Theme.GREEN : Theme.SOFT).name(Msg.tr(key)).desc(Msg.tr(key + ".desc"))
+                        .status(on ? Theme.GREEN : Theme.SOFT, Msg.tr(on ? "owner.state-on" : "owner.state-off"))
+                        .left(Msg.tr("owner.toggle")).glint(on).build(), null, (pl, c) -> {
+                    OwnerPowers.toggle(pl, pw);
+                    menu.refresh();
+                });
+            }
+        });
+        m.open(p);
+    }
 
     private record Content(String key, ItemStack icon, String name) {
     }
