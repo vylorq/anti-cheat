@@ -473,18 +473,22 @@ public final class OwnerMenu {
         if (!OwnerPowers.require(p)) {
             return;
         }
-        Menu m = Menu.std(Category.VIGIL, 3, Msg.trFor(p, "owner.title"), Msg.trFor(p, "owner.pvp"));
+        Menu m = Menu.std(Category.VIGIL, 4, Msg.trFor(p, "owner.title"), Msg.trFor(p, "owner.pvp"));
         m.renderer(menu -> {
-            Power[] powers = {Power.UNDYING, Power.PVP_BUFFS};
-            Item[] icons = {Items.TOTEM_OF_UNDYING, Items.POTION};
-            int[] slots = {11, 15};
+            Power[] powers = {Power.UNDYING, Power.PVP_BUFFS, Power.NO_KNOCKBACK, Power.ALWAYS_CRIT, Power.DAMAGE_BOOST, Power.AUTO_REPAIR,
+                    Power.NO_ITEM_COOLDOWN, Power.KILL_FX, Power.KEEP_INVENTORY, Power.ENEMY_GLOW, Power.SECOND_WIND};
+            Item[] icons = {Items.TOTEM_OF_UNDYING, Items.POTION, Items.SHIELD, Items.NETHERITE_SWORD, Items.BLAZE_POWDER, Items.ANVIL,
+                    Items.ENDER_PEARL, Items.FIREWORK_ROCKET, Items.CHEST, Items.SPECTRAL_ARROW, Items.GOLDEN_APPLE};
+            int[] slots = {10, 11, 12, 13, 14, 15, 16, 20, 21, 23, 24};
             for (int i = 0; i < powers.length; i++) {
                 Power pw = powers[i];
                 boolean on = OwnerPowers.on(p, pw);
                 String key = "owner.power." + pw.name().toLowerCase(Locale.ROOT);
+                String state = Msg.tr(on ? "owner.state-on" : "owner.state-off")
+                        + (pw == Power.DAMAGE_BOOST && on ? " (" + (OwnerPowers.state().damageBoost + 1) + "x)" : "");
                 menu.set(slots[i], Btn.of(icons[i]).color(on ? Theme.GREEN : Theme.SOFT).name(Msg.tr(key)).desc(Msg.tr(key + ".desc"))
-                        .status(on ? Theme.GREEN : Theme.SOFT, Msg.tr(on ? "owner.state-on" : "owner.state-off"))
-                        .left(Msg.tr("owner.toggle")).glint(on).build(), null, (pl, c) -> {
+                        .status(on ? Theme.GREEN : Theme.SOFT, state)
+                        .left(Msg.tr(pw == Power.DAMAGE_BOOST ? "owner.next-level" : "owner.toggle")).glint(on).build(), null, (pl, c) -> {
                     OwnerPowers.toggle(pl, pw);
                     menu.refresh();
                 });

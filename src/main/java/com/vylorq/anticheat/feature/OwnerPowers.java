@@ -49,7 +49,8 @@ public final class OwnerPowers {
     }
 
     public enum Power { FLY, GOD, SPEED, NIGHT_VISION, INSTA_BREAK, RADAR, GHOST,
-        ONE_PUNCH, LIFESTEAL, MEGA_KNOCKBACK, NO_COOLDOWN, FORCE_FIELD, UNDYING, PVP_BUFFS }
+        ONE_PUNCH, LIFESTEAL, MEGA_KNOCKBACK, NO_COOLDOWN, FORCE_FIELD, UNDYING, PVP_BUFFS,
+        NO_KNOCKBACK, ALWAYS_CRIT, DAMAGE_BOOST, AUTO_REPAIR, NO_ITEM_COOLDOWN, KILL_FX, KEEP_INVENTORY, ENEMY_GLOW, SECOND_WIND }
 
     /** The combat toggles (shown in the combat menu, not the main one). */
     public static boolean combat(Power p) {
@@ -58,7 +59,7 @@ public final class OwnerPowers {
 
     /** The PvP toggles (their own menu). */
     public static boolean pvp(Power p) {
-        return p == Power.UNDYING || p == Power.PVP_BUFFS;
+        return p.ordinal() >= Power.UNDYING.ordinal();
     }
 
     /** Saved in config/vigil/owner.json. */
@@ -88,6 +89,16 @@ public final class OwnerPowers {
         public boolean undying;
         /** Strength, Regeneration, Resistance and the rest, always on. */
         public boolean pvpBuffs;
+        public boolean noKnockback;
+        public boolean alwaysCrit;
+        /** 0 off, 1 = 2x, 2 = 3x damage. */
+        public int damageBoost;
+        public boolean autoRepair;
+        public boolean noItemCooldown;
+        public boolean killFx;
+        public boolean keepInventory;
+        public boolean enemyGlow;
+        public boolean secondWind;
         /** Mob wipe: how far it reaches. */
         public int wipeRadius = 32;
         /** Orbital strike settings. */
@@ -182,6 +193,15 @@ public final class OwnerPowers {
             case FORCE_FIELD -> s.forceField;
             case UNDYING -> s.undying;
             case PVP_BUFFS -> s.pvpBuffs;
+            case NO_KNOCKBACK -> s.noKnockback;
+            case ALWAYS_CRIT -> s.alwaysCrit;
+            case DAMAGE_BOOST -> s.damageBoost > 0;
+            case AUTO_REPAIR -> s.autoRepair;
+            case NO_ITEM_COOLDOWN -> s.noItemCooldown;
+            case KILL_FX -> s.killFx;
+            case KEEP_INVENTORY -> s.keepInventory;
+            case ENEMY_GLOW -> s.enemyGlow;
+            case SECOND_WIND -> s.secondWind;
         };
     }
 
@@ -193,6 +213,7 @@ public final class OwnerPowers {
         State s = state();
         return s.fly || s.god || s.speed > 0 || s.instaBreak || s.ghost != null
                 || s.onePunch || s.lifesteal || s.megaKnockback || s.noCooldown || s.forceField || s.undying || s.pvpBuffs
+                || s.noKnockback || s.alwaysCrit || s.damageBoost > 0 || s.noItemCooldown || s.secondWind
                 || OwnerCombat.berserk(id)
                 || System.currentTimeMillis() - lastToolUse < 10_000;
     }
@@ -246,6 +267,23 @@ public final class OwnerPowers {
                     OwnerPvp.clearBuffs(p);
                 }
             }
+            case NO_KNOCKBACK -> now = s.noKnockback = !s.noKnockback;
+            case ALWAYS_CRIT -> now = s.alwaysCrit = !s.alwaysCrit;
+            case DAMAGE_BOOST -> {
+                s.damageBoost = (s.damageBoost + 1) % 3;
+                now = s.damageBoost > 0;
+            }
+            case AUTO_REPAIR -> now = s.autoRepair = !s.autoRepair;
+            case NO_ITEM_COOLDOWN -> now = s.noItemCooldown = !s.noItemCooldown;
+            case KILL_FX -> now = s.killFx = !s.killFx;
+            case KEEP_INVENTORY -> now = s.keepInventory = !s.keepInventory;
+            case ENEMY_GLOW -> {
+                now = s.enemyGlow = !s.enemyGlow;
+                if (!now) {
+                    OwnerPvp.clearGlow(p);
+                }
+            }
+            case SECOND_WIND -> now = s.secondWind = !s.secondWind;
             default -> now = false;
         }
         save();
@@ -253,6 +291,9 @@ public final class OwnerPowers {
         String name = Msg.trFor(p, "owner.power." + power.name().toLowerCase());
         if (power == Power.SPEED) {
             name += s.speed > 0 ? " " + s.speed : "";
+        }
+        if (power == Power.DAMAGE_BOOST && s.damageBoost > 0) {
+            name += " " + (s.damageBoost + 1) + "x";
         }
         Msg.send(p, now ? "owner.on" : "owner.off", name);
         OwnerFx.powerSound(p, power, now);
@@ -303,6 +344,7 @@ public final class OwnerPowers {
         if (ok && s.pvpBuffs) {
             OwnerPvp.buffs(p);
         }
+        OwnerPvp.apply(p, ok, s);
         boolean creativeLike = p.isCreative() || p.isSpectator();
         // Fly
         if (!creativeLike) {

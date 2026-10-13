@@ -30,6 +30,7 @@
     "LivingEntityMixin",
     "MinecraftServerMixin",
     "NoteBlockMixin",
+    "OwnerDamageMixin",
     "PaintingAccessor",
     "PistonBlockMixin",
     "PlayerEntityAccessor",

@@ -59,6 +59,7 @@ public final class OwnerFx {
             case NO_COOLDOWN -> "nocool";
             case UNDYING -> "god";
             case PVP_BUFFS -> "steal";
+            default -> "field";
             case FORCE_FIELD -> "field";
         };
         OwnerPowers.sfx(p, base + (on ? "_on" : "_off"), on ? SoundEvents.BLOCK_BEACON_ACTIVATE : SoundEvents.BLOCK_BEACON_DEACTIVATE, on ? 1.4f : 1.2f);
