@@ -80,7 +80,7 @@ public final class Bosses {
     public static final String DROWNED_WARDEN = "drowned_warden";
     public static final String TEMPEST_LORD = "tempest_lord";
 
-    enum Ability { SHOCKWAVE, TRIDENTS, ROCKS, LIGHTNING, FIRE_RING, SANDSTORM, ICE_SHARDS, FREEZE_AURA, THORNS, DARKNESS, LEAP }
+    enum Ability { SHOCKWAVE, TRIDENTS, ROCKS, LIGHTNING, FIRE_RING, SANDSTORM, ICE_SHARDS, FREEZE_AURA, THORNS, DARKNESS, LEAP, SPORES, VOID_PULL }
 
     record Guard(EntityType<? extends MobEntity> type, String name, int count, Consumer<MobEntity> gear) {
     }
@@ -180,6 +180,62 @@ public final class Bosses {
                     wear(m, EquipmentSlot.LEGS, dyed(Items.LEATHER_LEGGINGS, 0x15101C));
                     wear(m, EquipmentSlot.FEET, dyed(Items.LEATHER_BOOTS, 0x15101C));
                 }, "hollow_edge", null, 0, 0));
+        // The newer structures' bosses (vanilla mobs underneath, so they work the same on Bedrock).
+        add(new Kind("sky_warden", "The Sky Warden", "§f", "sky_island", 7, EntityType.BREEZE, 5000, 22, 18, 2.4f,
+                List.of(Ability.LIGHTNING, Ability.LEAP, Ability.SHOCKWAVE), 0xDDF6FF,
+                List.of(new Guard(EntityType.SKELETON, "§fCloud Archer", 2, m -> wear(m, EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET))),
+                        new Guard(EntityType.BREEZE, "§7Gust", 2, m -> { })),
+                m -> { }, null, null, 0, 0));
+        add(new Kind("sporemother", "The Sporemother", "§c", "mushroom_cave", 1, EntityType.ZOMBIE, 5000, 24, 20, 2.6f,
+                List.of(Ability.SPORES, Ability.LEAP, Ability.SHOCKWAVE), 0xC0392B,
+                List.of(new Guard(EntityType.ZOMBIE, "§cSpore Husk", 3, m -> wear(m, EquipmentSlot.HEAD, new ItemStack(Items.RED_MUSHROOM_BLOCK))),
+                        new Guard(EntityType.SPIDER, "§6Cap Crawler", 2, m -> { })),
+                m -> {
+                    wear(m, EquipmentSlot.HEAD, new ItemStack(Items.RED_MUSHROOM_BLOCK));
+                    wear(m, EquipmentSlot.CHEST, dyed(Items.LEATHER_CHESTPLATE, 0xB03A2E));
+                    wear(m, EquipmentSlot.LEGS, dyed(Items.LEATHER_LEGGINGS, 0xE8DCC8));
+                }, null, null, 0, 0));
+        add(new Kind("drowned_captain", "The Drowned Captain", "§9", "sunken_ship", 1, EntityType.DROWNED, 5000, 24, 20, 1.9f,
+                List.of(Ability.TRIDENTS, Ability.LEAP, Ability.SHOCKWAVE), 0x2E86C1,
+                List.of(new Guard(EntityType.DROWNED, "§9Ghost Sailor", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD))),
+                        new Guard(EntityType.SKELETON, "§7Deckhand", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.BOW)))),
+                m -> {
+                    wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.TRIDENT));
+                    wear(m, EquipmentSlot.HEAD, dyed(Items.LEATHER_HELMET, 0x1B2631));
+                    wear(m, EquipmentSlot.CHEST, dyed(Items.LEATHER_CHESTPLATE, 0x1F3A93));
+                }, null, null, 0, 0));
+        add(new Kind("soul_reaper", "The Soul Reaper", "§3", "soul_sanctum", 1, EntityType.WITHER_SKELETON, 5500, 28, 24, 2.2f,
+                List.of(Ability.FIRE_RING, Ability.DARKNESS, Ability.LEAP), 0x4FD0E0,
+                List.of(new Guard(EntityType.SKELETON, "§3Lost Soul", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.BOW))),
+                        new Guard(EntityType.BLAZE, "§bSoul Flame", 1, m -> { })),
+                m -> {
+                    wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.NETHERITE_HOE));
+                    wear(m, EquipmentSlot.CHEST, dyed(Items.LEATHER_CHESTPLATE, 0x0E3B43));
+                    wear(m, EquipmentSlot.LEGS, dyed(Items.LEATHER_LEGGINGS, 0x0E3B43));
+                }, null, null, 0, 0));
+        add(new Kind("hoglin_king", "The Hoglin King", "§4", "crimson_citadel", 1, EntityType.HOGLIN, 5500, 30, 22, 2.0f,
+                List.of(Ability.LEAP, Ability.SHOCKWAVE, Ability.FIRE_RING), 0xC0392B,
+                List.of(new Guard(EntityType.PIGLIN_BRUTE, "§4Royal Guard", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_AXE))),
+                        new Guard(EntityType.HOGLIN, "§cHoglet", 2, m -> {
+                            if (m instanceof net.minecraft.entity.mob.HoglinEntity h) {
+                                h.setImmuneToZombification(true);
+                            }
+                        })),
+                m -> {
+                    if (m instanceof net.minecraft.entity.mob.HoglinEntity h) {
+                        h.setImmuneToZombification(true);
+                    }
+                }, null, null, 0, 0));
+        add(new Kind("void_stalker", "The Void Stalker", "§5", "void_spire", 1, EntityType.ENDERMAN, 6000, 30, 24, 1.8f,
+                List.of(Ability.VOID_PULL, Ability.DARKNESS, Ability.SHOCKWAVE), 0x8E44AD,
+                List.of(new Guard(EntityType.ENDERMITE, "§5Void Mite", 3, m -> { }),
+                        new Guard(EntityType.SKELETON, "§dPurpur Archer", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.BOW)))),
+                m -> { }, null, null, 0, 0));
+        add(new Kind("void_evoker", "The Void Evoker", "§d", "ender_crypt", 1, EntityType.EVOKER, 5500, 20, 18, 1.8f,
+                List.of(Ability.VOID_PULL, Ability.LIGHTNING, Ability.LEAP), 0xD580FF,
+                List.of(new Guard(EntityType.VINDICATOR, "§5Crypt Guard", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE))),
+                        new Guard(EntityType.VEX, "§dCrypt Wisp", 2, m -> { })),
+                m -> { }, null, null, 0, 0));
         // The Tempest Keep's lord (TempestKeep.java spawns him; no structure of his own, and no weapon to drop:
         // his prize is the Stormbreaker in the vault behind him).
         add(new Kind(TEMPEST_LORD, "The Tempest Lord", "§b", "tempest", 1, EntityType.WITHER_SKELETON, 7500, 34, 26, 2.6f,
@@ -1167,6 +1223,37 @@ public final class Bosses {
                         w.spawnParticles(ParticleTypes.REVERSE_PORTAL, behind.x, behind.y + 1, behind.z, 40, 0.5, 1, 0.5, 0.1);
                     }
                     sound(w, c, "shadow_on", SoundEvents.ENTITY_WARDEN_SONIC_CHARGE, 0.8f);
+                }
+            }
+            case SPORES -> {
+                if (dist < 16 && ready(l, a, 200)) {
+                    // A cloud of spores where they stand: poison and slowness while they stay in it.
+                    Vec3d spot = target.getEntityPos();
+                    DustParticleEffect spore = new DustParticleEffect(0xC0392B, 1.8f);
+                    for (int s = 0; s < 100; s += 10) {
+                        OwnerPowers.later(s, () -> {
+                            ring(w, spore, spot.add(0, 0.3, 0), 3.5, 30);
+                            w.spawnParticles(ParticleTypes.SPORE_BLOSSOM_AIR, spot.x, spot.y + 1, spot.z, 25, 1.8, 0.8, 1.8, 0);
+                            for (ServerPlayerEntity p : fighters(w, spot, 3.5)) {
+                                p.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 60, 1));
+                                p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 30, 0));
+                            }
+                        });
+                    }
+                    sound(w, c, "boss_growl", SoundEvents.BLOCK_SPORE_BLOSSOM_PLACE, 0.6f);
+                }
+            }
+            case VOID_PULL -> {
+                if (dist > 5 && dist < 18 && ready(l, a, 220)) {
+                    // Drags everyone near towards it, into its reach.
+                    for (ServerPlayerEntity p : fighters(w, c, 18)) {
+                        Vec3d d = c.subtract(p.getEntityPos());
+                        double len = Math.max(1, d.horizontalLength());
+                        push(p, new Vec3d(d.x / len * 1.4, 0.45, d.z / len * 1.4));
+                        w.spawnParticles(ParticleTypes.REVERSE_PORTAL, p.getX(), p.getY() + 1, p.getZ(), 30, 0.4, 0.8, 0.4, 0.05);
+                    }
+                    ring(w, ParticleTypes.PORTAL, c.add(0, 0.3, 0), 6, 60);
+                    sound(w, c, "shadow_on", SoundEvents.ENTITY_ENDERMAN_STARE, 0.6f);
                 }
             }
             default -> {

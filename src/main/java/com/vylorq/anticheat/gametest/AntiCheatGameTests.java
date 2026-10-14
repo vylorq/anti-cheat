@@ -251,7 +251,7 @@ public final class AntiCheatGameTests {
                     net.minecraft.util.Identifier.of("vigil", id))).isPresent(), "no recipe for " + id);
         }
         var structures = w.getRegistryManager().getOrThrow(net.minecraft.registry.RegistryKeys.STRUCTURE);
-        for (String n : java.util.List.of("sunken_vault", "buried_vault", "sky_citadel", "nether_forge", "desert_tomb", "frozen_bastion", "overgrown_labyrinth", "watchers_hollow")) {
+        for (String n : com.vylorq.anticheat.feature.TestStructures.NAMES) {
             var id = net.minecraft.util.Identifier.of("vigil", n);
             check(structures.containsId(id), "structure " + n + " isn't registered");
             var tpl = w.getStructureTemplateManager().getTemplate(id);
@@ -270,8 +270,7 @@ public final class AntiCheatGameTests {
     public void structureRoomsLoad(TestContext ctx) {
         // Every piece of every secret structure (arena, rooms, wall plug) loads as a real template.
         var templates = ctx.getWorld().getServer().getStructureTemplateManager();
-        for (String n : java.util.List.of("sunken_vault", "buried_vault", "sky_citadel", "nether_forge", "desert_tomb", "frozen_bastion",
-                "overgrown_labyrinth", "watchers_hollow")) {
+        for (String n : com.vylorq.anticheat.feature.TestStructures.NAMES) {
             for (String piece : java.util.List.of("arena", "corridor", "hall", "guard_room", "shrine", "crossroad", "treasure",
                     "great_hall", "barracks", "prison", "library", "gauntlet", "armory", "throne_room", "crypt",
                     "ritual_chamber", "storage_vault", "courtyard", "mess_hall", "mine_tunnel", "flooded_room", "lava_parkour",

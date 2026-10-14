@@ -27,16 +27,23 @@ public final class StructureMobs {
     private static final String ARMED = "vigil_armed";
 
     /** The structure's melee weapon (skeletons and strays keep a bow). */
-    private static final Map<String, Item> WEAPONS = Map.of(
-            "sunken_vault", Items.TRIDENT,
-            "buried_vault", Items.DIAMOND_SWORD,
-            "sky_citadel", Items.IRON_SWORD,
-            "nether_forge", Items.DIAMOND_AXE,
-            "desert_tomb", Items.IRON_SWORD,
-            "frozen_bastion", Items.IRON_AXE,
-            "overgrown_labyrinth", Items.IRON_SWORD,
-            "watchers_hollow", Items.DIAMOND_SWORD,
-            "tempest", Items.DIAMOND_SWORD);
+    private static final Map<String, Item> WEAPONS = Map.ofEntries(
+            Map.entry("sunken_vault", Items.TRIDENT),
+            Map.entry("buried_vault", Items.DIAMOND_SWORD),
+            Map.entry("sky_citadel", Items.IRON_SWORD),
+            Map.entry("nether_forge", Items.DIAMOND_AXE),
+            Map.entry("desert_tomb", Items.IRON_SWORD),
+            Map.entry("frozen_bastion", Items.IRON_AXE),
+            Map.entry("overgrown_labyrinth", Items.IRON_SWORD),
+            Map.entry("watchers_hollow", Items.DIAMOND_SWORD),
+            Map.entry("tempest", Items.DIAMOND_SWORD),
+            Map.entry("sky_island", Items.IRON_SWORD),
+            Map.entry("mushroom_cave", Items.IRON_AXE),
+            Map.entry("sunken_ship", Items.IRON_SWORD),
+            Map.entry("soul_sanctum", Items.DIAMOND_SWORD),
+            Map.entry("crimson_citadel", Items.GOLDEN_AXE),
+            Map.entry("void_spire", Items.DIAMOND_SWORD),
+            Map.entry("ender_crypt", Items.DIAMOND_AXE));
 
     private static final Item[][] SETS = {
             {Items.IRON_HELMET, Items.IRON_CHESTPLATE, Items.IRON_LEGGINGS, Items.IRON_BOOTS},

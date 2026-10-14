@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "vigil:ender_crypt",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 45,
+    "separation": 20,
+    "salt": 31170815
+  }
+}

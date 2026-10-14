@@ -225,6 +225,27 @@ def secret(weights, rolls=1):
 
 
 CHESTS = {
+    "sky_island": [secret([("phoenix_feather", 2), ("seeker_compass", 1)]),
+                   filler([("feather", 8, 2, 6), ("emerald", 6, 1, 4), ("gold_ingot", 6, 1, 4), ("phantom_membrane", 5, 1, 3),
+                           ("golden_carrot", 6, 2, 5), ("diamond", 2, 1, 2)])],
+    "mushroom_cave": [secret([("shadow_cloak", 2), ("seeker_compass", 1)]),
+                      filler([("red_mushroom", 8, 2, 6), ("brown_mushroom", 8, 2, 6), ("mushroom_stew", 6, 1, 2), ("iron_ingot", 8, 2, 5),
+                              ("emerald", 5, 1, 3), ("glow_berries", 6, 2, 6), ("diamond", 2, 1, 2)])],
+    "sunken_ship": [secret([("tidecaller", 3), ("seeker_compass", 1)]),
+                    filler([("gold_nugget", 8, 4, 12), ("gold_ingot", 8, 1, 4), ("emerald", 6, 1, 4), ("paper", 6, 2, 6),
+                            ("iron_ingot", 6, 2, 5), ("heart_of_the_sea", 1, 1, 1), ("diamond", 2, 1, 2)])],
+    "soul_sanctum": [secret([("voidblade", 2), ("phoenix_feather", 1)]),
+                     filler([("bone", 8, 2, 8), ("soul_soil", 6, 2, 6), ("gold_ingot", 8, 1, 5), ("quartz", 6, 3, 8),
+                             ("ghast_tear", 3, 1, 2), ("iron_ingot", 6, 2, 5), ("netherite_scrap", 1, 1, 1)])],
+    "crimson_citadel": [secret([("phoenix_feather", 2), ("shadow_cloak", 1)]),
+                        filler([("gold_ingot", 10, 2, 6), ("gold_block", 2, 1, 1), ("crimson_fungus", 6, 1, 4), ("cooked_porkchop", 6, 2, 6),
+                                ("leather", 6, 2, 6), ("quartz", 6, 3, 8), ("netherite_scrap", 1, 1, 1)])],
+    "void_spire": [secret([("voidblade", 2), ("shadow_cloak", 1)]),
+                   filler([("ender_pearl", 8, 1, 4), ("chorus_fruit", 8, 2, 6), ("end_rod", 4, 1, 3), ("gold_ingot", 6, 1, 4),
+                           ("emerald", 6, 1, 4), ("diamond", 3, 1, 2)])],
+    "ender_crypt": [secret([("voidblade", 1), ("tidecaller", 1), ("phoenix_feather", 1)]),
+                    filler([("ender_pearl", 8, 1, 4), ("shulker_shell", 2, 1, 1), ("obsidian", 6, 2, 6), ("emerald", 6, 1, 4),
+                            ("gold_ingot", 6, 1, 4), ("diamond", 3, 1, 2)])],
     "sunken_vault": [secret([("tidecaller", 3), ("seeker_compass", 2)]),
                      filler([("prismarine_shard", 10, 2, 8), ("prismarine_crystals", 8, 2, 6), ("gold_ingot", 8, 1, 5),
                              ("iron_ingot", 8, 2, 6), ("emerald", 5, 1, 3), ("heart_of_the_sea", 1, 1, 1), ("diamond", 2, 1, 3)])],
@@ -1069,6 +1090,291 @@ def watchers_hollow():
     return t
 
 
+# ------------------------------------------------------------------ the newer arenas
+
+NEW_ARENA = 27
+END_ARENA = 41
+# The End's structures reach as far as the game lets a structure go (20 rooms deep, 128 blocks each way).
+BIG = {"void_spire", "ender_crypt"}
+
+
+def themed_arena(name, deco, height=12, size=NEW_ARENA):
+    """A square boss hall in the structure's theme: checked floor, eight pillars, an altar with the chest at the back
+    (sealed until the boss falls), and whatever the structure adds on top (deco)."""
+    import math
+    th = THEMES[name]
+    S, c, Hh = size, size // 2, height
+    t = Template(S, Hh + 1, S)
+    t.fill(0, 0, 0, S - 1, Hh, S - 1, th["wall"])
+    t.fill(1, 1, 1, S - 2, Hh - 1, S - 2, "air")
+    for x in range(1, S - 1):
+        for z in range(1, S - 1):
+            t.set(x, 0, z, th["floor"][(x + z) % 2])
+            _put(t, x, Hh, z, th["ceil"])
+    ring(t, c, c, 3.5, 4.4, 0, th["floor"][1])
+    t.set(c, 0, c, th["light"])
+    for k in range(8):
+        a = (k + 0.5) * math.pi / 4
+        x, z = int(round(c + math.cos(a) * (S / 3))), int(round(c + math.sin(a) * (S / 3)))
+        for y in range(1, Hh):
+            _put(t, x, y, z, th["accent"])
+        t.set(x, Hh - 3, z, th["light"])
+    # Lights along the walls.
+    for i in range(3, S - 3, 5):
+        for (x, z) in [(i, 1), (1, i), (S - 2, i), (i, S - 2)]:
+            t.set(x, 5, z, th["light"])
+    # The altar at the back.
+    for x in range(c - 2, c + 3):
+        for z in range(S - 5, S - 2):
+            _put(t, x, 1, z, th["accent"] if th["accent"] not in ("dark_oak_log", "quartz_pillar") else th["floor"][1])
+    for x in range(c - 2, c + 3):
+        stairs(t, x, 1, S - 6, th["trim"], "south")
+    t.chest(c, 2, S - 4, name, facing="north")
+    for x in (c - 2, c + 2):
+        t.set(x, 2, S - 4, th["lantern"], hanging=False, waterlogged=False)
+    deco(t, th, S, c, Hh)
+    return t
+
+
+def sky_island():
+    """A floating island: a grass meadow with azaleas and ruined stone arches, a cone of rock hanging below, and a
+    mossy altar at the back. No walls: the wind (and the Sky Warden's gusts) can throw you off."""
+    import math
+    import random as _r
+    r = _r.Random(9)
+    S, c, lift = NEW_ARENA, NEW_ARENA // 2, 6
+    t = Template(S, lift + 14, S)
+    for x in range(S):
+        for z in range(S):
+            d = ((x - c) ** 2 + (z - c) ** 2) ** 0.5
+            if d <= 13.4:
+                t.set(x, lift, z, "grass_block" if r.random() < 0.8 else "moss_block")
+                for y in range(lift + 1, lift + 12):
+                    t.set(x, y, z, "air")
+                depth = int((1 - d / 13.5) * (lift + 1)) + r.randint(0, 1)
+                for k in range(1, min(depth, lift) + 1):
+                    t.set(x, lift - k, z, r.choice(["stone", "andesite", "tuff", "dirt"]))
+                if 12.4 <= d and r.random() < 0.5:
+                    t.set(x, lift + 1, z, "mossy_stone_brick_wall", up=True, waterlogged=False)
+    # Ruined arches.
+    for k in range(6):
+        a = k * math.pi / 3 + math.pi / 6
+        x, z = int(round(c + math.cos(a) * 9)), int(round(c + math.sin(a) * 9))
+        top = lift + r.randint(3, 6)
+        column(t, x, z, lift + 1, top, "mossy_stone_bricks" if r.random() < 0.5 else "stone_bricks")
+        t.set(x, top + 1, z, "lantern", hanging=False, waterlogged=False)
+    for _ in range(14):
+        x, z = r.randint(3, S - 4), r.randint(3, S - 4)
+        if ((x - c) ** 2 + (z - c) ** 2) ** 0.5 > 5:
+            t.set(x, lift + 1, z, r.choice(["flowering_azalea", "azalea", "poppy", "dandelion", "cornflower"]))
+    disc(t, c, c, 3.5, lift, lambda x, z: "mossy_stone_bricks")
+    t.set(c, lift, c, "glowstone")
+    # The altar.
+    for x in range(c - 2, c + 3):
+        for z in range(S - 5, S - 2):
+            t.set(x, lift + 1, z, "mossy_stone_bricks")
+    t.chest(c, lift + 2, S - 4, "sky_island", facing="north")
+    for x in (c - 2, c + 2):
+        t.set(x, lift + 2, S - 4, "lantern", hanging=False, waterlogged=False)
+    return t
+
+
+def _mushroom_deco(t, th, S, c, Hh):
+    import random as _r
+    r = _r.Random(10)
+    # Rough cave walls: stone and tuff patches.
+    for (x, y, z), (b, _p) in list(t.blocks.items()):
+        if b == "mushroom_stem" and r.random() < 0.45:
+            t.set(x, y, z, r.choice(["stone", "tuff", "andesite", "mossy_cobblestone"]))
+    # Giant mushrooms in the corners.
+    for (x, z, cap) in [(4, 4, "red_mushroom_block"), (S - 5, 4, "brown_mushroom_block"),
+                        (4, S - 8, "brown_mushroom_block"), (S - 5, S - 8, "red_mushroom_block")]:
+        column(t, x, z, 1, 6, "mushroom_stem")
+        disc(t, x, z, 2.6, 7, cap)
+        t.set(x, 6, z, "shroomlight")
+    for _ in range(26):
+        x, z = r.randint(2, S - 3), r.randint(2, S - 3)
+        if t.blocks.get((x, 1, z), ("air",))[0] == "air" and ((x - c) ** 2 + (z - c) ** 2) > 25:
+            t.set(x, 1, z, r.choice(["red_mushroom", "brown_mushroom", "brown_mushroom"]))
+    for _ in range(10):
+        x, z = r.randint(2, S - 3), r.randint(2, S - 3)
+        t.set(x, Hh - 1, z, "glow_lichen", up=True, down=False, north=False, south=False, east=False, west=False, waterlogged=False)
+
+
+def mushroom_cave():
+    """A hidden cavern of giant mushrooms under the ground: mycelium floor, glowing caps, and the Sporemother."""
+    return themed_arena("mushroom_cave", _mushroom_deco)
+
+
+def _ship_deco(t, th, S, c, Hh):
+    # The hold of a sunken galleon: ribs along the hull, a mast off to one side, barrels and loose cannon shot.
+    for z in range(2, S - 2, 3):
+        for y in range(1, Hh):
+            t.set(1, y, z, "stripped_spruce_log")
+            t.set(S - 2, y, z, "stripped_spruce_log")
+        for x in range(1, S - 1):
+            t.set(x, Hh - 1, z, "stripped_spruce_log", axis="x")
+    column(t, c + 6, c - 4, 1, Hh - 1, "spruce_log", axis="y")
+    for (x, z) in [(3, 3), (4, 3), (3, 4), (S - 4, 3), (S - 5, 3), (S - 4, 4), (3, S - 9), (S - 4, S - 9)]:
+        t.set(x, 1, z, "barrel", facing="up", open=False)
+    for (x, z) in [(5, 6), (S - 6, 6), (5, S - 10), (S - 6, S - 10)]:
+        t.set(x, 1, z, "dispenser", facing="west" if x > c else "east", triggered=False)
+    for (x, z) in [(6, 8), (S - 7, 12), (8, S - 9)]:
+        t.set(x, 1, z, "cobweb")
+    for i in range(3, S - 3, 6):
+        t.set(i, Hh - 2, c, "lantern", hanging=True, waterlogged=False)
+
+
+def sunken_ship():
+    """The flooded wreck of a great ship on the sea floor; its dry hold is where the Drowned Captain waits."""
+    return themed_arena("sunken_ship", _ship_deco, height=11)
+
+
+def _soul_deco(t, th, S, c, Hh):
+    import random as _r
+    r = _r.Random(11)
+    # Braziers of soul fire, ribs of bone along the walls.
+    for (x, z) in [(4, 4), (S - 5, 4), (4, S - 8), (S - 5, S - 8)]:
+        t.set(x, 1, z, "polished_blackstone")
+        t.set(x, 2, z, "soul_soil")
+        t.set(x, 3, z, "soul_fire")
+    for z in range(3, S - 3, 4):
+        for x in (1, S - 2):
+            for y in range(1, 6):
+                t.set(x, y, z, "bone_block", axis="y")
+    for _ in range(18):
+        x, z = r.randint(2, S - 3), r.randint(2, S - 3)
+        if t.blocks.get((x, 1, z), ("air",))[0] == "air" and ((x - c) ** 2 + (z - c) ** 2) > 25:
+            t.set(x, 0, z, "soul_sand")
+    for i in range(4, S - 4, 6):
+        t.set(i, Hh - 1, c, "soul_lantern", hanging=True, waterlogged=False)
+
+
+def soul_sanctum():
+    """A basalt sanctum in the soul sand valley: soul-fire braziers, bone ribs, and the Soul Reaper on its dais."""
+    return themed_arena("soul_sanctum", _soul_deco)
+
+
+def _crimson_deco(t, th, S, c, Hh):
+    import random as _r
+    r = _r.Random(12)
+    # A throne room: gold, crimson banners of hyphae, weeping vines from the roof, fungus in the corners.
+    for x in range(c - 1, c + 2):
+        t.set(x, 2, S - 3, "gold_block")
+    for (x, z) in [(3, 3), (S - 4, 3), (3, S - 7), (S - 4, S - 7)]:
+        t.set(x, 1, z, "crimson_fungus")
+    for _ in range(16):
+        x, z = r.randint(2, S - 3), r.randint(2, S - 3)
+        n = r.randint(1, 3)
+        for k in range(n):
+            t.set(x, Hh - 1 - k, z, "weeping_vines_plant" if k < n - 1 else "weeping_vines", **({"age": 20} if k == n - 1 else {}))
+    for i in range(3, S - 3, 4):
+        t.set(i, 0, c, "gold_block") if abs(i - c) > 4 else None
+
+
+def crimson_citadel():
+    """A red-brick citadel in the crimson forest, where the Hoglin King holds court among gold and weeping vines."""
+    return themed_arena("crimson_citadel", _crimson_deco)
+
+
+def _void_deco(t, th, S, c, Hh):
+    """The Void Spire's great hall: a purple cathedral of purpur and end stone, tall stained-glass windows, a ring
+    of obsidian and end rods round the fight, chorus gardens in the corners and a dragon's head over the altar."""
+    import math
+    import random as _r
+    r = _r.Random(14)
+    # Tall windows of magenta and purple glass in every wall, framed in purpur pillars.
+    for i in range(4, S - 4, 6):
+        for (x, z) in [(i, 0), (0, i), (S - 1, i)]:
+            for y in range(3, Hh - 3):
+                t.set(x, y, z, "magenta_stained_glass" if (y + i) % 3 else "purple_stained_glass")
+            for y in range(2, Hh - 2):
+                for (dx, dz) in ([(1, 0), (-1, 0)] if z == 0 else [(0, 1), (0, -1)]):
+                    t.set(x + dx, y, z + dz, "purpur_pillar", axis="y")
+    # A raised ring of end stone bricks and obsidian round the middle, end rods standing on it.
+    ring(t, c, c, S / 4 - 0.6, S / 4 + 0.6, 0, "obsidian")
+    ring(t, c, c, S / 4 + 0.6, S / 4 + 1.6, 0, "purpur_block")
+    for k in range(16):
+        a = k * math.pi / 8
+        x, z = int(round(c + math.cos(a) * S / 4)), int(round(c + math.sin(a) * S / 4))
+        t.set(x, 1, z, "end_rod", facing="up")
+    # A star of end stone and purpur in the floor's middle.
+    for k in range(8):
+        a = k * math.pi / 4
+        for d in range(2, int(S / 4) - 1):
+            x, z = int(round(c + math.cos(a) * d)), int(round(c + math.sin(a) * d))
+            t.set(x, 0, z, "purpur_block" if d % 2 else "end_stone_bricks")
+    # Chorus gardens in the corners: end stone beds with chorus plants and flowers.
+    for (gx, gz) in [(4, 4), (S - 7, 4), (4, S - 10), (S - 7, S - 10)]:
+        for x in range(gx, gx + 3):
+            for z in range(gz, gz + 3):
+                t.set(x, 0, z, "end_stone")
+        t.set(gx + 1, 1, gz + 1, "chorus_plant", up=True, down=True, north=False, south=False, east=False, west=False)
+        t.set(gx + 1, 2, gz + 1, "chorus_plant", up=True, down=True, north=False, south=False, east=False, west=False)
+        t.set(gx + 1, 3, gz + 1, "chorus_flower", age=r.randint(0, 3))
+        for (x, z) in [(gx, gz), (gx + 2, gz + 2)]:
+            t.set(x, 1, z, "end_rod", facing="up")
+    # Hanging lanterns on chains from the vault.
+    for x in range(5, S - 5, 7):
+        for z in range(5, S - 5, 7):
+            if (x - c) ** 2 + (z - c) ** 2 > 16:
+                t.set(x, Hh - 1, z, "chain", axis="y", waterlogged=False)
+                t.set(x, Hh - 2, z, "chain", axis="y", waterlogged=False)
+                t.set(x, Hh - 3, z, "soul_lantern", hanging=True, waterlogged=False)
+    # The altar: obsidian steps, end rods and the dragon's head above the chest.
+    for x in range(c - 3, c + 4):
+        t.set(x, 0, S - 6, "obsidian")
+        t.set(x, 0, S - 7, "obsidian")
+    t.set(c, 3, S - 3, "dragon_head", rotation=0)
+    for x in (c - 3, c + 3):
+        column(t, x, S - 3, 1, 4, "purpur_pillar", axis="y")
+        t.set(x, 5, S - 3, "end_rod", facing="up")
+
+
+def void_spire():
+    """A purpur cathedral on the End's highlands, guarded by the Void Stalker."""
+    return themed_arena("void_spire", _void_deco, height=20, size=END_ARENA)
+
+
+def _crypt_deco(t, th, S, c, Hh):
+    """The Ender Crypt: rows of sarcophagi under purple glass skylights, crying-obsidian columns weeping light,
+    purple candles on every tomb, and the old lords' shulker-box offerings before the altar."""
+    import math
+    import random as _r
+    r = _r.Random(15)
+    # Rows of sarcophagi down both sides.
+    for z in range(5, S - 9, 5):
+        for x0 in (4, S - 8):
+            for dx in range(4):
+                t.set(x0 + dx, 1, z, "obsidian")
+                slab(t, x0 + dx, 2, z, "end_stone_brick")
+            t.set(x0, 3, z, "purple_candle", candles=r.randint(1, 4), lit=True, waterlogged=False)
+            t.set(x0 + 3, 3, z, "purple_candle", candles=r.randint(1, 4), lit=True, waterlogged=False)
+    # Skylights of purple glass in the roof.
+    for x in range(6, S - 6, 8):
+        for z in range(6, S - 6, 8):
+            for dx in range(2):
+                for dz in range(2):
+                    t.set(x + dx, Hh, z + dz, "purple_stained_glass")
+    # A sunken pool of crying obsidian round the middle.
+    ring(t, c, c, S / 4 - 0.5, S / 4 + 0.5, 0, "crying_obsidian")
+    for k in range(12):
+        a = k * math.pi / 6
+        x, z = int(round(c + math.cos(a) * (S / 4 + 2))), int(round(c + math.sin(a) * (S / 4 + 2)))
+        t.set(x, 1, z, "purple_candle", candles=3, lit=True, waterlogged=False)
+    # Offerings before the altar.
+    for x in range(c - 4, c + 5, 2):
+        t.set(x, 1, S - 7, "purple_shulker_box" if x != c else "magenta_shulker_box", facing="up")
+    for i in range(4, S - 4, 6):
+        t.set(i, Hh - 1, c, "soul_lantern", hanging=True, waterlogged=False)
+
+
+def ender_crypt():
+    """A tomb of the End's old lords, sunk into the end stone; the Void Evoker keeps it."""
+    return themed_arena("ender_crypt", _crypt_deco, height=14, size=END_ARENA)
+
+
+
 # ------------------------------------------------------------------ rooms (jigsaw pieces)
 # Each structure is its boss arena (the start piece, in the middle) plus a random spread of rooms joined by doors.
 # Every door is a jigsaw block named vigil:door in the floor at the middle of a 3-wide doorway on the edge of a
@@ -1099,6 +1405,27 @@ THEMES = {
     "overgrown_labyrinth": dict(wall="mossy_stone_bricks", accent="chiseled_stone_bricks", floor=("moss_block", "mossy_cobblestone"),
                                 light="lantern", ceil="jungle_leaves", trim="mossy_stone_brick", decor=["mossy_cobblestone", "moss_block"],
                                 mobs=[("spider", 2), ("cave_spider", 2), ("zombie", 1)], lantern="lantern"),
+    "sky_island": dict(wall="stone_bricks", accent="mossy_stone_bricks", floor=("grass_block", "moss_block"),
+                       light="glowstone", ceil=None, trim="stone_brick", decor=["flowering_azalea", "moss_block"],
+                       mobs=[("skeleton", 2), ("stray", 1), ("zombie", 1)], lantern="lantern", open=True),
+    "mushroom_cave": dict(wall="mushroom_stem", accent="red_mushroom_block", floor=("mycelium", "brown_mushroom_block"),
+                          light="shroomlight", ceil="brown_mushroom_block", trim="mud_brick", decor=["mushroom_stem", "shroomlight"],
+                          mobs=[("zombie", 2), ("spider", 1), ("witch", 1)], lantern="lantern"),
+    "sunken_ship": dict(wall="spruce_planks", accent="stripped_spruce_log", floor=("spruce_planks", "oak_planks"),
+                        light="sea_lantern", ceil="spruce_planks", trim="spruce", decor=["barrel", "spruce_planks"],
+                        mobs=[("drowned", 3), ("skeleton", 1)], lantern="lantern"),
+    "soul_sanctum": dict(wall="smooth_basalt", accent="polished_basalt", floor=("soul_soil", "polished_blackstone"),
+                         light="shroomlight", ceil="smooth_basalt", trim="polished_blackstone", decor=["bone_block", "soul_soil"],
+                         mobs=[("wither_skeleton", 2), ("skeleton", 2), ("blaze", 1)], lantern="soul_lantern"),
+    "crimson_citadel": dict(wall="red_nether_bricks", accent="crimson_hyphae", floor=("crimson_nylium", "nether_wart_block"),
+                            light="shroomlight", ceil="crimson_planks", trim="red_nether_brick", decor=["gold_block", "crimson_planks"],
+                            mobs=[("piglin_brute", 1), ("zombified_piglin", 2), ("hoglin", 1)], lantern="lantern"),
+    "void_spire": dict(wall="purpur_block", accent="purpur_pillar", floor=("end_stone_bricks", "purpur_block"),
+                       light="pearlescent_froglight", ceil="purpur_block", trim="purpur", decor=["end_stone_bricks", "obsidian"],
+                       mobs=[("enderman", 2), ("endermite", 1), ("skeleton", 1)], lantern="lantern"),
+    "ender_crypt": dict(wall="end_stone_bricks", accent="crying_obsidian", floor=("end_stone_bricks", "obsidian"),
+                        light="sea_lantern", ceil="end_stone_bricks", trim="end_stone_brick", decor=["obsidian", "purpur_block"],
+                        mobs=[("enderman", 1), ("endermite", 2), ("skeleton", 1)], lantern="soul_lantern"),
     "watchers_hollow": dict(wall="dark_oak_planks", accent="dark_oak_log", floor=("deepslate_tiles", "mud_bricks"),
                             light="ochre_froglight", ceil="dark_oak_planks", trim="dark_oak", decor=["bookshelf", "dark_oak_log"],
                             mobs=[("wither_skeleton", 2), ("skeleton", 2), ("zombie", 1)], lantern="soul_lantern"),
@@ -1774,6 +2101,13 @@ def cap(structure):
 
 # The ways out of each arena: (side, centre along that side, floor y, how deep to dig in, sealed tunnel?).
 ARENA_DOORS = {
+    "sky_island": [("w", 13, 6, 1, False), ("e", 13, 6, 1, False), ("n", 13, 6, 1, False)],
+    "mushroom_cave": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
+    "sunken_ship": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
+    "soul_sanctum": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
+    "crimson_citadel": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
+    "void_spire": [("w", 20, 0, 2, False), ("e", 20, 0, 2, False), ("n", 20, 0, 2, False)],
+    "ender_crypt": [("w", 20, 0, 2, False), ("e", 20, 0, 2, False), ("n", 20, 0, 2, False)],
     "sunken_vault": [("w", 14, 1, 6, True), ("e", 14, 1, 6, True)],
     "buried_vault": [("w", 15, 0, 2, True), ("e", 15, 0, 2, True), ("n", 12, 0, 2, True)],
     "sky_citadel": [("w", 15, 6, 7, False), ("e", 15, 6, 7, False), ("n", 15, 6, 7, False)],
@@ -1824,6 +2158,14 @@ def arena_doors(structure, t):
 
 
 STRUCTURES = {
+    "sky_island": (sky_island, "#minecraft:is_overworld", "surface_structures", 200, None, 60, 30, 31170809, "none"),
+    "mushroom_cave": (mushroom_cave, "#minecraft:is_overworld", "underground_structures", -25, None, 60, 30, 31170810, "none"),
+    "sunken_ship": (sunken_ship, "#minecraft:is_ocean", "surface_structures", 0, "OCEAN_FLOOR_WG", 55, 25, 31170811, "none"),
+    "soul_sanctum": (soul_sanctum, "minecraft:soul_sand_valley", "surface_structures", 40, None, 32, 15, 31170812, "beard_box"),
+    "crimson_citadel": (crimson_citadel, "minecraft:crimson_forest", "surface_structures", 40, None, 32, 15, 31170813, "beard_box"),
+    "void_spire": (void_spire, "minecraft:end_highlands", "surface_structures", 0, "WORLD_SURFACE_WG", 40, 18, 31170814, "beard_thin"),
+    "ender_crypt": (ender_crypt, ["minecraft:end_midlands", "minecraft:end_highlands"], "surface_structures", -4, "WORLD_SURFACE_WG", 45, 20,
+                    31170815, "beard_thin"),
     # name: (builder, biomes, step, start_height, heightmap, spacing, separation, salt, terrain)
     "sunken_vault": (sunken_vault, "#minecraft:is_ocean", "surface_structures", 0, "OCEAN_FLOOR_WG", 55, 25, 31170801, "none"),
     "buried_vault": (buried_vault, "#minecraft:is_overworld", "underground_structures", -40, None, 60, 30, 31170802, "none"),
@@ -1871,7 +2213,8 @@ def build():
         write(f"loot_table/chests/{name}_room.json", {"type": "minecraft:chest", "pools": [
             CHESTS[name][-1], CHESTS[name][0], bonus(), book()]})
         s = {"type": "minecraft:jigsaw", "biomes": biomes, "step": step, "spawn_overrides": {}, "terrain_adaptation": terrain,
-             "start_pool": f"vigil:{name}/start", "size": 12, "start_height": {"absolute": height}, "max_distance_from_center": 116,
+             "start_pool": f"vigil:{name}/start", "size": 20 if name in BIG else 12, "start_height": {"absolute": height},
+             "max_distance_from_center": 128 if name in BIG else 116,
              "use_expansion_hack": False}
         if heightmap:
             s["project_start_to_heightmap"] = heightmap
