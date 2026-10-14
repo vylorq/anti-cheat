@@ -865,6 +865,44 @@ def colossus_maul():
         ".BB............."], {"S": "#3a3f48", "L": "#6c7684", "D": "#9fe8ff", "W": "#5a4a3a", "N": "#2a2018", "B": "#8a93a6"})
 
 
+def trident_art(metal, light, glow, shaft, grip):
+    """A trident held corner to corner: three barbed prongs top right, a crossbar, a long shaft and a grip."""
+    g = [["."] * 16 for _ in range(16)]
+
+    def put(x, y, c):
+        if 0 <= x < 16 and 0 <= y < 16:
+            g[y][x] = c
+    for i in range(1, 10):                       # the shaft, with a darker edge under it
+        put(i, 15 - i, "W")
+        put(i + 1, 15 - i, "N")
+    put(1, 14, "G")
+    put(2, 13, "G")
+    put(0, 15, "G")
+    for k in (-2, -1, 0, 1, 2):                  # the crossbar
+        put(10 + k, 5 + k, "M")
+    put(9, 5, "L")
+    put(11, 5, "L")
+    for (x, y), n in (((8, 3), 2), ((10, 5), 4), ((12, 7), 2)):   # the prongs
+        for j in range(1, n + 1):
+            put(x + j, y - j, "L" if j < n else "D")
+            put(x + j, y - j + 1, "M")
+    put(10, 1, "D")
+    put(14, 1, "D")
+    put(14, 5, "D")
+    return pix(["".join(r) for r in g], {"M": metal, "L": light, "D": glow, "W": shaft, "N": "#1a2a2a", "G": grip})
+
+
+def tide_trident():
+    """Warden's Tide: the Drowned Warden's prismarine trident, its points glowing sea-green."""
+    return trident_art("#2a6560", "#6cc0ad", "#9ff8e4", "#3f8a7e", "#c4a24a")
+
+
+def tidecaller():
+    """The Tidecaller: a deep-blue trident trimmed in gold, its points bright as foam."""
+    return trident_art("#1a3a8a", "#4a7ae0", "#e8fbff", "#2a4a9a", "#ffd24a")
+
+
+
 SECRET = {"voidblade": ("diamond_sword", voidblade, "minecraft:item/handheld"),
           "stormbreaker": ("diamond_axe", stormbreaker, "minecraft:item/handheld"),
           "phoenix_feather": ("feather", phoenix_feather, "minecraft:item/generated"),
@@ -883,7 +921,9 @@ SECRET = {"voidblade": ("diamond_sword", voidblade, "minecraft:item/handheld"),
           "boiling_edge": ("netherite_sword", boiling_edge, "minecraft:item/handheld"),
           "forge_cleaver": ("netherite_axe", forge_cleaver, "minecraft:item/handheld"),
           "glacier_axe": ("diamond_axe", glacier_axe, "minecraft:item/handheld"),
-          "colossus_maul": ("mace", colossus_maul, "minecraft:item/handheld")}
+          "colossus_maul": ("mace", colossus_maul, "minecraft:item/handheld"),
+          "tide_trident": ("trident", tide_trident, "minecraft:item/handheld"),
+          "tidecaller": ("trident", tidecaller, "minecraft:item/handheld")}
 # Every boss / guard model listed in src/main/resources/vigil/models.json: one texture and one model per moving part
 # (each part is shown on its own item display of a nautilus shell).
 _SPECS = json.load(open(os.path.join(ROOT, "src", "main", "resources", "vigil", "models.json")))
@@ -1624,10 +1664,11 @@ def build():
             files[f"assets/vigil/models/item/{stem}.json"] = json.dumps({"parent": f"vigil:block/{stem}"}, indent=2).encode()
             by_base.setdefault("armor", []).append(stem)
             continue
-        name = stem if stem.startswith(("gem_", "raw_", "ruby_sword", "ruby_pickaxe", "ruby_axe", "ruby_shovel", "ruby_hoe")) else "armor_" + stem
+        gem_tools = ("ruby_sword", "ruby_pickaxe", "ruby_axe", "ruby_shovel", "ruby_hoe", "sapphire_pickaxe", "sapphire_shovel",
+                     "topaz_pickaxe", "topaz_shovel")
+        name = stem if stem.startswith(("gem_", "raw_") + gem_tools) else "armor_" + stem
         files[f"assets/vigil/textures/item/{name}.png"] = open(os.path.join(adir, fname), "rb").read()
-        parent = "minecraft:item/handheld" if stem.startswith("ruby_") and not stem.endswith(("_helmet", "_chestplate", "_leggings", "_boots")) \
-            else "minecraft:item/generated"
+        parent = "minecraft:item/handheld" if stem in gem_tools else "minecraft:item/generated"
         files[f"assets/vigil/models/item/{name}.json"] = json.dumps({"parent": parent, "textures": {"layer0": f"vigil:item/{name}"}}, indent=2).encode()
         by_base.setdefault("armor", []).append(name)
     ores = sorted(f[4:-4] for f in os.listdir(adir) if f.startswith("ore_"))

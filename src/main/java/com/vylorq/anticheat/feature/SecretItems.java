@@ -46,6 +46,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import com.vylorq.anticheat.util.ItemConv;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -762,7 +763,55 @@ public final class SecretItems {
         sound(p.getEntityWorld(), p.getEntityPos(), "backpack_open", 0.8f);
     }
 
-    /** 27 slots kept inside the backpack item. Closes if the backpack leaves the hand; never holds backpacks or shulkers. */
+    static final String BIG_BAG = "vigil_big_backpack";
+    static final String LONG_HOOK = "vigil_long_hook";
+
+    /** How many slots this backpack has: 27, or 54 once upgraded with sapphires. */
+    static int bagSize(ItemStack bag) {
+        return "1".equals(ItemConv.tag(bag, BIG_BAG)) ? 54 : 27;
+    }
+
+    /** A Sapphire in one hand and the backpack in the other: twice the room (uses 4 sapphires). */
+    public static boolean upgradeBackpack(ServerPlayerEntity p, ItemStack bag, ItemStack gems) {
+        if (bagSize(bag) == 54) {
+            Msg.actionBar(p, "§7" + Msg.trFor(p, "secret.backpack-big-already"));
+            return false;
+        }
+        if (gems.getCount() < 4) {
+            Msg.actionBar(p, "§7" + Msg.trFor(p, "secret.backpack-need", 4));
+            return false;
+        }
+        gems.decrement(4);
+        ItemConv.setTag(bag, BIG_BAG, "1");
+        addLore(bag, "§9✦ Large: 54 slots");
+        ServerWorld w = p.getEntityWorld();
+        w.playSound(null, p.getX(), p.getY(), p.getZ(), net.minecraft.sound.SoundEvents.BLOCK_SMITHING_TABLE_USE, net.minecraft.sound.SoundCategory.PLAYERS, 1f, 1.2f);
+        Msg.actionBar(p, "§9" + Msg.trFor(p, "secret.backpack-upgraded"));
+        return true;
+    }
+
+    /** Voidstone in one hand and the grappling hook in the other: twice the reach (64 blocks). */
+    public static boolean upgradeHook(ServerPlayerEntity p, ItemStack hook, ItemStack stone) {
+        if ("1".equals(ItemConv.tag(hook, LONG_HOOK))) {
+            Msg.actionBar(p, "§7" + Msg.trFor(p, "secret.hook-long-already"));
+            return false;
+        }
+        stone.decrement(1);
+        ItemConv.setTag(hook, LONG_HOOK, "1");
+        addLore(hook, "§5✦ Void line: 64 blocks");
+        ServerWorld w = p.getEntityWorld();
+        w.playSound(null, p.getX(), p.getY(), p.getZ(), net.minecraft.sound.SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, net.minecraft.sound.SoundCategory.PLAYERS, 1f, 1.2f);
+        Msg.actionBar(p, "§5" + Msg.trFor(p, "secret.hook-upgraded"));
+        return true;
+    }
+
+    private static void addLore(ItemStack s, String line) {
+        List<Text> lore = new ArrayList<>(s.getOrDefault(DataComponentTypes.LORE, net.minecraft.component.type.LoreComponent.DEFAULT).lines());
+        lore.add(Text.literal(line).styled(x -> x.withItalic(false)));
+        s.set(DataComponentTypes.LORE, new net.minecraft.component.type.LoreComponent(lore));
+    }
+
+    /** 27 slots kept inside the backpack item (54 when upgraded). Closes if the backpack leaves the hand; never holds backpacks or shulkers. */
     static final class BackpackHandler extends GenericContainerScreenHandler {
         private final ItemStack bag;
         private final SimpleInventory items;
@@ -773,25 +822,26 @@ public final class SecretItems {
         }
 
         private BackpackHandler(int syncId, PlayerInventory playerInv, ItemStack bag, SimpleInventory items) {
-            super(ScreenHandlerType.GENERIC_9X3, syncId, playerInv, items, 3);
+            super(items.size() == 54 ? ScreenHandlerType.GENERIC_9X6 : ScreenHandlerType.GENERIC_9X3, syncId, playerInv, items, items.size() / 9);
             this.bag = bag;
             this.items = items;
             this.owner = playerInv.player;
         }
 
         private static SimpleInventory load(ItemStack bag) {
-            DefaultedList<ItemStack> list = DefaultedList.ofSize(27, ItemStack.EMPTY);
+            int n = bagSize(bag);
+            DefaultedList<ItemStack> list = DefaultedList.ofSize(n, ItemStack.EMPTY);
             bag.getOrDefault(DataComponentTypes.CONTAINER, ContainerComponent.DEFAULT).copyTo(list);
-            SimpleInventory inv = new SimpleInventory(27);
-            for (int i = 0; i < 27; i++) {
+            SimpleInventory inv = new SimpleInventory(n);
+            for (int i = 0; i < n; i++) {
                 inv.setStack(i, list.get(i));
             }
             return inv;
         }
 
         private void save() {
-            List<ItemStack> list = new ArrayList<>(27);
-            for (int i = 0; i < 27; i++) {
+            List<ItemStack> list = new ArrayList<>(items.size());
+            for (int i = 0; i < items.size(); i++) {
                 list.add(items.getStack(i).copy());
             }
             bag.set(DataComponentTypes.CONTAINER, ContainerComponent.fromStacks(list));
@@ -809,7 +859,7 @@ public final class SecretItems {
                 return;
             }
             super.onSlotClick(slotIndex, button, actionType, player);
-            for (int i = 0; i < 27; i++) {
+            for (int i = 0; i < items.size(); i++) {
                 ItemStack in = items.getStack(i);
                 if (!in.isEmpty() && (is(in, BACKPACK) || (in.getItem() instanceof BlockItem bi && bi.getBlock() instanceof ShulkerBoxBlock))) {
                     items.setStack(i, ItemStack.EMPTY);
@@ -839,7 +889,7 @@ public final class SecretItems {
         }
         Vec3d d = hook.getEntityPos().subtract(p.getEntityPos());
         double dist = d.length();
-        if (dist < 2 || dist > 32) {
+        if (dist < 2 || dist > ("1".equals(ItemConv.tag(s, LONG_HOOK)) ? 64 : 32)) {
             return;
         }
         Vec3d v = d.normalize().multiply(Math.min(2.0, 0.3 + dist * 0.1)).add(0, 0.35 + Math.max(0, d.y) * 0.03, 0);
@@ -864,6 +914,10 @@ public final class SecretItems {
         }
         ItemStack s = p.getMainHandStack();
         String id = idOf(s);
+        if ("sapphire".equals(Gems.gemToolOf(s)) && s.isSuitableFor(state) && !p.getItemCooldownManager().isCoolingDown(s)) {
+            hammer(p, w, pos, state, s);
+            return;
+        }
         if (id == null || p.getItemCooldownManager().isCoolingDown(s)) {
             return;
         }

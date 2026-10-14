@@ -3123,5 +3123,17 @@
   "meteor.landed": "A meteorite landed near {0}, {1}!",
   "meteor.stopped": "The meteor shower stopped.",
   "boss.storm": "The storm charges the boss!",
-  "boss.rematch": "{0} returns stronger: level {1}!"
+  "boss.rematch": "{0} returns stronger: level {1}!",
+  "secret.backpack-big-already": "This backpack is already large.",
+  "secret.backpack-need": "Hold {0} sapphires to upgrade it.",
+  "secret.backpack-upgraded": "Large Backpack: 54 slots!",
+  "secret.hook-long-already": "This hook already has a void line.",
+  "secret.hook-upgraded": "Void line: the hook reaches 64 blocks!",
+  "volcano.erupts": "The volcano rumbles and erupts!",
+  "statue.fetching": "Getting {0}'s skin...",
+  "statue.no-skin": "Couldn't get a skin for {0}.",
+  "statue.built": "A statue of {0} stands before you. /owner statue undo removes it.",
+  "statue.nothing": "No statue to remove.",
+  "statue.removed": "The statue is gone; everything is back as it was.",
+  "fireworks.started": "A {0}-second fireworks show begins!"
 }

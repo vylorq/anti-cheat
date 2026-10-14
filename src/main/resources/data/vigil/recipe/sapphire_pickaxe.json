@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "XXX",
+    " S ",
+    " S "
+  ],
+  "key": {
+    "X": {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"sapphire\"}"
+    },
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "minecraft:diamond_pickaxe",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "gem_tool:sapphire:pickaxe"
+      },
+      "minecraft:item_name": {
+        "text": "Sapphire Pickaxe",
+        "color": "#5588ff"
+      },
+      "minecraft:item_model": "vigil:x7008b8f018",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x7008b8f018"
+        ]
+      }
+    }
+  }
+}

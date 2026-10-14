@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "vigil:underground_lake",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 36,
+    "separation": 14,
+    "salt": 31170820
+  }
+}

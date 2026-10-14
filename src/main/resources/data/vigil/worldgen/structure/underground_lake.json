@@ -1,0 +1,48 @@
+{
+  "type": "minecraft:jigsaw",
+  "biomes": "#minecraft:is_overworld",
+  "step": "underground_structures",
+  "spawn_overrides": {
+    "water_creature": {
+      "bounding_box": "piece",
+      "spawns": [
+        {
+          "type": "minecraft:tropical_fish",
+          "weight": 10,
+          "minCount": 3,
+          "maxCount": 6
+        }
+      ]
+    },
+    "underground_water_creature": {
+      "bounding_box": "piece",
+      "spawns": [
+        {
+          "type": "minecraft:glow_squid",
+          "weight": 10,
+          "minCount": 2,
+          "maxCount": 4
+        }
+      ]
+    },
+    "monster": {
+      "bounding_box": "piece",
+      "spawns": [
+        {
+          "type": "minecraft:drowned",
+          "weight": 10,
+          "minCount": 1,
+          "maxCount": 2
+        }
+      ]
+    }
+  },
+  "terrain_adaptation": "none",
+  "start_pool": "vigil:world/underground_lake",
+  "size": 1,
+  "start_height": {
+    "absolute": -22
+  },
+  "max_distance_from_center": 80,
+  "use_expansion_hack": false
+}

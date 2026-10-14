@@ -2188,6 +2188,197 @@ def pool(locations, fallback="minecraft:empty"):
     return {"fallback": fallback, "elements": elements}
 
 
+# ------------------------------------------------------------------ world features (one piece each, no boss)
+
+def underground_lake():
+    """A huge cavern deep underground with a glowing lake: sand and clay shores, sea lanterns under the water, glow
+    lichen and glow berries on the roof (glow squid and fish swim in it, drowned lurk at the bottom)."""
+    import random as _r
+    r = _r.Random(21)
+    X, Y, Z = 45, 22, 45
+    cx, cy, cz = 22, 9, 22
+    t = Template(X, Y, Z)
+    water_top = 8
+    for x in range(X):
+        for y in range(Y):
+            for z in range(Z):
+                d = ((x - cx) / 21.5) ** 2 + ((y - cy) / 10.5) ** 2 + ((z - cz) / 21.5) ** 2
+                if d > 1:
+                    continue
+                edge = d > 0.82
+                if y <= 1 or (edge and y <= water_top):
+                    t.set(x, y, z, r.choice(["sand", "sand", "clay", "gravel"]))
+                elif y <= water_top:
+                    t.set(x, y, z, "water", level=0)
+                else:
+                    t.set(x, y, z, "air")
+    for (x, z) in [(15, 15), (29, 15), (15, 29), (29, 29), (22, 22), (22, 12), (12, 22), (32, 22), (22, 32)]:
+        t.set(x, 1, z, "sea_lantern")
+    for _ in range(40):
+        x, z = r.randint(4, X - 5), r.randint(4, Z - 5)
+        for y in range(Y - 1, water_top, -1):
+            if t.blocks.get((x, y, z), ("stone",))[0] == "air":
+                if r.random() < 0.6:
+                    t.set(x, y, z, "glow_lichen", up=True, down=False, north=False, south=False, east=False, west=False, waterlogged=False)
+                else:
+                    n = r.randint(1, 4)
+                    for k in range(n):
+                        if t.blocks.get((x, y - k, z), ("stone",))[0] == "air":
+                            t.set(x, y - k, z, "cave_vines" if k == n - 1 else "cave_vines_plant", berries=r.random() < 0.6,
+                                  **({"age": 20} if k == n - 1 else {}))
+                break
+    for _ in range(30):
+        x, z = r.randint(6, X - 7), r.randint(6, Z - 7)
+        if t.blocks.get((x, 2, z), ("x",))[0] == "water":
+            t.set(x, 2, z, "seagrass")
+    return t
+
+
+def volcano():
+    """A dark cone of basalt and blackstone rising from the plains, streaked with magma, a lava lake in its crater
+    (Volcanoes.java makes it smoke and spit sparks when players are near)."""
+    import random as _r
+    r = _r.Random(22)
+    S, H = 47, 34
+    c = S // 2
+    t = Template(S, H + 1, S)
+    for x in range(S):
+        for z in range(S):
+            d = ((x - c) ** 2 + (z - c) ** 2) ** 0.5
+            # A rim that stays at full height out to 7 blocks (it holds the crater's lava), then the slope.
+            top = min(H, int(H * (1 - max(0.0, d - 7) / 16.5) ** 1.15 + r.random() * 1.5)) if d < 23.5 else -1
+            if top < 0:
+                continue
+            for y in range(0, top + 1):
+                if d < 5.5 and y > H - 7:
+                    t.set(x, y, z, "lava" if y <= H - 3 else "air", **({"level": 0} if y <= H - 3 else {}))
+                    continue
+                if y == top:
+                    b = r.choice(["basalt", "blackstone", "tuff", "magma_block"] if y > H * 0.6 else ["basalt", "blackstone", "tuff", "coarse_dirt"])
+                else:
+                    b = r.choice(["blackstone", "basalt", "tuff"]) if r.random() < 0.9 else "magma_block"
+                t.set(x, y, z, b, **({"axis": "y"} if b == "basalt" else {}))
+    # The crater floor under the lava.
+    for x in range(S):
+        for z in range(S):
+            if ((x - c) ** 2 + (z - c) ** 2) ** 0.5 < 5.5:
+                t.set(x, H - 7, z, "magma_block")
+    # Lava streaks down the sides: magma and obsidian runs.
+    for k in range(6):
+        import math
+        a = k * math.pi / 3 + r.random()
+        for d in range(6, 22):
+            x, z = int(round(c + math.cos(a) * d)), int(round(c + math.sin(a) * d))
+            for y in range(H, -1, -1):
+                if (x, y, z) in t.blocks and t.blocks[(x, y, z)][0] not in ("air", "lava"):
+                    t.set(x, y, z, "magma_block" if d % 3 else "obsidian")
+                    break
+    return t
+
+
+def _ruin_walls(t, r, x0, z0, x1, z1, h, mats):
+    for x in range(x0, x1 + 1):
+        for z in range(z0, z1 + 1):
+            if x in (x0, x1) or z in (z0, z1):
+                top = r.randint(0, h)
+                for y in range(1, top + 1):
+                    t.set(x, y, z, r.choice(mats))
+
+
+def ruined_house():
+    """A tumbled-down cottage: broken cobblestone walls, a mossy floor, a fallen log and a chest in the corner."""
+    import random as _r
+    r = _r.Random(23)
+    t = Template(11, 6, 11)
+    for x in range(1, 10):
+        for z in range(1, 10):
+            t.set(x, 0, z, r.choice(["cobblestone", "mossy_cobblestone", "dirt_path", "gravel"]))
+    _ruin_walls(t, r, 1, 1, 9, 9, 4, ["cobblestone", "mossy_cobblestone", "stone_bricks", "cracked_stone_bricks"])
+    for x in (4, 5, 6):
+        for y in range(1, 4):
+            t.set(x, y, 1, "air")
+    for x in range(3, 8):
+        t.set(x, 1, 6, "oak_log", axis="x")
+    t.chest(8, 1, 8, "ruins", facing="west")
+    t.set(2, 1, 8, "cobweb")
+    t.set(8, 1, 2, "lantern", hanging=False, waterlogged=False)
+    return t
+
+
+def ruined_tower():
+    """A broken watchtower: a round stone shaft open to the sky, its top half fallen, a chest at the bottom."""
+    import random as _r
+    r = _r.Random(24)
+    t = Template(9, 14, 9)
+    c = 4
+    for x in range(9):
+        for z in range(9):
+            d = ((x - c) ** 2 + (z - c) ** 2) ** 0.5
+            if d <= 4.2:
+                t.set(x, 0, z, "stone_bricks" if d > 3 else r.choice(["cobblestone", "mossy_cobblestone"]))
+            if 3.0 <= d <= 4.2:
+                top = 13 - int(r.random() * 9 * (1 if x > c else 0.4))
+                for y in range(1, top):
+                    t.set(x, y, z, r.choice(["stone_bricks", "mossy_stone_bricks", "cracked_stone_bricks"]))
+            elif d < 3.0:
+                for y in range(1, 13):
+                    t.set(x, y, z, "air")
+    for y in range(1, 4):
+        t.set(c, y, 0, "air")
+    t.chest(c, 1, c + 2, "ruins", facing="north")
+    t.set(c - 2, 1, c, "lantern", hanging=False, waterlogged=False)
+    return t
+
+
+LAND = ["minecraft:plains", "minecraft:sunflower_plains", "minecraft:forest", "minecraft:birch_forest", "minecraft:flower_forest",
+        "minecraft:taiga", "minecraft:savanna", "minecraft:meadow", "minecraft:dark_forest", "minecraft:snowy_plains",
+        "minecraft:old_growth_birch_forest", "minecraft:windswept_forest", "minecraft:desert"]
+WORLD_FEATURES = {
+    # name: (pieces, biomes, step, start_height, heightmap, spacing, separation, salt, terrain, spawns)
+    "underground_lake": ([("underground_lake", underground_lake)], "#minecraft:is_overworld", "underground_structures", -22, None,
+                         36, 14, 31170820, "none", {
+                             "water_creature": {"bounding_box": "piece", "spawns": [
+                                 {"type": "minecraft:tropical_fish", "weight": 10, "minCount": 3, "maxCount": 6}]},
+                             "underground_water_creature": {"bounding_box": "piece", "spawns": [
+                                 {"type": "minecraft:glow_squid", "weight": 10, "minCount": 2, "maxCount": 4}]},
+                             "monster": {"bounding_box": "piece", "spawns": [
+                                 {"type": "minecraft:drowned", "weight": 10, "minCount": 1, "maxCount": 2}]}}),
+    "volcano": ([("volcano", volcano)], ["minecraft:savanna", "minecraft:savanna_plateau", "minecraft:windswept_savanna", "minecraft:badlands",
+                                        "minecraft:wooded_badlands", "minecraft:eroded_badlands", "minecraft:stony_peaks",
+                                        "minecraft:windswept_hills", "minecraft:plains", "minecraft:desert"],
+                "surface_structures", 0, "WORLD_SURFACE_WG", 70, 30, 31170821, "beard_thin", {}),
+    "ruins": ([("ruined_house", ruined_house), ("ruined_tower", ruined_tower)], LAND, "surface_structures", 0, "WORLD_SURFACE_WG",
+              20, 8, 31170822, "beard_thin", {}),
+}
+
+RUINS_LOOT = {"type": "minecraft:chest", "pools": [
+    {"rolls": {"type": "minecraft:uniform", "min": 3, "max": 6}, "entries": [
+        item("iron_ingot", 10, 1, 4), item("gold_ingot", 6, 1, 3), item("coal", 10, 2, 8), item("bread", 10, 1, 4),
+        item("emerald", 6, 1, 3), item("arrow", 8, 4, 12), item("leather", 6, 1, 4), item("torch", 8, 4, 10),
+        item("diamond", 1, 1, 1), item("golden_apple", 1)]},
+    {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": 9},
+                             {"type": "minecraft:item", "name": "minecraft:book", "weight": 1,
+                              "functions": [{"function": "minecraft:enchant_randomly"}]}]}]}
+
+
+def build_world_features():
+    for name, (pieces, biomes, step, height, heightmap, spacing, sep, salt, terrain, spawns) in WORLD_FEATURES.items():
+        for piece, fn in pieces:
+            write(f"structure/world/{piece}.nbt", fn().to_nbt())
+        write(f"worldgen/template_pool/world/{name}.json", pool([f"world/{p}" for p, _ in pieces]))
+        s = {"type": "minecraft:jigsaw", "biomes": biomes, "step": step, "spawn_overrides": spawns, "terrain_adaptation": terrain,
+             "start_pool": f"vigil:world/{name}", "size": 1, "start_height": {"absolute": height}, "max_distance_from_center": 80,
+             "use_expansion_hack": False}
+        if heightmap:
+            s["project_start_to_heightmap"] = heightmap
+        write(f"worldgen/structure/{name}.json", s)
+        write(f"worldgen/structure_set/{name}.json", {"structures": [{"structure": f"vigil:{name}", "weight": 1}],
+                                                      "placement": {"type": "minecraft:random_spread", "spacing": spacing,
+                                                                    "separation": sep, "salt": salt}})
+    write("loot_table/chests/ruins.json", RUINS_LOOT)
+
+
+
 def build():
     for item_id in ITEMS:
         write(f"loot_table/items/{item_id}.json", item_loot(item_id))
@@ -2222,6 +2413,7 @@ def build():
         write(f"worldgen/structure_set/{name}.json", {"structures": [{"structure": f"vigil:{name}", "weight": 1}],
                                                       "placement": {"type": "minecraft:random_spread", "spacing": spacing,
                                                                     "separation": sep, "salt": salt}})
+    build_world_features()
     write("tags/worldgen/structure/secret.json", {"values": [f"vigil:{n}" for n in STRUCTURES]})
     import tempest
     tempest.write_all()

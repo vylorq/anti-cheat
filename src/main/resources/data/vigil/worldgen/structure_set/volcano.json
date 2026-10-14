@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "vigil:volcano",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 70,
+    "separation": 30,
+    "salt": 31170821
+  }
+}

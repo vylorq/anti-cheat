@@ -49,7 +49,7 @@ def main():
     # old generated files out first
     rdir = os.path.join(DATA, "recipe")
     for f in os.listdir(rdir):
-        if f.startswith(("gem_", "armor_", "ruby_", "bloodstone_")):
+        if f.startswith(("gem_", "armor_", "ruby_", "bloodstone_", "sapphire_", "topaz_")):
             os.remove(os.path.join(rdir, f))
     n = 0
     # Raw chunk -> gem (furnace and blast furnace)
@@ -76,6 +76,14 @@ def main():
                                        "result": made(f"minecraft:diamond_{t}", f"ruby_tool:{t}", f"Ruby {t.capitalize()}", GEMS["ruby"][1],
                                                       f"ruby_{t}")})
         n += 1
+    # Sapphire tools mine 3x3; Topaz tools smelt what they dig (Gems.gemTool).
+    for g in ("sapphire", "topaz"):
+        for t in ("pickaxe", "shovel"):
+            write(f"recipe/{g}_{t}.json", {"type": "minecraft:crafting_shaped", "category": "equipment", "pattern": TOOLS[t],
+                                         "key": {"X": gem_ingredient(g), "S": "minecraft:stick"},
+                                         "result": made(f"minecraft:diamond_{t}", f"gem_tool:{g}:{t}", f"{GEMS[g][0]} {t.capitalize()}",
+                                                        GEMS[g][1], f"{g}_{t}")})
+            n += 1
     # Crafted sets: the armour piece in the middle of eight of the material.
     crafted = {"emerald": ("minecraft:emerald", "iron", "iron", "Emerald", "#55ff77"),
                "obsidian": ("minecraft:obsidian", "diamond", "diamond", "Obsidian", "#aa66ff"),

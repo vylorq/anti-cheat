@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "XXX",
+    " S ",
+    " S "
+  ],
+  "key": {
+    "X": {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"topaz\"}"
+    },
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "minecraft:diamond_pickaxe",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "gem_tool:topaz:pickaxe"
+      },
+      "minecraft:item_name": {
+        "text": "Topaz Pickaxe",
+        "color": "#ffaa22"
+      },
+      "minecraft:item_model": "vigil:x6f09f3ec45",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x6f09f3ec45"
+        ]
+      }
+    }
+  }
+}

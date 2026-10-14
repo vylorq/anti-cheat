@@ -213,6 +213,15 @@ public final class AdminCommands {
                     }
                 }))));
         owner.then(season);
+        owner.then(literal("statue")
+                .then(literal("undo").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.Spectacle::undo)))
+                .then(CommandManager.argument("player", com.mojang.brigadier.arguments.StringArgumentType.word())
+                        .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.Spectacle.statue(p,
+                                com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "player"))))));
+        owner.then(literal("fireworks").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.Spectacle.fireworks(p, 30)))
+                .then(CommandManager.argument("seconds", com.mojang.brigadier.arguments.IntegerArgumentType.integer(5, 300))
+                        .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.Spectacle.fireworks(p,
+                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "seconds"))))));
         owner.then(literal("meteor")
                 .then(literal("start").executes(ctx -> owner(ctx, p -> {
                     if (com.vylorq.anticheat.feature.OwnerPowers.require(p)) {

@@ -203,6 +203,30 @@ public final class Gems {
         return s;
     }
 
+    // ---------------------------------------------------------------- Sapphire and Topaz tools
+
+    public static final String GEM_TOOL = "vigil_gem_tool";
+
+    /** A Sapphire tool mines 3x3 (like the hammer); a Topaz tool smelts what it digs (auto-smelt). */
+    public static ItemStack gemTool(String gem, String tool) {
+        boolean sapphire = gem.equals("sapphire");
+        String title = (sapphire ? "§9Sapphire " : "§6Topaz ") + Character.toUpperCase(tool.charAt(0)) + tool.substring(1);
+        ItemStack s = named(tool.equals("shovel") ? Items.DIAMOND_SHOVEL : Items.DIAMOND_PICKAXE, gem + "_" + tool, title,
+                List.of(sapphire ? "§7Digs 3x3 (sneak to dig one block)." : "§7Smelts what it digs."), Rarity.UNCOMMON);
+        s.set(DataComponentTypes.MAX_DAMAGE, 1850);
+        ItemConv.setTag(s, GEM_TOOL, gem);
+        ItemConv.setTag(s, MAKE + "_done", "1");
+        if (!sapphire) {
+            ItemConv.enchantment("vigil:" + CustomEnchants.AUTO_SMELT).ifPresent(e -> s.addEnchantment(e, 1));
+        }
+        return s;
+    }
+
+    /** "sapphire" / "topaz" for a gem tool, else null. */
+    public static String gemToolOf(ItemStack s) {
+        return s == null || s.isEmpty() ? null : ItemConv.tag(s, GEM_TOOL);
+    }
+
     // ---------------------------------------------------------------- crafted things come out plain; finished here
 
     /** Crafted / smelted items carry only what they are (custom_data vigil_make): they get their real form here. */
@@ -239,6 +263,9 @@ public final class Gems {
                     }
                 }
                 return null;
+            }
+            case "gem_tool" -> {
+                return parts.length < 3 ? null : gemTool(parts[1], parts[2]);
             }
             case "armor" -> {
                 var set = ArmorSets.SETS.get(parts[1]);
@@ -326,6 +353,13 @@ public final class Gems {
         net.fabricmc.fabric.api.event.player.UseItemCallback.EVENT.register((player, world, hand) -> {
             if (Ac.running() && player instanceof ServerPlayerEntity p) {
                 Gem g = gemOf(p.getStackInHand(hand));
+                ItemStack other = p.getStackInHand(hand == Hand.MAIN_HAND ? Hand.OFF_HAND : Hand.MAIN_HAND);
+                if (g != null && g.id().equals("sapphire") && SecretItems.BACKPACK.equals(SecretItems.idOf(other))) {
+                    return SecretItems.upgradeBackpack(p, other, p.getStackInHand(hand)) ? ActionResult.SUCCESS : ActionResult.FAIL;
+                }
+                if (g != null && g.id().equals("voidstone") && SecretItems.GRAPPLE.equals(SecretItems.idOf(other))) {
+                    return SecretItems.upgradeHook(p, other, p.getStackInHand(hand)) ? ActionResult.SUCCESS : ActionResult.FAIL;
+                }
                 if (g != null && g.id().equals("voidstone")) {
                     return voidUpgrade(p, hand);
                 }
