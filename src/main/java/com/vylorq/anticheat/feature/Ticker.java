@@ -53,6 +53,8 @@ public final class Ticker {
         SecretItems.tick(ticks);
         Bosses.tick(ticks);
         StructureExtras.tick(ticks);
+        Seasons.tick(ticks);
+        Meteors.tick(ticks);
         BoiledOne.tick(ticks);
         BoiledFight.tick(ticks);
         CustomEnchants.tick(ticks);

@@ -527,6 +527,19 @@ final class WorldCommands {
     }
 
     private static void registerStats(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("season").executes(ctx -> {
+            ServerPlayerEntity p = self(ctx);
+            if (p == null) return 0;
+            var s = com.vylorq.anticheat.feature.Seasons.now();
+            if (!com.vylorq.anticheat.feature.Seasons.on()) {
+                Msg.send(p, "season.off");
+                return 1;
+            }
+            Msg.send(p, "season.now", com.vylorq.anticheat.feature.Seasons.name(p, s),
+                    com.vylorq.anticheat.core.util.Durations.format(com.vylorq.anticheat.feature.Seasons.left()));
+            Msg.send(p, "season.what-" + s.name().toLowerCase(java.util.Locale.ROOT));
+            return 1;
+        }));
         d.register(literal("bosses").executes(ctx -> {
             for (String line : com.vylorq.anticheat.feature.Bosses.leaderboard()) {
                 ctx.getSource().sendFeedback(() -> Text.literal(line), false);

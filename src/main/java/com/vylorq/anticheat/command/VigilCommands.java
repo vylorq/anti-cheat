@@ -125,6 +125,7 @@ public final class VigilCommands {
             new Help(Group.PLAYER, "stats", "/stats [player] | /stats top [playtime|kills|deaths|mined|walked]", "help.pstats", null),
             new Help(Group.PLAYER, "events", "/events [list]", "help.events-status", null),
             new Help(Group.PLAYER, "bosses", "/bosses", "help.bosses", null),
+            new Help(Group.PLAYER, "season", "/season", "help.season", null),
             new Help(Group.TOOLS, "events", "/events start <event> | /events stop", "help.events", Perm.EVENTS));
 
     /** Commands reachable as /vigil &lt;name&gt; (they also stay top-level). */

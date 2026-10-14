@@ -274,6 +274,8 @@ public final class Bosses {
         public Map<String, String> fastestBy = new HashMap<>();
         /** Structures whose gatekeepers have come out ("buried_vault@12,-40"). */
         public Set<String> gates = new HashSet<>();
+        /** How many times each structure's boss has been beaten: every rematch it comes back a level stronger. */
+        public Map<String, Integer> levels = new HashMap<>();
         /** When each player last bought a structure map from a trader (millis). */
         public Map<String, Long> mapBought = new HashMap<>();
     }
@@ -309,6 +311,9 @@ public final class Bosses {
             }
             if (state.gates == null) {
                 state.gates = new HashSet<>();
+            }
+            if (state.levels == null) {
+                state.levels = new HashMap<>();
             }
             if (state.mapBought == null) {
                 state.mapBought = new HashMap<>();
@@ -357,6 +362,10 @@ public final class Bosses {
         long nextWave;
         /** How many players are fighting it: more of them make it tougher. */
         int crowd = 1;
+        /** Its rematch level (0 the first time): more health and harder hits each time it's beaten. */
+        int level;
+        /** Charged by a thunderstorm. */
+        boolean storm;
         /** When it rose (millis), for the fastest-kill record. */
         long started = System.currentTimeMillis();
 
@@ -413,6 +422,13 @@ public final class Bosses {
                     }
                     if (t.equals(CURSED_TAG)) {
                         l.cursed = true;
+                    }
+                    if (t.startsWith(LEVEL_TAG)) {
+                        try {
+                            l.level = Integer.parseInt(t.substring(LEVEL_TAG.length()));
+                        } catch (NumberFormatException ignored) {
+                            // level 0
+                        }
                     }
                     if (t.startsWith(START_TAG)) {
                         try {
@@ -576,6 +592,9 @@ public final class Bosses {
     static final int PHASES = 3;
     private static final String KEY_TAG = "vigil_key:";
     private static final String START_TAG = "vigil_start:";
+    private static final String LEVEL_TAG = "vigil_level:";
+    private static final Identifier LEVEL = Identifier.of("vigil", "boss_level");
+    private static final Identifier STORM = Identifier.of("vigil", "boss_storm");
     static final String GATE_TAG = "vigil_gate:";
     private static final Identifier CROWD = Identifier.of("vigil", "boss_crowd");
 
@@ -651,7 +670,7 @@ public final class Bosses {
 
     /** One health bar of this boss: its kind's, half as much again when it was cursed. */
     static double health(Live l) {
-        return l.kind.health() * (l.cursed ? CURSE : 1);
+        return l.kind.health() * (l.cursed ? CURSE : 1) * (1 + 0.25 * l.level) * (l.storm ? 1.25 : 1);
     }
     private static final String PHASE_TAG = "vigil_phase:";
 
@@ -701,7 +720,8 @@ public final class Bosses {
         int max = (int) Math.round(one);
         int total = hp + (PHASES - phase) * max;
         String color = phase == 1 ? "§a" : phase == 2 ? "§e" : "§c";
-        m.setCustomName(Text.literal(k.color() + "§l" + k.name() + " §7[" + phase + "/" + PHASES + "] " + color + "❤ " + total + "/" + (max * PHASES) + (l != null && l.cursed ? " §5☠" : "")));
+        m.setCustomName(Text.literal(k.color() + "§l" + k.name() + " §7[" + phase + "/" + PHASES + "] " + color + "❤ " + total + "/" + (max * PHASES) + (l != null && l.cursed ? " §5☠" : "")
+                + (l != null && l.level > 0 ? " §6★" + (l.level + 1) : "") + (l != null && l.storm ? " §e⚡" : "")));
     }
 
     /** The structure's own mobs come out to guard their boss. */
@@ -920,6 +940,13 @@ public final class Bosses {
                 MobEntity risen = spawn(w, at, k.id());
                 if (risen != null) {
                     risen.addCommandTag(KEY_TAG + key);
+                    int lvl = state().levels.getOrDefault(key, 0);
+                    level(risen, lvl);
+                    if (lvl > 0) {
+                        for (ServerPlayerEntity o : fighters(w, at, 48)) {
+                            Msg.send(o, "boss.rematch", k.color() + k.name() + "§r", lvl + 1);
+                        }
+                    }
                     Live rl = LIVE.get(risen.getUuid());
                     if (rl != null) {
                         rl.key = key;
@@ -992,6 +1019,45 @@ public final class Bosses {
         }
     }
 
+    /** Thunder charges it: hits 25% harder and its health counts 25% more until the storm passes. */
+    private static void storm(Live l, boolean on) {
+        if (on == l.storm) {
+            return;
+        }
+        l.storm = on;
+        var dmg = l.mob.getAttributeInstance(EntityAttributes.ATTACK_DAMAGE);
+        if (dmg != null) {
+            dmg.removeModifier(STORM);
+            if (on) {
+                dmg.addTemporaryModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(STORM, 0.25,
+                        net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+            }
+        }
+        if (on) {
+            ServerWorld w = (ServerWorld) l.mob.getEntityWorld();
+            for (ServerPlayerEntity p : fighters(w, l.mob.getEntityPos(), 48)) {
+                Msg.actionBar(p, "§e⚡ " + Msg.trFor(p, "boss.storm"));
+            }
+        }
+    }
+
+    /** A rematch: each time this structure's boss was beaten, it comes back stronger (and drops more). */
+    private static void level(MobEntity m, int level) {
+        if (level <= 0) {
+            return;
+        }
+        m.addCommandTag(LEVEL_TAG + level);
+        Live l = LIVE.get(m.getUuid());
+        if (l != null) {
+            l.level = level;
+        }
+        var dmg = m.getAttributeInstance(EntityAttributes.ATTACK_DAMAGE);
+        if (dmg != null && dmg.getModifier(LEVEL) == null) {
+            dmg.addPersistentModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(LEVEL, 0.15 * level,
+                    net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        }
+    }
+
     private static void fight(Live l) {
         MobEntity m = l.mob;
         ServerWorld w = (ServerWorld) m.getEntityWorld();
@@ -1000,6 +1066,7 @@ public final class Bosses {
         if (now % 10 == 0) {
             updateBar(l, w, c);
             crowd(l, Math.max(1, near.size()));
+            storm(l, Meteors.stormCharged(w));
         }
         if (!near.isEmpty()) {
             l.lastPlayerNear = now;
@@ -1597,6 +1664,11 @@ public final class Bosses {
         if (l.cursed) {
             drops.add(new ItemStack(Items.NETHERITE_INGOT));
         }
+        // A rematch pays more: more diamonds and another rare book for every level.
+        for (int i = 0; i < l.level; i++) {
+            drops.add(new ItemStack(Items.DIAMOND, 2 + w.getRandom().nextInt(3)));
+            drops.add(CustomEnchants.randomBook(w.getRandom()));
+        }
         drops.add(trophy(l.kind, by, l.cursed));
         for (int i = 0; i < times; i++) {
             drops.add(CustomEnchants.randomBook(w.getRandom()));      // a rare enchantment, only from bosses
@@ -1619,6 +1691,7 @@ public final class Bosses {
                 state().restUntil = new HashMap<>();
             }
             state().restUntil.put(l.key, System.currentTimeMillis() + state().restDays * 86_400_000L);
+            state().levels.merge(l.key, 1, Integer::sum);
             save();
         }
         // Its own weapon, through the same loot table the mod uses everywhere; the killer who has one already gets

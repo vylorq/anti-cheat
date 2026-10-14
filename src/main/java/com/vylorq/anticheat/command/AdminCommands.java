@@ -187,6 +187,44 @@ public final class AdminCommands {
         boss.then(literal("removeall").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.Bosses::ownerKillAll)));
         boss.then(literal("cursedkey").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.Bosses::ownerKey)));
         owner.then(boss);
+        var season = literal("season");
+        for (var se : com.vylorq.anticheat.feature.Seasons.Season.values()) {
+            season.then(literal(se.name().toLowerCase(java.util.Locale.ROOT)).executes(ctx -> owner(ctx, p -> {
+                if (com.vylorq.anticheat.feature.OwnerPowers.require(p)) {
+                    com.vylorq.anticheat.feature.Seasons.set(se);
+                    Msg.send(p, "season.set", com.vylorq.anticheat.feature.Seasons.name(p, se));
+                }
+            })));
+        }
+        for (boolean on : new boolean[]{true, false}) {
+            season.then(literal(on ? "on" : "off").executes(ctx -> owner(ctx, p -> {
+                if (com.vylorq.anticheat.feature.OwnerPowers.require(p)) {
+                    com.vylorq.anticheat.feature.Seasons.setOn(on);
+                    Msg.send(p, on ? "season.turned-on" : "season.turned-off");
+                }
+            })));
+        }
+        season.then(literal("days").then(CommandManager.argument("days", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 365))
+                .executes(ctx -> owner(ctx, p -> {
+                    if (com.vylorq.anticheat.feature.OwnerPowers.require(p)) {
+                        int days = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "days");
+                        com.vylorq.anticheat.feature.Seasons.setDays(days);
+                        Msg.send(p, "season.days", days);
+                    }
+                }))));
+        owner.then(season);
+        owner.then(literal("meteor")
+                .then(literal("start").executes(ctx -> owner(ctx, p -> {
+                    if (com.vylorq.anticheat.feature.OwnerPowers.require(p)) {
+                        com.vylorq.anticheat.feature.Meteors.start();
+                    }
+                })))
+                .then(literal("stop").executes(ctx -> owner(ctx, p -> {
+                    if (com.vylorq.anticheat.feature.OwnerPowers.require(p)) {
+                        com.vylorq.anticheat.feature.Meteors.stop();
+                        Msg.send(p, "meteor.stopped");
+                    }
+                }))));
         var structure = literal("structure");
         var structurePlace = literal("place");
         for (String n : com.vylorq.anticheat.feature.TestStructures.NAMES) {
