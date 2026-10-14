@@ -434,7 +434,7 @@ public final class Lifestyle {
         seat.setInvulnerable(true);
         seat.addCommandTag(SEAT);
         w.spawnEntity(seat);
-        p.startRiding(seat, true);
+        p.startRiding(seat, true, true);
         return true;
     }
 
