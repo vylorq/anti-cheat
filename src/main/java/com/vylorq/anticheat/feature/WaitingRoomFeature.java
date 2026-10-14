@@ -306,6 +306,13 @@ public final class WaitingRoomFeature {
             if (!p.hasStatusEffect(StatusEffects.DARKNESS)) {
                 p.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, StatusEffectInstance.INFINITE, 0, false, false));
             }
+        } else {
+            // The waiting room's endless darkness, left on someone who isn't waiting any more (accepted while offline,
+            // let in another way...): gone. Nothing else gives endless darkness.
+            var dark = p.getStatusEffect(StatusEffects.DARKNESS);
+            if (dark != null && dark.isInfinite()) {
+                p.removeStatusEffect(StatusEffects.DARKNESS);
+            }
         }
     }
 
