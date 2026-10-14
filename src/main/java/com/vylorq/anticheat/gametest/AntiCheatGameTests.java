@@ -283,6 +283,26 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void seasonsMeteorsAndWorldgen(TestContext ctx) {
+        var w = ctx.getWorld();
+        for (var se : com.vylorq.anticheat.feature.Seasons.Season.values()) {
+            com.vylorq.anticheat.feature.Seasons.set(se);
+            check(com.vylorq.anticheat.feature.Seasons.now() == se, "the season didn't change to " + se);
+        }
+        com.vylorq.anticheat.feature.Seasons.set(com.vylorq.anticheat.feature.Seasons.Season.SPRING);
+        var placed = w.getRegistryManager().getOrThrow(net.minecraft.registry.RegistryKeys.PLACED_FEATURE);
+        for (String id : java.util.List.of("crystal_cave", "glow_grove_lichen", "glow_grove_red_mushroom", "glow_grove_brown_mushroom")) {
+            check(placed.containsId(net.minecraft.util.Identifier.of("vigil", id)), "no worldgen feature " + id);
+        }
+        BlockPos g = ctx.getAbsolutePos(new BlockPos(2, 2, 2));
+        w.setBlockState(g.down(), net.minecraft.block.Blocks.STONE.getDefaultState());
+        w.setBlockState(g, net.minecraft.block.Blocks.AIR.getDefaultState());
+        com.vylorq.anticheat.feature.Meteors.landForTest(w, g);
+        check(!w.getBlockState(g).isAir(), "no meteorite landed");
+        ctx.complete();
+    }
+
+    @GameTest
     public void leverPuzzleOpensTheWall(TestContext ctx) {
         var w = ctx.getWorld();
         // Three levers on copper panels, facing west; the answer behind them: on, off, on.
