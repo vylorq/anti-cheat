@@ -4,14 +4,10 @@
     {
       "rolls": {
         "type": "minecraft:uniform",
-        "min": 3,
-        "max": 5
+        "min": 4,
+        "max": 6
       },
       "entries": [
-        {
-          "type": "minecraft:empty",
-          "weight": 6
-        },
         {
           "type": "minecraft:item",
           "name": "minecraft:gold_ingot",
@@ -182,7 +178,7 @@
       "entries": [
         {
           "type": "minecraft:empty",
-          "weight": 6
+          "weight": 3
         },
         {
           "type": "minecraft:item",
@@ -441,7 +437,7 @@
       "entries": [
         {
           "type": "minecraft:empty",
-          "weight": 999
+          "weight": 9
         },
         {
           "type": "minecraft:item",

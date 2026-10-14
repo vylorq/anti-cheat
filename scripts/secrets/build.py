@@ -156,8 +156,8 @@ def recipe(item_id):
 SUPPLIES = [("arrow", 6, 4, 12), ("cooked_beef", 6, 2, 6), ("torch", 4, 4, 12), ("experience_bottle", 6, 2, 6)]
 
 
-def filler(entries, rolls=(3, 5)):
-    out = [{"type": "minecraft:empty", "weight": 6}]
+def filler(entries, rolls=(4, 6)):
+    out = []
     for name, weight, lo, hi in list(entries) + SUPPLIES:
         e = {"type": "minecraft:item", "name": f"minecraft:{name}", "weight": weight}
         if hi > 1:
@@ -183,7 +183,7 @@ def item(name, weight, lo=1, hi=1):
 def bonus():
     """Something good in every chest: books, enchanted gear, apples, pearls, gems; now and then something great."""
     return {"rolls": {"type": "minecraft:uniform", "min": 1, "max": 2}, "entries": [
-        {"type": "minecraft:empty", "weight": 6},
+        {"type": "minecraft:empty", "weight": 3},
         enchanted("iron_sword", 6), enchanted("iron_chestplate", 5), enchanted("iron_pickaxe", 5),
         enchanted("diamond_sword", 3, (25, 35)), enchanted("diamond_pickaxe", 3, (25, 35)),
         enchanted("diamond_chestplate", 2, (25, 35)), enchanted("diamond_helmet", 2, (25, 35)), enchanted("bow", 4, (20, 30)),
@@ -194,8 +194,8 @@ def bonus():
 
 
 def book():
-    """An enchanted book: 1 chest in 1,000."""
-    return {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": 999},
+    """An enchanted book: 1 chest in 10."""
+    return {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": 9},
                                     {"type": "minecraft:item", "name": "minecraft:book", "weight": 1,
                                      "functions": [{"function": "minecraft:enchant_randomly"}]}]}
 
@@ -1179,8 +1179,7 @@ def trap(t, x, z, structure):
     item = "fire_charge" if structure == "nether_forge" else "arrow"
     t.set(x, 0, z, "dispenser", facing="up", triggered=False)
     t.nbt[(x, 0, z)] = {"id": S("minecraft:dispenser"),
-                        "Items": L(10, [C({"Slot": B(s), "id": S(f"minecraft:{item}"), "count": I(64 if item == "arrow" else 16)})
-                                        for s in range(3)])}
+                        "Items": L(10, [C({"Slot": B(0), "id": S(f"minecraft:{item}"), "count": I(6 if item == "arrow" else 3)})])}
     t.set(x, 1, z, "polished_blackstone_pressure_plate" if structure == "nether_forge" else "stone_pressure_plate", powered=False)
 
 
@@ -1450,11 +1449,11 @@ def gauntlet(t, th, structure, w, d):
         if x < cx:
             t.set(x - 1, 1, z, "dispenser", facing="east", triggered=False)
             t.nbt[(x - 1, 1, z)] = {"id": S("minecraft:dispenser"),
-                                    "Items": L(10, [C({"Slot": B(0), "id": S("minecraft:arrow"), "count": I(64)})])}
+                                    "Items": L(10, [C({"Slot": B(0), "id": S("minecraft:arrow"), "count": I(4)})])}
         else:
             t.set(x + 1, 1, z, "dispenser", facing="west", triggered=False)
             t.nbt[(x + 1, 1, z)] = {"id": S("minecraft:dispenser"),
-                                    "Items": L(10, [C({"Slot": B(0), "id": S("minecraft:arrow"), "count": I(64)})])}
+                                    "Items": L(10, [C({"Slot": B(0), "id": S("minecraft:arrow"), "count": I(4)})])}
     mob_spawner(t, 1, 2, 4, th["mobs"], structure)
     mob_spawner(t, w - 2, 2, d - 5, th["mobs"], structure)
 
@@ -1694,15 +1693,15 @@ def arena_doors(structure, t):
 
 STRUCTURES = {
     # name: (builder, biomes, step, start_height, heightmap, spacing, separation, salt, terrain)
-    "sunken_vault": (sunken_vault, "#minecraft:is_ocean", "surface_structures", 0, "OCEAN_FLOOR_WG", 110, 50, 31170801, "none"),
-    "buried_vault": (buried_vault, "#minecraft:is_overworld", "underground_structures", -40, None, 120, 60, 31170802, "none"),
-    "sky_citadel": (sky_citadel, "#minecraft:is_overworld", "surface_structures", 210, None, 130, 60, 31170803, "none"),
-    "nether_forge": (nether_forge, "minecraft:basalt_deltas", "surface_structures", 45, None, 60, 30, 31170804, "beard_box"),
-    "desert_tomb": (desert_tomb, "minecraft:desert", "underground_structures", -15, "WORLD_SURFACE_WG", 100, 45, 31170805, "none"),
+    "sunken_vault": (sunken_vault, "#minecraft:is_ocean", "surface_structures", 0, "OCEAN_FLOOR_WG", 55, 25, 31170801, "none"),
+    "buried_vault": (buried_vault, "#minecraft:is_overworld", "underground_structures", -40, None, 60, 30, 31170802, "none"),
+    "sky_citadel": (sky_citadel, "#minecraft:is_overworld", "surface_structures", 210, None, 65, 30, 31170803, "none"),
+    "nether_forge": (nether_forge, "minecraft:basalt_deltas", "surface_structures", 45, None, 32, 15, 31170804, "beard_box"),
+    "desert_tomb": (desert_tomb, "minecraft:desert", "underground_structures", -15, "WORLD_SURFACE_WG", 50, 22, 31170805, "none"),
     "frozen_bastion": (frozen_bastion, ["minecraft:snowy_slopes", "minecraft:frozen_peaks", "minecraft:jagged_peaks", "minecraft:snowy_plains",
-                                        "minecraft:ice_spikes", "minecraft:grove"], "surface_structures", 0, "WORLD_SURFACE_WG", 110, 50, 31170807, "beard_thin"),
-    "overgrown_labyrinth": (overgrown_labyrinth, "#minecraft:is_jungle", "surface_structures", -1, "WORLD_SURFACE_WG", 110, 50, 31170808, "beard_thin"),
-    "watchers_hollow": (watchers_hollow, "minecraft:dark_forest", "surface_structures", 0, "WORLD_SURFACE_WG", 160, 80, 31170806, "beard_thin"),
+                                        "minecraft:ice_spikes", "minecraft:grove"], "surface_structures", 0, "WORLD_SURFACE_WG", 55, 25, 31170807, "beard_thin"),
+    "overgrown_labyrinth": (overgrown_labyrinth, "#minecraft:is_jungle", "surface_structures", -1, "WORLD_SURFACE_WG", 55, 25, 31170808, "beard_thin"),
+    "watchers_hollow": (watchers_hollow, "minecraft:dark_forest", "surface_structures", 0, "WORLD_SURFACE_WG", 80, 40, 31170806, "beard_thin"),
 }
 
 

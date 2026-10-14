@@ -5,8 +5,8 @@ import com.vylorq.anticheat.util.Mc;
 import net.minecraft.item.ItemStack;
 
 /**
- * Structure chests only give what someone on the server has already got by playing (the same list the traders use):
- * if nobody has found netherite yet, no chest hands out netherite. Secret items keep their own (very rare) odds.
+ * Structure chests hold back only the end-game items (netherite, totems, enchanted golden apples) until someone on the
+ * server has got them by playing (the same list the traders use). Everything else is always there.
  */
 public final class StructureLoot {
     private StructureLoot() {
@@ -24,9 +24,13 @@ public final class StructureLoot {
         });
     }
 
-    /** Whether a chest may give this: a secret item, or something players have already got. */
+    private static final java.util.Set<net.minecraft.item.Item> GATED = java.util.Set.of(
+            net.minecraft.item.Items.NETHERITE_INGOT, net.minecraft.item.Items.NETHERITE_SCRAP,
+            net.minecraft.item.Items.TOTEM_OF_UNDYING, net.minecraft.item.Items.ENCHANTED_GOLDEN_APPLE);
+
+    /** Whether a chest may give this: anything but the end-game items, which wait until players have got them. */
     public static boolean allowed(ItemStack s) {
-        if (s.isEmpty() || SecretItems.idOf(s) != null) {
+        if (s.isEmpty() || SecretItems.idOf(s) != null || !GATED.contains(s.getItem())) {
             return true;
         }
         return Ac.get().economy.isObtained(Mc.itemId(s.getItem()));
