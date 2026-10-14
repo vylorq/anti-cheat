@@ -152,6 +152,95 @@
   ],
   "scale": 2.0512
  },
+ "drowned_captain": {
+  "parts": [
+   {
+    "id": "drowned_captain__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.8285,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "drowned_captain__leg_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.1506,
+     0.8285,
+     0.0
+    ],
+    "role": "leg",
+    "side": -1
+   },
+   {
+    "id": "drowned_captain__leg_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.1506,
+     0.8285,
+     0.0
+    ],
+    "role": "leg",
+    "side": 1
+   },
+   {
+    "id": "drowned_captain__arm_r",
+    "parent": "drowned_captain__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.4143,
+     1.4688,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "drowned_captain__arm_l",
+    "parent": "drowned_captain__body",
+    "phase": 0.0,
+    "pivot": [
+     0.4143,
+     1.4688,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "drowned_captain__anchor",
+    "parent": "drowned_captain__arm_l",
+    "phase": 0.0,
+    "pivot": [
+     0.4331,
+     1.4688,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   },
+   {
+    "id": "drowned_captain__head",
+    "parent": "drowned_captain__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.5441,
+     0.0377
+    ],
+    "role": "head",
+    "side": 0
+   }
+  ],
+  "scale": 1.8634
+ },
  "drowned_warden": {
   "parts": [
    {
@@ -786,6 +875,95 @@
    }
   ],
   "scale": 1.3963
+ },
+ "hoglin_king": {
+  "parts": [
+   {
+    "id": "hoglin_king__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.125,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "hoglin_king__legf_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.5312,
+     0.875,
+     0.75
+    ],
+    "role": "leg_front",
+    "side": -1
+   },
+   {
+    "id": "hoglin_king__legf_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.5312,
+     0.875,
+     0.75
+    ],
+    "role": "leg_front",
+    "side": 1
+   },
+   {
+    "id": "hoglin_king__legb_r",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     -0.5312,
+     0.875,
+     -0.75
+    ],
+    "role": "leg_back",
+    "side": -1
+   },
+   {
+    "id": "hoglin_king__legb_l",
+    "parent": null,
+    "phase": 6.283,
+    "pivot": [
+     0.5312,
+     0.875,
+     -0.75
+    ],
+    "role": "leg_back",
+    "side": 1
+   },
+   {
+    "id": "hoglin_king__head",
+    "parent": "hoglin_king__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.125,
+     1.0625
+    ],
+    "role": "head",
+    "side": 0
+   },
+   {
+    "id": "hoglin_king__tail",
+    "parent": "hoglin_king__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.375,
+     -1.125
+    ],
+    "role": "tail",
+    "side": 0
+   }
+  ],
+  "scale": 1.3853
  },
  "hollow_watcher": {
   "parts": [
@@ -1655,6 +1833,237 @@
   ],
   "scale": 0.76
  },
+ "sky_warden": {
+  "parts": [
+   {
+    "id": "sky_warden__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.8607,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "sky_warden__head",
+    "parent": "sky_warden__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.4232,
+     0.25
+    ],
+    "role": "head",
+    "side": 0
+   },
+   {
+    "id": "sky_warden__wing_r",
+    "parent": "sky_warden__body",
+    "phase": 0.0,
+    "pivot": [
+     -0.375,
+     1.2357,
+     0.0
+    ],
+    "role": "wing",
+    "side": -1
+   },
+   {
+    "id": "sky_warden__wing_l",
+    "parent": "sky_warden__body",
+    "phase": 0.0,
+    "pivot": [
+     0.375,
+     1.2357,
+     0.0
+    ],
+    "role": "wing",
+    "side": 1
+   },
+   {
+    "id": "sky_warden__wingtip_r",
+    "parent": "sky_warden__wing_r",
+    "phase": 0.0,
+    "pivot": [
+     -1.5312,
+     1.7107,
+     0.0
+    ],
+    "role": "wingtip",
+    "side": -1
+   },
+   {
+    "id": "sky_warden__wingtip_l",
+    "parent": "sky_warden__wing_l",
+    "phase": 0.0,
+    "pivot": [
+     1.5312,
+     1.7107,
+     0.0
+    ],
+    "role": "wingtip",
+    "side": 1
+   },
+   {
+    "id": "sky_warden__tail",
+    "parent": "sky_warden__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.6107,
+     -0.375
+    ],
+    "role": "tail",
+    "side": 0
+   }
+  ],
+  "scale": 1.4747
+ },
+ "soul_reaper": {
+  "parts": [
+   {
+    "id": "soul_reaper__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.9038,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "soul_reaper__arm_r",
+    "parent": "soul_reaper__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.4143,
+     1.4688,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "soul_reaper__arm_l",
+    "parent": "soul_reaper__body",
+    "phase": 0.0,
+    "pivot": [
+     0.4143,
+     1.4688,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "soul_reaper__scythe",
+    "parent": "soul_reaper__arm_l",
+    "phase": 0.0,
+    "pivot": [
+     0.4708,
+     1.4688,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   },
+   {
+    "id": "soul_reaper__head",
+    "parent": "soul_reaper__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.5441,
+     0.0753
+    ],
+    "role": "head",
+    "side": 0
+   }
+  ],
+  "scale": 2.1975
+ },
+ "sporemother": {
+  "parts": [
+   {
+    "id": "sporemother__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.7475,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "sporemother__leg_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.2121,
+     0.7475,
+     0.0
+    ],
+    "role": "leg",
+    "side": -1
+   },
+   {
+    "id": "sporemother__leg_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.2121,
+     0.7475,
+     0.0
+    ],
+    "role": "leg",
+    "side": 1
+   },
+   {
+    "id": "sporemother__arm_r",
+    "parent": "sporemother__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.4667,
+     1.4688,
+     0.0849
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "sporemother__arm_l",
+    "parent": "sporemother__body",
+    "phase": 0.0,
+    "pivot": [
+     0.4667,
+     1.4688,
+     0.0849
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "sporemother__head",
+    "parent": "sporemother__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.5112,
+     0.1697
+    ],
+    "role": "head",
+    "side": 0
+   }
+  ],
+  "scale": 2.1851
+ },
  "stone_crawler": {
   "parts": [
    {
@@ -2443,5 +2852,171 @@
    }
   ],
   "scale": 0.5477
+ },
+ "void_evoker": {
+  "parts": [
+   {
+    "id": "void_evoker__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.7581,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "void_evoker__arm_r",
+    "parent": "void_evoker__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.4264,
+     1.4688,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "void_evoker__arm_l",
+    "parent": "void_evoker__body",
+    "phase": 0.0,
+    "pivot": [
+     0.4264,
+     1.4688,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "void_evoker__staff",
+    "parent": "void_evoker__arm_l",
+    "phase": 0.0,
+    "pivot": [
+     0.4501,
+     1.4688,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   },
+   {
+    "id": "void_evoker__head",
+    "parent": "void_evoker__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.5161,
+     0.0474
+    ],
+    "role": "head",
+    "side": 0
+   },
+   {
+    "id": "void_evoker__orb",
+    "parent": "void_evoker__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.0423,
+     0.0
+    ],
+    "role": "tail",
+    "side": 0
+   }
+  ],
+  "scale": 1.6554
+ },
+ "void_stalker": {
+  "parts": [
+   {
+    "id": "void_stalker__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.1121,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "void_stalker__leg_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.1112,
+     1.1121,
+     0.0
+    ],
+    "role": "leg",
+    "side": -1
+   },
+   {
+    "id": "void_stalker__leg_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.1112,
+     1.1121,
+     0.0
+    ],
+    "role": "leg",
+    "side": 1
+   },
+   {
+    "id": "void_stalker__arm_r",
+    "parent": "void_stalker__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.2595,
+     1.6311,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "void_stalker__arm_l",
+    "parent": "void_stalker__body",
+    "phase": 0.0,
+    "pivot": [
+     0.2595,
+     1.6311,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "void_stalker__head",
+    "parent": "void_stalker__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.6682,
+     0.0371
+    ],
+    "role": "head",
+    "side": 0
+   },
+   {
+    "id": "void_stalker__jaw",
+    "parent": "void_stalker__head",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.6682,
+     0.0371
+    ],
+    "role": "jaw",
+    "side": 0
+   }
+  ],
+  "scale": 2.643
  }
 }
