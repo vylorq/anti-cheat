@@ -215,6 +215,13 @@ public final class Spectacle {
         build(owner, skin);
     }
 
+    public static void undoForTest(ServerPlayerEntity owner) {
+        var undo = LAST.remove(owner.getUuid());
+        if (undo != null) {
+            undo.forEach(owner.getEntityWorld()::setBlockState);
+        }
+    }
+
     public static void undo(ServerPlayerEntity owner) {
         if (!OwnerPowers.require(owner)) {
             return;

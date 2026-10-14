@@ -329,7 +329,11 @@ public final class AntiCheatGameTests {
         owner.refreshPositionAndAngles(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, 0, 0);
         com.vylorq.anticheat.feature.Spectacle.buildForTest(owner, img);
         BlockPos feet = at.offset(owner.getHorizontalFacing(), 6);
-        check(w.getBlockState(feet.up(2)).isOf(net.minecraft.block.Blocks.RED_CONCRETE), "the statue isn't red: " + w.getBlockState(feet.up(2)));
+        boolean red = w.getBlockState(feet.up(2)).isOf(net.minecraft.block.Blocks.RED_CONCRETE);
+        String got = w.getBlockState(feet.up(2)).toString();
+        com.vylorq.anticheat.feature.Spectacle.undoForTest(owner);
+        check(red, "the statue isn't red: " + got);
+        check(!w.getBlockState(feet.up(2)).isOf(net.minecraft.block.Blocks.RED_CONCRETE), "undo didn't take the statue away");
         ctx.complete();
     }
 
