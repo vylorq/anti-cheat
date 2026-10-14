@@ -152,6 +152,95 @@
   ],
   "scale": 2.0512
  },
+ "deer": {
+  "parts": [
+   {
+    "id": "deer__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.875,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "deer__legf_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.1562,
+     0.75,
+     0.4375
+    ],
+    "role": "leg_front",
+    "side": -1
+   },
+   {
+    "id": "deer__legf_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.1562,
+     0.75,
+     0.4375
+    ],
+    "role": "leg_front",
+    "side": 1
+   },
+   {
+    "id": "deer__legb_r",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     -0.1562,
+     0.75,
+     -0.375
+    ],
+    "role": "leg_back",
+    "side": -1
+   },
+   {
+    "id": "deer__legb_l",
+    "parent": null,
+    "phase": 6.283,
+    "pivot": [
+     0.1562,
+     0.75,
+     -0.375
+    ],
+    "role": "leg_back",
+    "side": 1
+   },
+   {
+    "id": "deer__head",
+    "parent": "deer__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.125,
+     0.5625
+    ],
+    "role": "head",
+    "side": 0
+   },
+   {
+    "id": "deer__tail",
+    "parent": "deer__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.0625,
+     -0.5625
+    ],
+    "role": "tail",
+    "side": 0
+   }
+  ],
+  "scale": 0.8941
+ },
  "drowned_captain": {
   "parts": [
    {
@@ -1243,6 +1332,59 @@
    }
   ],
   "scale": 0.9955
+ },
+ "owl": {
+  "parts": [
+   {
+    "id": "owl__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.25,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "owl__head",
+    "parent": "owl__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.5,
+     0.0
+    ],
+    "role": "head",
+    "side": 0
+   },
+   {
+    "id": "owl__wing_r",
+    "parent": "owl__body",
+    "phase": 0.0,
+    "pivot": [
+     -0.1875,
+     0.4375,
+     0.0
+    ],
+    "role": "wing",
+    "side": -1
+   },
+   {
+    "id": "owl__wing_l",
+    "parent": "owl__body",
+    "phase": 0.0,
+    "pivot": [
+     0.1875,
+     0.4375,
+     0.0
+    ],
+    "role": "wing",
+    "side": 1
+   }
+  ],
+  "scale": 0.7
  },
  "sand_colossus": {
   "parts": [

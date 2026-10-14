@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "WWW",
+    "LLL"
+  ],
+  "key": {
+    "W": "#minecraft:wool",
+    "L": "minecraft:leather"
+  },
+  "result": {
+    "id": "minecraft:leather",
+    "count": 1,
+    "components": {
+      "minecraft:item_name": {
+        "text": "Sleeping Bag",
+        "color": "red"
+      },
+      "minecraft:custom_data": {
+        "vigil_make": "gear:sleeping_bag"
+      },
+      "minecraft:item_model": "vigil:x08edb82829",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x08edb82829"
+        ]
+      }
+    }
+  }
+}

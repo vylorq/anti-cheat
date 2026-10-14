@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "P  ",
+    "PPP",
+    "F F"
+  ],
+  "key": {
+    "P": "minecraft:oak_planks",
+    "F": "minecraft:oak_fence"
+  },
+  "result": {
+    "id": "minecraft:oak_stairs",
+    "count": 2,
+    "components": {
+      "minecraft:item_name": {
+        "text": "Chair",
+        "color": "#d6b07a"
+      }
+    }
+  }
+}

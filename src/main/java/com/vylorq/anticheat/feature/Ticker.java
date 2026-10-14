@@ -56,6 +56,8 @@ public final class Ticker {
         Seasons.tick(ticks);
         Meteors.tick(ticks);
         Volcanoes.tick(ticks);
+        Lifestyle.tick(ticks);
+        Wildlife.tick(ticks);
         BoiledOne.tick(ticks);
         BoiledFight.tick(ticks);
         CustomEnchants.tick(ticks);

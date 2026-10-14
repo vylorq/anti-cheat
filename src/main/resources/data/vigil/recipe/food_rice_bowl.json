@@ -1,0 +1,47 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:bowl",
+    {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:wheat",
+      "nbt": "{vigil_crop:\"rice\"}"
+    },
+    {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:wheat",
+      "nbt": "{vigil_crop:\"rice\"}"
+    }
+  ],
+  "result": {
+    "id": "minecraft:mushroom_stew",
+    "count": 1,
+    "components": {
+      "minecraft:item_name": {
+        "text": "Rice Bowl",
+        "color": "#f4eee0"
+      },
+      "minecraft:consumable": {
+        "on_consume_effects": [
+          {
+            "type": "minecraft:apply_effects",
+            "effects": [
+              {
+                "id": "minecraft:regeneration",
+                "duration": 100,
+                "amplifier": 0
+              }
+            ]
+          }
+        ]
+      },
+      "minecraft:item_model": "vigil:x3018f90f6c",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x3018f90f6c"
+        ]
+      }
+    }
+  }
+}

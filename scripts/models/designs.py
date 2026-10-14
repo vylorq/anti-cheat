@@ -1032,6 +1032,59 @@ def void_evoker():
 
 
 
+# ---------------------------------------------------------------------------------------------------------------------
+# Wildlife (Wildlife.java): gentle animals, not monsters
+
+
+DEER_FUR = Mat(["#5a3a1e", "#7a5230", "#946640", "#b08050"], "fur")
+DEER_BELLY = Mat(["#b8a080", "#d0bc9c", "#e4d4b8", "#f2e8d4"], cell=1)
+ANTLER = Mat(["#8a7a5a", "#a8987a", "#c4b494", "#ded0b0"], cell=1)
+OWL_FEATHER = Mat(["#4a3a28", "#6a5438", "#8a704c", "#a88c64"], "fur")
+OWL_FACE = Mat(["#c8b49a", "#dccab0", "#ece0c8", "#f8f0e0"], cell=1)
+
+
+def deer():
+    """A red deer: long legs, a white belly and tail, big ears and branching antlers."""
+    m = Model("deer")
+    m.part("body", (0, 14, 0), "body")
+    m.box((-4, 12, -9), (8, 7, 18), DEER_FUR)
+    m.box((-3.5, 11.5, -7), (7, 1, 14), DEER_BELLY)
+    for z in (6, -7):
+        m.part("legf" if z > 0 else "legb", (-2.5, 12, z + 1), "leg_front" if z > 0 else "leg_back", mirror=True)
+        m.pair((-3.5, 0, z), (2, 12, 2), DEER_FUR)
+        m.pair((-3.5, 0, z), (2, 1, 2), HOOF)
+    m.part("head", (0, 18, 9), "head")
+    m.box((-1.5, 17, 7), (3, 6, 3), DEER_FUR, rot=("x", -22.5))
+    m.box((-2.5, 21, 9), (5, 5, 6), DEER_FUR,
+          decal={"south": face("#1a120a", eye_w=1, eye_h=1, eye_row=0.35, gap=3, brow="#5a3a1e", mask=0.0)})
+    m.box((-1.5, 21, 15), (3, 3, 2), DEER_BELLY)
+    m.pair((-5, 24, 10), (3, 1, 1), DEER_FUR)
+    m.pair((-3, 26, 11), (1, 6, 1), ANTLER, rot=("z", 22.5))
+    m.pair((-6, 30, 11), (3, 1, 1), ANTLER)
+    m.pair((-5, 31, 11), (1, 3, 1), ANTLER)
+    m.part("tail", (0, 17, -9), "tail")
+    m.box((-1, 15, -10), (2, 3, 1), DEER_BELLY)
+    return m
+
+
+def owl():
+    """A barn owl: round pale face with big dark eyes, brown wings and little talons."""
+    m = Model("owl")
+    m.part("body", (0, 4, 0), "body")
+    m.box((-3, 1, -2.5), (6, 7, 5), OWL_FEATHER)
+    m.box((-2, 2, 2.5), (4, 5, 1), OWL_FACE)
+    m.pair((-2, 0, 0), (1, 1, 2), ANTLER)
+    m.part("head", (0, 8, 0), "head")
+    m.box((-3.5, 8, -3), (7, 6, 6), OWL_FEATHER)
+    m.box((-3, 8.5, 3), (6, 5, 1), OWL_FACE,
+          decal={"south": face("#0a0806", eye_w=2, eye_h=2, eye_row=0.3, gap=1, brow="#c8b49a", mask=0.0)})
+    m.pair((-3.5, 14, -1), (1, 2, 1), OWL_FEATHER)
+    m.part("wing", (-3, 7, 0), "wing", mirror=True)
+    m.pair((-4, 1.5, -2.5), (1, 6, 5), OWL_FEATHER)
+    return m
+
+
+
 MODELS = {
     "deepslate_colossus": (deepslate_colossus, 4.3), "drowned_warden": (drowned_warden, 3.3),
     "storm_phantom": (storm_phantom, 2.4), "forgemaster": (forgemaster, 3.7), "sand_colossus": (sand_colossus, 4.2),
@@ -1045,4 +1098,5 @@ MODELS = {
     "sky_warden": (sky_warden, 3.4), "sporemother": (sporemother, 4.6), "drowned_captain": (drowned_captain, 4.0),
     "soul_reaper": (soul_reaper, 4.8), "hoglin_king": (hoglin_king, 3.4), "void_stalker": (void_stalker, 5.6),
     "void_evoker": (void_evoker, 4.0),
+    "deer": (deer, 1.9), "owl": (owl, 0.7),
 }

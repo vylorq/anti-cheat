@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "L",
+    "F"
+  ],
+  "key": {
+    "L": "minecraft:lantern",
+    "F": "minecraft:oak_fence"
+  },
+  "result": {
+    "id": "minecraft:oak_fence",
+    "count": 1,
+    "components": {
+      "minecraft:item_name": {
+        "text": "Lamp",
+        "color": "#ffd24a"
+      },
+      "minecraft:custom_data": {
+        "vigil_decor": "lamp"
+      }
+    }
+  }
+}
