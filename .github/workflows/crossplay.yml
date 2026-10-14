@@ -30,7 +30,7 @@ jobs:
           curl -fsSL -o mods/viafabric.jar "$(get viafabric "$V")"
           curl -fsSL -o mods/viaversion.jar "$(get viaversion)"
           curl -fsSL -o mods/viabackwards.jar "$(get viabackwards)"
-          for m in lithium ferrite-core spark; do u=$(get $m "$V"); [ -n "$u" ] && curl -fsSL -o mods/$m.jar "$u" || echo "no $m build"; done
+          for m in lithium ferrite-core spark lithostitched tectonic; do u=$(get $m "$V"); [ -n "$u" ] && curl -fsSL -o mods/$m.jar "$u" || echo "no $m build"; done
           cp ../build/libs/$(ls ../build/libs | grep -v sources | head -1) mods/vigil.jar
           ls mods
           echo eula=true > eula.txt

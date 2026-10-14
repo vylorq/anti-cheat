@@ -123,6 +123,10 @@ say "Downloading speed-up mods (Lithium, FerriteCore) and the spark lag profiler
 modrinth_optional lithium
 modrinth_optional ferrite-core
 modrinth_optional spark
+# Tectonic: far bigger mountains and much larger caves in new chunks (Lithostitched is the library it needs).
+say "Downloading Tectonic (big mountains and caves)"
+modrinth_optional lithostitched
+modrinth_optional tectonic
 # Geyser now runs as its own program (always the newest, so every Bedrock version works); remove the old mod.
 rm -f mods/geyser-*.jar mods/Geyser-*.jar
 # The mod is now called Vigil: replace the old jar and move its data folder (while the server is stopped).
