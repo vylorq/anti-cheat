@@ -967,9 +967,8 @@ def hoglin_king():
     m.box((-9, 7, 17), (18, 15, 12), CRIMSON_FUR,
           decal={"south": face("#ffcf3a", eye_w=3, eye_h=2, eye_row=0.2, gap=7, brow="#000000")})
     m.box((-6, 5, 29), (12, 9, 7), CRIMSON_FUR, decal={"south": snout("#120403", "#f6f0dc")})
-    m.pair((-10, 8, 31), (3, 12, 3), TUSK, rot=("x", 22.5, (-8.5, 8, 32)))
-    m.pair((-10, 17, 36), (3, 5, 3), TUSK, rot=("x", -22.5))
-    m.pair((-11, 18, 20), (3, 8, 3), TUSK, rot=("z", 22.5))
+    m.pair((-9, 6, 34), (2, 2, 6), TUSK, rot=("x", -22.5, (-8, 7, 34)))
+    m.pair((-9, 9.5, 38.5), (2, 5, 2), TUSK, rot=("x", 22.5))
     m.box((-7, 22, 18), (14, 3, 10), GOLD)
     for x in (-6, -2, 2, 5):
         m.box((x, 25, 21), (2, 4, 2), GOLD_RAW)
