@@ -137,17 +137,15 @@ public final class BoiledFear {
         if (level >= 1 && rng.nextInt(level >= 3 ? 2 : 5) == 0) {
             BoiledOmens.pack(p, "boiled_breath", p.getEyePos(), 0.12f + 0.08f * level, 1.45f + 0.1f * level);
         }
-        // Shaking hands: slower to mine and to swing.
-        if (level >= 2) {
+        // Shaking hands: slower to mine and to swing, only while it's actually hunting them.
+        boolean hunted = BoiledOne.hunting().containsKey(p.getUuid());
+        if (level >= 3 && hunted) {
             p.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, 40, 0, true, false, false));
             p.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 40, 0, true, false, false));
         }
         // A shaking screen.
         if (level >= 3 && rng.nextInt(level >= 4 ? 2 : 4) == 0) {
             shake(p, level >= 4 ? 2.2f : 1.2f, 6);
-        }
-        if (level >= 4 && rng.nextInt(6) == 0) {
-            p.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 80, 0, true, false, false));
         }
     }
 
