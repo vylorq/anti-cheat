@@ -303,6 +303,37 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void gemToolsUpgradesStatuesAndWorldFeatures(TestContext ctx) {
+        var w = ctx.getWorld();
+        var pick = com.vylorq.anticheat.feature.Gems.gemTool("sapphire", "pickaxe");
+        check("sapphire".equals(com.vylorq.anticheat.feature.Gems.gemToolOf(pick)), "no sapphire pickaxe");
+        var topaz = com.vylorq.anticheat.feature.Gems.gemTool("topaz", "shovel");
+        check(!topaz.getEnchantments().isEmpty(), "the topaz shovel doesn't auto-smelt");
+        var structures = w.getRegistryManager().getOrThrow(net.minecraft.registry.RegistryKeys.STRUCTURE);
+        for (String n : java.util.List.of("underground_lake", "volcano", "ruins")) {
+            check(structures.containsId(net.minecraft.util.Identifier.of("vigil", n)), "structure " + n + " isn't registered");
+        }
+        var templates = w.getServer().getStructureTemplateManager();
+        for (String n : java.util.List.of("underground_lake", "volcano", "ruined_house", "ruined_tower")) {
+            check(templates.getTemplate(net.minecraft.util.Identifier.of("vigil", "world/" + n)).isPresent(), "no template " + n);
+        }
+        // A plain red skin makes a red statue, and undo takes it away.
+        var img = new java.awt.image.BufferedImage(64, 64, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        for (int x = 0; x < 64; x++) {
+            for (int y = 0; y < 64; y++) {
+                img.setRGB(x, y, 0xFF8E2121);
+            }
+        }
+        var owner = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Sculptor"));
+        BlockPos at = ctx.getAbsolutePos(new BlockPos(1, 2, 1));
+        owner.refreshPositionAndAngles(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, 0, 0);
+        com.vylorq.anticheat.feature.Spectacle.buildForTest(owner, img);
+        BlockPos feet = at.offset(owner.getHorizontalFacing(), 6);
+        check(w.getBlockState(feet.up(2)).isOf(net.minecraft.block.Blocks.RED_CONCRETE), "the statue isn't red: " + w.getBlockState(feet.up(2)));
+        ctx.complete();
+    }
+
+    @GameTest
     public void leverPuzzleOpensTheWall(TestContext ctx) {
         var w = ctx.getWorld();
         // Three levers on copper panels, facing west; the answer behind them: on, off, on.

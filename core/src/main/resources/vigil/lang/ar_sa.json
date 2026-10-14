@@ -3123,5 +3123,17 @@
   "meteor.landed": "سقط نيزك قرب {0}، {1}!",
   "meteor.stopped": "توقفت زخة الشهب.",
   "boss.storm": "العاصفة تشحن الزعيم!",
-  "boss.rematch": "{0} يعود أقوى: المستوى {1}!"
+  "boss.rematch": "{0} يعود أقوى: المستوى {1}!",
+  "secret.backpack-big-already": "هذه الحقيبة كبيرة بالفعل.",
+  "secret.backpack-need": "أمسك {0} ياقوت أزرق لترقيتها.",
+  "secret.backpack-upgraded": "حقيبة كبيرة: 54 خانة!",
+  "secret.hook-long-already": "هذا الخطاف لديه خط الفراغ بالفعل.",
+  "secret.hook-upgraded": "خط الفراغ: الخطاف يصل إلى 64 بلوكة!",
+  "volcano.erupts": "البركان يهدر وينفجر!",
+  "statue.fetching": "جارٍ جلب سكن {0}...",
+  "statue.no-skin": "تعذّر جلب سكن {0}.",
+  "statue.built": "تمثال {0} أمامك. /owner statue undo يزيله.",
+  "statue.nothing": "لا يوجد تمثال لإزالته.",
+  "statue.removed": "أُزيل التمثال وعاد كل شيء كما كان.",
+  "fireworks.started": "عرض ألعاب نارية لمدة {0} ثانية يبدأ!"
 }

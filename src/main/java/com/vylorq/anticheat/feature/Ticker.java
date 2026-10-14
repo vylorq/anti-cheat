@@ -55,6 +55,7 @@ public final class Ticker {
         StructureExtras.tick(ticks);
         Seasons.tick(ticks);
         Meteors.tick(ticks);
+        Volcanoes.tick(ticks);
         BoiledOne.tick(ticks);
         BoiledFight.tick(ticks);
         CustomEnchants.tick(ticks);

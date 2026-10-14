@@ -20,6 +20,7 @@
     "ExplosionMixin",
     "FarmlandBlockMixin",
     "FireBlockMixin",
+    "FishingBobberMixin",
     "FlowableFluidMixin",
     "FuelRegistryMixin",
     "HopperBlockEntityMixin",

@@ -178,6 +178,11 @@ def main(src):
     for tool in TOOLS:
         img = Image.open(os.path.join(src, "items", f"diamond_{tool}.png"))
         recolor(img, RAMPS["ruby"], cyan).save(os.path.join(OUT, f"ruby_{tool}.png"))
+    # Sapphire (3x3 mining) and Topaz (auto-smelting) pickaxes and shovels.
+    for g in ("sapphire", "topaz"):
+        for tool in ("pickaxe", "shovel"):
+            img = Image.open(os.path.join(src, "items", f"diamond_{tool}.png"))
+            recolor(img, RAMPS[g], cyan).save(os.path.join(OUT, f"{g}_{tool}.png"))
     print("made", len(os.listdir(OUT)), "textures in", OUT)
 
 
