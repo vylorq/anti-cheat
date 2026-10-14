@@ -143,8 +143,8 @@ public final class BoiledFear {
             p.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, 40, 0, true, false, false));
             p.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 40, 0, true, false, false));
         }
-        // A shaking screen.
-        if (level >= 3 && rng.nextInt(level >= 4 ? 2 : 4) == 0) {
+        // A shaking screen, only while it's hunting them (it would break their mining otherwise).
+        if (level >= 3 && hunted && rng.nextInt(level >= 4 ? 4 : 8) == 0) {
             shake(p, level >= 4 ? 2.2f : 1.2f, 6);
         }
     }
