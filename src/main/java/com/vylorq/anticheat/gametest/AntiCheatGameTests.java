@@ -404,6 +404,9 @@ public final class AntiCheatGameTests {
         eco.markObtained("minecraft:netherite_ingot");
         check(com.vylorq.anticheat.feature.StructureLoot.allowed(new net.minecraft.item.ItemStack(net.minecraft.item.Items.NETHERITE_INGOT)),
                 "a chest can't give netherite after someone found some");
+        eco.forgetObtained("minecraft:golden_apple");
+        check(com.vylorq.anticheat.feature.StructureLoot.allowed(new net.minecraft.item.ItemStack(net.minecraft.item.Items.GOLDEN_APPLE)),
+                "a chest holds back an ordinary item");
         if (!had) {
             eco.forgetObtained("minecraft:netherite_ingot");
         }
