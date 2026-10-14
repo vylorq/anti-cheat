@@ -454,8 +454,8 @@ def main(names):
     for n in names or MODELS:
         fn, h = MODELS[n]
         specs[n] = fn().build(h)
-    # models made elsewhere (billboard.py) are kept
-    specs = {n: specs[n] for n in MODELS if n in specs} | {n: s for n, s in old.items() if s.get("billboard")}
+    # models made elsewhere (billboard.py: the Boiled One and its hand and print) are kept
+    specs = {n: specs[n] for n in MODELS if n in specs} | {n: s for n, s in old.items() if n not in MODELS}
     with open(path, "w") as f:
         json.dump(specs, f, indent=1, sort_keys=True)
     print("specs:", len(specs))

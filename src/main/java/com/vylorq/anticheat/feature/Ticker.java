@@ -52,6 +52,7 @@ public final class Ticker {
         OrbitalStrike.tick(ticks);
         SecretItems.tick(ticks);
         Bosses.tick(ticks);
+        StructureExtras.tick(ticks);
         BoiledOne.tick(ticks);
         BoiledFight.tick(ticks);
         CustomEnchants.tick(ticks);

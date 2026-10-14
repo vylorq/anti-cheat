@@ -541,6 +541,10 @@ public final class Traders {
             menu.info(Btn.of(Items.EMERALD).color(Theme.GOLD_LIGHT).name(t.name).desc(Msg.tr("tr.offers-desc"))
                     .line(Msg.tr("tr.next-rotation", Durations.format(Math.max(0, t.nextRotation - System.currentTimeMillis()))))
                     .line(Msg.tr("tr.price-changes", untilPriceChange())).build());
+            menu.set(8, StructureExtras.mapButton(p), null, (pl, c) -> {
+                StructureExtras.buyMap(pl);
+                menu.refresh();
+            });
             menu.list(t.offers, o -> icon(t, o, true, p.getUuid()),
                     o -> (pl, c) -> {
                         if (o.soldOut()) {

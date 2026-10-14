@@ -251,7 +251,7 @@ public final class AntiCheatGameTests {
                     net.minecraft.util.Identifier.of("vigil", id))).isPresent(), "no recipe for " + id);
         }
         var structures = w.getRegistryManager().getOrThrow(net.minecraft.registry.RegistryKeys.STRUCTURE);
-        for (String n : java.util.List.of("sunken_vault", "buried_vault", "sky_citadel", "nether_forge", "desert_tomb", "frozen_bastion", "overgrown_labyrinth", "watchers_hollow")) {
+        for (String n : com.vylorq.anticheat.feature.TestStructures.NAMES) {
             var id = net.minecraft.util.Identifier.of("vigil", n);
             check(structures.containsId(id), "structure " + n + " isn't registered");
             var tpl = w.getStructureTemplateManager().getTemplate(id);
@@ -270,15 +270,43 @@ public final class AntiCheatGameTests {
     public void structureRoomsLoad(TestContext ctx) {
         // Every piece of every secret structure (arena, rooms, wall plug) loads as a real template.
         var templates = ctx.getWorld().getServer().getStructureTemplateManager();
-        for (String n : java.util.List.of("sunken_vault", "buried_vault", "sky_citadel", "nether_forge", "desert_tomb", "frozen_bastion",
-                "overgrown_labyrinth", "watchers_hollow")) {
+        for (String n : com.vylorq.anticheat.feature.TestStructures.NAMES) {
             for (String piece : java.util.List.of("arena", "corridor", "hall", "guard_room", "shrine", "crossroad", "treasure",
                     "great_hall", "barracks", "prison", "library", "gauntlet", "armory", "throne_room", "crypt",
-                    "ritual_chamber", "storage_vault", "courtyard", "mess_hall", "mine_tunnel", "cap")) {
+                    "ritual_chamber", "storage_vault", "courtyard", "mess_hall", "mine_tunnel", "flooded_room", "lava_parkour",
+                    "collapsing_floor", "puzzle_room", "cap")) {
                 var t = templates.getTemplate(net.minecraft.util.Identifier.of("vigil", n + "/" + piece));
                 check(t.isPresent() && t.get().getSize().getX() > 0, n + "/" + piece + " doesn't load");
             }
         }
+        ctx.complete();
+    }
+
+    @GameTest
+    public void leverPuzzleOpensTheWall(TestContext ctx) {
+        var w = ctx.getWorld();
+        // Three levers on copper panels, facing west; the answer behind them: on, off, on.
+        boolean[] answer = {true, false, true};
+        for (int i = 0; i < 3; i++) {
+            BlockPos panel = ctx.getAbsolutePos(new BlockPos(3, 2, 1 + i));
+            w.setBlockState(panel, net.minecraft.block.Blocks.WAXED_CHISELED_COPPER.getDefaultState());
+            w.setBlockState(panel.east(), (answer[i] ? net.minecraft.block.Blocks.GLOWSTONE : net.minecraft.block.Blocks.STONE).getDefaultState());
+            w.setBlockState(panel.west(), net.minecraft.block.Blocks.LEVER.getDefaultState()
+                    .with(net.minecraft.block.LeverBlock.FACE, net.minecraft.block.enums.BlockFace.WALL)
+                    .with(net.minecraft.block.LeverBlock.FACING, net.minecraft.util.math.Direction.WEST)
+                    .with(net.minecraft.state.property.Properties.POWERED, answer[i] && i != 2));
+        }
+        BlockPos door = ctx.getAbsolutePos(new BlockPos(1, 2, 4));
+        w.setBlockState(door, net.minecraft.block.Blocks.WAXED_CUT_COPPER.getDefaultState());
+        var p = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Puzzler"));
+        BlockPos last = ctx.getAbsolutePos(new BlockPos(2, 2, 3));
+        com.vylorq.anticheat.feature.StructureExtras.leverPulledForTest(w, last, p);
+        check(w.getBlockState(door).isOf(net.minecraft.block.Blocks.WAXED_CUT_COPPER), "the wall opened with the wrong answer");
+        w.setBlockState(last, w.getBlockState(last).with(net.minecraft.state.property.Properties.POWERED, true));
+        com.vylorq.anticheat.feature.StructureExtras.leverPulledForTest(w, last, p);
+        check(w.getBlockState(door).isAir(), "the wall didn't open with the right answer");
+        check(com.vylorq.anticheat.feature.StructureExtras.isCompass(com.vylorq.anticheat.feature.StructureExtras.compass()), "no boss compass");
+        check(com.vylorq.anticheat.feature.Bosses.leaderboard().size() > 2, "no boss leaderboard");
         ctx.complete();
     }
 

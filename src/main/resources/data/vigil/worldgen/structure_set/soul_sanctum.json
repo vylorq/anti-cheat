@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "vigil:soul_sanctum",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 32,
+    "separation": 15,
+    "salt": 31170812
+  }
+}

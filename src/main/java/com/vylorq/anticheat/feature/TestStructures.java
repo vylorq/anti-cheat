@@ -30,7 +30,8 @@ public final class TestStructures {
     }
 
     public static final List<String> NAMES = List.of("sunken_vault", "buried_vault", "sky_citadel", "nether_forge",
-            "desert_tomb", "frozen_bastion", "overgrown_labyrinth", "watchers_hollow");
+            "desert_tomb", "frozen_bastion", "overgrown_labyrinth", "watchers_hollow", "sky_island", "mushroom_cave", "sunken_ship",
+            "soul_sanctum", "crimson_citadel", "void_spire", "ender_crypt");
 
     /** How far the rooms can reach from the middle (the structures' max distance plus a room). */
     private static final int REACH = 136;
@@ -74,11 +75,12 @@ public final class TestStructures {
     /** The heights a structure can take up when placed at x, z (most follow the ground, three have a fixed height). */
     private static int[] heights(ServerWorld w, String structure, int x, int z) {
         return switch (structure) {
-            case "sky_citadel" -> new int[]{200, 245};
+            case "sky_citadel", "sky_island" -> new int[]{190, 245};
             case "buried_vault" -> new int[]{-50, -20};
-            case "nether_forge" -> new int[]{38, 70};
+            case "mushroom_cave" -> new int[]{-35, -5};
+            case "nether_forge", "soul_sanctum", "crimson_citadel" -> new int[]{30, 70};
             default -> {
-                int ground = w.getTopY(structure.equals("sunken_vault") ? Heightmap.Type.OCEAN_FLOOR : Heightmap.Type.WORLD_SURFACE, x, z);
+                int ground = w.getTopY(structure.equals("sunken_vault") || structure.equals("sunken_ship") ? Heightmap.Type.OCEAN_FLOOR : Heightmap.Type.WORLD_SURFACE, x, z);
                 yield new int[]{ground - 22, ground + 22};
             }
         };
