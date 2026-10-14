@@ -1094,7 +1094,7 @@ def watchers_hollow():
 
 NEW_ARENA = 27
 END_ARENA = 41
-# The End's structures reach as far as the game lets a structure go (20 rooms deep, 128 blocks each way).
+# The End's structures go a few rooms deeper than the rest (deeper made world generation lag).
 BIG = {"void_spire", "ender_crypt"}
 
 
@@ -2213,8 +2213,8 @@ def build():
         write(f"loot_table/chests/{name}_room.json", {"type": "minecraft:chest", "pools": [
             CHESTS[name][-1], CHESTS[name][0], bonus(), book()]})
         s = {"type": "minecraft:jigsaw", "biomes": biomes, "step": step, "spawn_overrides": {}, "terrain_adaptation": terrain,
-             "start_pool": f"vigil:{name}/start", "size": 20 if name in BIG else 12, "start_height": {"absolute": height},
-             "max_distance_from_center": 128 if name in BIG else 116,
+             "start_pool": f"vigil:{name}/start", "size": 14 if name in BIG else 12, "start_height": {"absolute": height},
+             "max_distance_from_center": 116,
              "use_expansion_hack": False}
         if heightmap:
             s["project_start_to_heightmap"] = heightmap
