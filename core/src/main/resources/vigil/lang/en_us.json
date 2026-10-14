@@ -3141,5 +3141,7 @@
   "bag.resting": "You curl up in your sleeping bag... (move to get up)",
   "bag.morning": "Good morning!",
   "socket.already": "This piece already has a gem.",
-  "socket.done": "The gem is set into your armor."
+  "socket.done": "The gem is set into your armor.",
+  "enchants.unknown": "There's no enchantment called {0}.",
+  "enchants.level-set": "{0} is now level {1} on the item in your hand."
 }

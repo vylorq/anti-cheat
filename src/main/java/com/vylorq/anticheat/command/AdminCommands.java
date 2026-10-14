@@ -328,6 +328,35 @@ public final class AdminCommands {
                         }
                     }))));
         }
+        // Any enchantment at any level up to 255 on the held item: /owner enchant level sharpness 255
+        enchant.then(literal("level").then(CommandManager.argument("enchantment", com.mojang.brigadier.arguments.StringArgumentType.word())
+                .suggests((c, b) -> {
+                    c.getSource().getServer().getRegistryManager().getOrThrow(net.minecraft.registry.RegistryKeys.ENCHANTMENT).getIds()
+                            .forEach(id -> b.suggest(id.getNamespace().equals("minecraft") ? id.getPath() : id.toString()));
+                    return b.buildFuture();
+                })
+                .then(CommandManager.argument("level", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 255))
+                        .executes(ctx -> owner(ctx, p -> {
+                            if (!com.vylorq.anticheat.feature.OwnerPowers.require(p)) {
+                                return;
+                            }
+                            String name = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "enchantment");
+                            int level = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "level");
+                            var held = p.getMainHandStack();
+                            var e = com.vylorq.anticheat.util.ItemConv.enchantment(name.contains(":") ? name : "minecraft:" + name);
+                            if (held.isEmpty()) {
+                                Msg.send(p, "enchants.hold");
+                            } else if (e.isEmpty()) {
+                                Msg.send(p, "enchants.unknown", name);
+                            } else {
+                                var b = new net.minecraft.component.type.ItemEnchantmentsComponent.Builder(
+                                        held.getOrDefault(net.minecraft.component.DataComponentTypes.ENCHANTMENTS,
+                                                net.minecraft.component.type.ItemEnchantmentsComponent.DEFAULT));
+                                b.set(e.get(), level);
+                                held.set(net.minecraft.component.DataComponentTypes.ENCHANTMENTS, b.build());
+                                Msg.send(p, "enchants.level-set", name, level);
+                            }
+                        })))));
         owner.then(enchant);
         owner.then(literal("smite").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerCombat::smite)));
         owner.then(literal("items").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::items)));
