@@ -211,6 +211,15 @@ public final class Bosses {
         public int killed;
         /** Turn the models around if they face backwards. */
         public float yawOffset = 180f;
+        /** Boss kills by player name (the leaderboard). */
+        public Map<String, Integer> slayers = new HashMap<>();
+        /** The fastest kill of each boss (millis), and who did it. */
+        public Map<String, Long> fastest = new HashMap<>();
+        public Map<String, String> fastestBy = new HashMap<>();
+        /** Structures whose gatekeepers have come out ("buried_vault@12,-40"). */
+        public Set<String> gates = new HashSet<>();
+        /** When each player last bought a structure map from a trader (millis). */
+        public Map<String, Long> mapBought = new HashMap<>();
     }
 
     private static State state;
@@ -232,6 +241,21 @@ public final class Bosses {
             }
             if (state.spawned == null) {
                 state.spawned = new HashSet<>();
+            }
+            if (state.slayers == null) {
+                state.slayers = new HashMap<>();
+            }
+            if (state.fastest == null) {
+                state.fastest = new HashMap<>();
+            }
+            if (state.fastestBy == null) {
+                state.fastestBy = new HashMap<>();
+            }
+            if (state.gates == null) {
+                state.gates = new HashSet<>();
+            }
+            if (state.mapBought == null) {
+                state.mapBought = new HashMap<>();
             }
             if (state.killsToWake == 30) {
                 state.killsToWake = 10;   // the old default: far too many
@@ -275,6 +299,10 @@ public final class Bosses {
         final Map<UUID, Integer> high = new HashMap<>();
         /** When its next guard reinforcements may come (phases 2 and 3). */
         long nextWave;
+        /** How many players are fighting it: more of them make it tougher. */
+        int crowd = 1;
+        /** When it rose (millis), for the fastest-kill record. */
+        long started = System.currentTimeMillis();
 
         Live(MobEntity mob, Kind kind) {
             this.mob = mob;
@@ -329,6 +357,13 @@ public final class Bosses {
                     }
                     if (t.equals(CURSED_TAG)) {
                         l.cursed = true;
+                    }
+                    if (t.startsWith(START_TAG)) {
+                        try {
+                            l.started = Long.parseLong(t.substring(START_TAG.length()));
+                        } catch (NumberFormatException ignored) {
+                            // now
+                        }
                     }
                     if (t.startsWith(KEY_TAG)) {
                         l.key = t.substring(KEY_TAG.length());
@@ -411,6 +446,9 @@ public final class Bosses {
             if (Ac.running() && e.getCommandTags().stream().anyMatch(t -> t.startsWith(StructureMobs.TAG))) {
                 structureMobDied(e, source);
             }
+            if (Ac.running() && e.getCommandTags().stream().anyMatch(t -> t.startsWith(GATE_TAG))) {
+                gatekeeperDied((ServerWorld) e.getEntityWorld(), e);
+            }
             Live l = LIVE.remove(e.getUuid());
             if (l != null) {
                 LIVE_IDS.remove(e.getId());
@@ -448,6 +486,7 @@ public final class Bosses {
         mob.setCanPickUpLoot(false);
         ModelMobs.attach(mob, k.id());
         mob.addCommandTag(TAG + ":" + k.id());
+        mob.addCommandTag(START_TAG + System.currentTimeMillis());
         mob.addCommandTag(String.format(java.util.Locale.ROOT, "vigil_home:%.1f,%.1f,%.1f", at.x, at.y, at.z));
         mob.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, StatusEffectInstance.INFINITE, 0, false, false));
         mob.setCustomNameVisible(true);
@@ -480,6 +519,9 @@ public final class Bosses {
 
     static final int PHASES = 3;
     private static final String KEY_TAG = "vigil_key:";
+    private static final String START_TAG = "vigil_start:";
+    static final String GATE_TAG = "vigil_gate:";
+    private static final Identifier CROWD = Identifier.of("vigil", "boss_crowd");
 
     /** The bosses in the order of their head glyphs in the pack (scripts/owner-pack/build.py BOSS_HEADS). */
     private static final List<String> HEADS = List.of("drowned_warden", "deepslate_colossus", "storm_phantom", "forgemaster",
@@ -548,7 +590,7 @@ public final class Bosses {
     /** How much less a hit counts on this entity: 1 for anything that isn't a boss. */
     public static float damageScale(Entity e) {
         Live l = LIVE.get(e.getUuid());
-        return l == null ? 1f : (float) (health(l) / BAR);
+        return l == null ? 1f : (float) (health(l) / BAR * (1 + 0.3 * (l.crowd - 1)));
     }
 
     /** One health bar of this boss: its kind's, half as much again when it was cursed. */
@@ -690,6 +732,80 @@ public final class Bosses {
         }
     }
 
+    // ---------------------------------------------------------------- gatekeepers
+
+    /** Small mobs (silverfish, imps...) would make silly gatekeepers: those structures send a vindicator instead. */
+    private static final Set<EntityType<?>> SMALL = Set.of(EntityType.SILVERFISH, EntityType.CAVE_SPIDER, EntityType.MAGMA_CUBE,
+            EntityType.VEX, EntityType.SPIDER, EntityType.BREEZE);
+
+    /** Two strong named guards at the arena's edge, nearest the player; the boss won't rise while they live. */
+    private static void gatekeepers(ServerWorld w, Kind k, net.minecraft.util.math.BlockBox box, ServerPlayerEntity p, String key) {
+        state().gates.add(key);
+        save();
+        Guard g = k.guards().stream().filter(x -> !SMALL.contains(x.type())).findFirst().orElse(null);
+        EntityType<? extends MobEntity> type = g == null ? EntityType.VINDICATOR : g.type();
+        Vec3d centre = new Vec3d(box.getCenter().getX() + 0.5, box.getMinY() + k.floor(), box.getCenter().getZ() + 0.5);
+        // The point of the arena nearest them, pulled a few blocks in: by the door they came through.
+        double x = Math.max(box.getMinX() + 3, Math.min(box.getMaxX() - 3, p.getX()));
+        double z = Math.max(box.getMinZ() + 3, Math.min(box.getMaxZ() - 3, p.getZ()));
+        Vec3d at = new Vec3d(x, centre.y, z);
+        String name = k.color() + "§l" + Msg.tr("boss.gatekeeper");
+        for (int i = 0; i < 2; i++) {
+            MobEntity m = type.create(w, SpawnReason.EVENT);
+            if (m == null) {
+                continue;
+            }
+            Vec3d spot = at.add(i == 0 ? 1 : -1, 0, i == 0 ? 1 : -1);
+            m.refreshPositionAndAngles(spot.x, spot.y, spot.z, 0, 0);
+            if (!w.isSpaceEmpty(m)) {
+                spot = centre.add(i == 0 ? 2 : -2, 0, 0);
+                m.refreshPositionAndAngles(spot.x, spot.y, spot.z, 0, 0);
+            }
+            if (g != null) {
+                g.gear().accept(m);
+            } else {
+                wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
+            }
+            StructureMobs.guard(m);
+            set(m, EntityAttributes.MAX_HEALTH, 120);
+            set(m, EntityAttributes.ATTACK_DAMAGE, 12);
+            set(m, EntityAttributes.ARMOR, 14);
+            set(m, EntityAttributes.KNOCKBACK_RESISTANCE, 0.6);
+            set(m, EntityAttributes.SCALE, 1.35);
+            m.setHealth(120);
+            m.setCustomName(Text.literal(name));
+            m.setCustomNameVisible(true);
+            m.setPersistent();
+            m.addCommandTag(GATE_TAG + key);
+            if (m instanceof PiglinBruteEntity b) {
+                b.setImmuneToZombification(true);
+            }
+            w.spawnEntity(m);
+            m.setTarget(p);
+            w.spawnParticles(new DustParticleEffect(k.aura(), 1.6f), spot.x, spot.y + 1, spot.z, 40, 0.4, 0.8, 0.4, 0);
+        }
+        w.playSound(null, at.x, at.y, at.z, SoundEvents.ENTITY_EVOKER_PREPARE_SUMMON, SoundCategory.HOSTILE, 1.5f, 0.7f);
+        for (ServerPlayerEntity o : fighters(w, at, 40)) {
+            Mc.title(o, "", name + " §7" + Msg.trFor(o, "boss.gatekeepers"), 5, 40, 10);
+        }
+    }
+
+    private static int gatesLeft(ServerWorld w, String key, net.minecraft.util.math.BlockBox box) {
+        var area = new net.minecraft.util.math.Box(box.getMinX(), box.getMinY(), box.getMinZ(), box.getMaxX() + 1, box.getMaxY() + 1,
+                box.getMaxZ() + 1).expand(32);
+        return w.getEntitiesByClass(MobEntity.class, area, m -> m.isAlive() && m.getCommandTags().contains(GATE_TAG + key)).size();
+    }
+
+    /** A gatekeeper's reward. */
+    private static void gatekeeperDied(ServerWorld w, LivingEntity e) {
+        Vec3d at = e.getEntityPos();
+        ExperienceOrbEntity.spawn(w, at, 40);
+        for (ItemStack s : List.of(new ItemStack(Items.EMERALD, 3 + w.getRandom().nextInt(4)),
+                new ItemStack(Items.DIAMOND, w.getRandom().nextInt(3) == 0 ? 2 : 1))) {
+            w.spawnEntity(new ItemEntity(w, at.x, at.y + 0.5, at.z, s));
+        }
+    }
+
     private static void checkPlayers() {
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
             if (p.isSpectator()) {
@@ -708,19 +824,32 @@ public final class Bosses {
                 }
                 // The boss waits in the arena (the first piece, in the middle): the rooms around it come first.
                 var box = start.getChildren().get(0).getBoundingBox();
-                if (!box.expand(1).contains(p.getBlockPos())) {
+                boolean inArena = box.expand(1).contains(p.getBlockPos());
+                if (!inArena && !box.expand(14).contains(p.getBlockPos())) {
                     continue;
                 }
                 String key = k.structure() + "@" + start.getPos().x + "," + start.getPos().z;
+                if (!state().spawned.contains(key) && !p.isCreative() && !state().gates.contains(key)) {
+                    // Getting close: its gatekeepers come out to stop them.
+                    gatekeepers(w, k, box, p, key);
+                }
+                if (!inArena) {
+                    continue;
+                }
                 Long rest = state().restUntil == null ? null : state().restUntil.get(key);
                 if (rest != null && System.currentTimeMillis() >= rest) {
                     // Rested long enough: it fills up again and its boss can rise once more.
                     state().restUntil.remove(key);
                     state().spawned.remove(key);
                     state().kills.remove(key);
+                    state().gates.remove(key);
                     save();
                 }
                 if (state().spawned.contains(key)) {
+                    continue;
+                }
+                if (!p.isCreative() && gatesLeft(w, key, box) > 0) {
+                    Msg.actionBar(p, "§c" + Msg.trFor(p, "boss.gatekeepers-left"));
                     continue;
                 }
                 int left = killsLeft(key);
@@ -791,6 +920,22 @@ public final class Bosses {
         }
     }
 
+    /** More fighters, tougher boss: each extra player makes its hits 15% harder and its health count 30% more. */
+    private static void crowd(Live l, int n) {
+        if (n == l.crowd) {
+            return;
+        }
+        l.crowd = n;
+        var dmg = l.mob.getAttributeInstance(EntityAttributes.ATTACK_DAMAGE);
+        if (dmg != null) {
+            dmg.removeModifier(CROWD);
+            if (n > 1) {
+                dmg.addTemporaryModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(CROWD, 0.15 * (n - 1),
+                        net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+            }
+        }
+    }
+
     private static void fight(Live l) {
         MobEntity m = l.mob;
         ServerWorld w = (ServerWorld) m.getEntityWorld();
@@ -798,6 +943,7 @@ public final class Bosses {
         List<ServerPlayerEntity> near = fighters(w, c, 40);
         if (now % 10 == 0) {
             updateBar(l, w, c);
+            crowd(l, Math.max(1, near.size()));
         }
         if (!near.isEmpty()) {
             l.lastPlayerNear = now;
@@ -1403,7 +1549,103 @@ public final class Bosses {
                         : Msg.trFor(p, "boss.defeated-by", by)), 10, 60, 20);
             }
         }
-        Ac.LOG.info("{} was defeated{}", l.kind.name(), by == null ? "" : " by " + by);
+        // The leaderboard, and everyone hears about it.
+        long took = System.currentTimeMillis() - l.started;
+        boolean record = false;
+        if (by != null) {
+            state().slayers.merge(by, 1, Integer::sum);
+            Long best = state().fastest.get(l.kind.id());
+            if (best == null || took < best) {
+                state().fastest.put(l.kind.id(), took);
+                state().fastestBy.put(l.kind.id(), by);
+                record = true;
+            }
+            save();
+        }
+        String time = duration(took);
+        for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
+            Msg.send(p, "boss.cleared", l.kind.color() + l.kind.name() + "§r", by == null ? "?" : by, time);
+            if (record) {
+                Msg.send(p, "boss.record", by, time);
+            }
+        }
+        Ac.LOG.info("{} was defeated{} in {}", l.kind.name(), by == null ? "" : " by " + by, time);
+    }
+
+    static String duration(long ms) {
+        long s = ms / 1000;
+        return s >= 3600 ? (s / 3600) + "h " + (s % 3600 / 60) + "m" : (s / 60) + "m " + (s % 60) + "s";
+    }
+
+    /** The leaderboard: top slayers, then the fastest kill of each boss. */
+    public static List<String> leaderboard() {
+        List<String> out = new ArrayList<>();
+        out.add("§6§l" + Msg.tr("boss.top-title"));
+        var top = state().slayers.entrySet().stream().sorted((a, b) -> b.getValue() - a.getValue()).limit(10).toList();
+        if (top.isEmpty()) {
+            out.add("§7" + Msg.tr("boss.top-none"));
+        }
+        int i = 1;
+        for (var e : top) {
+            out.add("§e" + (i++) + ". §f" + e.getKey() + " §7- §c" + e.getValue() + " ☠");
+        }
+        out.add("§6§l" + Msg.tr("boss.fastest-title"));
+        for (Kind k : KINDS.values()) {
+            Long t = state().fastest.get(k.id());
+            out.add(k.color() + k.name() + "§7: " + (t == null ? "§8-" : "§f" + duration(t) + " §7(" + state().fastestBy.get(k.id()) + ")"));
+        }
+        return out;
+    }
+
+    /** Whether the boss of the structure at this spot was beaten (it's resting now). */
+    public static boolean beaten(String key) {
+        return state().restUntil != null && state().restUntil.containsKey(key);
+    }
+
+    /** Whether this boss's fight has started there (it rose), or it was beaten. */
+    public static boolean spawnedAt(String key) {
+        return state().spawned.contains(key);
+    }
+
+    /** The key ("buried_vault@12,-40") of the vigil structure whose arena holds this spot, or null. */
+    public static String arenaAt(ServerWorld w, BlockPos pos) {
+        var structures = w.getRegistryManager().getOrThrow(RegistryKeys.STRUCTURE);
+        for (Kind k : KINDS.values()) {
+            Structure s = structures.get(Identifier.of("vigil", k.structure()));
+            if (s == null) {
+                continue;
+            }
+            var start = w.getStructureAccessor().getStructureAt(pos, s);
+            if (start != null && start.hasChildren() && start.getChildren().get(0).getBoundingBox().contains(pos)) {
+                return k.structure() + "@" + start.getPos().x + "," + start.getPos().z;
+            }
+        }
+        return null;
+    }
+
+    /** How long until this player may buy another structure map (millis; 0 = now). */
+    static long mapCooldown(UUID id, long cooldown) {
+        Long at = state().mapBought.get(id.toString());
+        return at == null ? 0 : Math.max(0, at + cooldown - System.currentTimeMillis());
+    }
+
+    static void mapBought(UUID id) {
+        state().mapBought.put(id.toString(), System.currentTimeMillis());
+        save();
+    }
+
+    public static boolean hasBoss(String structure) {
+        return KINDS.values().stream().anyMatch(k -> k.structure().equals(structure));
+    }
+
+    /** The boss's name for a structure ("buried_vault" -> "§8Deepslate Colossus"). */
+    public static String bossOf(String structure) {
+        for (Kind k : KINDS.values()) {
+            if (k.structure().equals(structure)) {
+                return k.color() + k.name();
+            }
+        }
+        return structure;
     }
 
     // ---------------------------------------------------------------- every tick

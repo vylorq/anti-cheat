@@ -444,6 +444,41 @@
           "type": "minecraft:item",
           "name": "minecraft:netherite_ingot",
           "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:compass",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_boss_compass:\"1\"}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Boss Compass",
+                "color": "#E0533D"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "Right-click: points to the nearest boss",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "that hasn't been beaten yet",
+                  "color": "gray",
+                  "italic": false
+                }
+              ]
+            }
+          ]
         }
       ]
     },

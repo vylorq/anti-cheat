@@ -527,6 +527,12 @@ final class WorldCommands {
     }
 
     private static void registerStats(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("bosses").executes(ctx -> {
+            for (String line : com.vylorq.anticheat.feature.Bosses.leaderboard()) {
+                ctx.getSource().sendFeedback(() -> Text.literal(line), false);
+            }
+            return 1;
+        }));
         d.register(literal("stats")
                 .executes(ctx -> {
                     ServerPlayerEntity p = self(ctx);

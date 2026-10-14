@@ -190,7 +190,17 @@ def bonus():
         item("golden_apple", 8, 1, 3), item("ender_pearl", 8, 2, 4), item("diamond", 9, 1, 4), item("emerald", 8, 3, 9),
         item("experience_bottle", 8, 4, 10), item("gold_ingot", 6, 3, 8), item("name_tag", 2), item("saddle", 2),
         item("netherite_scrap", 2, 1, 2), item("enchanted_golden_apple", 1), item("totem_of_undying", 1),
-        item("netherite_ingot", 1)]}
+        item("netherite_ingot", 1), boss_compass(2)]}
+
+
+def boss_compass(weight):
+    """The Boss Compass: points to the nearest boss nobody has beaten (StructureExtras.java knows it by its tag)."""
+    return {"type": "minecraft:item", "name": "minecraft:compass", "weight": weight, "functions": [
+        {"function": "minecraft:set_custom_data", "tag": "{vigil_boss_compass:\"1\"}"},
+        {"function": "minecraft:set_name", "target": "item_name", "name": {"text": "Boss Compass", "color": "#E0533D"}},
+        {"function": "minecraft:set_lore", "mode": "replace_all", "lore": [
+            {"text": "Right-click: points to the nearest boss", "color": "gray", "italic": False},
+            {"text": "that hasn't been beaten yet", "color": "gray", "italic": False}]}]}
 
 
 def book():
@@ -1169,6 +1179,10 @@ ROOMS = {
     "courtyard": (17, 17, "nsew", 2),
     "mess_hall": (15, 11, "nse", 2),
     "mine_tunnel": (7, 19, "ns", 2),
+    "flooded_room": (11, 13, "n", 2),
+    "lava_parkour": (11, 17, "ns", 2),
+    "collapsing_floor": (9, 17, "ns", 2),
+    "puzzle_room": (13, 11, "ns", 2),
 }
 H = 9  # floor y0, air 1..7, ceiling y8
 
@@ -1616,10 +1630,128 @@ def mine_tunnel(t, th, structure, w, d):
     mob_spawner(t, w - 2, 1, 13, th["mobs"], structure)
 
 
+def flooded_room(t, th, structure, w, d):
+    """A sunken pool behind a glass wall: climb over, dive for the chest at the bottom, mind the guards in the water."""
+    cx = w // 2
+    top = 5
+    # The glass wall that holds the water in, with a ladder up the near side.
+    for x in range(1, w - 1):
+        for y in range(1, top + 1):
+            t.set(x, y, 3, "glass")
+    for y in range(1, top + 1):
+        t.set(cx, y, 2, "ladder", facing="north", waterlogged=False)
+    # Glass sides and back too, so open-air themes don't spill.
+    for z in range(3, d - 1):
+        for y in range(1, top + 1):
+            t.set(1, y, z, "glass")
+            t.set(w - 2, y, z, "glass")
+    for x in range(1, w - 1):
+        for y in range(1, top + 1):
+            t.set(x, y, d - 2, "glass")
+    for x in range(2, w - 2):
+        for z in range(4, d - 2):
+            t.set(x, 0, z, "prismarine_bricks" if (x + z) % 2 else "dark_prismarine")
+            for y in range(1, top + 1):
+                t.set(x, y, z, "water", level=0)
+    for (x, z) in [(2, 4), (w - 3, 4), (2, d - 3), (w - 3, d - 3)]:
+        t.set(x, 0, z, "sea_lantern")
+    for (x, z) in [(3, 6), (w - 4, 8), (cx, d - 4)]:
+        if 4 <= z < d - 2:
+            t.set(x, 1, z, "kelp_plant")
+            t.set(x, 2, z, "kelp", age=20)
+    t.chest(cx, 1, d - 4, f"{structure}_room", facing="north", waterlogged=True)
+    mob_spawner(t, 2, 1, d - 4, [("drowned", 1)], structure)
+
+
+def lava_parkour(t, th, structure, w, d):
+    """A lava pit with stepping stones from door to door, and a chest at the end of a side ledge."""
+    cx = w // 2
+    stone = th["accent"] if th["accent"] not in ("dark_oak_log", "quartz_pillar") else th["floor"][1]
+    for x in range(1, w - 1):
+        # A lip at each end keeps the lava off the doorways.
+        _put(t, x, 1, 2, th["floor"][1])
+        _put(t, x, 1, d - 3, th["floor"][1])
+        for z in range(3, d - 3):
+            t.set(x, 1, z, "lava", level=0)
+    # A rim so open-air themes keep the lava in.
+    for z in range(2, d - 2):
+        _put(t, 0, 1, z, th["wall"])
+        _put(t, w - 1, 1, z, th["wall"])
+    import random as _r
+    r = _r.Random(len(structure) * 7 + w)
+    x = cx
+    lz = d // 2
+    for z in range(4, d - 3, 2):
+        x = cx if z == lz else max(2, min(w - 3, x + r.choice((-1, 0, 1))))
+        t.set(x, 1, z, stone)
+    # The ledge with the chest, off the middle stone.
+    for xx in range(cx + 1, w - 1):
+        t.set(xx, 1, lz, th["floor"][0])
+    t.chest(w - 2, 2, lz, f"{structure}_room", facing="west")
+    for z in (3, d - 4):
+        t.set(1, 3, z, th["light"])
+
+
+def collapsing_floor(t, th, structure, w, d):
+    """A gravel walkway high over a pit of magma: it gives way under your feet, so keep moving."""
+    cx = w // 2
+    deck = 3
+    # Steps up from each door to the walkway.
+    for (z, step) in [(1, 1), (2, 2), (d - 2, 1), (d - 3, 2)]:
+        for x in (cx - 1, cx, cx + 1):
+            for y in range(1, step + 1):
+                t.set(x, y, z, th["floor"][1])
+    # The pit: magma and cobwebs at the bottom.
+    for x in range(1, w - 1):
+        for z in range(3, d - 3):
+            t.set(x, 0, z, "magma_block")
+    for (x, z) in [(2, 5), (w - 3, 7), (3, d - 5)]:
+        if 3 <= z < d - 3:
+            t.set(x, 1, z, "cobweb")
+    # The walkway: gravel held up by nothing (the mod drops it once someone steps on it), a few safe stones.
+    for z in range(3, d - 3):
+        for x in (cx - 1, cx, cx + 1):
+            t.set(x, deck, z, th["floor"][1] if z % 4 == 0 and x == cx else "gravel")
+    t.chest(1, 1, d // 2, f"{structure}_room", facing="east")
+    mob_spawner(t, w - 2, 1, d // 2, th["mobs"], structure)
+
+
+def puzzle_room(t, th, structure, w, d):
+    """Four levers and a mural of lights: set the levers to match the lights and the copper wall in the corner opens."""
+    import random as _r
+    r = _r.Random(sum(map(ord, structure)))
+    answer = [r.random() < 0.5 for _ in range(4)]
+    while sum(answer) < 2:
+        answer[r.randrange(4)] = True
+    zs = [2, 3, 4, 5]
+    for i, z in enumerate(zs):
+        # The panel the lever sits on (the mod knows it by this block), the answer hidden in the wall behind it.
+        t.set(w - 2, 2, z, "waxed_chiseled_copper")
+        t.set(w - 1, 2, z, "glowstone" if answer[i] else th["wall"])
+        t.set(w - 3, 2, z, "lever", face="wall", facing="west", powered=False)
+        # The mural on the far wall shows the answer.
+        t.set(1, 3, z, "sea_lantern" if answer[i] else "coal_block")
+        t.set(1, 2, z, th["trim"] if th["trim"].endswith("bricks") else th["floor"][1])
+    # The closet in the corner: copper-faced, the chest inside.
+    x0, x1, z0, z1 = w - 5, w - 2, d - 6, d - 2
+    for x in range(x0, x1 + 1):
+        for z in range(z0, z1 + 1):
+            for y in range(1, 4):
+                edge = x in (x0, x1) or z in (z0, z1)
+                t.set(x, y, z, th["wall"] if edge else "air")
+    for x in (x0 + 1, x0 + 2):
+        for y in (1, 2):
+            t.set(x, y, z0, "waxed_cut_copper")
+    t.chest(x0 + 1, 1, z0 + 2, f"{structure}_room", facing="north")
+    t.set(x0 + 2, 1, z0 + 2, th["lantern"], hanging=False, waterlogged=False)
+    mob_spawner(t, 2, 1, d - 3, th["mobs"], structure)
+
+
 NEW_ROOMS = {"great_hall": great_hall, "barracks": barracks, "prison": prison, "library": library,
              "gauntlet": gauntlet, "armory": armory, "throne_room": throne_room, "crypt": crypt,
              "ritual_chamber": ritual_chamber, "storage_vault": storage_vault, "courtyard": courtyard,
-             "mess_hall": mess_hall, "mine_tunnel": mine_tunnel}
+             "mess_hall": mess_hall, "mine_tunnel": mine_tunnel, "flooded_room": flooded_room, "lava_parkour": lava_parkour,
+             "collapsing_floor": collapsing_floor, "puzzle_room": puzzle_room}
 
 
 def cap(structure):
@@ -1720,7 +1852,8 @@ def build():
     for item_id in RECIPES:
         write(f"recipe/{item_id}.json", recipe(item_id))
     for name, pools in CHESTS.items():
-        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [bonus(), book()]})
+        # The arena's altar chest: sealed until the boss is beaten, so it holds a little more.
+        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [bonus(), bonus(), book()]})
     for name, (fn, biomes, step, height, heightmap, spacing, sep, salt, terrain) in STRUCTURES.items():
         arena = arena_doors(name, fn())
         # The old single-piece name stays, so structures generated before still find their template.
