@@ -37,8 +37,8 @@
     {
       "rolls": {
         "type": "minecraft:uniform",
-        "min": 6,
-        "max": 9
+        "min": 4,
+        "max": 6
       },
       "entries": [
         {
@@ -50,8 +50,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 2,
-                "max": 4
+                "min": 1,
+                "max": 3
               }
             }
           ]
@@ -65,8 +65,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 2,
-                "max": 3
+                "min": 1,
+                "max": 2
               }
             }
           ]
@@ -80,8 +80,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 3,
-                "max": 9
+                "min": 2,
+                "max": 6
               }
             }
           ]
@@ -89,6 +89,51 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:emerald",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_ingot",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:arrow",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 12
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:cooked_beef",
           "weight": 6,
           "functions": [
             {
@@ -103,51 +148,6 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:iron_ingot",
-          "weight": 8,
-          "functions": [
-            {
-              "function": "minecraft:set_count",
-              "count": {
-                "type": "minecraft:uniform",
-                "min": 3,
-                "max": 9
-              }
-            }
-          ]
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:arrow",
-          "weight": 6,
-          "functions": [
-            {
-              "function": "minecraft:set_count",
-              "count": {
-                "type": "minecraft:uniform",
-                "min": 6,
-                "max": 18
-              }
-            }
-          ]
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:cooked_beef",
-          "weight": 6,
-          "functions": [
-            {
-              "function": "minecraft:set_count",
-              "count": {
-                "type": "minecraft:uniform",
-                "min": 3,
-                "max": 9
-              }
-            }
-          ]
-        },
-        {
-          "type": "minecraft:item",
           "name": "minecraft:torch",
           "weight": 4,
           "functions": [
@@ -155,8 +155,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 6,
-                "max": 18
+                "min": 4,
+                "max": 12
               }
             }
           ]
@@ -170,8 +170,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 3,
-                "max": 9
+                "min": 2,
+                "max": 6
               }
             }
           ]
@@ -181,10 +181,14 @@
     {
       "rolls": {
         "type": "minecraft:uniform",
-        "min": 2,
-        "max": 4
+        "min": 1,
+        "max": 2
       },
       "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 3
+        },
         {
           "type": "minecraft:item",
           "name": "minecraft:iron_sword",
@@ -315,7 +319,7 @@
               "count": {
                 "type": "minecraft:uniform",
                 "min": 1,
-                "max": 4
+                "max": 3
               }
             }
           ]
@@ -330,7 +334,7 @@
               "count": {
                 "type": "minecraft:uniform",
                 "min": 2,
-                "max": 5
+                "max": 4
               }
             }
           ]
@@ -345,7 +349,7 @@
               "count": {
                 "type": "minecraft:uniform",
                 "min": 1,
-                "max": 5
+                "max": 4
               }
             }
           ]
@@ -359,8 +363,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 4,
-                "max": 11
+                "min": 3,
+                "max": 9
               }
             }
           ]
@@ -374,8 +378,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 5,
-                "max": 12
+                "min": 4,
+                "max": 10
               }
             }
           ]
@@ -389,8 +393,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 4,
-                "max": 10
+                "min": 3,
+                "max": 8
               }
             }
           ]
@@ -442,7 +446,7 @@
       "entries": [
         {
           "type": "minecraft:empty",
-          "weight": 3
+          "weight": 9
         },
         {
           "type": "minecraft:item",
