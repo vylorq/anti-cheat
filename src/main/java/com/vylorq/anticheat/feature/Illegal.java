@@ -35,7 +35,8 @@ public final class Illegal {
     /** Scans an inventory, removing illegal items. Creative players are skipped. @return number removed */
     public static int scan(ServerPlayerEntity p, Inventory inv) {
         var cfg = Ac.config().illegalItems;
-        if (!cfg.enabled || p.isCreative() || p.isSpectator()) {
+        // The owner's own gear (say, a sword with Sharpness 255 from /owner enchant) is theirs to have.
+        if (!cfg.enabled || p.isCreative() || p.isSpectator() || com.vylorq.anticheat.perm.Perms.isOwner(p.getUuid())) {
             return 0;
         }
         int removed = 0;
