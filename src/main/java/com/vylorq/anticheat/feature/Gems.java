@@ -264,6 +264,9 @@ public final class Gems {
                 }
                 return null;
             }
+            case "gear" -> {
+                return Lifestyle.make(parts[1]);
+            }
             case "gem_tool" -> {
                 return parts.length < 3 ? null : gemTool(parts[1], parts[2]);
             }
@@ -356,6 +359,10 @@ public final class Gems {
                 ItemStack other = p.getStackInHand(hand == Hand.MAIN_HAND ? Hand.OFF_HAND : Hand.MAIN_HAND);
                 if (g != null && g.id().equals("sapphire") && SecretItems.BACKPACK.equals(SecretItems.idOf(other))) {
                     return SecretItems.upgradeBackpack(p, other, p.getStackInHand(hand)) ? ActionResult.SUCCESS : ActionResult.FAIL;
+                }
+                if (g != null && List.of("ruby", "sapphire", "topaz").contains(g.id()) && other.get(DataComponentTypes.EQUIPPABLE) != null
+                        && Lifestyle.socket(p, other, p.getStackInHand(hand), g.id())) {
+                    return ActionResult.SUCCESS;
                 }
                 if (g != null && g.id().equals("voidstone") && SecretItems.GRAPPLE.equals(SecretItems.idOf(other))) {
                     return SecretItems.upgradeHook(p, other, p.getStackInHand(hand)) ? ActionResult.SUCCESS : ActionResult.FAIL;

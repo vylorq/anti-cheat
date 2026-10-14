@@ -1557,8 +1557,139 @@ TOOLS = {"lightning_wand": ("blaze_rod", lightning_wand), "launch_stick": ("stic
          "thor_hammer": ("mace", thor_hammer), "flame_sword": ("golden_sword", flame_sword), "frost_bow": ("bow", frost_bow),
          "blast_bow": ("bow", blast_bow), "meteor_staff": ("magma_cream", meteor_staff), "disarm_gloves": ("leather", disarm_gloves),
          "orbital_cannon": ("prismarine_crystals", orbital_cannon), "godslayer": ("netherite_sword", godslayer)}
+def climbing_claws():
+    """Climbing Claws: an iron glove with three hooked claws."""
+    return pix([
+        "................",
+        "....C...C...C...",
+        "...CL..CL..CL...",
+        "...CL..CL..CL...",
+        "...IL..IL..IL...",
+        "...IIIIIIIIII...",
+        "..IIHHHHHHHHII..",
+        "..IHHHHHHHHHHI..",
+        "..IHHHHHHHHHHI..",
+        "..IIHHHHHHHHII..",
+        "...IIIIIIIIII...",
+        "....BBBBBBBB....",
+        "....BLLLLLLB....",
+        "....BBBBBBBB....",
+        "................",
+        "................"], {"C": "#e8ecf0", "L": "#9aa2ad", "I": "#5a616b", "H": "#7d8590", "B": "#5a3a1e"})
+
+
+def sleeping_bag():
+    """A rolled-up red sleeping bag tied with two straps."""
+    return pix([
+        "................",
+        "................",
+        "....RRRRRRRR....",
+        "...RRWWRRRRRR...",
+        "..RRWWRRRRRRRR..",
+        "..RSSRRRRRSSRR..",
+        "..RSSRRRRRSSRR..",
+        "..RRRRRRRRRRRR..",
+        "..RRRRRRRRRRRR..",
+        "..RSSRRRRRSSRR..",
+        "..RSSRRRRRSSRR..",
+        "..DRRRRRRRRRRD..",
+        "...DDDDDDDDDD...",
+        "................",
+        "................",
+        "................"], {"R": "#b8322a", "W": "#e8605a", "S": "#4a2a14", "D": "#7a1a14"})
+
+
+def pepper():
+    """A red chili pepper with a green stem."""
+    return pix([
+        "................",
+        "..........GG....",
+        ".........GG.....",
+        "........RRR.....",
+        ".......RRWR.....",
+        "......RRWRR.....",
+        ".....RRRRRR.....",
+        "....RRRRRD......",
+        "...RRRRRD.......",
+        "..RRRRRD........",
+        "..RRRRD.........",
+        ".RRRDD..........",
+        ".RRD............",
+        ".RD.............",
+        "................",
+        "................"], {"R": "#d4281c", "W": "#ff7a5a", "D": "#8a140c", "G": "#4a9a2a"})
+
+
+def rice():
+    """A bundle of golden rice stalks."""
+    return pix([
+        "......Y..Y......",
+        ".....YY.YY..Y...",
+        "...Y.YY.YY.YY...",
+        "...YY.Y.Y..Y....",
+        "....Y.YYY.Y.....",
+        ".....YYYYY......",
+        "......GGG.......",
+        "......GGG.......",
+        "......BBB.......",
+        "......GGG.......",
+        "......GGG.......",
+        ".....GG.GG......",
+        "....GG...GG.....",
+        "................",
+        "................",
+        "................"], {"Y": "#f0d070", "G": "#9aa040", "B": "#7a4a1a"})
+
+
+def seeds(c1, c2):
+    return pix([
+        "................",
+        "................",
+        "................",
+        "......A.........",
+        "........B..A....",
+        "....B...........",
+        ".......A...B....",
+        "..A.........A...",
+        ".....B..A.......",
+        "...A........B...",
+        "........B.......",
+        "....A.....A.....",
+        "................",
+        "................",
+        "................",
+        "................"], {"A": c1, "B": c2})
+
+
+def stew(top, bits):
+    return pix([
+        "................",
+        "................",
+        "................",
+        "................",
+        "................",
+        "..WWWWWWWWWWWW..",
+        ".WTTTTTTTTTTTTW.",
+        ".WTXTTXTTTXTTTW.",
+        ".BWTTTXTTTTXTWB.",
+        "..BWWWWWWWWWWB..",
+        "...BBBBBBBBBB...",
+        "....BBBBBBBB....",
+        ".....BBBBBB.....",
+        "................",
+        "................",
+        "................"], {"W": "#8a5a2a", "B": "#5a3a1a", "T": top, "X": bits})
+
+
 # Plain (not hand-held) items.
-FLAT = {"home_teleporter": ("echo_shard", home_teleporter), "rune_circle": ("light_blue_stained_glass_pane", rune_circle)}
+FLAT = {"home_teleporter": ("echo_shard", home_teleporter), "rune_circle": ("light_blue_stained_glass_pane", rune_circle),
+        "climbing_claws": ("iron_nugget", climbing_claws), "sleeping_bag": ("leather", sleeping_bag),
+        "pepper": ("beetroot", pepper), "rice": ("wheat", rice),
+        "pepper_seeds": ("beetroot_seeds", lambda: seeds("#e8c070", "#d4281c")),
+        "rice_seeds": ("wheat_seeds", lambda: seeds("#f0e0a0", "#c8b070")),
+        "glowberry_seeds": ("sweet_berries", lambda: seeds("#ffd24a", "#ff9a2a")),
+        "spicy_stew": ("rabbit_stew", lambda: stew("#c0401c", "#ff8a2a")),
+        "rice_bowl": ("mushroom_stew", lambda: stew("#f4eee0", "#d4281c"))}
 # Models that are cubes (the meteor flying down).
 CUBES = {"meteor": ("magma_block", meteor_texture)}
 ICON_ITEMS = {**{k: (v[0], (lambda rows=v[1], o=v[2]: grid(rows, o))) for k, v in ICONS.items()},

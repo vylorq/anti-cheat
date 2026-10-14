@@ -338,6 +338,30 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void lifestyleItemsAndSockets(TestContext ctx) {
+        var w = ctx.getWorld();
+        check("claws".equals(com.vylorq.anticheat.feature.Lifestyle.gearOf(com.vylorq.anticheat.feature.Lifestyle.claws())), "no claws");
+        check("sleeping_bag".equals(com.vylorq.anticheat.feature.Lifestyle.gearOf(com.vylorq.anticheat.feature.Lifestyle.sleepingBag())), "no bag");
+        for (String c : java.util.List.of("pepper", "rice", "pepper_seeds", "rice_seeds", "glowberry_seeds")) {
+            check(c.equals(com.vylorq.anticheat.feature.Lifestyle.cropOf(com.vylorq.anticheat.feature.Lifestyle.crop(c, 1))), "no " + c);
+        }
+        var p = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Jeweller"));
+        var chest = new net.minecraft.item.ItemStack(net.minecraft.item.Items.IRON_CHESTPLATE);
+        var gem = com.vylorq.anticheat.feature.Gems.gem(com.vylorq.anticheat.feature.Gems.all().stream()
+                .filter(g -> g.id().equals("ruby")).findFirst().orElseThrow(), 2);
+        check(com.vylorq.anticheat.feature.Lifestyle.socketForTest(p, chest, gem, "ruby"), "the ruby didn't go in");
+        check(gem.getCount() == 1, "the ruby wasn't used up");
+        var mods = chest.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
+        check(mods != null && mods.modifiers().stream().anyMatch(m -> m.attribute().equals(net.minecraft.entity.attribute.EntityAttributes.MAX_HEALTH)),
+                "no extra health on the chestplate");
+        check(mods.modifiers().stream().anyMatch(m -> m.attribute().equals(net.minecraft.entity.attribute.EntityAttributes.ARMOR)),
+                "the chestplate lost its own armor");
+        com.vylorq.anticheat.feature.Lifestyle.socketForTest(p, chest, gem, "ruby");
+        check(gem.getCount() == 1, "a second gem went in");
+        ctx.complete();
+    }
+
+    @GameTest
     public void leverPuzzleOpensTheWall(TestContext ctx) {
         var w = ctx.getWorld();
         // Three levers on copper panels, facing west; the answer behind them: on, off, on.

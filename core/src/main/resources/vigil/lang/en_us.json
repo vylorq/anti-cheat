@@ -3135,5 +3135,11 @@
   "statue.built": "A statue of {0} stands before you. /owner statue undo removes it.",
   "statue.nothing": "No statue to remove.",
   "statue.removed": "The statue is gone; everything is back as it was.",
-  "fireworks.started": "A {0}-second fireworks show begins!"
+  "fireworks.started": "A {0}-second fireworks show begins!",
+  "bag.not-night": "You can only sleep at night.",
+  "bag.monsters": "You can't rest now; there are monsters nearby.",
+  "bag.resting": "You curl up in your sleeping bag... (move to get up)",
+  "bag.morning": "Good morning!",
+  "socket.already": "This piece already has a gem.",
+  "socket.done": "The gem is set into your armor."
 }

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "P",
+    "F"
+  ],
+  "key": {
+    "P": "minecraft:oak_pressure_plate",
+    "F": "minecraft:oak_fence"
+  },
+  "result": {
+    "id": "minecraft:oak_fence",
+    "count": 1,
+    "components": {
+      "minecraft:item_name": {
+        "text": "Table",
+        "color": "#d6b07a"
+      },
+      "minecraft:custom_data": {
+        "vigil_decor": "table"
+      }
+    }
+  }
+}

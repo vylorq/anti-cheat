@@ -1,0 +1,48 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:bowl",
+    {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:beetroot",
+      "nbt": "{vigil_crop:\"pepper\"}"
+    },
+    {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:wheat",
+      "nbt": "{vigil_crop:\"rice\"}"
+    },
+    "minecraft:cooked_beef"
+  ],
+  "result": {
+    "id": "minecraft:rabbit_stew",
+    "count": 1,
+    "components": {
+      "minecraft:item_name": {
+        "text": "Spicy Stew",
+        "color": "#ff6a2a"
+      },
+      "minecraft:consumable": {
+        "on_consume_effects": [
+          {
+            "type": "minecraft:apply_effects",
+            "effects": [
+              {
+                "id": "minecraft:fire_resistance",
+                "duration": 1200,
+                "amplifier": 0
+              }
+            ]
+          }
+        ]
+      },
+      "minecraft:item_model": "vigil:x2b19ee74f0",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x2b19ee74f0"
+        ]
+      }
+    }
+  }
+}
