@@ -96,6 +96,21 @@ modrinth_latest() {
   echo "  $project OK"
 }
 
+# Like modrinth, but a missing build just skips it (for the optional speed-up mods).
+modrinth_optional() {
+  local project="$1"
+  local url
+  url=$(curl -fsSL -G "https://api.modrinth.com/v2/project/$project/version" \
+        --data-urlencode "game_versions=[\"$MC_VERSION\"]" \
+        --data-urlencode 'loaders=["fabric"]' | jq -r '.[0].files[] | select(.primary) | .url' 2>/dev/null | head -1)
+  if [ -z "$url" ] || [ "$url" = "null" ]; then
+    echo "  $project skipped (no build for $MC_VERSION)"
+    return 0
+  fi
+  rm -f "mods/$project"-*.jar mods/"${project^}"-*.jar
+  curl -fsSL -o "mods/$project-$MC_VERSION.jar" "$url" && echo "  $project OK"
+}
+
 say "Downloading Fabric API, Floodgate and ViaFabric"
 modrinth fabric-api
 modrinth floodgate
@@ -104,6 +119,10 @@ modrinth floodgate
 modrinth viafabric
 modrinth_latest viaversion
 modrinth_latest viabackwards
+say "Downloading speed-up mods (Lithium, FerriteCore) and the spark lag profiler"
+modrinth_optional lithium
+modrinth_optional ferrite-core
+modrinth_optional spark
 # Geyser now runs as its own program (always the newest, so every Bedrock version works); remove the old mod.
 rm -f mods/geyser-*.jar mods/Geyser-*.jar
 # The mod is now called Vigil: replace the old jar and move its data folder (while the server is stopped).
