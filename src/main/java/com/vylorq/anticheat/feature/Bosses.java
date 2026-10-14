@@ -203,7 +203,7 @@ public final class Bosses {
         /** Structure mobs players killed in each structure ("sunken_vault@12,-40" -> kills). */
         public Map<String, Integer> kills = new HashMap<>();
         /** How many of a structure's mobs must die before its boss wakes. */
-        public int killsToWake = 30;
+        public int killsToWake = 10;
         /** Beaten structures rest until then (millis): no spawner mobs, and then the boss can rise again. */
         public Map<String, Long> restUntil = new HashMap<>();
         /** How many days a structure rests after its boss is beaten. */
@@ -232,6 +232,9 @@ public final class Bosses {
             }
             if (state.spawned == null) {
                 state.spawned = new HashSet<>();
+            }
+            if (state.killsToWake == 30) {
+                state.killsToWake = 10;   // the old default: far too many
             }
         }
         return state;
@@ -689,7 +692,7 @@ public final class Bosses {
 
     private static void checkPlayers() {
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
-            if (p.isSpectator() || p.isCreative()) {
+            if (p.isSpectator()) {
                 continue;
             }
             ServerWorld w = p.getEntityWorld();
@@ -721,7 +724,7 @@ public final class Bosses {
                     continue;
                 }
                 int left = killsLeft(key);
-                if (left > 0) {
+                if (left > 0 && !p.isCreative()) {
                     // Asleep until enough of the structure's mobs are dead.
                     Msg.actionBar(p, "§c" + Msg.trFor(p, "boss.asleep", left));
                     continue;
