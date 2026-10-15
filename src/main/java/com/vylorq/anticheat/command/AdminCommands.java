@@ -358,6 +358,25 @@ public final class AdminCommands {
                             }
                         })))));
         owner.then(enchant);
+        var build = literal("build");
+        for (String b : com.vylorq.anticheat.feature.OwnerWorld.BUILDS) {
+            build.then(literal(b).executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerWorld.build(p, b))));
+        }
+        owner.then(build);
+        owner.then(literal("world").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerWorldMenu::world)));
+        owner.then(literal("tracker").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerWorldMenu::tracker)));
+        owner.then(literal("give").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.GiveMenu::open)));
+        owner.then(literal("worldtools").executes(ctx -> owner(ctx, p -> {
+            if (com.vylorq.anticheat.feature.OwnerPowers.require(p)) {
+                com.vylorq.anticheat.feature.OwnerWorld.tools().forEach(t -> p.getInventory().offerOrDrop(t));
+            }
+        })));
+        owner.then(literal("worldundo").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerWorld::undo)));
+        owner.then(literal("brush").then(CommandManager.argument("radius", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 16))
+                .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerWorld.setRadius(p, com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "radius"))))));
+        owner.then(literal("reset").then(literal("cancel").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerWorld::cancelReset)))
+                .then(CommandManager.argument("radius", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 8))
+                        .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerWorld.queueReset(p, com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "radius"))))));
         owner.then(literal("smite").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerCombat::smite)));
         owner.then(literal("items").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::items)));
         owner.then(literal("pack").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerPowers::sendPack)));

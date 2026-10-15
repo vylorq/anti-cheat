@@ -112,6 +112,12 @@ public final class OwnerMenu {
                     .desc(Msg.tr("owner.combat.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> combat(pl));
             menu.set(40, Btn.of(icon(Items.PAINTING, "icon_pack")).color(Theme.SOFT).name(Msg.tr("owner.pack")).desc(Msg.tr("owner.pack.desc"))
                     .left(Msg.tr("owner.pack-send")).build(), null, (pl, c) -> OwnerPowers.sendPack(pl));
+            menu.set(37, Btn.of(Items.GRASS_BLOCK).color(Theme.GOLD_LIGHT).name(Msg.tr("wmenu.title"))
+                    .desc(Msg.tr("wmenu.desc")).left(Msg.tr("owner.open")).build(), null, (pl, c) -> OwnerWorldMenu.world(pl));
+            menu.set(39, Btn.of(Items.SPYGLASS).color(Theme.GOLD_LIGHT).name(Msg.tr("tracker.title"))
+                    .desc(Msg.tr("tracker.desc")).left(Msg.tr("owner.open")).build(), null, (pl, c) -> OwnerWorldMenu.tracker(pl));
+            menu.set(41, Btn.of(Items.CHEST).color(Theme.GOLD_LIGHT).name(Msg.tr("give.title"))
+                    .desc(Msg.tr("give.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> GiveMenu.open(pl));
             menu.set(42, Btn.of(secretIcon("stormbreaker")).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.secrets"))
                     .desc(Msg.tr("owner.secrets.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> secrets(pl));
         });
