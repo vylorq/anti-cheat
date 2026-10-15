@@ -338,6 +338,22 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void ownerWorldBuildAndUndo(TestContext ctx) {
+        var w = ctx.getWorld();
+        var owner = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Mason"));
+        BlockPos at = ctx.getAbsolutePos(new BlockPos(1, 2, 1));
+        owner.refreshPositionAndAngles(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, 0, 0);
+        BlockPos floor = at.offset(owner.getHorizontalFacing(), 3).down();
+        var was = w.getBlockState(floor);
+        com.vylorq.anticheat.feature.OwnerWorld.buildForTest(owner, "house");
+        check(w.getBlockState(floor).isOf(net.minecraft.block.Blocks.COBBLESTONE), "the house has no floor");
+        check(com.vylorq.anticheat.feature.OwnerWorld.undoForTest(owner) > 0, "nothing to undo after a build");
+        check(w.getBlockState(floor) == was, "undo didn't put the ground back");
+        check(com.vylorq.anticheat.feature.OwnerWorld.undoForTest(owner) < 0, "undo stack should be empty");
+        ctx.complete();
+    }
+
+    @GameTest
     public void lifestyleItemsAndSockets(TestContext ctx) {
         var w = ctx.getWorld();
         check("claws".equals(com.vylorq.anticheat.feature.Lifestyle.gearOf(com.vylorq.anticheat.feature.Lifestyle.claws())), "no claws");
