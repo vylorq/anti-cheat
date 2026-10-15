@@ -3210,5 +3210,19 @@
   "give.offline": "§cThat player is offline.",
   "give.given": "§aGave {0}× {1} to {2}.",
   "give.level": "Level {0}",
-  "give.not-normal": "Doesn't normally go on this item"
+  "give.not-normal": "Doesn't normally go on this item",
+  "worldcontent.title": "Bosses & Structures",
+  "worldcontent.desc": "Turn bosses and structures on or off. Off structures stop appearing in new land (built ones stay); off bosses won't rise and any that are fighting leave.",
+  "worldcontent.all-bosses": "All bosses",
+  "worldcontent.all-structures": "All structures",
+  "worldcontent.structure": "Structure: {0}",
+  "worldcontent.boss": "Boss: {0}",
+  "worldcontent.boss-on": "§aOn: the boss rises",
+  "worldcontent.boss-off": "§cOff: no boss here",
+  "worldcontent.structure-on": "§aOn: generates in new land",
+  "worldcontent.structure-off": "§cOff: no new ones (built ones stay)",
+  "worldcontent.bosses-on-msg": "§aBosses are on.",
+  "worldcontent.bosses-off-msg": "§cBosses are off.",
+  "worldcontent.structures-on-msg": "§aStructures are on.",
+  "worldcontent.structures-off-msg": "§cStructures are off: no new ones generate (built ones stay)."
 }

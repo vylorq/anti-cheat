@@ -363,6 +363,17 @@ public final class AdminCommands {
             quick.then(literal(b).executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerWorld.build(p, b))));
         }
         owner.then(quick);
+        for (String what : java.util.List.of("bosses", "structures")) {
+            for (boolean on : new boolean[]{true, false}) {
+                owner.then(literal(what).then(literal(on ? "on" : "off").executes(ctx -> owner(ctx, p -> {
+                    if (com.vylorq.anticheat.feature.OwnerPowers.require(p)) {
+                        com.vylorq.anticheat.feature.ContentToggles.set(what, on);
+                        Msg.send(p, "worldcontent." + what + (on ? "-on-msg" : "-off-msg"));
+                    }
+                }))));
+            }
+        }
+        owner.then(literal("worldcontent").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::worldContent)));
         owner.then(literal("world").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerWorldMenu::world)));
         owner.then(literal("tracker").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerWorldMenu::tracker)));
         owner.then(literal("give").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.GiveMenu::open)));

@@ -3210,5 +3210,19 @@
   "give.offline": "§cهذا اللاعب غير متصل.",
   "give.given": "§aتم إعطاء {0}× {1} إلى {2}.",
   "give.level": "المستوى {0}",
-  "give.not-normal": "لا يوضع عادة على هذا العنصر"
+  "give.not-normal": "لا يوضع عادة على هذا العنصر",
+  "worldcontent.title": "الزعماء والمباني",
+  "worldcontent.desc": "شغّل أو أطفئ الزعماء والمباني. المباني المطفأة لا تظهر في الأراضي الجديدة (الموجودة تبقى)، والزعماء المطفؤون لا يظهرون ومن يقاتل منهم يغادر.",
+  "worldcontent.all-bosses": "كل الزعماء",
+  "worldcontent.all-structures": "كل المباني",
+  "worldcontent.structure": "مبنى: {0}",
+  "worldcontent.boss": "زعيم: {0}",
+  "worldcontent.boss-on": "§aمشغّل: الزعيم يظهر",
+  "worldcontent.boss-off": "§cمطفأ: لا زعيم هنا",
+  "worldcontent.structure-on": "§aمشغّل: يظهر في الأراضي الجديدة",
+  "worldcontent.structure-off": "§cمطفأ: لا جديد (الموجود يبقى)",
+  "worldcontent.bosses-on-msg": "§aالزعماء مشغّلون.",
+  "worldcontent.bosses-off-msg": "§cالزعماء مطفؤون.",
+  "worldcontent.structures-on-msg": "§aالمباني مشغّلة.",
+  "worldcontent.structures-off-msg": "§cالمباني مطفأة: لا تظهر مبانٍ جديدة (الموجودة تبقى)."
 }

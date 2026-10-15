@@ -66,6 +66,25 @@ public final class ContentToggles {
         return !state().off.contains(key);
     }
 
+    /** Every structure the mod adds (bosses live in the first fifteen). */
+    public static final java.util.List<String> STRUCTURES;
+
+    static {
+        var all = new java.util.ArrayList<>(TestStructures.NAMES);
+        all.addAll(java.util.List.of("underground_lake", "volcano", "ruins"));
+        STRUCTURES = java.util.List.copyOf(all);
+    }
+
+    /** Whether new ones of this structure generate in fresh chunks. */
+    public static boolean structureOn(String name) {
+        return on("structures") && on("structure:" + name);
+    }
+
+    /** Whether this structure's boss can rise (off too when its structure is off). */
+    public static boolean bossOn(String structure) {
+        return on("bosses") && on("boss:" + structure) && structureOn(structure);
+    }
+
     public static void set(String key, boolean on) {
         if (on) {
             state().off.remove(key);

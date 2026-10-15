@@ -338,6 +338,21 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void bossAndStructureSwitches(TestContext ctx) {
+        check(com.vylorq.anticheat.feature.ContentToggles.bossOn("sky_island"), "bosses should start on");
+        com.vylorq.anticheat.feature.ContentToggles.set("structure:sky_island", false);
+        boolean bossOff = !com.vylorq.anticheat.feature.ContentToggles.bossOn("sky_island");
+        boolean structOff = !com.vylorq.anticheat.feature.ContentToggles.structureOn("sky_island");
+        com.vylorq.anticheat.feature.ContentToggles.set("structure:sky_island", true);
+        check(bossOff && structOff, "turning a structure off should turn it and its boss off");
+        com.vylorq.anticheat.feature.ContentToggles.set("bosses", false);
+        boolean allOff = !com.vylorq.anticheat.feature.ContentToggles.bossOn("void_spire");
+        com.vylorq.anticheat.feature.ContentToggles.set("bosses", true);
+        check(allOff, "the all-bosses switch didn't work");
+        ctx.complete();
+    }
+
+    @GameTest
     public void ownerWorldBuildAndUndo(TestContext ctx) {
         var w = ctx.getWorld();
         var owner = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Mason"));
