@@ -40,6 +40,7 @@
     "RedstoneClockMixin",
     "ServerCommonNetworkHandlerMixin",
     "ServerPlayNetworkHandlerMixin",
+    "StructureMixin",
     "TntBlockMixin",
     "TntEntityMixin",
     "VillagerEntityMixin",

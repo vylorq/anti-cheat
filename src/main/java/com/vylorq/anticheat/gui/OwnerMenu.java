@@ -118,6 +118,8 @@ public final class OwnerMenu {
                     .desc(Msg.tr("tracker.desc")).left(Msg.tr("owner.open")).build(), null, (pl, c) -> OwnerWorldMenu.tracker(pl));
             menu.set(41, Btn.of(Items.CHEST).color(Theme.GOLD_LIGHT).name(Msg.tr("give.title"))
                     .desc(Msg.tr("give.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> GiveMenu.open(pl));
+            menu.set(43, Btn.of(Items.WITHER_SKELETON_SKULL).color(Theme.GOLD_LIGHT).name(Msg.tr("worldcontent.title"))
+                    .desc(Msg.tr("worldcontent.desc")).left(Msg.tr("owner.open")).build(), null, (pl, c) -> worldContent(pl));
             menu.set(42, Btn.of(secretIcon("stormbreaker")).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.secrets"))
                     .desc(Msg.tr("owner.secrets.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> secrets(pl));
         });
@@ -541,6 +543,47 @@ public final class OwnerMenu {
                     menu.refresh();
                 },
                 Content::name, List.of(), Msg.tr("owner.items.none"), ""));
+        m.open(p);
+    }
+
+    private static String pretty(String id) {
+        StringBuilder b = new StringBuilder();
+        for (String w : id.split("_")) {
+            b.append(b.isEmpty() ? "" : " ").append(Character.toUpperCase(w.charAt(0))).append(w.substring(1));
+        }
+        return b.toString();
+    }
+
+    /** Bosses and structures on or off: all at once, or one by one. */
+    public static void worldContent(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        List<Content> all = new ArrayList<>();
+        all.add(new Content("bosses", new ItemStack(Items.WITHER_SKELETON_SKULL), Msg.trFor(p, "worldcontent.all-bosses")));
+        all.add(new Content("structures", new ItemStack(Items.MOSSY_STONE_BRICKS), Msg.trFor(p, "worldcontent.all-structures")));
+        for (String s : com.vylorq.anticheat.feature.ContentToggles.STRUCTURES) {
+            all.add(new Content("structure:" + s, new ItemStack(Items.STONE_BRICKS), Msg.trFor(p, "worldcontent.structure", pretty(s))));
+            if (com.vylorq.anticheat.feature.TestStructures.NAMES.contains(s)) {
+                all.add(new Content("boss:" + s, new ItemStack(Items.SKELETON_SKULL), Msg.trFor(p, "worldcontent.boss", pretty(s))));
+            }
+        }
+        Menu m = Menu.std(Category.VIGIL, Msg.trFor(p, "owner.title"), Msg.trFor(p, "worldcontent.title"));
+        m.renderer(menu -> {
+            menu.info(Btn.of(Items.WITHER_SKELETON_SKULL).name(Category.VIGIL, Msg.tr("worldcontent.title")).desc(Msg.tr("worldcontent.desc")).build());
+            menu.list(all, x -> {
+                        boolean on = com.vylorq.anticheat.feature.ContentToggles.on(x.key());
+                        return Btn.of(x.icon().copy()).name(x.name()).onOff(on)
+                                .line(Msg.tr(x.key().startsWith("boss") ? (on ? "worldcontent.boss-on" : "worldcontent.boss-off")
+                                        : (on ? "worldcontent.structure-on" : "worldcontent.structure-off")))
+                                .left(Msg.tr("owner.toggle")).glint(on).build();
+                    },
+                    x -> (pl, c) -> {
+                        com.vylorq.anticheat.feature.ContentToggles.set(x.key(), !com.vylorq.anticheat.feature.ContentToggles.on(x.key()));
+                        menu.refresh();
+                    },
+                    Content::name, List.of(), Msg.tr("owner.items.none"), "");
+        });
         m.open(p);
     }
 

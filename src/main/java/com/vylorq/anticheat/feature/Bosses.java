@@ -891,7 +891,7 @@ public final class Bosses {
             var structures = w.getRegistryManager().getOrThrow(RegistryKeys.STRUCTURE);
             for (Kind k : KINDS.values()) {
                 Structure s = structures.get(Identifier.of("vigil", k.structure()));
-                if (s == null) {
+                if (s == null || !ContentToggles.bossOn(k.structure())) {
                     continue;
                 }
                 var start = w.getStructureAccessor().getStructureAt(p.getBlockPos(), s);
@@ -1814,6 +1814,17 @@ public final class Bosses {
         now = ticks;
         if (ticks % 40 == 0) {
             checkPlayers();
+            // Bosses the owner just turned off leave.
+            List<MobEntity> off = new ArrayList<>();
+            for (Live l : LIVE.values()) {
+                if (!ContentToggles.bossOn(l.kind.structure())) {
+                    off.add(l.mob);
+                    if (l.key != null && state().spawned.remove(l.key)) {
+                        save();
+                    }
+                }
+            }
+            off.forEach(Entity::discard);
         }
         if (!THROWN.isEmpty()) {
             thrown();
