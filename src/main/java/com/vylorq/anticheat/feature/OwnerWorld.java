@@ -2,6 +2,7 @@ package com.vylorq.anticheat.feature;
 
 import com.vylorq.anticheat.Ac;
 import com.vylorq.anticheat.core.config.ConfigManager;
+import com.vylorq.anticheat.util.Icons;
 import com.vylorq.anticheat.util.ItemConv;
 import com.vylorq.anticheat.util.Msg;
 import net.minecraft.block.BlockState;

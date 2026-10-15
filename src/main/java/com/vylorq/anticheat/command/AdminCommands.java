@@ -358,11 +358,11 @@ public final class AdminCommands {
                             }
                         })))));
         owner.then(enchant);
-        var build = literal("build");
+        var quick = literal("quickbuild");
         for (String b : com.vylorq.anticheat.feature.OwnerWorld.BUILDS) {
-            build.then(literal(b).executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerWorld.build(p, b))));
+            quick.then(literal(b).executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerWorld.build(p, b))));
         }
-        owner.then(build);
+        owner.then(quick);
         owner.then(literal("world").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerWorldMenu::world)));
         owner.then(literal("tracker").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerWorldMenu::tracker)));
         owner.then(literal("give").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.GiveMenu::open)));
