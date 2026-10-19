@@ -348,10 +348,12 @@ public final class AntiCheatGameTests {
             int z = base.getZ() + 2000;
             var src = w.getServer().getCommandSource().withWorld(w).withSilent();
             int ok;
+            String err = "";
             try {
                 ok = w.getServer().getCommandManager().getDispatcher().execute("place structure vigil:" + name + " " + x + " 200 " + z, src);
             } catch (Exception e) {
                 ok = -1;
+                err = e.getMessage();
             }
             int far = 0;
             int blocks = 0;
@@ -366,7 +368,8 @@ public final class AntiCheatGameTests {
                     }
                 }
             }
-            report.append(name).append(": ok=").append(ok).append(" blocks=").append(blocks).append(" reach=").append(far).append("; ");
+            report.append(name).append(": ok=").append(ok).append(" err=").append(err).append(" biome=")
+                    .append(w.getBiome(new BlockPos(x, 200, z)).getIdAsString()).append(" blocks=").append(blocks).append(" reach=").append(far).append("; ");
             check(ok > 0 && far > 30, "structure rooms missing: " + report);
         }
         ctx.complete();
