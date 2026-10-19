@@ -337,41 +337,57 @@ public final class AntiCheatGameTests {
         ctx.complete();
     }
 
-    @GameTest(maxTicks = 400)
-    public void skyStructuresGrowTheirRooms(TestContext ctx) {
+    @GameTest(maxTicks = 1200)
+    public void everyStructureGrowsItsRooms(TestContext ctx) {
         var w = ctx.getWorld();
         BlockPos base = ctx.getAbsolutePos(new BlockPos(0, 0, 0));
-        StringBuilder report = new StringBuilder();
+        StringBuilder bad = new StringBuilder();
+        StringBuilder all = new StringBuilder();
         int i = 0;
-        for (String name : java.util.List.of("sky_island", "sky_citadel")) {
-            int x = base.getX() + 2000 + 600 * i++;
-            int z = base.getZ() + 2000;
+        for (String name : com.vylorq.anticheat.feature.TestStructures.NAMES) {
+            int x = base.getX() + 3000 + 400 * i++;
+            int z = base.getZ() + 3000;
+            int y = 140;
+            for (int cx = (x >> 4) - 10; cx <= (x >> 4) + 10; cx++) {
+                for (int cz = (z >> 4) - 10; cz <= (z >> 4) + 10; cz++) {
+                    w.getChunk(cx, cz);
+                }
+            }
             var src = w.getServer().getCommandSource().withWorld(w).withSilent();
             int ok;
             String err = "";
             try {
-                ok = w.getServer().getCommandManager().getDispatcher().execute("place structure vigil:" + name + " " + x + " 200 " + z, src);
+                ok = w.getServer().getCommandManager().getDispatcher()
+                        .execute("place jigsaw vigil:" + name + "/start vigil:door 12 " + x + " " + y + " " + z, src);
             } catch (Exception e) {
                 ok = -1;
                 err = e.getMessage();
             }
-            int far = 0;
-            int blocks = 0;
+            int minX = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE;
+            int minZ = Integer.MAX_VALUE;
+            int maxZ = Integer.MIN_VALUE;
             BlockPos.Mutable q = new BlockPos.Mutable();
-            for (int dx = -120; dx <= 120; dx += 2) {
-                for (int dz = -120; dz <= 120; dz += 2) {
-                    for (int y = 180; y <= 260; y += 2) {
-                        if (!w.getBlockState(q.set(x + dx, y, z + dz)).isAir()) {
-                            blocks++;
-                            far = Math.max(far, Math.max(Math.abs(dx), Math.abs(dz)));
+            for (int dx = -150; dx <= 150; dx += 2) {
+                for (int dz = -150; dz <= 150; dz += 2) {
+                    for (int yy = y - 30; yy <= y + 70; yy += 3) {
+                        if (!w.getBlockState(q.set(x + dx, yy, z + dz)).isAir()) {
+                            minX = Math.min(minX, dx);
+                            maxX = Math.max(maxX, dx);
+                            minZ = Math.min(minZ, dz);
+                            maxZ = Math.max(maxZ, dz);
                         }
                     }
                 }
             }
-            report.append(name).append(": ok=").append(ok).append(" err=").append(err).append(" biome=")
-                    .append(w.getBiome(new BlockPos(x, 200, z)).getIdAsString()).append(" blocks=").append(blocks).append(" reach=").append(far).append("; ");
-            check(ok > 0 && far > 30, "structure rooms missing: " + report);
+            int span = maxX < minX ? 0 : Math.max(maxX - minX, maxZ - minZ);
+            String line = name + "(ok=" + ok + (err.isEmpty() ? "" : " err=" + err) + " span=" + span + ") ";
+            all.append(line);
+            if (ok <= 0 || span < 60) {
+                bad.append(line);
+            }
         }
+        check(bad.isEmpty(), "structures without their rooms: " + bad + " | all: " + all);
         ctx.complete();
     }
 
