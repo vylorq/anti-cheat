@@ -120,6 +120,8 @@ public final class OwnerMenu {
                     .desc(Msg.tr("give.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> GiveMenu.open(pl));
             menu.set(43, Btn.of(Items.WITHER_SKELETON_SKULL).color(Theme.GOLD_LIGHT).name(Msg.tr("worldcontent.title"))
                     .desc(Msg.tr("worldcontent.desc")).left(Msg.tr("owner.open")).build(), null, (pl, c) -> worldContent(pl));
+            menu.set(44, Btn.of(Items.WHITE_BANNER).color(Theme.GOLD_LIGHT).name(Msg.tr("oteams.title"))
+                    .desc(Msg.tr("oteams.desc")).left(Msg.tr("owner.open")).build(), null, (pl, c) -> OwnerTeamsMenu.open(pl));
             menu.set(42, Btn.of(secretIcon("stormbreaker")).color(Theme.GOLD_LIGHT).name(Msg.tr("owner.secrets"))
                     .desc(Msg.tr("owner.secrets.desc")).left(Msg.tr("owner.open")).glint(true).build(), null, (pl, c) -> secrets(pl));
         });

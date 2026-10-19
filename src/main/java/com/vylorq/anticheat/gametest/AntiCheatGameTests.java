@@ -337,6 +337,41 @@ public final class AntiCheatGameTests {
         ctx.complete();
     }
 
+    @GameTest(maxTicks = 400)
+    public void skyStructuresGrowTheirRooms(TestContext ctx) {
+        var w = ctx.getWorld();
+        BlockPos base = ctx.getAbsolutePos(new BlockPos(0, 0, 0));
+        StringBuilder report = new StringBuilder();
+        int i = 0;
+        for (String name : java.util.List.of("sky_island", "sky_citadel")) {
+            int x = base.getX() + 2000 + 600 * i++;
+            int z = base.getZ() + 2000;
+            var src = w.getServer().getCommandSource().withWorld(w).withSilent();
+            int ok;
+            try {
+                ok = w.getServer().getCommandManager().getDispatcher().execute("place structure vigil:" + name + " " + x + " 200 " + z, src);
+            } catch (Exception e) {
+                ok = -1;
+            }
+            int far = 0;
+            int blocks = 0;
+            BlockPos.Mutable q = new BlockPos.Mutable();
+            for (int dx = -120; dx <= 120; dx += 2) {
+                for (int dz = -120; dz <= 120; dz += 2) {
+                    for (int y = 180; y <= 260; y += 2) {
+                        if (!w.getBlockState(q.set(x + dx, y, z + dz)).isAir()) {
+                            blocks++;
+                            far = Math.max(far, Math.max(Math.abs(dx), Math.abs(dz)));
+                        }
+                    }
+                }
+            }
+            report.append(name).append(": ok=").append(ok).append(" blocks=").append(blocks).append(" reach=").append(far).append("; ");
+            check(ok > 0 && far > 30, "structure rooms missing: " + report);
+        }
+        ctx.complete();
+    }
+
     @GameTest
     public void bossAndStructureSwitches(TestContext ctx) {
         check(com.vylorq.anticheat.feature.ContentToggles.bossOn("sky_island"), "bosses should start on");

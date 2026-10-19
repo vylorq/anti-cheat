@@ -2373,12 +2373,13 @@ def build_world_features():
             s["project_start_to_heightmap"] = heightmap
         write(f"worldgen/structure/{name}.json", s)
         write(f"worldgen/structure_set/{name}.json", {"structures": [{"structure": f"vigil:{name}", "weight": 1}],
-                                                      "placement": {"type": "minecraft:random_spread", "spacing": spacing,
-                                                                    "separation": sep, "salt": salt}})
+                                                      "placement": {"type": "minecraft:random_spread", "spacing": spacing * 2,
+                                                                    "separation": sep * 2, "salt": salt}})
     write("loot_table/chests/ruins.json", RUINS_LOOT)
 
 
 
+# Structures are rare: every spacing above is doubled when written (an owner asked for fewer of them).
 def build():
     for item_id in ITEMS:
         write(f"loot_table/items/{item_id}.json", item_loot(item_id))
@@ -2411,8 +2412,8 @@ def build():
             s["project_start_to_heightmap"] = heightmap
         write(f"worldgen/structure/{name}.json", s)
         write(f"worldgen/structure_set/{name}.json", {"structures": [{"structure": f"vigil:{name}", "weight": 1}],
-                                                      "placement": {"type": "minecraft:random_spread", "spacing": spacing,
-                                                                    "separation": sep, "salt": salt}})
+                                                      "placement": {"type": "minecraft:random_spread", "spacing": spacing * 2,
+                                                                    "separation": sep * 2, "salt": salt}})
     build_world_features()
     write("tags/worldgen/structure/secret.json", {"values": [f"vigil:{n}" for n in STRUCTURES]})
     import tempest
