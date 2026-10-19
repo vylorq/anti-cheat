@@ -337,6 +337,60 @@ public final class AntiCheatGameTests {
         ctx.complete();
     }
 
+    @GameTest(maxTicks = 1200)
+    public void everyStructureGrowsItsRooms(TestContext ctx) {
+        var w = ctx.getWorld();
+        BlockPos base = ctx.getAbsolutePos(new BlockPos(0, 0, 0));
+        StringBuilder bad = new StringBuilder();
+        StringBuilder all = new StringBuilder();
+        int i = 0;
+        for (String name : com.vylorq.anticheat.feature.TestStructures.NAMES) {
+            int x = base.getX() + 3000 + 400 * i++;
+            int z = base.getZ() + 3000;
+            int y = 140;
+            for (int cx = (x >> 4) - 10; cx <= (x >> 4) + 10; cx++) {
+                for (int cz = (z >> 4) - 10; cz <= (z >> 4) + 10; cz++) {
+                    w.getChunk(cx, cz);
+                }
+            }
+            var src = w.getServer().getCommandSource().withWorld(w).withSilent();
+            int ok;
+            String err = "";
+            try {
+                ok = w.getServer().getCommandManager().getDispatcher()
+                        .execute("place jigsaw vigil:" + name + "/start vigil:door 12 " + x + " " + y + " " + z, src);
+            } catch (Exception e) {
+                ok = -1;
+                err = e.getMessage();
+            }
+            int minX = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE;
+            int minZ = Integer.MAX_VALUE;
+            int maxZ = Integer.MIN_VALUE;
+            BlockPos.Mutable q = new BlockPos.Mutable();
+            for (int dx = -150; dx <= 150; dx += 2) {
+                for (int dz = -150; dz <= 150; dz += 2) {
+                    for (int yy = y - 30; yy <= y + 70; yy += 3) {
+                        if (!w.getBlockState(q.set(x + dx, yy, z + dz)).isAir()) {
+                            minX = Math.min(minX, dx);
+                            maxX = Math.max(maxX, dx);
+                            minZ = Math.min(minZ, dz);
+                            maxZ = Math.max(maxZ, dz);
+                        }
+                    }
+                }
+            }
+            int span = maxX < minX ? 0 : Math.max(maxX - minX, maxZ - minZ);
+            String line = name + "(ok=" + ok + (err.isEmpty() ? "" : " err=" + err) + " span=" + span + ") ";
+            all.append(line);
+            if (ok <= 0 || span < 60) {
+                bad.append(line);
+            }
+        }
+        check(bad.isEmpty(), "structures without their rooms: " + bad + " | all: " + all);
+        ctx.complete();
+    }
+
     @GameTest
     public void bossAndStructureSwitches(TestContext ctx) {
         check(com.vylorq.anticheat.feature.ContentToggles.bossOn("sky_island"), "bosses should start on");

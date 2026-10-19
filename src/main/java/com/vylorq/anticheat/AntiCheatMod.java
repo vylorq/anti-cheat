@@ -73,6 +73,7 @@ public final class AntiCheatMod implements ModInitializer {
         com.vylorq.anticheat.feature.Worldgen.register();
         com.vylorq.anticheat.feature.Lifestyle.register();
         com.vylorq.anticheat.feature.OwnerWorld.register();
+        com.vylorq.anticheat.feature.RecipeBook.register();
         com.vylorq.anticheat.feature.BuilderLog.register();
         com.vylorq.anticheat.feature.WorldEvents.register();
         com.vylorq.anticheat.feature.Watcher.register();

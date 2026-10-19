@@ -56,7 +56,7 @@ public final class InspectMenu {
         return Ac.server().getPlayerManager().getPlayer(id);
     }
 
-    private static String name(UUID id) {
+    static String name(UUID id) {
         ServerPlayerEntity p = online(id);
         if (p != null) {
             return p.getGameProfile().name();
