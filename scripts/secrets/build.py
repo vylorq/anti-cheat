@@ -1461,11 +1461,11 @@ def mob_spawner(t, x, y, z, mobs, structure):
                         "SpawnRange": Tag(2, 4), "Delay": Tag(2, 20)}
 
 
-def door(t, x, y, z, facing, structure, final):
+def door(t, x, y, z, facing, structure, final, pool="rooms"):
     """A jigsaw door in the floor on the edge of a piece, facing out."""
     t.set(x, y, z, "jigsaw", orientation=f"{facing}_up")
     t.nbt[(x, y, z)] = {"id": S("minecraft:jigsaw"), "name": S("vigil:door"), "target": S("vigil:door"),
-                        "pool": S(f"vigil:{structure}/rooms"), "final_state": S(f"minecraft:{final}"),
+                        "pool": S(f"vigil:{structure}/{pool}"), "final_state": S(f"minecraft:{final}"),
                         "joint": S("rollable"), "placement_priority": I(0), "selection_priority": I(0)}
 
 
@@ -2147,13 +2147,13 @@ def arena_doors(structure, t):
                     for y in range(fy, fy + 6):
                         _put(t, x, y, z, th["wall"])
         if side == "w":
-            door(t, 0, fy, along, "west", structure, th["floor"][0])
+            door(t, 0, fy, along, "west", structure, th["floor"][0], "first")
         elif side == "e":
-            door(t, X - 1, fy, along, "east", structure, th["floor"][0])
+            door(t, X - 1, fy, along, "east", structure, th["floor"][0], "first")
         elif side == "n":
-            door(t, along, fy, 0, "north", structure, th["floor"][0])
+            door(t, along, fy, 0, "north", structure, th["floor"][0], "first")
         else:
-            door(t, along, fy, Z - 1, "south", structure, th["floor"][0])
+            door(t, along, fy, Z - 1, "south", structure, th["floor"][0], "first")
     return t
 
 
@@ -2401,6 +2401,10 @@ def build():
         write(f"worldgen/template_pool/{name}/rooms.json",
               pool([(f"{name}/{k}", ROOMS[k][3]) for k in ROOMS], fallback=f"vigil:{name}/caps"))
         write(f"worldgen/template_pool/{name}/caps.json", pool([f"{name}/cap"]))
+        # Right outside the arena only rooms that lead on: a dead end there left some structures with hardly any rooms.
+        write(f"worldgen/template_pool/{name}/first.json",
+              pool([(f"{name}/{k}", ROOMS[k][3] * (2 if len(ROOMS[k][2]) >= 3 else 1)) for k in ROOMS if len(ROOMS[k][2]) >= 2],
+                   fallback=f"vigil:{name}/rooms"))
         # Room chests: the structure's everyday loot, now and then one of its secret items.
         write(f"loot_table/chests/{name}_room.json", {"type": "minecraft:chest", "pools": [
             CHESTS[name][-1], CHESTS[name][0], bonus(), book()]})
