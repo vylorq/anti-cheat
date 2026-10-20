@@ -79,8 +79,16 @@ public final class Joins {
         s.teleported();
         boolean newIp = ac.joins.recordJoin(p.getUuid(), name, s.ip);
         Ac.markDirty("joins");
-        ac.misc.firstJoin.putIfAbsent(p.getUuid(), now);
+        boolean firstTime = ac.misc.firstJoin.putIfAbsent(p.getUuid(), now) == null;
         Ac.markDirty("misc");
+        // New players start at the lobby spawn (set with /lobby setspawn).
+        if (firstTime && ac.lobby.data().spawn != null && Features.on(Features.Feature.LOBBY)) {
+            OwnerPowers.later(2, () -> {
+                if (!p.isRemoved() && !ac.jail.isJailed(p.getUuid()) && !WaitingRoomFeature.waiting(p)) {
+                    LobbyFeature.teleport(p);
+                }
+            });
+        }
         ac.logs.join(now, p.getUuid(), name, s.ip, "join" + (s.bedrock ? " (bedrock)" : ""));
         ac.warnings.startSession(p.getUuid());
 
