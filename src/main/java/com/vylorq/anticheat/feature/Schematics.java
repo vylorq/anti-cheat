@@ -56,7 +56,7 @@ public final class Schematics {
     }
 
     public static Path dir() {
-        return Ac.get().dir.resolve("schematics");
+        return Ac.get().dir.resolve("schematics").toAbsolutePath().normalize();
     }
 
     public static List<String> list() {
@@ -201,7 +201,7 @@ public final class Schematics {
         if (!OwnerPowers.require(p)) {
             return;
         }
-        Path f = dir().resolve(file).normalize();
+        Path f = dir().resolve(file).toAbsolutePath().normalize();
         if (!f.startsWith(dir()) || !Files.exists(f)) {
             Msg.send(p, "schem.not-found", file);
             return;
