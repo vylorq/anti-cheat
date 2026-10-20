@@ -137,6 +137,23 @@ public final class LobbyFeature {
         }
     }
 
+    /** Every second: hostile mobs that wander or spawn into the lobby vanish (named or mod mobs stay). */
+    public static void clearMobs() {
+        if (!Features.on(Features.Feature.LOBBY) || !Ac.get().lobby.isSet()) {
+            return;
+        }
+        var area = Ac.get().lobby.data().area;
+        ServerWorld w = Mc.world(Ac.server(), area.world);
+        if (w == null || w.getPlayers().isEmpty()) {
+            return;
+        }
+        var box = new net.minecraft.util.math.Box(area.minX, area.minY, area.minZ, area.maxX + 1, area.maxY + 1, area.maxZ + 1);
+        for (var m : w.getEntitiesByClass(net.minecraft.entity.mob.MobEntity.class, box,
+                m -> m instanceof net.minecraft.entity.mob.Monster && !m.hasCustomName() && m.getCommandTags().isEmpty())) {
+            m.discard();
+        }
+    }
+
     public static void tickPlayer(ServerPlayerEntity p) {
         if (!Features.on(Features.Feature.LOBBY)) {
             return;

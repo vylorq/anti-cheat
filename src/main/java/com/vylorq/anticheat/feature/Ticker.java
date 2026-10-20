@@ -72,6 +72,7 @@ public final class Ticker {
         Watcher.tick(server);
         if (ticks % 20 == 0) {
             everySecond(ac);
+            LobbyFeature.clearMobs();
         }
         if (ticks % 100 == 0) {
             Xray.flushAlerts();
