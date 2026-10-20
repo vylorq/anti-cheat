@@ -3249,5 +3249,15 @@
   "oteams.back.desc": "Back to where you were, in your old game mode.",
   "oteams.role.leader": "Leader",
   "oteams.role.officer": "Officer",
-  "oteams.role.member": "Member"
+  "oteams.role.member": "Member",
+  "schem.list": "§6Build files: §f{0}\n§7Folder: {1}",
+  "schem.not-found": "§cNo build file called {0}. See §e/owner schematic list§c.",
+  "schem.bad": "§cCouldn't read {0}: {1}",
+  "schem.building": "§aBuilding {0} ({1} blocks)…",
+  "schem.progress": "Building… {0}%",
+  "schem.done": "§aBuilt! {0} blocks. Undo: §e/owner worldundo",
+  "schem.bad-link": "§cThat's not a valid http(s) link.",
+  "schem.downloading": "§7Downloading {0}…",
+  "schem.downloaded": "§aSaved {0}. Build it with §e/owner schematic paste {0}",
+  "schem.download-failed": "§cDownload failed: {0}"
 }

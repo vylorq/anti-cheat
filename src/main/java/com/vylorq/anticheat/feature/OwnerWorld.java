@@ -82,6 +82,13 @@ public final class OwnerWorld {
         }
     }
 
+    /** Records a finished change (blocks as they were before) so /owner worldundo can put it back. */
+    public static void pushUndo(ServerPlayerEntity p, Map<BlockPos, BlockState> before) {
+        Change c = new Change(p.getEntityWorld());
+        c.before.putAll(before);
+        c.done(p);
+    }
+
     public static void undo(ServerPlayerEntity p) {
         if (!OwnerPowers.require(p)) {
             return;

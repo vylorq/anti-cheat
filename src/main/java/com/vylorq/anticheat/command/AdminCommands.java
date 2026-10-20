@@ -363,6 +363,24 @@ public final class AdminCommands {
             quick.then(literal(b).executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.OwnerWorld.build(p, b))));
         }
         owner.then(quick);
+        var schem = literal("schematic");
+        schem.then(literal("list").executes(ctx -> owner(ctx, p -> {
+            if (com.vylorq.anticheat.feature.OwnerPowers.require(p)) {
+                var files = com.vylorq.anticheat.feature.Schematics.list();
+                Msg.send(p, "schem.list", files.isEmpty() ? "-" : String.join(", ", files), com.vylorq.anticheat.feature.Schematics.dir().toString());
+            }
+        })));
+        var file = CommandManager.argument("file", StringArgumentType.string())
+                .suggests((c, b) -> {
+                    com.vylorq.anticheat.feature.Schematics.list().forEach(n -> b.suggest(StringArgumentType.escapeIfRequired(n)));
+                    return b.buildFuture();
+                });
+        schem.then(literal("paste").then(file
+                .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.Schematics.paste(p, StringArgumentType.getString(ctx, "file"), true)))
+                .then(literal("noair").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.Schematics.paste(p, StringArgumentType.getString(ctx, "file"), false))))));
+        schem.then(literal("download").then(CommandManager.argument("url", StringArgumentType.greedyString())
+                .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.Schematics.download(p, StringArgumentType.getString(ctx, "url"))))));
+        owner.then(schem);
         owner.then(literal("teams").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerTeamsMenu::open)));
         owner.then(literal("back").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerTeamsMenu::back)));
         for (String what : java.util.List.of("bosses", "structures")) {
