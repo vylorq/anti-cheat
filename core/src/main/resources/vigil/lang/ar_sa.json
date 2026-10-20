@@ -3259,5 +3259,8 @@
   "schem.bad-link": "§cهذا ليس رابط http(s) صالحاً.",
   "schem.downloading": "§7جارٍ تنزيل {0}…",
   "schem.downloaded": "§aتم حفظ {0}. ابنِه بـ §e/owner schematic paste {0}",
-  "schem.download-failed": "§cفشل التنزيل: {0}"
+  "schem.download-failed": "§cفشل التنزيل: {0}",
+  "lobby.in-combat": "§cلا يمكنك فعل ذلك أثناء القتال. انتظر 15 ثانية بعد آخر ضربة.",
+  "lobby.back-hint": "§7اكتب §e/back §7للعودة إلى مكانك السابق.",
+  "lobby.no-back": "§7لا يوجد مكان للعودة إليه. استخدم §e/lobby §7أولاً."
 }

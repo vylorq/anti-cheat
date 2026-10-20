@@ -3259,5 +3259,8 @@
   "schem.bad-link": "§cThat's not a valid http(s) link.",
   "schem.downloading": "§7Downloading {0}…",
   "schem.downloaded": "§aSaved {0}. Build it with §e/owner schematic paste {0}",
-  "schem.download-failed": "§cDownload failed: {0}"
+  "schem.download-failed": "§cDownload failed: {0}",
+  "lobby.in-combat": "§cYou can't do that in combat. Wait 15 seconds after the last hit.",
+  "lobby.back-hint": "§7Type §e/back §7to return to where you were.",
+  "lobby.no-back": "§7There's nowhere to go back to. Use §e/lobby §7first."
 }

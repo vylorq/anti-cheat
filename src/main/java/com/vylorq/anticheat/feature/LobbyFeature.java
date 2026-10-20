@@ -48,6 +48,52 @@ public final class LobbyFeature {
         return ok;
     }
 
+    /** Where each player was before /lobby, for /back. */
+    private static final Map<java.util.UUID, Location> BACK = new java.util.HashMap<>();
+
+    /** Hit someone or got hit in the last 15 seconds. */
+    public static boolean inCombat(ServerPlayerEntity p) {
+        int window = 15 * 20;
+        int hurt = p.getLastAttackedTime();
+        int hit = p.getLastAttackTime();
+        return (hurt > 0 && p.age - hurt < window) || (hit > 0 && p.age - hit < window);
+    }
+
+    /** /lobby: remembers where they were (unless already in the lobby), then takes them there. */
+    public static void toLobby(ServerPlayerEntity p) {
+        if (inCombat(p)) {
+            Msg.send(p, "lobby.in-combat");
+            return;
+        }
+        if (Ac.get().lobby.data().spawn == null) {
+            Msg.send(p, "lobby.not-set");
+            return;
+        }
+        if (!in(p)) {
+            BACK.put(p.getUuid(), Mc.location(p));
+        }
+        teleport(p);
+        if (BACK.containsKey(p.getUuid())) {
+            Msg.send(p, "lobby.back-hint");
+        }
+    }
+
+    /** /back: returns them to where they were before /lobby. */
+    public static void back(ServerPlayerEntity p) {
+        Location l = BACK.get(p.getUuid());
+        if (l == null) {
+            Msg.send(p, "lobby.no-back");
+            return;
+        }
+        if (inCombat(p)) {
+            Msg.send(p, "lobby.in-combat");
+            return;
+        }
+        BACK.remove(p.getUuid());
+        Mc.teleport(p, Ac.server(), l);
+        p.fallDistance = 0;
+    }
+
     public static void teleport(ServerPlayerEntity p) {
         Location spawn = Ac.get().lobby.data().spawn;
         if (spawn == null) {
@@ -134,6 +180,23 @@ public final class LobbyFeature {
         }
         if (!due.isEmpty()) {
             Ac.markDirty("lobby");
+        }
+    }
+
+    /** Every second: hostile mobs that wander or spawn into the lobby vanish (named or mod mobs stay). */
+    public static void clearMobs() {
+        if (!Features.on(Features.Feature.LOBBY) || !Ac.get().lobby.isSet()) {
+            return;
+        }
+        var area = Ac.get().lobby.data().area;
+        ServerWorld w = Mc.world(Ac.server(), area.world);
+        if (w == null || w.getPlayers().isEmpty()) {
+            return;
+        }
+        var box = new net.minecraft.util.math.Box(area.minX, area.minY, area.minZ, area.maxX + 1, area.maxY + 1, area.maxZ + 1);
+        for (var m : w.getEntitiesByClass(net.minecraft.entity.mob.MobEntity.class, box,
+                m -> m instanceof net.minecraft.entity.mob.Monster && !m.hasCustomName() && m.getCommandTags().isEmpty())) {
+            m.discard();
         }
     }
 
