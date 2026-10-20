@@ -48,6 +48,52 @@ public final class LobbyFeature {
         return ok;
     }
 
+    /** Where each player was before /lobby, for /back. */
+    private static final Map<java.util.UUID, Location> BACK = new java.util.HashMap<>();
+
+    /** Hit someone or got hit in the last 15 seconds. */
+    public static boolean inCombat(ServerPlayerEntity p) {
+        int window = 15 * 20;
+        int hurt = p.getLastAttackedTime();
+        int hit = p.getLastAttackTime();
+        return (hurt > 0 && p.age - hurt < window) || (hit > 0 && p.age - hit < window);
+    }
+
+    /** /lobby: remembers where they were (unless already in the lobby), then takes them there. */
+    public static void toLobby(ServerPlayerEntity p) {
+        if (inCombat(p)) {
+            Msg.send(p, "lobby.in-combat");
+            return;
+        }
+        if (Ac.get().lobby.data().spawn == null) {
+            Msg.send(p, "lobby.not-set");
+            return;
+        }
+        if (!in(p)) {
+            BACK.put(p.getUuid(), Mc.location(p));
+        }
+        teleport(p);
+        if (BACK.containsKey(p.getUuid())) {
+            Msg.send(p, "lobby.back-hint");
+        }
+    }
+
+    /** /back: returns them to where they were before /lobby. */
+    public static void back(ServerPlayerEntity p) {
+        Location l = BACK.get(p.getUuid());
+        if (l == null) {
+            Msg.send(p, "lobby.no-back");
+            return;
+        }
+        if (inCombat(p)) {
+            Msg.send(p, "lobby.in-combat");
+            return;
+        }
+        BACK.remove(p.getUuid());
+        Mc.teleport(p, Ac.server(), l);
+        p.fallDistance = 0;
+    }
+
     public static void teleport(ServerPlayerEntity p) {
         Location spawn = Ac.get().lobby.data().spawn;
         if (spawn == null) {

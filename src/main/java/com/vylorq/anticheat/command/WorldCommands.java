@@ -916,6 +916,16 @@ final class WorldCommands {
     // ---- Lobby ----
 
     private static void registerLobby(CommandDispatcher<ServerCommandSource> d) {
+        d.register(literal("back").executes(ctx -> {
+            ServerPlayerEntity p = self(ctx);
+            if (p == null) return 0;
+            if (Ac.get().jail.isJailed(p.getUuid()) || WaitingRoomFeature.waiting(p) || Arenas.inMatch(p) || StaffTools.isFrozen(p)) {
+                Msg.err(ctx.getSource(), "lobby.blocked");
+                return 0;
+            }
+            LobbyFeature.back(p);
+            return 1;
+        }));
         d.register(literal("lobby")
                 .executes(ctx -> {
                     ServerPlayerEntity p = self(ctx);
@@ -924,7 +934,7 @@ final class WorldCommands {
                         Msg.err(ctx.getSource(), "lobby.blocked");
                         return 0;
                     }
-                    LobbyFeature.teleport(p);
+                    LobbyFeature.toLobby(p);
                     return 1;
                 })
                 .then(literal("set").requires(s -> Perms.visible(s, Perm.LOBBY_ADMIN)).executes(ctx -> {
