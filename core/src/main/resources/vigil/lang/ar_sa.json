@@ -3249,5 +3249,15 @@
   "oteams.back.desc": "ارجع إلى مكانك السابق بوضع اللعب السابق.",
   "oteams.role.leader": "القائد",
   "oteams.role.officer": "ضابط",
-  "oteams.role.member": "عضو"
+  "oteams.role.member": "عضو",
+  "schem.list": "§6ملفات البناء: §f{0}\n§7المجلد: {1}",
+  "schem.not-found": "§cلا يوجد ملف بناء باسم {0}. راجع §e/owner schematic list§c.",
+  "schem.bad": "§cتعذرت قراءة {0}: {1}",
+  "schem.building": "§aجارٍ بناء {0} ({1} كتلة)…",
+  "schem.progress": "جارٍ البناء… {0}%",
+  "schem.done": "§aتم البناء! {0} كتلة. للتراجع: §e/owner worldundo",
+  "schem.bad-link": "§cهذا ليس رابط http(s) صالحاً.",
+  "schem.downloading": "§7جارٍ تنزيل {0}…",
+  "schem.downloaded": "§aتم حفظ {0}. ابنِه بـ §e/owner schematic paste {0}",
+  "schem.download-failed": "§cفشل التنزيل: {0}"
 }

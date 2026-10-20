@@ -392,6 +392,33 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void schematicFilesBuild(TestContext ctx) throws Exception {
+        var w = ctx.getWorld();
+        // A 2x1x1 Sponge v2 schematic: stone, then an oak log.
+        var root = new net.minecraft.nbt.NbtCompound();
+        root.putShort("Width", (short) 2);
+        root.putShort("Height", (short) 1);
+        root.putShort("Length", (short) 1);
+        var pal = new net.minecraft.nbt.NbtCompound();
+        pal.putInt("minecraft:stone", 0);
+        pal.putInt("minecraft:oak_log[axis=x]", 1);
+        root.put("Palette", pal);
+        root.putByteArray("BlockData", new byte[]{0, 1});
+        java.nio.file.Path f = java.nio.file.Files.createTempFile("vigil", ".schem");
+        net.minecraft.nbt.NbtIo.writeCompressed(root, f);
+        var owner = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Paster"));
+        BlockPos at = ctx.getAbsolutePos(new BlockPos(1, 2, 1));
+        owner.refreshPositionAndAngles(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, 0, 0);
+        int n = com.vylorq.anticheat.feature.Schematics.pasteForTest(owner, f);
+        java.nio.file.Files.deleteIfExists(f);
+        check(n == 2, "expected 2 blocks, got " + n);
+        check(w.getBlockState(at).isOf(net.minecraft.block.Blocks.STONE), "no stone: " + w.getBlockState(at));
+        check(w.getBlockState(at.east()).isOf(net.minecraft.block.Blocks.OAK_LOG), "no log: " + w.getBlockState(at.east()));
+        check(com.vylorq.anticheat.feature.OwnerWorld.undoForTest(owner) == 2, "paste wasn't undoable");
+        ctx.complete();
+    }
+
+    @GameTest
     public void bossAndStructureSwitches(TestContext ctx) {
         check(com.vylorq.anticheat.feature.ContentToggles.bossOn("sky_island"), "bosses should start on");
         com.vylorq.anticheat.feature.ContentToggles.set("structure:sky_island", false);
