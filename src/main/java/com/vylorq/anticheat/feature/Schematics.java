@@ -72,13 +72,38 @@ public final class Schematics {
 
     private static boolean supported(String name) {
         String n = name.toLowerCase(Locale.ROOT);
-        return n.endsWith(".schem") || n.endsWith(".nbt") || n.endsWith(".schematic");
+        return n.endsWith(".schem") || n.endsWith(".nbt") || n.endsWith(".schematic") || n.endsWith(".litematic");
     }
 
     // ---------------------------------------------------------------- reading
 
+    /** A link that gave a web page (a download page, a login page) instead of the file itself. */
+    private static boolean webPage(byte[] data) {
+        int i = 0;
+        while (i < data.length && i < 64 && Character.isWhitespace(data[i])) {
+            i++;
+        }
+        return i < data.length && data[i] == '<';
+    }
+
     private static Build read(Path f) throws Exception {
-        NbtCompound root = NbtIo.readCompressed(f, NbtSizeTracker.of(MAX_BYTES * 8));
+        byte[] data = Files.readAllBytes(f);
+        if (webPage(data)) {
+            throw new IllegalArgumentException("this is a web page, not a build file (use a direct download link)");
+        }
+        NbtCompound root;
+        if (data.length > 1 && (data[0] & 0xFF) == 0x1F && (data[1] & 0xFF) == 0x8B) {
+            root = NbtIo.readCompressed(new java.io.ByteArrayInputStream(data), NbtSizeTracker.of(MAX_BYTES * 8));
+        } else if (data.length > 0 && data[0] == 0x0A) {
+            root = NbtIo.readCompound(new java.io.DataInputStream(new java.io.ByteArrayInputStream(data)), NbtSizeTracker.of(MAX_BYTES * 8));
+        } else if (data.length > 1 && data[0] == 'P' && data[1] == 'K') {
+            throw new IllegalArgumentException("this is a .zip; unzip it and upload the .schem/.nbt/.litematic inside");
+        } else {
+            throw new IllegalArgumentException("not a Minecraft build file");
+        }
+        if (root.contains("Regions")) {
+            return litematic(data);
+        }
         if (root.contains("Schematic")) {
             return sponge(root.getCompoundOrEmpty("Schematic"), 3);
         }
@@ -155,6 +180,20 @@ public final class Schematics {
             index++;
         }
         return new Build(w, h, l, parts);
+    }
+
+    /** Litematica files go through the builder's reader (blocks only, no chest contents). */
+    private static Build litematic(byte[] data) throws Exception {
+        BuildFiles.Clip c = BuildFiles.read(data);
+        List<Part> parts = new ArrayList<>();
+        for (int y = 0; y < c.sy; y++) {
+            for (int z = 0; z < c.sz; z++) {
+                for (int x = 0; x < c.sx; x++) {
+                    parts.add(new Part(x, y, z, c.get(x, y, z), null));
+                }
+            }
+        }
+        return new Build(c.sx, c.sy, c.sz, parts);
     }
 
     private static Build structure(NbtCompound root) {
@@ -305,6 +344,8 @@ public final class Schematics {
                         byte[] all = in.readNBytes((int) MAX_BYTES + 1);
                         if (all.length > MAX_BYTES) {
                             error = "file over 50 MB";
+                        } else if (webPage(all)) {
+                            error = "that link gives a web page, not the file. Use the direct download link (right-click the download button, copy link)";
                         } else {
                             Files.write(tmp, all);
                             Files.move(tmp, dir().resolve(file), StandardCopyOption.REPLACE_EXISTING);
