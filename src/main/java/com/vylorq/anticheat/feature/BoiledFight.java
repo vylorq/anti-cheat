@@ -76,7 +76,7 @@ public final class BoiledFight {
 
     public static final RegistryKey<World> BOILING = RegistryKey.of(RegistryKeys.WORLD, Identifier.of("vigil", "boiling"));
     public static final int PHASES = 5;
-    public static final double PHASE_HP = 20_000;
+    public static final double PHASE_HP = 40_000;
     /** Hits with anything but a sword or a secret weapon count this much less. */
     public static final double HARDNESS = 5;
     /** The door turns up at most once in this long (real time). */
@@ -218,7 +218,7 @@ public final class BoiledFight {
             found(p);
             return ActionResult.FAIL;
         });
-        // Its health is its own (five bars of 20,000): every hit is counted here, and the mob itself never gets hurt.
+        // Its health is its own (five bars of 40,000): every hit is counted here, and the mob itself never gets hurt.
         ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
             if (!Ac.running() || fight == null || !(entity instanceof MobEntity m)) {
                 return true;
