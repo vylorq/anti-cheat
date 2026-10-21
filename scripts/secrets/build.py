@@ -2116,11 +2116,11 @@ ARENA_DOORS = {
     "crimson_citadel": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
     "void_spire": [("w", 20, 0, 2, False), ("e", 20, 0, 2, False), ("n", 20, 0, 2, False)],
     "ender_crypt": [("w", 20, 0, 2, False), ("e", 20, 0, 2, False), ("n", 20, 0, 2, False)],
-    "sunken_vault": [("w", 14, 1, 6, True), ("e", 14, 1, 6, True)],
+    "sunken_vault": [("w", 14, 1, 6, True), ("e", 14, 1, 6, True), ("n", None, 1, 6, True)],
     "buried_vault": [("w", 15, 0, 2, True), ("e", 15, 0, 2, True), ("n", 12, 0, 2, True)],
     "sky_citadel": [("w", 15, 6, 7, False), ("e", 15, 6, 7, False), ("n", 15, 6, 7, False)],
-    "nether_forge": [("w", 13, 0, 4, False), ("e", 13, 0, 4, False)],
-    "desert_tomb": [("w", 15, 0, 3, True), ("e", 15, 0, 3, True)],
+    "nether_forge": [("w", 13, 0, 4, False), ("e", 13, 0, 4, False), ("n", None, 0, 4, False)],
+    "desert_tomb": [("w", 15, 0, 3, True), ("e", 15, 0, 3, True), ("n", None, 0, 3, True)],
     "frozen_bastion": [("w", 12, 0, 2, False), ("e", 12, 0, 2, False), ("n", 7, 0, 2, False)],
     "overgrown_labyrinth": [("e", 14, 0, 1, False), ("n", 14, 0, 1, False), ("s", 14, 0, 1, False)],
     "watchers_hollow": [("w", 11, 0, 3, False), ("e", 11, 0, 3, False), ("n", 11, 0, 3, False)],
@@ -2131,6 +2131,8 @@ def arena_doors(structure, t):
     th = THEMES[structure]
     X, _, Z = t.size
     for side, along, fy, depth, sealed in ARENA_DOORS[structure]:
+        if along is None:   # the middle of that side
+            along = (X if side in ("n", "s") else Z) // 2
         for k in range(depth):
             if side == "w":
                 cells = [(k, along + j) for j in (-1, 0, 1)]
