@@ -1895,7 +1895,7 @@ public final class AntiCheatGameTests {
         var leader = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "TeamLead"));
         var mate = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "TeamMate"));
         var outsider = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Outsider"));
-        String name = "T" + Long.toString(System.nanoTime() % 100000);
+        String name = String.format("T%05d", System.nanoTime() % 100000);
         BlockPos pos = ctx.getAbsolutePos(new BlockPos(1, 1, 1));
         try {
             check(tm.create(name, null, leader.getUuid()) == com.vylorq.anticheat.core.team.TeamManager.Result.OK, "team not created");
