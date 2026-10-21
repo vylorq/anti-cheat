@@ -3302,5 +3302,10 @@
   "enchants.desc.executioner": "More damage to targets below 30% health (swords, axes, maces)",
   "edge.offered": "Offering {0} of {1} accepted",
   "edge.offer-wrong": "Wrong offering! Start again from I.",
-  "edge.offer-done": "The inner door opens."
+  "edge.offer-done": "The inner door opens.",
+  "give.held": "Enchant the item in your hand",
+  "give.held.desc": "Edit a copy of what you're holding: enchantments, name, unbreakable, then give it.",
+  "give.filter.all": "Everything",
+  "give.filter.mod": "Mod items",
+  "give.filter.gear": "Armor, weapons & tools"
 }

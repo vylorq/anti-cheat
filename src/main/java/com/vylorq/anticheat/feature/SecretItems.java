@@ -138,6 +138,20 @@ public final class SecretItems {
         return id.equals(idOf(s));
     }
 
+    /** The item itself, made from its loot table (the same definition the chests and recipes use). */
+    public static ItemStack stack(String id) {
+        try {
+            var key = net.minecraft.registry.RegistryKey.of(RegistryKeys.LOOT_TABLE, Identifier.of("vigil", "items/" + id));
+            var table = Ac.server().getReloadableRegistries().getLootTable(key);
+            var ctx = new net.minecraft.loot.context.LootWorldContext.Builder(Ac.server().getOverworld())
+                    .build(net.minecraft.loot.context.LootContextTypes.EMPTY);
+            var out = table.generateLoot(ctx);
+            return out.isEmpty() ? ItemStack.EMPTY : out.get(0);
+        } catch (Exception e) {
+            return ItemStack.EMPTY;
+        }
+    }
+
     /** Gives an item through its loot table (the same definition the chests and recipes use). */
     public static void give(ServerPlayerEntity p, String id) {
         var src = Ac.server().getCommandSource().withSilent();

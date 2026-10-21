@@ -580,6 +580,10 @@ public final class AntiCheatGameTests {
         check(lay.gates().stream().anyMatch(g -> g.name().equals("trial")), "the Trial Hall has no gate");
         check(lay.gates().stream().anyMatch(g -> g.name().equals("entry")), "the inner door has no gate");
         check(com.vylorq.anticheat.feature.EdgeKeep.offeringForTest().size() == 4, "the offering isn't four items");
+        var mod = com.vylorq.anticheat.gui.GiveMenu.modItems();
+        check(mod.stream().anyMatch(st -> com.vylorq.anticheat.feature.SecretItems.MJOLNIR.equals(com.vylorq.anticheat.feature.SecretItems.idOf(st))),
+                "Mjolnir isn't in the give menu");
+        check(mod.size() > 80, "the give menu is missing mod items: " + mod.size());
         check(com.vylorq.anticheat.feature.Bosses.kinds().contains(com.vylorq.anticheat.feature.Bosses.EDGE_SOVEREIGN), "no Edge Sovereign");
         check(com.vylorq.anticheat.feature.ArmorSets.ofBoss(com.vylorq.anticheat.feature.Bosses.EDGE_SOVEREIGN) != null, "no Worldbreaker armor");
         check(com.vylorq.anticheat.feature.CustomEnchants.loadedForTest(), "an enchantment didn't load");
