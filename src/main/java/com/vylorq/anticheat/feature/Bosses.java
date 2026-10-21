@@ -255,7 +255,7 @@ public final class Bosses {
 
     static {
         // The hardest fight there is: double the Tempest Lord's health, every trick, and an army behind it.
-        add(new Kind(EDGE_SOVEREIGN, "The Edge Sovereign", "§d", "edge", 1, EntityType.WITHER_SKELETON, 15000, 42, 30, 3.0f,
+        add(new Kind(EDGE_SOVEREIGN, "The Edge Sovereign", "§d", "edge", 1, EntityType.WITHER_SKELETON, 200000, 42, 30, 3.0f,
                 List.of(Ability.LIGHTNING, Ability.VOID_PULL, Ability.FIRE_RING), 0xC77DFF,
                 List.of(new Guard(EntityType.WITHER_SKELETON, "§5Edge Knight", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.NETHERITE_SWORD))),
                         new Guard(EntityType.BLAZE, "§6Edge Flame", 2, m -> { }),
