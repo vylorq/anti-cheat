@@ -87,6 +87,10 @@ ITEMS = {
                      ["Cut from The Boiled One's own bone", "Hits make the blood around them boil:",
                       "everything close takes damage, you heal", "(every 4 seconds)",
                       "Tears The Boiled One apart"]),
+    # The World's Edge Citadel's prize (EdgeKeep.java): only one will ever exist
+    "mjolnir": ("mace", "Mjölnir", "#7FD8FF", "epic", True, None,
+                ["Thor's own hammer, from the World's Edge", "Right-click: smash the ground (shockwave",
+                 "and lightning, every 6 seconds)", "Hits: a thunder strike on the target", "Never breaks"]),
     # Craftable tools
     "hammer": ("iron_pickaxe", "Hammer", "#E0E0E0", "uncommon", False, None,
                ["Mines 3×3 (sneak to mine one block)", "A little slower than a pickaxe"]),
@@ -103,6 +107,10 @@ ITEMS = {
 }
 
 EXTRA_COMPONENTS = {
+    "mjolnir": {"minecraft:attribute_modifiers": [
+        {"type": "minecraft:attack_damage", "id": "minecraft:base_attack_damage", "amount": 13.0, "operation": "add_value", "slot": "mainhand"},
+        {"type": "minecraft:attack_speed", "id": "minecraft:base_attack_speed", "amount": -3.0, "operation": "add_value", "slot": "mainhand"}],
+        "minecraft:unbreakable": {}},
     "hammer": {"minecraft:attribute_modifiers": tool_attrs(3.0, -2.8, -0.35, "hammer")},
     "lumber_axe": {"minecraft:attribute_modifiers": tool_attrs(8.0, -3.1, -0.3, "lumber_axe")},
 }
@@ -2422,6 +2430,8 @@ def build():
     write("tags/worldgen/structure/secret.json", {"values": [f"vigil:{n}" for n in STRUCTURES]})
     import tempest
     tempest.write_all()
+    import edge
+    edge.write_all()
     print("items", len(ITEMS), "recipes", len(RECIPES), "structures", len(STRUCTURES))
 
 

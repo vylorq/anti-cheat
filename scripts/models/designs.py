@@ -63,6 +63,10 @@ STORM_ARMOR = Mat(["#121a2a", "#1d2a42", "#2a3d5e", "#3d5884"], "plates", veins=
 STORM_COPPER = Mat(["#24524a", "#337264", "#468f7e", "#64b8a2"], "plates")
 STORM_CAPE = Mat(["#060c14", "#0c1622", "#122033", "#1a2c45"], "bands", veins="#2fe6f2", vein_density=0.03)
 LIGHTNING = Mat(["#6fd0ff", "#a8f0ff", "#d6fbff", "#ffffff"], cell=1)
+EDGE_ARMOR = Mat(["#0d0812", "#1a0f26", "#2a173d", "#3f2259"], "plates", veins="#e3a8ff", vein_density=0.05)
+EDGE_GOLD = Mat(["#6b4a12", "#8f6a1c", "#b8902a", "#e0bc45"], "plates")
+EDGE_CAPE = Mat(["#07040b", "#110a1a", "#1c1029", "#2a183d"], "bands", veins="#c77dff", vein_density=0.04)
+EDGE_CRYSTAL = Mat(["#9d4edd", "#c77dff", "#e0aaff", "#ffffff"], cell=1)
 MUSH_STEM = Mat(["#8f8676", "#b3a994", "#cfc6b0", "#e6dfcc"], "bark")
 MUSH_CAP = Mat(["#5a0f0a", "#8a1a12", "#b52a1c", "#d9432c"], cell=2, veins="#f2ebdc", vein_density=0.09)
 MUSH_GILLS = Mat(["#3a2a1c", "#54402c", "#6e563c", "#8a7050"], "ribs")
@@ -793,6 +797,45 @@ def tempest_lord():
     return m
 
 
+def edge_sovereign():
+    """The World's Edge Citadel's ruler: a colossal knight in void-black plate trimmed with old gold, a cape of the
+    void, a crown of crying-obsidian crystal, and a great hammer that hums with the end of the world."""
+    m = Model("edge_sovereign")
+    m.part("leg", (-5, 18, 0), "leg", mirror=True)
+    m.pair((-9.5, 0, -4.5), (8, 6, 10), EDGE_GOLD)
+    m.pair((-9, 6, -4), (7, 12, 8), EDGE_ARMOR)
+    m.pair((-9.5, 12, 3), (8, 3, 2), EDGE_GOLD)
+    m.part("body", (0, 18, 0), "body")
+    m.box((-10.5, 17, -6), (21, 3, 12), EDGE_GOLD)
+    m.box((-10, 20, -5.5), (20, 8, 11), EDGE_ARMOR)
+    core = spot("#f3d9ff", 0.5, 0.45, 4, 4, ring="#c77dff")
+    m.box((-12, 28, -6.5), (24, 12, 13), EDGE_ARMOR, decal={"south": core})
+    m.pair((-18, 35, -7.5), (9, 7, 15), EDGE_GOLD)
+    m.pair((-16, 42, -3), (2, 8, 2), EDGE_CRYSTAL, rot=("z", 22.5))
+    m.pair((-13, 42, 1), (2, 6, 2), EDGE_CRYSTAL, rot=("x", -22.5))
+    m.part("cape", (0, 39, -7), "tail")
+    m.box((-11, 4, -9.5), (22, 35, 2), EDGE_CAPE)
+    m.box((-12, 1, -10.5), (24, 6, 2), EDGE_CAPE, rot=("x", 22.5, (0, 7, -9.5)))
+    m.use("body")
+    m.part("arm", (-15, 37, 0), "arm", mirror=True)
+    m.pair((-19, 21, -4), (8, 17, 8), EDGE_ARMOR)
+    m.pair((-19.5, 13, -4.5), (9, 8, 9), EDGE_GOLD)
+    m.part("head", (0, 40, 1), "head")
+    m.box((-5.5, 40, -4), (11, 11, 10), EDGE_ARMOR,
+          decal={"south": maw("#e0aaff", brow="#04060a", mouth="#04060a", teeth="#3f2259", eye_w=3, eye_h=1, eye_row=0.36,
+                              gap=2, mouth_row=0.7, mouth_w=6, mouth_h=2, mask=0.5)})
+    m.box((-6, 47, -4.5), (12, 2, 11), EDGE_GOLD)
+    for x, h, r in ((-5, 8, 22.5), (-2, 12, 0), (1, 12, 0), (4, 8, -22.5)):
+        m.box((x - 0.5, 49, 0), (1.5, h, 1.5), EDGE_CRYSTAL, rot=("z", r, (x, 49, 0)) if r else None)
+    # The hammer in the right hand: a long gold-bound haft and a heavy crystal-cored head.
+    m.part("hammer", (15, 37, 0), "static", parent="arm_l")
+    m.box((18, 0, -1), (2, 34, 2), WOOD)
+    m.box((13, 30, -5), (12, 9, 10), EDGE_ARMOR)
+    m.box((12.5, 32, -3), (13, 5, 6), EDGE_CRYSTAL)
+    m.box((17, 28, -1.5), (4, 3, 3), EDGE_GOLD)
+    return m
+
+
 def storm_wisp():
     """A guard: a crackling ball of cloud with lightning arms."""
     m = Model("storm_wisp")
@@ -1097,6 +1140,6 @@ MODELS = {
     "tempest_lord": (tempest_lord, 6.2), "storm_wisp": (storm_wisp, 1.8), "tempest_shade": (tempest_shade, 0.8),
     "sky_warden": (sky_warden, 3.4), "sporemother": (sporemother, 4.6), "drowned_captain": (drowned_captain, 4.0),
     "soul_reaper": (soul_reaper, 4.8), "hoglin_king": (hoglin_king, 3.4), "void_stalker": (void_stalker, 5.6),
-    "void_evoker": (void_evoker, 4.0),
+    "void_evoker": (void_evoker, 4.0), "edge_sovereign": (edge_sovereign, 6.6),
     "deer": (deer, 1.9), "owl": (owl, 0.7),
 }

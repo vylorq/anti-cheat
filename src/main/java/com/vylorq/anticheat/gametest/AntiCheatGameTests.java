@@ -571,6 +571,22 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void edgeCitadelLoads(TestContext ctx) {
+        var w = ctx.getWorld();
+        var tpl = w.getStructureTemplateManager().getTemplate(net.minecraft.util.Identifier.of("vigil", "edge/citadel"));
+        check(tpl.isPresent() && tpl.get().getSize().getX() > 150, "the Edge Citadel's template doesn't load");
+        var lay = com.vylorq.anticheat.feature.EdgeKeep.layoutForTest();
+        check(lay.levers().size() == 8 && lay.code().size() == 4, "the lever puzzle isn't laid out");
+        check(lay.gates().stream().anyMatch(g -> g.name().equals("trial")), "the Trial Hall has no gate");
+        check(com.vylorq.anticheat.feature.Bosses.kinds().contains(com.vylorq.anticheat.feature.Bosses.EDGE_SOVEREIGN), "no Edge Sovereign");
+        check(com.vylorq.anticheat.feature.ArmorSets.ofBoss(com.vylorq.anticheat.feature.Bosses.EDGE_SOVEREIGN) != null, "no Worldbreaker armor");
+        check(com.vylorq.anticheat.feature.CustomEnchants.loadedForTest(), "an enchantment didn't load");
+        check(com.vylorq.anticheat.feature.Schematics.direct("https://drive.google.com/file/d/1abc_DEF/view?usp=sharing")
+                .equals("https://drive.usercontent.google.com/download?id=1abc_DEF&export=download&confirm=t"), "Drive links aren't fixed");
+        ctx.complete();
+    }
+
+    @GameTest
     public void godslayerKillsABossInOneBlow(TestContext ctx) {
         var w = ctx.getWorld();
         var at = net.minecraft.util.math.Vec3d.ofBottomCenter(ctx.getAbsolutePos(new BlockPos(2, 2, 2)));
@@ -1879,7 +1895,7 @@ public final class AntiCheatGameTests {
         var leader = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "TeamLead"));
         var mate = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "TeamMate"));
         var outsider = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Outsider"));
-        String name = "T" + Long.toString(System.nanoTime() % 100000);
+        String name = String.format("T%05d", System.nanoTime() % 100000);
         BlockPos pos = ctx.getAbsolutePos(new BlockPos(1, 1, 1));
         try {
             check(tm.create(name, null, leader.getUuid()) == com.vylorq.anticheat.core.team.TeamManager.Result.OK, "team not created");

@@ -36,7 +36,7 @@ public abstract class LivingEntityMixin {
                 return com.vylorq.anticheat.feature.SecretItems.bossHit(source) / com.vylorq.anticheat.feature.Bosses.damageScale(self);
             }
             if (self instanceof net.minecraft.entity.player.PlayerEntity) {
-                return Math.min(original, com.vylorq.anticheat.feature.SecretItems.PLAYER_CAP); // never OP on players
+                return Math.min(original, com.vylorq.anticheat.feature.SecretItems.playerCap(source)); // never OP on players
             }
         }
         return original / com.vylorq.anticheat.feature.Bosses.damageScale((LivingEntity) (Object) this);

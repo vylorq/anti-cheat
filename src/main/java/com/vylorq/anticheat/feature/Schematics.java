@@ -22,6 +22,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -307,12 +308,34 @@ public final class Schematics {
 
     /** Saves a file from a link into the schematics folder (owner only), off the server thread. */
     public static void download(ServerPlayerEntity p, String url) {
+        download(p, url, null);
+    }
+
+    /** Share links (Google Drive, Dropbox) turned into the link that gives the file itself. */
+    public static String direct(String url) {
+        String u = url.trim();
+        var drive = java.util.regex.Pattern.compile("drive\\.google\\.com/(?:file/d/|open\\?id=|uc\\?(?:export=download&)?id=)([A-Za-z0-9_-]+)").matcher(u);
+        if (drive.find()) {
+            return "https://drive.usercontent.google.com/download?id=" + drive.group(1) + "&export=download&confirm=t";
+        }
+        if (u.contains("dropbox.com/")) {
+            return u.replace("dl=0", "dl=1").contains("dl=1") ? u.replace("dl=0", "dl=1") : u + (u.contains("?") ? "&" : "?") + "dl=1";
+        }
+        return u;
+    }
+
+    private static String cleanName(String name) {
+        return name.replaceAll("[^A-Za-z0-9._-]", "_");
+    }
+
+    /** Downloads a build file; {@code then} (if given) gets its saved name, on the server thread, when it worked. */
+    public static void download(ServerPlayerEntity p, String url, java.util.function.Consumer<String> then) {
         if (!OwnerPowers.require(p)) {
             return;
         }
         URI uri;
         try {
-            uri = URI.create(url.trim());
+            uri = URI.create(direct(url));
         } catch (Exception e) {
             Msg.send(p, "schem.bad-link");
             return;
@@ -322,30 +345,38 @@ public final class Schematics {
             return;
         }
         String last = uri.getPath() == null ? "" : uri.getPath().substring(uri.getPath().lastIndexOf('/') + 1);
-        String name = last.replaceAll("[^A-Za-z0-9._-]", "_");
-        if (!supported(name)) {
-            name = (name.isEmpty() ? "download" : name) + ".schem";
-        }
-        String file = name;
+        String guess = cleanName(last);
         var server = Ac.server();
-        Msg.send(p, "schem.downloading", file);
+        Msg.send(p, "schem.downloading", supported(guess) ? guess : "…");
         Thread t = new Thread(() -> {
             String error = null;
+            String file = null;
             try {
                 Files.createDirectories(dir());
-                HttpClient c = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).connectTimeout(Duration.ofSeconds(15)).build();
-                HttpResponse<InputStream> r = c.send(HttpRequest.newBuilder(uri).timeout(Duration.ofMinutes(2)).GET().build(),
-                        HttpResponse.BodyHandlers.ofInputStream());
+                HttpClient c = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).connectTimeout(Duration.ofSeconds(15)).build();
+                HttpResponse<InputStream> r = c.send(HttpRequest.newBuilder(uri).timeout(Duration.ofMinutes(2))
+                        .header("User-Agent", "Mozilla/5.0 (Vigil)").GET().build(), HttpResponse.BodyHandlers.ofInputStream());
                 if (r.statusCode() / 100 != 2) {
                     error = "HTTP " + r.statusCode();
                 } else {
+                    // The real file name, if the site gives one (Google Drive does).
+                    String name = guess;
+                    var cd = r.headers().firstValue("content-disposition").orElse("");
+                    var m = java.util.regex.Pattern.compile("filename\\*?=(?:UTF-8'')?\"?([^\";]+)").matcher(cd);
+                    if (m.find()) {
+                        name = cleanName(java.net.URLDecoder.decode(m.group(1), StandardCharsets.UTF_8));
+                    }
+                    if (!supported(name)) {
+                        name = (name.isEmpty() || name.equals("download") ? "download" : name) + ".schem";
+                    }
+                    file = name;
                     Path tmp = dir().resolve(file + ".part");
                     try (InputStream in = r.body()) {
                         byte[] all = in.readNBytes((int) MAX_BYTES + 1);
                         if (all.length > MAX_BYTES) {
                             error = "file over 50 MB";
                         } else if (webPage(all)) {
-                            error = "that link gives a web page, not the file. Use the direct download link (right-click the download button, copy link)";
+                            error = "that link gives a web page, not the file. For Google Drive, share it as 'Anyone with the link'";
                         } else {
                             Files.write(tmp, all);
                             Files.move(tmp, dir().resolve(file), StandardCopyOption.REPLACE_EXISTING);
@@ -356,19 +387,38 @@ public final class Schematics {
                 error = String.valueOf(e.getMessage());
             }
             String err = error;
+            String saved = file;
             server.execute(() -> {
                 ServerPlayerEntity now = server.getPlayerManager().getPlayer(p.getUuid());
-                if (now != null) {
-                    if (err == null) {
-                        Msg.send(now, "schem.downloaded", file);
-                    } else {
-                        Msg.send(now, "schem.download-failed", err);
-                    }
+                if (now == null) {
+                    return;
+                }
+                if (err != null) {
+                    Msg.send(now, "schem.download-failed", err);
+                } else if (then != null) {
+                    then.accept(saved);
+                } else {
+                    Msg.send(now, "schem.downloaded", saved);
                 }
             });
         }, "vigil-schematic-download");
         t.setDaemon(true);
         t.start();
+    }
+
+    /** /owner schematic paste: a saved file's name, or a link (downloaded first, then built). */
+    public static void pasteAny(ServerPlayerEntity p, String what, boolean withAir) {
+        String w = what.trim();
+        if (w.startsWith("http://") || w.startsWith("https://")) {
+            download(p, w, file -> {
+                ServerPlayerEntity now = Ac.server().getPlayerManager().getPlayer(p.getUuid());
+                if (now != null) {
+                    paste(now, file, withAir);
+                }
+            });
+        } else {
+            paste(p, w, withAir);
+        }
     }
 
     /** For the gametest: builds a parsed file at a spot facing south. */

@@ -407,6 +407,107 @@
   ],
   "scale": 1.2456
  },
+ "edge_sovereign": {
+  "parts": [
+   {
+    "id": "edge_sovereign__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.6971,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "edge_sovereign__leg_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.1936,
+     0.6971,
+     0.0
+    ],
+    "role": "leg",
+    "side": -1
+   },
+   {
+    "id": "edge_sovereign__leg_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.1936,
+     0.6971,
+     0.0
+    ],
+    "role": "leg",
+    "side": 1
+   },
+   {
+    "id": "edge_sovereign__cape",
+    "parent": "edge_sovereign__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.5103,
+     -0.2711
+    ],
+    "role": "tail",
+    "side": 0
+   },
+   {
+    "id": "edge_sovereign__arm_r",
+    "parent": "edge_sovereign__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.5809,
+     1.4329,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "edge_sovereign__arm_l",
+    "parent": "edge_sovereign__body",
+    "phase": 0.0,
+    "pivot": [
+     0.5809,
+     1.4329,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "edge_sovereign__head",
+    "parent": "edge_sovereign__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.5491,
+     0.0387
+    ],
+    "role": "head",
+    "side": 0
+   },
+   {
+    "id": "edge_sovereign__hammer",
+    "parent": "edge_sovereign__arm_l",
+    "phase": 0.0,
+    "pivot": [
+     0.5809,
+     1.4329,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   }
+  ],
+  "scale": 2.7938
+ },
  "ember_imp": {
   "parts": [
    {

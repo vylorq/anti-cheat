@@ -125,6 +125,11 @@ public final class ArmorSets {
         add(new Set("hollow", "Hollow Armor", "§5§l", true, "hollow_watcher", items("netherite"), new int[]{4, 9, 7, 4}, 3, 0.1, 2, 0.02,
                 "eye", "amethyst", 0, List.of(fx(StatusEffects.NIGHT_VISION, 0)), OnHit.NONE,
                 "Night Vision; invisible while sneaking"));
+        // The strongest set there is: the Edge Sovereign's, from the World's Edge Citadel (EdgeKeep).
+        add(new Set("worldbreaker", "Worldbreaker Armor", "§d§l", true, "edge_sovereign", items("netherite"), new int[]{6, 11, 9, 6}, 5, 0.3, 4,
+                0.02, "silence", "amethyst", 0, List.of(fx(StatusEffects.STRENGTH, 0), fx(StatusEffects.RESISTANCE, 0),
+                fx(StatusEffects.FIRE_RESISTANCE, 0)), OnHit.LIGHTNING,
+                "Strength, Resistance, Fire Resistance; lightning strikes those who hit you"));
     }
 
     /** The secret set of a boss, or of the structure it guards. */

@@ -274,6 +274,12 @@ public final class AdminCommands {
                 .then(literal("remove").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::remove)))
                 .then(literal("reset").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::reset)))
                 .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::info))));
+        owner.then(literal("xray").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerXray::toggle)));
+        owner.then(literal("edge")
+                .then(literal("place").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::place)))
+                .then(literal("remove").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::remove)))
+                .then(literal("reset").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::reset)))
+                .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::info))));
         var boiledSend = literal("send");
         for (String how : new String[]{"watch", "scare", "peek", "behind", "breakin", "glimpse", "footsteps", "knock", "door",
                 "whisper", "torches", "fakechat", "trail", "mimic", "mimicplayer", "atdoor", "sounds", "reflection", "shadow", "paralysis", "eyes", "ear", "hall", "midnight", "double", "snap"}) {
@@ -370,14 +376,17 @@ public final class AdminCommands {
                 Msg.send(p, "schem.list", files.isEmpty() ? "-" : String.join(", ", files), com.vylorq.anticheat.feature.Schematics.dir().toString());
             }
         })));
-        var file = CommandManager.argument("file", StringArgumentType.string())
+        // A file's name or a link (a link is downloaded, then built); "noair" at the end keeps what's already there.
+        schem.then(literal("paste").then(CommandManager.argument("file", StringArgumentType.greedyString())
                 .suggests((c, b) -> {
-                    com.vylorq.anticheat.feature.Schematics.list().forEach(n -> b.suggest(StringArgumentType.escapeIfRequired(n)));
+                    com.vylorq.anticheat.feature.Schematics.list().forEach(b::suggest);
                     return b.buildFuture();
-                });
-        schem.then(literal("paste").then(file
-                .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.Schematics.paste(p, StringArgumentType.getString(ctx, "file"), true)))
-                .then(literal("noair").executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.Schematics.paste(p, StringArgumentType.getString(ctx, "file"), false))))));
+                })
+                .executes(ctx -> owner(ctx, p -> {
+                    String f = StringArgumentType.getString(ctx, "file").trim();
+                    boolean noAir = f.endsWith(" noair");
+                    com.vylorq.anticheat.feature.Schematics.pasteAny(p, noAir ? f.substring(0, f.length() - 6) : f, !noAir);
+                }))));
         schem.then(literal("download").then(CommandManager.argument("url", StringArgumentType.greedyString())
                 .executes(ctx -> owner(ctx, p -> com.vylorq.anticheat.feature.Schematics.download(p, StringArgumentType.getString(ctx, "url"))))));
         owner.then(schem);
