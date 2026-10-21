@@ -68,25 +68,88 @@ public final class GiveMenu {
         m.open(p);
     }
 
-    /** Step 2: what item (every item in the game, searchable). */
+    /** Everything the mod adds: armour sets, secret and boss weapons, gems and their tools, gear, owner items. */
+    public static List<ItemStack> modItems() {
+        List<ItemStack> out = new ArrayList<>();
+        for (var set : com.vylorq.anticheat.feature.ArmorSets.all()) {
+            out.addAll(com.vylorq.anticheat.feature.ArmorSets.full(set));
+        }
+        for (String id : com.vylorq.anticheat.feature.SecretItems.ALL) {
+            ItemStack s = com.vylorq.anticheat.feature.SecretItems.stack(id);
+            if (!s.isEmpty()) {
+                out.add(s);
+            }
+        }
+        for (int i = 0; i < 5; i++) {
+            out.add(com.vylorq.anticheat.feature.Gems.rubyTool(i));
+        }
+        for (String gem : List.of("sapphire", "topaz")) {
+            for (String tool : List.of("pickaxe", "shovel")) {
+                out.add(com.vylorq.anticheat.feature.Gems.gemTool(gem, tool));
+            }
+        }
+        for (var g : com.vylorq.anticheat.feature.Gems.all()) {
+            out.add(com.vylorq.anticheat.feature.Gems.gem(g, 1));
+            out.add(com.vylorq.anticheat.feature.Gems.raw(g, 1));
+            out.add(com.vylorq.anticheat.feature.Gems.oreItem(g));
+        }
+        for (int i = 0; i < 4; i++) {
+            out.add(com.vylorq.anticheat.feature.BoiledFight.armor(i));
+        }
+        out.add(com.vylorq.anticheat.feature.BoiledOmens.lantern());
+        out.add(com.vylorq.anticheat.feature.BoiledDread.cursedBone());
+        out.add(com.vylorq.anticheat.feature.Lifestyle.claws());
+        out.add(com.vylorq.anticheat.feature.Lifestyle.sleepingBag());
+        for (String id : com.vylorq.anticheat.feature.CustomEnchants.ALL) {
+            out.add(com.vylorq.anticheat.feature.CustomEnchants.book(id, com.vylorq.anticheat.feature.CustomEnchants.maxLevel(id)));
+        }
+        out.addAll(com.vylorq.anticheat.feature.OwnerTools.all());
+        out.addAll(com.vylorq.anticheat.feature.OwnerCombat.weapons());
+        out.removeIf(ItemStack::isEmpty);
+        return out;
+    }
+
+    private static boolean modded(ItemStack s) {
+        return s.contains(DataComponentTypes.CUSTOM_DATA) || s.contains(DataComponentTypes.CUSTOM_MODEL_DATA)
+                || s.contains(DataComponentTypes.CUSTOM_NAME) || s.isOf(Items.ENCHANTED_BOOK);
+    }
+
+    /** Step 2: what item (the mod's items first, then every item in the game; searchable, with filters). */
     public static void items(ServerPlayerEntity p) {
         if (!OwnerPowers.require(p)) {
             return;
         }
         Menu m = Menu.std(Category.VIGIL, Msg.trFor(p, "owner.title"), Msg.trFor(p, "give.title"), Msg.trFor(p, "give.pick-item"));
-        m.renderer(menu -> {
-            List<Item> all = new ArrayList<>();
-            for (Item i : Registries.ITEM) {
-                if (i != Items.AIR) {
-                    all.add(i);
-                }
+        List<ItemStack> all = new ArrayList<>(modItems());
+        for (Item i : Registries.ITEM) {
+            if (i != Items.AIR) {
+                all.add(new ItemStack(i));
             }
-            menu.list(all, i -> Btn.of(i).left(Msg.tr("give.pick-item")).build(),
-                    i -> (pl, c) -> {
-                        draft(pl).stack = new ItemStack(i);
+        }
+        m.renderer(menu -> {
+            ItemStack held = p.getMainHandStack();
+            menu.set(Menu.INFO, Btn.of(held.isEmpty() ? new ItemStack(Items.CHEST) : held.copy()).name(Category.VIGIL, Msg.tr("give.held"))
+                    .desc(Msg.tr("give.held.desc")).left(Msg.tr("give.held")).build(), null, (pl, c) -> {
+                if (pl.getMainHandStack().isEmpty()) {
+                    Msg.send(pl, "enchants.hold");
+                    return;
+                }
+                draft(pl).stack = pl.getMainHandStack().copy();
+                if (draft(pl).target == null) {
+                    draft(pl).target = pl.getUuid();
+                }
+                editor(pl);
+            });
+            menu.list(all, s -> Btn.of(s.copy()).left(Msg.tr("give.pick-item")).build(),
+                    s -> (pl, c) -> {
+                        draft(pl).stack = s.copy();
                         editor(pl);
-                    }, i -> Registries.ITEM.getId(i).getPath() + " " + new ItemStack(i).getName().getString(),
-                    List.of(), Msg.tr("owner.items.none"), "");
+                    }, s -> Registries.ITEM.getId(s.getItem()).getPath() + " " + s.getName().getString(),
+                    List.of(Menu.Filter.of(Msg.tr("give.filter.all"), s -> true),
+                            Menu.Filter.of(Msg.tr("give.filter.mod"), GiveMenu::modded),
+                            Menu.Filter.of(Msg.tr("give.filter.gear"), s -> s.contains(DataComponentTypes.EQUIPPABLE)
+                                    || s.contains(DataComponentTypes.WEAPON) || s.contains(DataComponentTypes.TOOL))),
+                    Msg.tr("owner.items.none"), "");
         });
         m.open(p);
     }
