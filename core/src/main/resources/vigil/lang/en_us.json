@@ -3299,5 +3299,8 @@
   "enchants.desc.second_wind": "At 3 hearts: regeneration and absorption, once a minute (chestplates)",
   "enchants.desc.might": "Strength while worn (leggings)",
   "enchants.desc.thunderlord": "Every third hit on a target strikes for more (swords, axes, maces)",
-  "enchants.desc.executioner": "More damage to targets below 30% health (swords, axes, maces)"
+  "enchants.desc.executioner": "More damage to targets below 30% health (swords, axes, maces)",
+  "edge.offered": "Offering {0} of {1} accepted",
+  "edge.offer-wrong": "Wrong offering! Start again from I.",
+  "edge.offer-done": "The inner door opens."
 }

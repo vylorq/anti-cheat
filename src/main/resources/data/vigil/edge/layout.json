@@ -19,6 +19,19 @@
       "closed": false
     },
     {
+      "name": "entry",
+      "box": [
+        6,
+        3,
+        18,
+        6,
+        8,
+        22
+      ],
+      "block": "reinforced_deepslate",
+      "closed": true
+    },
+    {
       "name": "code",
       "box": [
         48,
@@ -133,6 +146,14 @@
     6
   ],
   "regions": {
+    "porch": [
+      1,
+      2,
+      1,
+      5,
+      12,
+      39
+    ],
     "inside": [
       1,
       2,
@@ -233,6 +254,34 @@
         1
       ]
     ]
+  ],
+  "hoppers": [
+    [
+      5,
+      3,
+      15
+    ],
+    [
+      5,
+      3,
+      17
+    ],
+    [
+      5,
+      3,
+      23
+    ],
+    [
+      5,
+      3,
+      25
+    ]
+  ],
+  "offering": [
+    "nether_star",
+    "heart_of_the_sea",
+    "echo_shard",
+    "totem_of_undying"
   ],
   "maze_lever": [
     113,

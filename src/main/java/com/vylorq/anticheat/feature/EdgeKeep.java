@@ -88,7 +88,14 @@ public final class EdgeKeep {
         public boolean autoPlaced;
         /** The Trial Hall's wave (0 before it starts, 4 once all three are beaten). */
         public int wave;
+        /** How many of the entrance's offerings have been given (4 opens the inner door). */
+        public int offered;
+        /** Which version of the layout stands in the world (an older one is rebuilt in place at start). */
+        public int version;
     }
+
+    /** Raise when the citadel's layout changes, so a placed one is rebuilt with it. */
+    static final int VERSION = 2;
 
     private static State state;
 
@@ -310,7 +317,10 @@ public final class EdgeKeep {
         Area area = new Area(Mc.worldId(w), origin.getX(), origin.getY(), origin.getZ(),
                 origin.getX() + size[0] - 1, origin.getY() + size[1] + 1, origin.getZ() + size[2] - 1);
         try {
-            BlockSnapshots.save(w, area, SNAP);
+            // Rebuilding in place keeps the ground saved the first time, not the old citadel.
+            if (!BlockSnapshots.exists(SNAP)) {
+                BlockSnapshots.save(w, area, SNAP);
+            }
         } catch (Exception e) {
             Ac.LOG.warn("Could not save the ground under the Edge Citadel", e);
             return e.toString();
@@ -330,6 +340,8 @@ public final class EdgeKeep {
         s.boss = null;
         s.bossDone = false;
         s.wave = 0;
+        s.offered = 0;
+        s.version = VERSION;
         save();
         return null;
     }
@@ -340,6 +352,17 @@ public final class EdgeKeep {
      */
     static void autoPlace(net.minecraft.server.MinecraftServer server) {
         State s = state();
+        if (s.placed && s.version < VERSION) {
+            // An older citadel stands: rebuild it where it is with the new layout.
+            ServerWorld old = world();
+            if (old != null) {
+                killBoss(old);
+                clearWave(old);
+                String error = placeAt(old, new BlockPos(s.x, s.y, s.z));
+                Ac.LOG.info("The World's Edge Citadel was rebuilt with its new layout{}", error == null ? "" : ": " + error);
+            }
+            return;
+        }
         if (s.placed || s.autoPlaced) {
             return;
         }
@@ -442,6 +465,7 @@ public final class EdgeKeep {
         setLever(w, at(layout().mazeLever()), false);
         s.bossDone = false;
         s.wave = 0;
+        s.offered = 0;
         clearWave(w);
         save();
     }
@@ -485,12 +509,17 @@ public final class EdgeKeep {
         List<ServerPlayerEntity> inside = playersIn("inside", w);
         if (inside.isEmpty()) {
             emptyTicks += 10;
-            if (emptyTicks >= EMPTY_RESET && (!isOpen("seal") || isOpen("code") || isOpen("maze") || s.wave > 0 || s.bossDone || s.boss != null)) {
+            if (emptyTicks >= EMPTY_RESET && (!isOpen("seal") || isOpen("entry") || s.offered > 0 || isOpen("code") || isOpen("maze") || s.wave > 0 || s.bossDone || s.boss != null)) {
                 resetRun(w);
             }
             return;
         }
         emptyTicks = 0;
+
+        // The offering at the inner door.
+        if (!isOpen("entry")) {
+            offering(w);
+        }
 
         // The entrance seals behind whoever goes in.
         if (isOpen("seal") && !playersIn("seal_trigger", w).isEmpty()) {
@@ -596,6 +625,105 @@ public final class EdgeKeep {
                     Mc.sound(p, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 0.8f, 0.7f);
                 }
                 Ac.LOG.info("{} claimed Mjolnir", s.claimedBy);
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------- the offering
+
+    private static List<int[]> hoppers;
+    private static List<String> offering;
+
+    private static void readOffering() {
+        if (offering != null) {
+            return;
+        }
+        try {
+            var res = Ac.server().getResourceManager().getResource(LAYOUT).orElseThrow();
+            JsonObject o;
+            try (var in = new InputStreamReader(res.getInputStream(), StandardCharsets.UTF_8)) {
+                o = JsonParser.parseReader(in).getAsJsonObject();
+            }
+            List<int[]> hs = new ArrayList<>();
+            for (var e : o.getAsJsonArray("hoppers")) {
+                hs.add(ints(e.getAsJsonArray()));
+            }
+            List<String> items = new ArrayList<>();
+            for (var e : o.getAsJsonArray("offering")) {
+                items.add(e.getAsString());
+            }
+            hoppers = hs;
+            offering = items;
+        } catch (Exception e) {
+            throw new IllegalStateException("The citadel's offering couldn't be read", e);
+        }
+    }
+
+    /** For the game tests: the items the entrance wants, in order. */
+    public static List<String> offeringForTest() {
+        readOffering();
+        return offering;
+    }
+
+    /**
+     * Each hopper wants its own item, given in order (I, II, III, IV). The right item in the right hopper is taken; the
+     * wrong item, or any item out of turn, is thrown back out with lightning and the count starts again.
+     */
+    private static void offering(ServerWorld w) {
+        State s = state();
+        readOffering();
+        for (int i = 0; i < hoppers.size(); i++) {
+            if (!(w.getBlockEntity(at(hoppers.get(i))) instanceof Inventory inv) || inv.isEmpty()) {
+                continue;
+            }
+            Identifier want = Identifier.of(offering.get(i));
+            boolean right = i == s.offered;
+            int slot = -1;
+            for (int k = 0; k < inv.size(); k++) {
+                ItemStack st = inv.getStack(k);
+                if (!st.isEmpty() && Registries.ITEM.getId(st.getItem()).equals(want)) {
+                    slot = k;
+                    break;
+                }
+            }
+            boolean accepted = right && slot >= 0;
+            if (accepted) {
+                inv.getStack(slot).decrement(1);
+                s.offered++;
+                save();
+                BlockPos hp = at(hoppers.get(i));
+                w.spawnParticles(net.minecraft.particle.ParticleTypes.END_ROD, hp.getX() + 0.5, hp.getY() + 1.2, hp.getZ() + 0.5, 30, 0.3, 0.4, 0.3, 0.05);
+                w.playSound(null, hp, SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, SoundCategory.BLOCKS, 1.5f, 0.6f + 0.15f * s.offered);
+                for (ServerPlayerEntity p : playersIn("porch", w)) {
+                    Msg.actionBar(p, "§d" + Msg.trFor(p, "edge.offered", s.offered, hoppers.size()));
+                }
+            }
+            // Whatever is left in it comes back out: extras of an accepted gift quietly, anything else as a mistake.
+            boolean wrong = false;
+            for (int k = 0; k < inv.size(); k++) {
+                ItemStack st = inv.getStack(k);
+                if (!st.isEmpty()) {
+                    wrong |= !accepted;
+                    BlockPos hp = at(hoppers.get(i));
+                    net.minecraft.util.ItemScatterer.spawn(w, hp.getX() - 1.0, hp.getY() + 0.5, hp.getZ(), st.copy());
+                    inv.setStack(k, ItemStack.EMPTY);
+                }
+            }
+            inv.markDirty();
+            if (wrong) {
+                s.offered = 0;
+                save();
+                for (ServerPlayerEntity p : playersIn("porch", w)) {
+                    OwnerCombat.bolt(w, p.getEntityPos(), true, null);
+                    Msg.actionBar(p, "§c" + Msg.trFor(p, "edge.offer-wrong"));
+                }
+                return;
+            }
+        }
+        if (s.offered >= hoppers.size()) {
+            setGate(w, "entry", true);
+            for (ServerPlayerEntity p : playersIn("porch", w)) {
+                Mc.title(p, "§d§lThe offering is accepted", "§7" + Msg.trFor(p, "edge.offer-done"), 10, 60, 20);
             }
         }
     }

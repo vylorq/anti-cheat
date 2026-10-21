@@ -78,6 +78,24 @@ def build_citadel(seed=31171000):
                                          {"text": "Mjolnir sleeps here.", "color": "gray"},
                                          {"text": "Only one may", "color": "gray"},
                                          {"text": "ever lift it.", "color": "gray"}], wood="crimson")
+    # The offering: four hoppers by the inner door, each wanting its own item, in order (I to IV). The door opens when
+    # the fourth is given; a wrong item, or the right one out of turn, is thrown back with lightning.
+    for z in range(1, Z - 1):
+        for y in range(F + 1, F + 11):
+            b._put(t, 6, y, z, WALL)
+    layout["gates"].append(gate("entry", 6, 6, MID - 2, MID + 2, F + 1, F + 6, "reinforced_deepslate"))
+    OFFER = [("nether_star", "The Wither's star"), ("heart_of_the_sea", "The sea's heart"),
+             ("echo_shard", "An echo of the deep"), ("totem_of_undying", "A token of undying")]
+    layout["hoppers"] = []
+    layout["offering"] = [item for item, _ in OFFER]
+    for k, (z, (item, clue)) in enumerate(zip([MID - 5, MID - 3, MID + 3, MID + 5], OFFER)):
+        t.set(5, F + 1, z, "hopper", facing="down", enabled=True)
+        t.set(5, F, z, ACC)
+        layout["hoppers"].append([5, F + 1, z])
+        t.sign(5, F + 2, z, "west", [{"text": ["I", "II", "III", "IV"][k], "color": "gold", "bold": True},
+                                     {"text": clue, "color": "light_purple"},
+                                     {"text": "Give in order", "color": "gray"}], wood="crimson")
+    layout["regions"]["porch"] = [1, F, 1, 5, F + 10, Z - 2]
     layout["regions"]["inside"] = [1, F, 1, X - 2, 23, Z - 2]
     layout["regions"]["seal_trigger"] = [7, F, 1, 21, F + 10, Z - 2]
     cross_wall(22)
