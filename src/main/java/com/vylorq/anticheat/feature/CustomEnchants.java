@@ -48,6 +48,15 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>Swiftness I-II (boots): speed while worn.</li>
  *   <li>Night Vision (helmets): night vision while worn.</li>
  *   <li>Soulbound (anything): stays with you when you die.</li>
+ *   <li>Vitality I-III (chestplates): two extra hearts per level.</li>
+ *   <li>Fire Ward (any armour): fire resistance while worn.</li>
+ *   <li>Leaping I-II (boots): jump boost while worn.</li>
+ *   <li>Gills (helmets): breathe underwater.</li>
+ *   <li>Reflection I-III (any armour): sends 10% per level of a melee hit back (30% at most).</li>
+ *   <li>Second Wind (chestplates): at 3 hearts or less, a burst of regeneration and absorption (once a minute).</li>
+ *   <li>Might I-II (leggings): strength while worn.</li>
+ *   <li>Thunderlord I-III (swords, axes, maces): every third hit on the same target strikes for 3 more per level.</li>
+ *   <li>Executioner I-III (swords, axes, maces): 2 more damage per level to targets below 30% health.</li>
  * </ul>
  */
 public final class CustomEnchants {
@@ -63,8 +72,18 @@ public final class CustomEnchants {
     public static final String SWIFTNESS = "swiftness";
     public static final String NIGHT_VISION = "night_vision";
     public static final String SOULBOUND = "soulbound";
+    public static final String VITALITY = "vitality";
+    public static final String FIRE_WARD = "fire_ward";
+    public static final String LEAPING = "leaping";
+    public static final String GILLS = "gills";
+    public static final String REFLECTION = "reflection";
+    public static final String SECOND_WIND = "second_wind";
+    public static final String MIGHT = "might";
+    public static final String THUNDERLORD = "thunderlord";
+    public static final String EXECUTIONER = "executioner";
     public static final List<String> ALL = List.of(LIFESTEAL, VENOM, THUNDERSTRIKE, AUTO_SMELT, TELEPATHY, VEIN_MINER, SWIFTNESS,
-            NIGHT_VISION, SOULBOUND);
+            NIGHT_VISION, SOULBOUND, VITALITY, FIRE_WARD, LEAPING, GILLS, REFLECTION, SECOND_WIND, MIGHT, THUNDERLORD, EXECUTIONER);
+    private static final EquipmentSlot[] ARMOR = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
     static final int VEIN_MAX = 24;
     static final int THUNDER_ODDS = 8;
 
@@ -117,8 +136,46 @@ public final class CustomEnchants {
 
     // ---------------------------------------------------------------- hitting
 
+    /** Set while an enchantment deals its own extra damage, so that hit doesn't set off enchantments again. */
+    private static boolean extra;
+    /** Thunderlord: hits in a row on the same target (player -> target id, count). */
+    private static final Map<UUID, int[]> STREAK = new ConcurrentHashMap<>();
+
+    private static void extraDamage(ServerPlayerEntity p, LivingEntity target, float amount) {
+        extra = true;
+        try {
+            target.damage(p.getEntityWorld(), p.getDamageSources().playerAttack(p), amount);
+        } finally {
+            extra = false;
+        }
+    }
+
     private static void hit(ServerPlayerEntity p, LivingEntity target, float dealt) {
+        if (extra) {
+            return;
+        }
         ItemStack weapon = p.getMainHandStack();
+        int tl = level(weapon, THUNDERLORD);
+        if (tl > 0 && target.isAlive()) {
+            int[] st = STREAK.computeIfAbsent(p.getUuid(), k -> new int[]{-1, 0});
+            st[1] = st[0] == target.getId() ? st[1] + 1 : 1;
+            st[0] = target.getId();
+            if (st[1] >= 3) {
+                st[1] = 0;
+                ServerWorld w = p.getEntityWorld();
+                LightningEntity bolt = EntityType.LIGHTNING_BOLT.create(w, SpawnReason.TRIGGERED);
+                if (bolt != null) {
+                    bolt.refreshPositionAndAngles(target.getX(), target.getY(), target.getZ(), 0, 0);
+                    bolt.setCosmetic(true);
+                    w.spawnEntity(bolt);
+                }
+                extraDamage(p, target, 3f * tl);
+            }
+        }
+        int ex = level(weapon, EXECUTIONER);
+        if (ex > 0 && target.isAlive() && target.getHealth() < target.getMaxHealth() * 0.3f) {
+            extraDamage(p, target, 2f * ex);
+        }
         int ls = level(weapon, LIFESTEAL);
         if (ls > 0 && dealt > 0 && p.getHealth() < p.getMaxHealth()) {
             p.heal(Math.min(4f, dealt * 0.1f * ls));
@@ -230,6 +287,56 @@ public final class CustomEnchants {
         if (level(p.getEquippedStack(EquipmentSlot.HEAD), NIGHT_VISION) > 0) {
             p.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, 320, 0, true, false, true));
         }
+        int vit = level(p.getEquippedStack(EquipmentSlot.CHEST), VITALITY);
+        if (vit > 0) {
+            p.addStatusEffect(new StatusEffectInstance(StatusEffects.HEALTH_BOOST, 60, vit - 1, true, false, true));
+        }
+        if (armorLevel(p, FIRE_WARD) > 0) {
+            p.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, 60, 0, true, false, true));
+        }
+        int leap = level(p.getEquippedStack(EquipmentSlot.FEET), LEAPING);
+        if (leap > 0) {
+            p.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, 60, leap - 1, true, false, true));
+        }
+        if (level(p.getEquippedStack(EquipmentSlot.HEAD), GILLS) > 0) {
+            p.addStatusEffect(new StatusEffectInstance(StatusEffects.WATER_BREATHING, 60, 0, true, false, true));
+        }
+        int might = level(p.getEquippedStack(EquipmentSlot.LEGS), MIGHT);
+        if (might > 0) {
+            p.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, 60, might - 1, true, false, true));
+        }
+    }
+
+    /** The enchantment's levels added up over everything worn. */
+    private static int armorLevel(ServerPlayerEntity p, String id) {
+        int n = 0;
+        for (EquipmentSlot slot : ARMOR) {
+            n += level(p.getEquippedStack(slot), id);
+        }
+        return n;
+    }
+
+    private static final Map<UUID, Long> SECOND_WIND_USED = new ConcurrentHashMap<>();
+
+    /** Someone wearing enchanted armour was hurt. */
+    private static void hurt(ServerPlayerEntity p, net.minecraft.entity.damage.DamageSource source, float taken) {
+        int refl = armorLevel(p, REFLECTION);
+        if (refl > 0 && taken > 0 && !source.isOf(net.minecraft.entity.damage.DamageTypes.THORNS) && source.getAttacker() instanceof LivingEntity a && source.getSource() == a && a != p && a.isAlive()) {
+            float back = taken * Math.min(0.3f, 0.1f * refl);
+            ServerWorld w = p.getEntityWorld();
+            a.damage(w, w.getDamageSources().thorns(p), back);
+        }
+        if (p.isAlive() && p.getHealth() <= 6f && level(p.getEquippedStack(EquipmentSlot.CHEST), SECOND_WIND) > 0) {
+            long now = System.currentTimeMillis();
+            Long last = SECOND_WIND_USED.get(p.getUuid());
+            if (last == null || now - last > 60_000) {
+                SECOND_WIND_USED.put(p.getUuid(), now);
+                p.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 100, 1));
+                p.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, 200, 1));
+                p.getEntityWorld().spawnParticles(net.minecraft.particle.ParticleTypes.TOTEM_OF_UNDYING, p.getX(), p.getY() + 1, p.getZ(),
+                        30, 0.4, 0.6, 0.4, 0.2);
+            }
+        }
     }
 
     // ---------------------------------------------------------------- soulbound
@@ -286,6 +393,9 @@ public final class CustomEnchants {
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {
             if (Ac.running() && !blocked && source.getAttacker() instanceof ServerPlayerEntity p && source.getSource() == p && entity != p) {
                 hit(p, entity, taken);
+            }
+            if (Ac.running() && entity instanceof ServerPlayerEntity hurtP && !blocked) {
+                hurt(hurtP, source, taken);
             }
         });
         net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents.AFTER.register((world, player, pos, st, be) -> {

@@ -79,6 +79,8 @@ public final class Bosses {
     public static final String GUARD_TAG = "vigil_guard";
     public static final String DROWNED_WARDEN = "drowned_warden";
     public static final String TEMPEST_LORD = "tempest_lord";
+    /** The World's Edge Citadel's ruler (EdgeKeep spawns it). */
+    public static final String EDGE_SOVEREIGN = "edge_sovereign";
 
     enum Ability { SHOCKWAVE, TRIDENTS, ROCKS, LIGHTNING, FIRE_RING, SANDSTORM, ICE_SHARDS, FREEZE_AURA, THORNS, DARKNESS, LEAP, SPORES, VOID_PULL }
 
@@ -247,6 +249,22 @@ public final class Bosses {
                     wear(m, EquipmentSlot.HEAD, new ItemStack(Items.NETHERITE_HELMET));
                     wear(m, EquipmentSlot.CHEST, dyed(Items.LEATHER_CHESTPLATE, 0x3FA8C8));
                     wear(m, EquipmentSlot.LEGS, dyed(Items.LEATHER_LEGGINGS, 0x2A6B80));
+                    wear(m, EquipmentSlot.FEET, new ItemStack(Items.NETHERITE_BOOTS));
+                }, null, null, 0, 0));
+    }
+
+    static {
+        // The hardest fight there is: double the Tempest Lord's health, every trick, and an army behind it.
+        add(new Kind(EDGE_SOVEREIGN, "The Edge Sovereign", "§d", "edge", 1, EntityType.WITHER_SKELETON, 15000, 42, 30, 3.0f,
+                List.of(Ability.LIGHTNING, Ability.VOID_PULL, Ability.FIRE_RING), 0xC77DFF,
+                List.of(new Guard(EntityType.WITHER_SKELETON, "§5Edge Knight", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.NETHERITE_SWORD))),
+                        new Guard(EntityType.BLAZE, "§6Edge Flame", 2, m -> { }),
+                        new Guard(EntityType.VEX, "§dEdge Wraith", 3, m -> { })),
+                m -> {
+                    wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.MACE));
+                    wear(m, EquipmentSlot.HEAD, new ItemStack(Items.NETHERITE_HELMET));
+                    wear(m, EquipmentSlot.CHEST, new ItemStack(Items.NETHERITE_CHESTPLATE));
+                    wear(m, EquipmentSlot.LEGS, new ItemStack(Items.NETHERITE_LEGGINGS));
                     wear(m, EquipmentSlot.FEET, new ItemStack(Items.NETHERITE_BOOTS));
                 }, null, null, 0, 0));
     }
@@ -525,6 +543,7 @@ public final class Bosses {
             if (l != null) {
                 LIVE_IDS.remove(e.getId());
                 TempestKeep.bossDied(e);
+                EdgeKeep.bossDied(e);
                 l.bar.clearPlayers();
                 l.bedrockBar.clearPlayers();
                 defeated((ServerWorld) e.getEntityWorld(), l, source.getAttacker());
@@ -1539,7 +1558,7 @@ public final class Bosses {
             case "storm_phantom" -> Items.DRAGON_HEAD;
             case "forgemaster" -> Items.PIGLIN_HEAD;
             case "thornback_beast" -> Items.CREEPER_HEAD;
-            case "hollow_watcher", TEMPEST_LORD -> Items.WITHER_SKELETON_SKULL;
+            case "hollow_watcher", TEMPEST_LORD, EDGE_SOVEREIGN -> Items.WITHER_SKELETON_SKULL;
             default -> Items.SKELETON_SKULL;
         };
         ItemStack s = new ItemStack(head);

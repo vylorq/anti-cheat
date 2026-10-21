@@ -63,6 +63,8 @@ public final class Ticker {
         CustomEnchants.tick(ticks);
         ArmorSets.tick(ticks);
         TempestKeep.tick(ticks);
+        EdgeKeep.tick(ticks);
+        OwnerXray.tick(ticks);
         Builds.tick(ticks);
         ModelMobs.tick(ticks);
         Replay.tick();

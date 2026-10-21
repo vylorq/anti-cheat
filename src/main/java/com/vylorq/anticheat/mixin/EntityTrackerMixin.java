@@ -36,6 +36,12 @@ public abstract class EntityTrackerMixin implements com.vylorq.anticheat.feature
 
     @Inject(method = "updateTrackedStatus(Lnet/minecraft/server/network/ServerPlayerEntity;)V", at = @At("HEAD"), cancellable = true, require = 0)
     private void ac$track(ServerPlayerEntity viewer, CallbackInfo ci) {
+        if (Ac.running() && entity.getCommandTags().contains(com.vylorq.anticheat.feature.OwnerXray.OWNER_ONLY)
+                && !com.vylorq.anticheat.perm.Perms.isOwner(viewer.getUuid())) {
+            stopTracking(viewer);
+            ci.cancel();
+            return;
+        }
         if (Ac.running() && entity instanceof ServerPlayerEntity target && target != viewer
                 && ((StaffTools.isVanished(target.getUuid()) && !StaffTools.canSee(viewer, target.getUuid()))
                 || com.vylorq.anticheat.feature.AntiEsp.hidden(viewer, target))) {

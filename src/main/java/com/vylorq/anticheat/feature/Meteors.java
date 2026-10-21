@@ -131,7 +131,7 @@ public final class Meteors {
 
     /** A small meteorite on the ground: magma round a heart of rare ore (a gem, now and then ancient debris). */
     static void land(ServerWorld w, BlockPos ground) {
-        if (WorldGuard.claimedOrLobby(w, ground) || Builds.protects(w, ground) || TempestKeep.protects(w, ground)
+        if (WorldGuard.claimedOrLobby(w, ground) || Builds.protects(w, ground) || TempestKeep.protects(w, ground) || EdgeKeep.protects(w, ground)
                 || !free(w, ground) || w.getBlockState(ground.down()).isAir()) {
             return;
         }

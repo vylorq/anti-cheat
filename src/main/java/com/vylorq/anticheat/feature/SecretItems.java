@@ -97,10 +97,12 @@ public final class SecretItems {
 
     /** The Boiling's prize: whoever hurts The Boiled One most there takes it home. */
     public static final String BOILING_EDGE = "boiling_edge";
+    /** Thor's own hammer: the World's Edge Citadel's prize (EdgeKeep), only ever one. */
+    public static final String MJOLNIR = "mjolnir";
 
     public static final List<String> ALL = java.util.stream.Stream.concat(java.util.stream.Stream.concat(List.of(VOIDBLADE, STORMBREAKER,
             TIDECALLER, PHOENIX, SHADOW, SEEKER, HAMMER, LUMBER, GRAPPLE, MAGNET, POUCH, BACKPACK).stream(), BOSS_WEAPONS.stream()),
-            java.util.stream.Stream.of(BOILING_EDGE)).toList();
+            java.util.stream.Stream.of(BOILING_EDGE, MJOLNIR)).toList();
     public static final List<String> CRAFTABLE = List.of(HAMMER, LUMBER, GRAPPLE, MAGNET, POUCH, BACKPACK);
 
     public static final TagKey<Structure> SECRET_STRUCTURES = TagKey.of(RegistryKeys.STRUCTURE, Identifier.of("vigil", "secret"));
@@ -164,7 +166,7 @@ public final class SecretItems {
             Map.entry(MAGNET, 20), Map.entry(POUCH, 100), Map.entry(BACKPACK, 20), Map.entry("tide_trident", 160),
             Map.entry("colossus_maul", 200), Map.entry("storm_fang", 120), Map.entry("forge_cleaver", 100),
             Map.entry("dune_blade", 240), Map.entry("glacier_axe", 200), Map.entry("thornspine", 160), Map.entry("hollow_edge", 200),
-            Map.entry(BOILING_EDGE, 80));
+            Map.entry(BOILING_EDGE, 80), Map.entry(MJOLNIR, 120));
 
     /** The cooldown in seconds the owner set for this item, or null for its own. */
     private static Integer setCooldown(String id) {
@@ -244,7 +246,7 @@ public final class SecretItems {
     public static boolean hasUse(ItemStack s) {
         String id = idOf(s);
         return id != null && switch (id) {
-            case SEEKER, MAGNET, POUCH, BACKPACK, TIDECALLER, GRAPPLE -> true;
+            case SEEKER, MAGNET, POUCH, BACKPACK, TIDECALLER, GRAPPLE, MJOLNIR -> true;
             default -> false;
         };
     }
@@ -256,6 +258,13 @@ public final class SecretItems {
             return null;
         }
         switch (id) {
+            case MJOLNIR -> {
+                if (!debounce(p) && !cooling(p, s)) {
+                    cool(p, s, 120);
+                    mjolnirSmash(p);
+                }
+                return ActionResult.SUCCESS;
+            }
             case TIDECALLER -> {
                 // Throwing stays normal; sneak + right-click calls the wave.
                 if (!p.isSneaking()) {
@@ -297,6 +306,13 @@ public final class SecretItems {
     private static final Map<java.util.UUID, Float> CHARGE = new java.util.concurrent.ConcurrentHashMap<>();
     /** Most a secret weapon can take off a player in one hit (after armour): 4 hearts. */
     public static final float PLAYER_CAP = 8f;
+    /** Mjolnir hits players a little harder: 5 hearts. */
+    public static final float MJOLNIR_PLAYER_CAP = 10f;
+
+    /** Most this weapon can take off a player in one hit. */
+    public static float playerCap(DamageSource src) {
+        return MJOLNIR.equals(weaponOf(src)) ? MJOLNIR_PLAYER_CAP : PLAYER_CAP;
+    }
     public static final float BOSS_MIN = 20f;
     public static final float BOSS_MAX = 40f;
 
@@ -307,7 +323,7 @@ public final class SecretItems {
         }
         String id = idOf(src.getWeaponStack());
         return id != null && (BOSS_WEAPONS.contains(id) || id.equals(VOIDBLADE) || id.equals(STORMBREAKER)
-                || id.equals(TIDECALLER) || id.equals(BOILING_EDGE)) ? id : null;
+                || id.equals(TIDECALLER) || id.equals(BOILING_EDGE) || id.equals(MJOLNIR)) ? id : null;
     }
 
     /** The highest Sharpness / Impaling / Density on a weapon (0-10). */
@@ -347,6 +363,9 @@ public final class SecretItems {
             }
         }
         float hit = Math.min(BOSS_MAX, BOSS_MIN + 2f * Math.min(10, level));
+        if (MJOLNIR.equals(idOf(s))) {
+            hit *= 1.15f;       // a little stronger than every other weapon
+        }
         if (src.getSource() == src.getAttacker()) {
             float c = CHARGE.getOrDefault(src.getAttacker().getUuid(), 1f);
             hit *= 0.2f + c * c * 0.8f;
@@ -384,6 +403,14 @@ public final class SecretItems {
             });
         } else if (BOILING_EDGE.equals(id)) {
             boil(p, s, e, w);
+        } else if (MJOLNIR.equals(id)) {
+            // Every hit (once every 2 seconds) brings a thunder strike down on the target.
+            cool(p, s, 40);
+            OwnerCombat.bolt(w, e.getEntityPos(), false, p);
+            e.damage(w, p.getDamageSources().playerAttack(p), 6f);
+            OwnerCombat.push(e, OwnerCombat.away(p.getEntityPos(), e, 1.2, 0.5));
+            w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, e.getX(), e.getY() + 1, e.getZ(), 30, 0.4, 0.8, 0.4, 0.4);
+            OwnerCombat.sound(w, e.getEntityPos(), "thor_hit", 1.5f);
         } else if (BOSS_WEAPONS.contains(id)) {
             bossWeaponHit(p, s, id, e, w);
         } else if (STORMBREAKER.equals(id) && p.getRandom().nextFloat() < 0.25f) {
@@ -400,6 +427,35 @@ public final class SecretItems {
             w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, e.getX(), e.getY() + 1, e.getZ(), 30, 0.3, 0.6, 0.3, 0.3);
             sound(w, e.getEntityPos(), "stormbreaker", 1.5f);
         }
+    }
+
+    private static final DustParticleEffect STORM_FX = new DustParticleEffect(0x7FD8FF, 1.6f);
+
+    /** Mjolnir's right-click: the ground shakes around you, everything near is thrown back and struck. */
+    static void mjolnirSmash(ServerPlayerEntity p) {
+        ServerWorld w = p.getEntityWorld();
+        Vec3d c = p.getEntityPos();
+        int hit = 0;
+        for (LivingEntity e : OwnerCombat.around(p, c, 8)) {
+            double d = Math.sqrt(e.getEntityPos().squaredDistanceTo(c));
+            e.damage(w, p.getDamageSources().playerAttack(p), (float) Math.max(5, 16 - d * 1.4));
+            OwnerCombat.push(e, OwnerCombat.away(c, e, 2.6 - d * 0.18, 0.95));
+            w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, e.getX(), e.getY() + 1, e.getZ(), 14, 0.3, 0.6, 0.3, 0.3);
+            hit++;
+        }
+        OwnerCombat.bolt(w, c, false, p);
+        for (int i = 0; i < 5; i++) {
+            double a = i * Math.PI * 2 / 5 + Math.random();
+            OwnerCombat.bolt(w, c.add(Math.cos(a) * 5, 0, Math.sin(a) * 5), false, p);
+        }
+        w.spawnParticles(ParticleTypes.EXPLOSION, c.x, c.y + 0.3, c.z, 3, 1.2, 0.1, 1.2, 0);
+        for (int step = 0; step < 9; step++) {
+            int k = step;
+            OwnerPowers.later(step, () -> OwnerCombat.ring(w, STORM_FX, c.add(0, 0.15, 0), 0.8 + k * 0.95, 18 + k * 6));
+        }
+        OwnerCombat.sound(w, c, "thor_smash", 2f);
+        w.playSound(null, c.x, c.y, c.z, SoundEvents.ITEM_MACE_SMASH_GROUND_HEAVY, SoundCategory.PLAYERS, 1.2f, 0.7f);
+        Msg.actionBar(p, "§b⚒ " + Msg.trFor(p, "owner.smash", hit));
     }
 
     private static final DustParticleEffect SAND = new DustParticleEffect(0xE8C77A, 1.4f);

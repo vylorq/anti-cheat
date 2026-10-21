@@ -64,6 +64,12 @@ public final class OwnerWorldMenu {
             menu.set(31, Btn.of(Items.TNT).color(Theme.RED).name(Msg.tr("wmenu.reset.queue")).desc(Msg.tr("wmenu.reset.queue.desc"))
                     .left(Msg.tr("wmenu.reset.queue")).build(), null, (pl, c) -> Confirm.open(pl, Category.VIGIL, Msg.trFor(pl, "wmenu.reset.queue"),
                     Msg.trFor(pl, "wmenu.reset.queue.desc"), new ItemStack(Items.TNT), () -> OwnerWorld.queueReset(pl, OwnerWorld.resetRadius(pl))));
+            boolean xray = com.vylorq.anticheat.feature.OwnerXray.on(p);
+            menu.set(33, Btn.of(Items.DIAMOND_ORE).color(xray ? Theme.GREEN : Theme.SOFT).name(Msg.tr("xray.title"))
+                    .desc(Msg.tr("xray.desc")).onOff(xray).left(Msg.tr("owner.toggle")).glint(xray).build(), null, (pl, c) -> {
+                com.vylorq.anticheat.feature.OwnerXray.toggle(pl);
+                menu.refresh();
+            });
             menu.set(32, Btn.of(Items.BARRIER).color(Theme.SOFT).name(Msg.tr("wmenu.reset.cancel")).left(Msg.tr("wmenu.reset.cancel")).build(),
                     null, (pl, c) -> OwnerWorld.cancelReset(pl));
         });

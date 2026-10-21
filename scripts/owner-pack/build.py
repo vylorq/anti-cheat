@@ -905,6 +905,7 @@ def tidecaller():
 
 SECRET = {"voidblade": ("diamond_sword", voidblade, "minecraft:item/handheld"),
           "stormbreaker": ("diamond_axe", stormbreaker, "minecraft:item/handheld"),
+          "mjolnir": ("mace", thor_hammer, "minecraft:item/handheld"),
           "phoenix_feather": ("feather", phoenix_feather, "minecraft:item/generated"),
           "shadow_cloak": ("phantom_membrane", shadow_cloak, "minecraft:item/generated"),
           "seeker_compass": ("nautilus_shell", seeker_compass, "minecraft:item/generated"),

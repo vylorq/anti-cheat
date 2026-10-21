@@ -37,6 +37,7 @@ public final class StructureMobs {
             Map.entry("overgrown_labyrinth", Items.IRON_SWORD),
             Map.entry("watchers_hollow", Items.DIAMOND_SWORD),
             Map.entry("tempest", Items.DIAMOND_SWORD),
+            Map.entry("edge", Items.NETHERITE_SWORD),
             Map.entry("sky_island", Items.IRON_SWORD),
             Map.entry("mushroom_cave", Items.IRON_AXE),
             Map.entry("sunken_ship", Items.IRON_SWORD),
