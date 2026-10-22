@@ -14,6 +14,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.LeverBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.MobEntity;
@@ -38,6 +39,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -99,7 +101,7 @@ public final class EdgeKeep {
     }
 
     /** Raise when the citadel's layout changes, so a placed one is rebuilt with it. */
-    static final int VERSION = 4;
+    static final int VERSION = 5;
 
     private static State state;
 
@@ -454,6 +456,7 @@ public final class EdgeKeep {
             return;
         }
         killBoss(w);
+        removeGuardians(w);
         try {
             BlockSnapshots.restore(w, SNAP);
             Files.deleteIfExists(BlockSnapshots.file(SNAP));
@@ -564,6 +567,7 @@ public final class EdgeKeep {
         if (!w.isChunkLoaded(s.x >> 4, s.z >> 4)) {
             return; // nobody near: nothing to do
         }
+        guardians(w);
         List<ServerPlayerEntity> inside = playersIn("inside", w);
         if (inside.isEmpty()) {
             emptyTicks += 10;
@@ -1076,6 +1080,148 @@ public final class EdgeKeep {
 
     private static List<int[]> hoppers;
     private static List<String> offering;
+    /** The castle's guard posts: {position, kind} (warden, crossbow or knight). */
+    private static List<Object[]> guardPosts;
+
+    // ---------------------------------------------------------------- the castle's guardians
+
+    public static final String GUARDIAN_TAG = "vigil_edge_guardian";
+    /** How long a fallen guardian's post stays empty before another takes it. */
+    static final long GUARD_RESPAWN = 20L * 60 * 3;
+    private static final Map<Integer, Long> POST_EMPTY_SINCE = new HashMap<>();
+    private static long guardClock;
+
+    /**
+     * Every five seconds while a player is near the castle: each guard post without its guardian gets one again
+     * (straight away the first time, then three minutes after one falls). Guardians stay within a few blocks of their post.
+     */
+    private static void guardians(ServerWorld w) {
+        guardClock += 10;
+        if (guardClock % 100 != 0) {
+            return;
+        }
+        State s = state();
+        readOffering();
+        if (guardPosts == null || guardPosts.isEmpty()) {
+            return;
+        }
+        int[] size = layout().size();
+        var box = new net.minecraft.util.math.Box(s.x - 48, s.y - 16, s.z - 48, s.x + size[0] + 48, s.y + size[1] + 16, s.z + size[2] + 48);
+        if (w.getPlayers(p -> !p.isSpectator() && box.contains(p.getX(), p.getY(), p.getZ())).isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < guardPosts.size(); i++) {
+            BlockPos at = at((int[]) guardPosts.get(i)[0]);
+            if (!w.isChunkLoaded(at.getX() >> 4, at.getZ() >> 4)) {
+                continue;
+            }
+            String tag = GUARDIAN_TAG + ":" + i;
+            var near = new net.minecraft.util.math.Box(at).expand(24);
+            if (!w.getEntitiesByClass(MobEntity.class, near, m -> m.isAlive() && m.getCommandTags().contains(tag)).isEmpty()) {
+                POST_EMPTY_SINCE.remove(i);
+                filledOnce.add(i);
+                continue;
+            }
+            Long since = POST_EMPTY_SINCE.get(i);
+            if (since == null) {
+                POST_EMPTY_SINCE.put(i, guardClock);
+                continue;
+            }
+            // Found empty twice in a row (its guardian's entity has had time to load): a fresh post is filled now, one
+            // whose guardian fell three minutes later.
+            if (guardClock - since >= (filledOnce.contains(i) ? GUARD_RESPAWN : 100)) {
+                POST_EMPTY_SINCE.remove(i);
+                filledOnce.add(i);
+                spawnGuardian(w, at, (String) guardPosts.get(i)[1], tag);
+            }
+        }
+    }
+
+    private static final Set<Integer> filledOnce = new HashSet<>();
+
+    /** For the game tests: how many guard posts the castle has. */
+    public static int guardPostsForTest() {
+        readOffering();
+        return guardPosts.size();
+    }
+
+    private static void spawnGuardian(ServerWorld w, BlockPos at, String kind, String tag) {
+        MobEntity m;
+        String name;
+        double scale;
+        int leash;
+        switch (kind) {
+            case "warden" -> {
+                m = EntityType.VINDICATOR.create(w, SpawnReason.EVENT);
+                name = "§4§lGate Warden";
+                scale = 0.45;
+                leash = 6;
+                if (m != null) {
+                    m.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.NETHERITE_AXE));
+                }
+            }
+            case "crossbow" -> {
+                m = EntityType.PILLAGER.create(w, SpawnReason.EVENT);
+                name = "§dWall Crossbowman";
+                scale = 0.1;
+                leash = 5;
+                if (m != null) {
+                    m.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.CROSSBOW));
+                }
+            }
+            default -> {
+                m = EntityType.WITHER_SKELETON.create(w, SpawnReason.EVENT);
+                name = "§5§lEdge Guardian";
+                scale = 0.3;
+                leash = 10;
+                if (m != null) {
+                    m.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.NETHERITE_SWORD));
+                    m.equipStack(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
+                }
+            }
+        }
+        if (m == null) {
+            return;
+        }
+        m.equipStack(EquipmentSlot.HEAD, new ItemStack(Items.NETHERITE_HELMET));
+        m.equipStack(EquipmentSlot.CHEST, new ItemStack(Items.NETHERITE_CHESTPLATE));
+        m.equipStack(EquipmentSlot.LEGS, new ItemStack(Items.NETHERITE_LEGGINGS));
+        m.equipStack(EquipmentSlot.FEET, new ItemStack(Items.NETHERITE_BOOTS));
+        m.refreshPositionAndAngles(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, w.getRandom().nextFloat() * 360, 0);
+        var sc = m.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.SCALE);
+        if (sc != null) {
+            sc.addPersistentModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(Identifier.of("vigil", "edge_guardian"),
+                    scale, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        }
+        StructureMobs.guard(m);
+        m.addCommandTag(GUARDIAN_TAG);
+        m.addCommandTag(tag);
+        m.setCustomName(net.minecraft.text.Text.literal(name));
+        m.setCustomNameVisible(true);
+        m.setPersistent();
+        w.spawnEntity(m);
+        StructureMobs.leash(m, leash);
+        // Unlike the rooms' mobs, a guardian drops loot (after guard() has emptied its loot table).
+        OwnerPowers.later(3, () -> {
+            if (!m.isRemoved()) {
+                Ac.server().getCommandManager().parseAndExecute(Ac.server().getCommandSource().withSilent(),
+                        "data merge entity " + m.getUuidAsString() + " {DeathLootTable:\"vigil:entities/edge_guardian\"}");
+            }
+        });
+        w.spawnParticles(net.minecraft.particle.ParticleTypes.REVERSE_PORTAL, at.getX() + 0.5, at.getY() + 1, at.getZ() + 0.5, 30, 0.4, 0.8, 0.4, 0.05);
+    }
+
+    /** Takes the castle's guardians away (when the citadel is removed). */
+    private static void removeGuardians(ServerWorld w) {
+        State s = state();
+        int[] size = layout().size();
+        var box = new net.minecraft.util.math.Box(s.x - 32, s.y - 16, s.z - 32, s.x + size[0] + 32, s.y + size[1] + 16, s.z + size[2] + 32);
+        for (MobEntity m : w.getEntitiesByClass(MobEntity.class, box, m -> m.getCommandTags().contains(GUARDIAN_TAG))) {
+            m.discard();
+        }
+        POST_EMPTY_SINCE.clear();
+        filledOnce.clear();
+    }
 
     private static void readOffering() {
         if (offering != null) {
@@ -1095,6 +1241,14 @@ public final class EdgeKeep {
             for (var e : o.getAsJsonArray("offering")) {
                 items.add(e.getAsString());
             }
+            List<Object[]> gp = new ArrayList<>();
+            if (o.has("guard_posts")) {
+                for (var e : o.getAsJsonArray("guard_posts")) {
+                    var a = e.getAsJsonArray();
+                    gp.add(new Object[]{new int[]{a.get(0).getAsInt(), a.get(1).getAsInt(), a.get(2).getAsInt()}, a.get(3).getAsString()});
+                }
+            }
+            guardPosts = gp;
             hoppers = hs;
             offering = items;
         } catch (Exception e) {

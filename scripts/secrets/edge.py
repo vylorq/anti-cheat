@@ -554,6 +554,58 @@ def castle(inner, layout):
     t.set(ax, CY - 2, az, GOLD)
     t.set(ax, CY - 1, az, "lightning_rod", facing="up", powered=False, waterlogged=False)
 
+    # The courtyard's gardens: dark oak trees in flower beds between the lamps, the castle's banners on the citadel.
+    def tree(x, z):
+        for y in range(F + 1, F + 6):
+            t.set(x, y, z, "dark_oak_log", axis="y")
+        for dx in range(-2, 3):
+            for dz in range(-2, 3):
+                for dy in range(4, 8):
+                    if abs(dx) + abs(dz) + max(0, dy - 6) * 2 <= 3 and (dx, dz) != (0, 0) or dy == 7 and abs(dx) + abs(dz) <= 1:
+                        t.set(x + dx, F + dy, z + dz, "flowering_azalea_leaves" if (dx + dz + dy) % 3 == 0 else "dark_oak_leaves",
+                              persistent=True, distance=1, waterlogged=False)
+        flowers = ["allium", "lily_of_the_valley", "cornflower", "pink_tulip"]
+        for k, (dx, dz) in enumerate(((2, 0), (-2, 0), (0, 2), (0, -2), (1, 1), (-1, -1))):
+            if t.blocks.get((x + dx, F, z + dz), ("",))[0] in ("moss_block", "coarse_dirt"):
+                t.set(x + dx, F, z + dz, "grass_block", snowy=False)
+                t.set(x + dx, F + 1, z + dz, flowers[k % len(flowers)])
+    for x in range(30, X2 - 30, 20):
+        for z in (12, Z2 - 13):
+            tree(x, z)
+    for x in range(K0x + 11, K1x - 8, 10):
+        for z in (K0z, K1z):
+            out = -1 if z == K0z else 1
+            for y in range(F + 20, F + 29):
+                t.set(x, y, z + out, "purple_wool" if y > F + 21 else "yellow_wool")
+                t.set(x + 1, y, z + out, "purple_wool" if y > F + 20 else "yellow_wool")
+
+    # More of the castle's mobs: spawners in shrines along the courtyard (each mob stays near its spawner).
+    CASTLE_MOBS = [("wither_skeleton", 3), ("vindicator", 2), ("pillager", 2), ("stray", 2), ("blaze", 1)]
+    for x in range(40, X2 - 40, 40):
+        for z in (11, Z2 - 12):
+            t.set(x, F, z, ACC)
+            for dx, dz in ((1, 0), (-1, 0)):
+                b.column(t, x + dx, z, F + 1, F + 3, PILLAR, base=STONE, cap=LIGHT, **WALL_PROPS)
+            b.mob_spawner(t, x, F + 1, z, CASTLE_MOBS, ST)
+            inward = 1 if z < MID + M else -1
+            t.chest(x, F + 1, z + inward, "edge_castle", facing="south" if inward > 0 else "north")
+
+    # The castle's guardians (EdgeKeep.java keeps them at their posts and brings them back a while after they fall):
+    # wardens at the gate, crossbowmen on the walls and knights round the courtyard.
+    posts = [[11, F + 1, GZ - 3, "warden"], [11, F + 1, GZ + 3, "warden"], [X2 - 12, F + 1, GZ, "warden"]]
+    for x in range(28, X2 - 20, 44):
+        for z in (8, Z2 - 9):
+            if t.blocks.get((x, F + 15, z), ("air",))[0] == "air":
+                posts.append([x, F + 15, z, "crossbow"])
+                # Each crossbowman guards a chest on the wall walk.
+                t.chest(x + 2, F + 15, z, "edge_castle", facing="south" if z < MID + M else "north")
+    for x in range(20, X2 - 20, 30):
+        for z in (13, Z2 - 14):
+            posts.append([x, F + 1, z, "knight"])
+    for z in (GZ - 12, GZ + 12):
+        posts.append([13, F + 1, z, "knight"])
+        posts.append([X2 - 14, F + 1, z, "knight"])
+
     # Move everything in the layout with the citadel.
     def mv(p):
         return [p[0] + M, p[1], p[2] + M] + ([p[3] + M, p[4], p[5] + M] if len(p) == 6 else [])
@@ -565,10 +617,29 @@ def castle(inner, layout):
         out[k] = [mv(p) for p in layout[k]]
     for k in ("maze_lever", "boss_spawn", "vault_chest"):
         out[k] = mv(layout[k])
+    out["guard_posts"] = posts
     return t, out
 
 
+# The castle's chests (on the wall walks and by the courtyard shrines) and what its guardians drop.
+CASTLE_LOOT = {"type": "minecraft:chest", "pools": [
+    {"rolls": {"type": "minecraft:uniform", "min": 3, "max": 5}, "entries": [
+        b.item("diamond", 8, 1, 4), b.item("gold_ingot", 8, 3, 9), b.item("emerald", 6, 3, 10), b.item("netherite_scrap", 3, 1, 2),
+        b.item("ender_pearl", 6, 2, 5), b.item("golden_apple", 6, 1, 3), b.item("experience_bottle", 6, 4, 12),
+        b.item("crying_obsidian", 4, 2, 6), b.item("amethyst_shard", 4, 3, 8), b.item("arrow", 5, 8, 24),
+        b.item("echo_shard", 2, 1, 2), b.item("nether_star", 1), b.item("heart_of_the_sea", 1), b.item("totem_of_undying", 1)]},
+    b.bonus(), b.bonus(), b.book()]}
+GUARDIAN_LOOT = {"type": "minecraft:entity", "pools": [
+    {"rolls": 1, "entries": [b.item("diamond", 6, 1, 3), b.item("gold_ingot", 6, 2, 6), b.item("emerald", 5, 2, 6),
+                             b.item("experience_bottle", 5, 2, 6), b.item("netherite_scrap", 2), b.item("golden_apple", 3),
+                             b.item("echo_shard", 1)]},
+    {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": 7}, b.item("ender_pearl", 2, 1, 3),
+                             b.item("enchanted_golden_apple", 1)]}]}
+
+
 def write_all():
+    b.write("loot_table/chests/edge_castle.json", CASTLE_LOOT)
+    b.write("loot_table/entities/edge_guardian.json", GUARDIAN_LOOT)
     t, layout = castle(*build_citadel())
     b.write("structure/edge/citadel.nbt", t.to_nbt())
     b.write("edge/layout.json", layout)
