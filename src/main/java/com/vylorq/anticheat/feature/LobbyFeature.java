@@ -53,10 +53,29 @@ public final class LobbyFeature {
 
     /** Hit someone or got hit in the last 15 seconds. */
     public static boolean inCombat(ServerPlayerEntity p) {
+        return combatLeft(p) > 0;
+    }
+
+    private static final java.util.Set<java.util.UUID> IN_COMBAT = new java.util.HashSet<>();
+
+    /** Seconds of combat left (0 when out of combat). */
+    public static int combatLeft(ServerPlayerEntity p) {
         int window = 15 * 20;
-        int hurt = p.getLastAttackedTime();
-        int hit = p.getLastAttackTime();
-        return (hurt > 0 && p.age - hurt < window) || (hit > 0 && p.age - hit < window);
+        int last = Math.max(p.getLastAttackedTime() > 0 ? p.getLastAttackedTime() : -window,
+                p.getLastAttackTime() > 0 ? p.getLastAttackTime() : -window);
+        int left = window - (p.age - last);
+        return left <= 0 ? 0 : (left + 19) / 20;
+    }
+
+    /** Every second: a countdown on the action bar while in combat, and a note when it's over. */
+    public static void combatTimer(ServerPlayerEntity p) {
+        int left = combatLeft(p);
+        if (left > 0) {
+            IN_COMBAT.add(p.getUuid());
+            Msg.actionBar(p, "§c⚔ " + Msg.trFor(p, "combat.timer", left));
+        } else if (IN_COMBAT.remove(p.getUuid())) {
+            Msg.actionBar(p, "§a✔ " + Msg.trFor(p, "combat.over"));
+        }
     }
 
     /** /lobby: remembers where they were (unless already in the lobby), then takes them there. */

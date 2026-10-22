@@ -3319,5 +3319,7 @@
   "boss.difficulty.pick": "Fight at this difficulty",
   "boss.difficulty-chosen": "§e{0} §7chose §f{1}§7. The boss wakes!",
   "dkey.locked": "Locked: needs a Dungeon Key (bosses drop them)",
-  "dkey.opened": "The Dungeon Key turns. The vault opens!"
+  "dkey.opened": "The Dungeon Key turns. The vault opens!",
+  "combat.timer": "In combat: {0}s",
+  "combat.over": "You're out of combat"
 }
