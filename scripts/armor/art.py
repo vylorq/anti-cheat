@@ -29,12 +29,14 @@ RAMPS = {
     "topaz": ["#3a1d00", "#874800", "#d68812", "#ffc94a", "#fff4c9"],
     "voidstone": ["#0a0214", "#25094a", "#4a1890", "#8040e0", "#e0c0ff"],
     "bloodstone": ["#100000", "#3d0000", "#7a0606", "#bf1717", "#ff6a6a"],
+    "worldbreaker": ["#07060a", "#1e1a24", "#5a4318", "#c9952a", "#fff0a8"],
 }
 # Which of the game's armour each set is drawn from.
 SHAPE = {"abyssal": "netherite", "colossus": "netherite", "tempest": "netherite", "inferno": "netherite",
-         "dune": "netherite", "glacier": "netherite", "thornback": "netherite", "hollow": "netherite"}
+         "dune": "netherite", "glacier": "netherite", "thornback": "netherite", "hollow": "netherite",
+         "worldbreaker": "netherite"}
 ARMOR_SETS = ["emerald", "obsidian", "phantom", "tide", "abyssal", "colossus", "tempest", "inferno", "dune", "glacier",
-              "thornback", "hollow", "ruby", "sapphire"]
+              "thornback", "hollow", "ruby", "sapphire", "worldbreaker"]
 PIECES = ["helmet", "chestplate", "leggings", "boots"]
 GEMS = {"ruby": "emerald", "sapphire": "diamond", "topaz": "quartz", "voidstone": "echo_shard", "bloodstone": "amethyst_shard"}
 # Raw chunk and ore each gem is drawn from (ore: the game's ore, its spots recoloured; deepslate or stone).
@@ -88,6 +90,7 @@ ACCENT = {
     "dune": ["#0a3a6b", "#2f7fd6", "#a8dcff"], "glacier": ["#0a2a66", "#2a6bd6", "#9fd0ff"],
     "thornback": ["#3a1f0a", "#7a4a1f", "#d6a35a"], "hollow": ["#6b4a00", "#d6a821", "#fff0a0"],
     "ruby": ["#6b4a00", "#d6a821", "#fff0a0"], "sapphire": ["#4a4f5c", "#c4ccd8", "#ffffff"],
+    "worldbreaker": ["#0a4a6b", "#3fd0ff", "#e0faff"],
 }
 
 
@@ -137,13 +140,35 @@ def cyan(p):
     return p[2] > p[0] + 10
 
 
+def bolts(img, layer):
+    """Worldbreaker: cyan lightning cracks across the worn armour (chest, arms, legs and boots)."""
+    img = img.convert("RGBA")
+    px = img.load()
+    glow, core = hexc("#3fd0ff"), hexc("#e0faff")
+    paths = {"humanoid": [[(23, 20), (22, 22), (24, 24), (23, 26), (25, 28), (24, 31)],
+                          [(44, 20), (45, 23), (44, 26), (46, 29)], [(4, 20), (5, 23), (4, 26), (6, 29)],
+                          [(10, 8), (11, 10), (9, 12), (11, 14)]],
+             "humanoid_leggings": [[(5, 20), (4, 23), (6, 26), (5, 29)], [(22, 20), (23, 22), (21, 24)]]}
+    for line in paths[layer]:
+        for (x0, y0), (x1, y1) in zip(line, line[1:]):
+            n = max(abs(x1 - x0), abs(y1 - y0), 1)
+            for k in range(n + 1):
+                x, y = round(x0 + (x1 - x0) * k / n), round(y0 + (y1 - y0) * k / n)
+                if 0 <= x < img.width and 0 <= y < img.height and px[x, y][3] > 0:
+                    px[x, y] = core + (255,) if k in (0, n) else glow + (255,)
+    return img
+
+
 def main(src):
     os.makedirs(OUT, exist_ok=True)
     for s in ARMOR_SETS:
         shape = SHAPE.get(s, "diamond")
         for layer in ("humanoid", "humanoid_leggings"):
             img = Image.open(os.path.join(src, "entity", "equipment", layer, shape + ".png"))
-            recolor(img, RAMPS[s]).save(os.path.join(OUT, f"{s}_{layer}.png"))
+            img = recolor(img, RAMPS[s])
+            if s == "worldbreaker":
+                img = bolts(img, layer)
+            img.save(os.path.join(OUT, f"{s}_{layer}.png"))
         for piece in PIECES:
             img = Image.open(os.path.join(src, "items", f"{shape}_{piece}.png"))
             trim(recolor(img, RAMPS[s]), ACCENT[s], piece).save(os.path.join(OUT, f"{s}_{piece}.png"))

@@ -99,7 +99,7 @@ public final class EdgeKeep {
     }
 
     /** Raise when the citadel's layout changes, so a placed one is rebuilt with it. */
-    static final int VERSION = 3;
+    static final int VERSION = 4;
 
     private static State state;
 
