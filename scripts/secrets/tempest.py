@@ -203,7 +203,7 @@ def build_keep(seed=31170900):
     # Ways in and out.
     t.fill(MX0, F + 1, MID - 1, MX0, F + 4, MID + 1, "air")
     t.fill(MX0 + 1, F + 1, MID - 1, MX0 + 2, F + 4, MID, "air")
-    t.fill(MX1, F + 1, MID - 1, MX1, F + 4, MID, "air")
+    t.fill(MX0 + cells * 3, F + 1, MID - 1, MX1, F + 4, MID, "air")   # the way out, through the last wall
     # A few soul lights, mostly dark.
     for i in range(0, cells, 4):
         for j in range(1, cells, 5):

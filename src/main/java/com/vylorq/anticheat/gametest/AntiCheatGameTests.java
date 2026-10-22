@@ -596,6 +596,7 @@ public final class AntiCheatGameTests {
         check(lay.levers().size() == 8 && lay.code().size() == 4, "the lever puzzle isn't laid out");
         check(lay.gates().stream().anyMatch(g -> g.name().equals("trial")), "the Trial Hall has no gate");
         check(lay.gates().stream().anyMatch(g -> g.name().equals("entry")), "the inner door has no gate");
+        check(lay.gates().stream().anyMatch(g -> g.name().equals("parkour")), "the parkour room has no gate");
         check(com.vylorq.anticheat.feature.EdgeKeep.offeringForTest().size() == 4, "the offering isn't four items");
         var mod = com.vylorq.anticheat.gui.GiveMenu.modItems();
         check(mod.stream().anyMatch(st -> com.vylorq.anticheat.feature.SecretItems.MJOLNIR.equals(com.vylorq.anticheat.feature.SecretItems.idOf(st))),
