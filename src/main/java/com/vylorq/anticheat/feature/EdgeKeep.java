@@ -910,9 +910,9 @@ public final class EdgeKeep {
             }
             // The machine charges for a moment: sparks up the coils, the crown flares, thunder, then away.
             ServerPlayerEntity rider = who;
-            for (int k = 0; k < 30; k += 3) {
-                int step = k;
-                OwnerPowers.later(k, () -> {
+            for (int tick = 0; tick < 30; tick += 3) {
+                int step = tick;
+                OwnerPowers.later(tick, () -> {
                     w.spawnParticles(net.minecraft.particle.ParticleTypes.ELECTRIC_SPARK, c.getX() + 0.5, c.getY() + 1 + step * 0.1,
                             c.getZ() + 0.5, 20, 1.2, 0.8, 1.2, 0.2);
                     w.spawnParticles(net.minecraft.particle.ParticleTypes.REVERSE_PORTAL, c.getX() + 0.5, c.getY() + 4.5, c.getZ() + 0.5,
