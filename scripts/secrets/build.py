@@ -1520,8 +1520,19 @@ ROOMS = {
     "puzzle_room": (13, 11, "ns", 2),
     # A locked vault: its chest opens only with a Dungeon Key (DungeonKeys.java), which bosses drop.
     "key_vault": (11, 11, "n", 3),
+    # The newer rooms
+    "alchemy_lab": (13, 13, "ns", 2),
+    "forge_room": (15, 13, "nse", 2),
+    "garden_hall": (17, 17, "nsew", 2),
+    "fountain_court": (15, 15, "nsew", 2),
+    "chasm_bridge": (11, 21, "ns", 2),
+    "pillar_hall": (15, 21, "nsew", 2),
+    "map_room": (13, 11, "nw", 2),
+    "aquarium": (15, 15, "ns", 2),
 }
-H = 9  # floor y0, air 1..7, ceiling y8
+# Every room is built 4 blocks wider and deeper than listed, and 11 tall: room for the grander furnishing.
+ROOMS = {k: (w + 4, d + 4, doors, weight) for k, (w, d, doors, weight) in ROOMS.items()}
+H = 11  # floor y0, air 1..9, ceiling y10
 
 
 def trap(t, x, z, structure):
@@ -1603,6 +1614,17 @@ def room(structure, kind):
                 ix, iz = xx + (1 if facing == "west" else -1 if facing == "east" else 0), zz + (1 if facing == "north" else -1 if facing == "south" else 0)
                 t.set(ix, y, iz, "air")
         door(t, x, 0, z, facing, structure, fa)
+    # Grandeur: ceiling beams across the room and, in the bigger rooms, a chandelier over the middle.
+    if not open_air:
+        for x in range(3, w - 3, 5):
+            for z in range(1, d - 1):
+                _put(t, x, H - 2, z, th["accent"] if th["accent"] not in ("dark_oak_log", "quartz_pillar") else th["wall"])
+        if w * d >= 15 * 15:
+            for y in range(H - 4, H - 1):
+                t.set(cx, y, cz, "chain", axis="y", waterlogged=False)
+            t.set(cx, H - 5, cz, th["light"])
+            for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                t.set(cx + dx, H - 5, cz + dz, th["lantern"], hanging=False, waterlogged=False)
     # Big rooms hold two spawners at most, the rest one.
     t.spawner_cap = 2 if w * d >= 13 * 13 else 1
     _furnish(t, th, structure, kind, w, d)
@@ -2106,11 +2128,163 @@ def puzzle_room(t, th, structure, w, d):
     mob_spawner(t, 2, 1, d - 3, th["mobs"], structure)
 
 
+def alchemy_lab(t, th, structure, w, d):
+    """Brewing stands on counters, cauldrons, shelves of bottles (glass), a spawner and a chest."""
+    cx, cz = w // 2, d // 2
+    for z in (2, d - 3):
+        for x in range(2, w - 2):
+            if abs(x - cx) <= 1:
+                continue
+            _put(t, x, 1, z, th["accent"] if th["accent"] not in ("dark_oak_log", "quartz_pillar") else th["wall"])
+            if x % 3 == 0:
+                t.set(x, 2, z, "brewing_stand", has_bottle_0=False, has_bottle_1=False, has_bottle_2=False)
+            elif x % 3 == 1:
+                t.set(x, 2, z, "glass")
+    for (x, z) in corners(cx, cz, 3):
+        t.set(x, 1, z, "water_cauldron", level=3)
+    t.set(cx, 1, cz, "enchanting_table")
+    mob_spawner(t, 2, 1, cz, th["mobs"], structure)
+    t.chest(w - 3, 1, cz, f"{structure}_room", facing="west")
+
+
+def forge_room(t, th, structure, w, d):
+    """Anvils, blast furnaces and a lava trough behind iron bars, with smithing tables and a chest."""
+    cx, cz = w // 2, d // 2
+    for x in range(2, w - 2):
+        t.set(x, 0, d - 3, "lava")
+        _bars(t, x, 1, d - 4, True)
+    for x in range(3, w - 3, 3):
+        t.set(x, 1, d - 5, "blast_furnace", facing="north", lit=False)
+        t.set(x + 1, 1, d - 5, "smithing_table")
+    for x in (cx - 2, cx + 2):
+        t.set(x, 1, cz - 1, "anvil", facing="north")
+    t.set(cx, 1, cz - 1, "grindstone", face="floor", facing="north")
+    mob_spawner(t, 2, 1, 3, th["mobs"], structure)
+    mob_spawner(t, w - 3, 1, 3, th["mobs"], structure)
+    t.chest(cx, 1, 2, f"{structure}_room", facing="south")
+
+
+def garden_hall(t, th, structure, w, d):
+    """An indoor garden: grass beds, flowers, little trees under glow, and stepping-stone paths."""
+    cx, cz = w // 2, d // 2
+    flowers = ["poppy", "dandelion", "cornflower", "azure_bluet", "oxeye_daisy", "allium", "lily_of_the_valley"]
+    for x in range(2, w - 2):
+        for z in range(2, d - 2):
+            if abs(x - cx) > 1 and abs(z - cz) > 1:
+                t.set(x, 0, z, "grass_block", snowy=False)
+                if (x * 5 + z * 3) % 4 == 0:
+                    t.set(x, 1, z, flowers[(x + z) % len(flowers)])
+    for (x, z) in corners(cx, cz, 4):
+        for y in (1, 2, 3):
+            t.set(x, y, z, "birch_log", axis="y")
+        for dx in (-1, 0, 1):
+            for dz in (-1, 0, 1):
+                for y in (4, 5):
+                    if (dx, dz) != (0, 0) or y == 5:
+                        t.set(x + dx, y, z + dz, "flowering_azalea_leaves", persistent=True, distance=1, waterlogged=False)
+    t.set(cx, 1, cz, th["light"])
+    for (x, z) in [(3, 3), (w - 4, d - 4)]:
+        mob_spawner(t, x, 1, z, th["mobs"], structure)
+    t.chest(cx + 1, 1, cz, f"{structure}_room", facing="west")
+
+
+def fountain_court(t, th, structure, w, d):
+    """A round fountain in the middle (water spilling from a central spout), benches of stairs round it."""
+    cx, cz = w // 2, d // 2
+    acc = th["accent"] if th["accent"] not in ("dark_oak_log", "quartz_pillar") else th["wall"]
+    for x in range(cx - 3, cx + 4):
+        for z in range(cz - 3, cz + 4):
+            dd = ((x - cx) ** 2 + (z - cz) ** 2) ** 0.5
+            if dd <= 3.4:
+                _put(t, x, 1, z, acc if dd > 2.4 else "air")
+                if dd <= 2.4:
+                    t.set(x, 0, z, "water")
+    for y in (1, 2, 3):
+        _put(t, cx, y, cz, acc)
+    t.set(cx, 4, cz, "water")
+    t.set(cx, 5, cz, th["light"])
+    for (x, z, f) in [(cx, cz - 5, "south"), (cx, cz + 5, "north"), (cx - 5, cz, "east"), (cx + 5, cz, "west")]:
+        stairs(t, x, 1, z, th["trim"], f)
+    mob_spawner(t, 2, 1, 2, th["mobs"], structure)
+    mob_spawner(t, w - 3, 1, d - 3, th["mobs"], structure)
+    t.chest(w - 3, 1, 2, f"{structure}_room", facing="west")
+
+
+def chasm_bridge(t, th, structure, w, d):
+    """A lava pit across the room with a narrow bridge over it (no rails): a knock-back here is the end."""
+    cx = w // 2
+    for x in range(1, w - 1):
+        for z in range(4, d - 4):
+            if abs(x - cx) > 1:
+                t.set(x, 0, z, "lava")
+    for z in range(4, d - 4):
+        for x in (cx - 1, cx, cx + 1):
+            _put(t, x, 0, z, th["floor"][0])
+        if z % 4 == 0:
+            t.set(cx + 1, 1, z, th["lantern"], hanging=False, waterlogged=False)
+    mob_spawner(t, 2, 1, 2, th["mobs"], structure)
+    mob_spawner(t, w - 3, 1, d - 3, th["mobs"], structure)
+
+
+def pillar_hall(t, th, structure, w, d):
+    """A grand hall of tall columns in two rows, lights on every column, a dais with a chest at the end."""
+    cx, cz = w // 2, d // 2
+    acc = th["accent"]
+    for z in range(3, d - 3, 4):
+        for x in (cx - 4, cx + 4):
+            for y in range(1, H - 1):
+                _put(t, x, y, z, acc)
+            t.set(x, 5, z, th["light"])
+    for x in range(cx - 2, cx + 3):
+        for z in range(d - 5, d - 2):
+            _put(t, x, 1, z, th["floor"][1])
+    t.chest(cx, 2, d - 4, f"{structure}_room", facing="north")
+    mob_spawner(t, 2, 1, cz, th["mobs"], structure)
+    mob_spawner(t, w - 3, 1, cz, th["mobs"], structure)
+
+
+def map_room(t, th, structure, w, d):
+    """A cartographer's study: a big table of maps (cartography tables), a globe of blocks, shelves and a chest."""
+    cx, cz = w // 2, d // 2
+    for x in range(cx - 2, cx + 3):
+        t.set(x, 1, cz, "cartography_table")
+    t.set(cx, 2, cz, "lectern", facing="south", has_book=False, powered=False)
+    for z in range(2, d - 2):
+        for y in (1, 2, 3):
+            t.set(2, y, z, "bookshelf")
+    for dy in range(3):
+        for dx in (-1, 0, 1):
+            for dz in (-1, 0, 1):
+                if abs(dx) + abs(dz) + abs(dy - 1) <= 2:
+                    t.set(w - 4 + dx, 2 + dy, d - 4 + dz, "blue_wool" if (dx + dz + dy) % 2 else "lime_wool")
+    t.set(w - 4, 1, d - 4, th["accent"] if th["accent"] not in ("dark_oak_log", "quartz_pillar") else th["wall"])
+    mob_spawner(t, w - 3, 1, 2, th["mobs"], structure)
+    t.chest(3, 1, d - 3, f"{structure}_room", facing="east")
+
+
+def aquarium(t, th, structure, w, d):
+    """Glass tanks of water down both sides, sea lanterns under them, kelp and a coral or two."""
+    cx, cz = w // 2, d // 2
+    for x in list(range(2, cx - 1)) + list(range(cx + 2, w - 2)):
+        for z in range(2, d - 2):
+            edge = x in (2, cx - 2, cx + 2, w - 3) or z in (2, d - 3)
+            for y in range(1, 5):
+                t.set(x, y, z, "glass" if edge or y == 4 else "water")
+            t.set(x, 0, z, "sea_lantern" if (x + z) % 4 == 0 else "sand")
+            if not edge and (x * 3 + z) % 5 == 0:
+                t.set(x, 1, z, "kelp_plant")
+                t.set(x, 2, z, "kelp", age=10)
+    mob_spawner(t, cx, 1, 3, th["mobs"], structure)
+    t.chest(cx, 1, d - 3, f"{structure}_room", facing="north")
+
+
 NEW_ROOMS = {"great_hall": great_hall, "barracks": barracks, "prison": prison, "library": library,
              "gauntlet": gauntlet, "armory": armory, "throne_room": throne_room, "crypt": crypt,
              "ritual_chamber": ritual_chamber, "storage_vault": storage_vault, "courtyard": courtyard,
              "mess_hall": mess_hall, "mine_tunnel": mine_tunnel, "flooded_room": flooded_room, "lava_parkour": lava_parkour,
-             "collapsing_floor": collapsing_floor, "puzzle_room": puzzle_room}
+             "collapsing_floor": collapsing_floor, "puzzle_room": puzzle_room,
+             "alchemy_lab": alchemy_lab, "forge_room": forge_room, "garden_hall": garden_hall, "fountain_court": fountain_court,
+             "chasm_bridge": chasm_bridge, "pillar_hall": pillar_hall, "map_room": map_room, "aquarium": aquarium}
 
 
 def cap(structure):
@@ -2188,6 +2362,134 @@ def arena_doors(structure, t):
             door(t, along, fy, 0, "north", structure, th["floor"][0], "first")
         else:
             door(t, along, fy, Z - 1, "south", structure, th["floor"][0], "first")
+    return t
+
+
+UNDERWATER = ("sunken_vault", "sunken_ship")
+COURT = 10   # how far the grand courtyard reaches out from the arena on every side
+
+
+def grand(structure, arena):
+    """Wraps an arena in a grand courtyard: a wide paved yard, an outer wall with battlements, a tower at every
+    corner, a gate arch over every way out, braziers and lamp posts, all in the structure's own stone. The arena's
+    jigsaw doors move out to the wall, joined to the arena by paved roads, so the rooms still grow from the gates."""
+    th = THEMES[structure]
+    X, Y, Z = arena.size
+    M = COURT
+    doors = [(pos, arena.blocks[pos], arena.nbt[pos]) for pos in arena.nbt if arena.blocks.get(pos, ("",))[0] == "jigsaw"]
+    g = min(p[1] for p, _, _ in doors) if doors else 0
+    top = g + 15
+    W, D = X + 2 * M, Z + 2 * M
+    t = Template(W, max(Y, top + 4), D)
+    wall, acc, trim, light = th["wall"], th["accent"], th["trim"], th["light"]
+    if acc in ("dark_oak_log", "quartz_pillar"):
+        acc_block = wall
+    else:
+        acc_block = acc
+    f0, f1 = th["floor"]
+    wet = structure in UNDERWATER
+    open_air = th.get("open", False)
+    # The yard: a foundation and a patterned floor.
+    for x in range(W):
+        for z in range(D):
+            for y in range(0, g):
+                _put(t, x, y, z, wall)
+            ring = min(x, z, W - 1 - x, D - 1 - z)
+            _put(t, x, g, z, f1 if (x + z) % 4 == 0 or ring in (3, 4) else f0)
+    # The outer wall (low balustrade on open-air islands), with battlements.
+    wh = 2 if open_air else 7
+    for x in range(W):
+        for z in range(D):
+            if min(x, z, W - 1 - x, D - 1 - z) == 0:
+                for y in range(g + 1, g + 1 + wh):
+                    _put(t, x, y, z, wall)
+                if (x + z) % 2 == 0:
+                    _put(t, x, g + 1 + wh, z, acc_block)
+                if not open_air and (x + z) % 6 == 0:
+                    t.set(x, g + 4, z, light)
+    # Corner towers.
+    for (tx, tz) in [(0, 0), (W - 7, 0), (0, D - 7), (W - 7, D - 7)]:
+        for x in range(tx, tx + 7):
+            for z in range(tz, tz + 7):
+                edge = x in (tx, tx + 6) or z in (tz, tz + 6)
+                corner = x in (tx, tx + 6) and z in (tz, tz + 6)
+                for y in range(g + 1, top):
+                    if edge:
+                        _put(t, x, y, z, acc_block if corner else wall)
+                    elif not wet:
+                        t.set(x, y, z, "air")
+                _put(t, x, top, z, wall)
+                if edge and (x + z) % 2 == 0:
+                    _put(t, x, top + 1, z, acc_block)
+        cx, cz = tx + 3, tz + 3
+        for k in range(3):
+            w_ = 2 - k
+            for dx in range(-w_, w_ + 1):
+                for dz in range(-w_, w_ + 1):
+                    _put(t, cx + dx, top + 2 + k, cz + dz, acc_block)
+        t.set(cx, top + 5, cz, light)
+        for y in range(g + 3, top - 1, 5):
+            for (wx, wz) in [(cx, tz), (cx, tz + 6), (tx, cz), (tx + 6, cz)]:
+                t.set(wx, y, wz, "air" if not wet else light)
+    # Lamp posts round the yard, braziers by the arena.
+    for x in range(4, W - 4, 8):
+        for z in (4, D - 5):
+            for y in range(g + 1, g + 5):
+                _put(t, x, y, z, acc_block)
+            t.set(x, g + 5, z, light)
+    for z in range(4, D - 4, 8):
+        for x in (4, W - 5):
+            for y in range(g + 1, g + 5):
+                _put(t, x, y, z, acc_block)
+            t.set(x, g + 5, z, light)
+    # The arena itself in the middle.
+    for (x, y, z), b in arena.blocks.items():
+        t.blocks[(x + M, y, z + M)] = b
+    for (x, y, z), n in arena.nbt.items():
+        t.nbt[(x + M, y, z + M)] = n
+    # Each door moves out to the wall: a paved road, a gate arch, braziers, and the jigsaw at the edge.
+    for (x, y, z), block, nbt in doors:
+        ax, az = x + M, z + M
+        t.blocks[(ax, y, az)] = (f0, ())
+        t.nbt.pop((ax, y, az), None)
+        if x == 0:
+            dx, dz, ex, ez = -1, 0, 0, az
+        elif x == X - 1:
+            dx, dz, ex, ez = 1, 0, W - 1, az
+        elif z == 0:
+            dx, dz, ex, ez = 0, -1, ax, 0
+        else:
+            dx, dz, ex, ez = 0, 1, ax, D - 1
+        px, pz = ax, az
+        while (px, pz) != (ex, ez):
+            px, pz = px + dx, pz + dz
+            for k in (-1, 0, 1):
+                qx, qz = (px, pz + k) if dx else (px + k, pz)
+                if y > g:
+                    for yy in range(g + 1, y):
+                        _put(t, qx, yy, qz, wall)
+                _put(t, qx, y, qz, f1 if k == 0 else f0)
+                if not wet:
+                    for yy in range(y + 1, y + 5):
+                        t.set(qx, yy, qz, "air")
+        # The arch over the gate.
+        for k in (-2, 2):
+            for yy in range(y + 1, y + 6):
+                qx, qz = (ex, ez + k) if dx else (ex + k, ez)
+                _put(t, qx, yy, qz, acc_block)
+        for k in (-2, -1, 0, 1, 2):
+            qx, qz = (ex, ez + k) if dx else (ex + k, ez)
+            _put(t, qx, y + 5, qz, acc_block)
+        t.set(ex, y + 6, ez, light)
+        # Braziers either side of the road, inside the wall.
+        for k in (-3, 3):
+            bx, bz = (ex - dx * 2, ez + k) if dx else (ex + k, ez - dz * 2)
+            if 0 < bx < W - 1 and 0 < bz < D - 1 and not wet:
+                _put(t, bx, y + 1, bz, acc_block)
+                t.set(bx, y + 2, bz, "soul_campfire" if structure in ("soul_sanctum", "void_spire", "ender_crypt", "watchers_hollow")
+                      else "campfire", lit=True, facing="north", signal_fire=False, waterlogged=False)
+        t.blocks[(ex, y, ez)] = block
+        t.nbt[(ex, y, ez)] = nbt
     return t
 
 
@@ -2423,7 +2725,7 @@ def build():
         # The arena's altar chest: sealed until the boss is beaten, so it holds a little more.
         write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [bonus(), bonus(), book()]})
     for name, (fn, biomes, step, height, heightmap, spacing, sep, salt, terrain) in STRUCTURES.items():
-        arena = arena_doors(name, fn())
+        arena = grand(name, arena_doors(name, fn()))
         # The old single-piece name stays, so structures generated before still find their template.
         write(f"structure/{name}.nbt", arena.to_nbt())
         write(f"worldgen/template_pool/{name}.json", pool([name]))
