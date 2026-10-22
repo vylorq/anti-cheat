@@ -581,6 +581,17 @@ public final class EdgeKeep {
         // The offering at the inner door.
         if (!isOpen("entry")) {
             offering(w);
+            // Nobody gets past the inner door before the offering is made: anyone who got in some other way (through a
+            // wall, over the roof, a pearl) is put back in the porch.
+            int[] porch = lay.regions().get("porch");
+            for (ServerPlayerEntity p : inside) {
+                if (!exempt(p) && !in("porch", w, p.getX(), p.getY(), p.getZ())) {
+                    Mc.teleport(p, w, s.x + porch[0] + 1.5, s.y + porch[1] + 1, s.z + (porch[2] + porch[5]) / 2 + 0.5, -90f, 0f);
+                    p.fallDistance = 0;
+                    Msg.actionBar(p, "§c" + Msg.trFor(p, "edge.offer-first"));
+                    Mc.sound(p, SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1f, 0.6f);
+                }
+            }
         }
 
         // The entrance seals behind whoever goes in.
