@@ -27,6 +27,22 @@ COLOURS = ["red", "blue", "yellow", "lime", "purple", "white", "orange", "cyan"]
 WALL_PROPS = dict(up=True, north="none", south="none", east="none", west="none", waterlogged=False)
 
 
+ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
+# The ten offerings (item, how many, the scroll's riddle). Their order is shuffled once, by the citadel's seed.
+OFFER = [
+    ("nether_star", 1, "The star torn from the three-headed storm."),
+    ("heavy_core", 3, "Three hearts of the vault, heavier than iron."),
+    ("dragon_head", 1, "The crown of the End's last queen."),
+    ("totem_of_undying", 1, "The charm that cheats death once."),
+    ("heart_of_the_sea", 1, "The heart the ocean buries."),
+    ("enchanted_golden_apple", 1, "Gold that glows, the apple of old kings."),
+    ("netherite_ingot", 1, "A bar forged from ancient debris."),
+    ("trident", 1, "The drowned king's three-pronged spear."),
+    ("sniffer_egg", 1, "An egg from an age before ours."),
+    ("wither_skeleton_skull", 1, "The blackened skull of the fortress."),
+]
+
+
 def gate(name, x0, x1, z0, z1, y0, y1, block, closed=True):
     return {"name": name, "box": [x0, y0, z0, x1, y1, z1], "block": block, "closed": closed}
 
@@ -152,23 +168,35 @@ def build_citadel(seed=31171000):
                                          {"text": "Mjolnir sleeps here.", "color": "gray"},
                                          {"text": "Only one may", "color": "gray"},
                                          {"text": "ever lift it.", "color": "gray"}], wood="crimson")
-    # The offering: four hoppers by the inner door, each wanting its own item, in order (I to IV). The door opens when
-    # the fourth is given; a wrong item, or the right one out of turn, is thrown back with lightning.
+    # The offering: ten hoppers by the inner door, each wanting its own hard-won gift (one wants three heavy cores), in
+    # an order nobody is told: it is written, a line at a time, on the ten Offering Scrolls hidden in chests across the
+    # world. The door opens when the tenth is given; a wrong item, or the right one out of turn, is thrown back with
+    # lightning and the count starts again.
     for z in range(1, Z - 1):
         for y in range(F + 1, F + 11):
             b._put(t, 6, y, z, WALL)
     layout["gates"].append(gate("entry", 6, 6, MID - 2, MID + 2, F + 1, F + 6, "reinforced_deepslate"))
-    OFFER = [("nether_star", "The Wither's star"), ("heart_of_the_sea", "The sea's heart"),
-             ("echo_shard", "An echo of the deep"), ("totem_of_undying", "A token of undying")]
+    order = list(OFFER)
+    random.Random(seed + 1).shuffle(order)
     layout["hoppers"] = []
-    layout["offering"] = [item for item, _ in OFFER]
-    for k, (z, (item, clue)) in enumerate(zip([MID - 5, MID - 3, MID + 3, MID + 5], OFFER)):
+    layout["offering"] = [item + (f"*{n}" if n > 1 else "") for item, n, _ in order]
+    layout["scrolls"] = [clue for _, _, clue in order]
+    for k, z in enumerate(sorted(MID + d for d in (-11, -9, -7, -5, -3, 3, 5, 7, 9, 11))):
         t.set(5, F + 1, z, "hopper", facing="down", enabled=True)
         t.set(5, F, z, ACC)
         layout["hoppers"].append([5, F + 1, z])
-        t.sign(5, F + 2, z, "west", [{"text": ["I", "II", "III", "IV"][k], "color": "gold", "bold": True},
-                                     {"text": clue, "color": "light_purple"},
+        t.sign(5, F + 2, z, "west", [{"text": ROMAN[k], "color": "gold", "bold": True},
+                                     {"text": "Its gift is written", "color": "light_purple"},
+                                     {"text": f"on Scroll {ROMAN[k]}", "color": "light_purple"},
                                      {"text": "Give in order", "color": "gray"}], wood="crimson")
+    t.sign(1, F + 3, MID + 4, "east", [{"text": "Ten Offerings", "color": "dark_purple", "bold": True},
+                                        {"text": "Their names are on", "color": "gray"},
+                                        {"text": "scrolls hidden in", "color": "gray"},
+                                        {"text": "chests of the world", "color": "gray"}], wood="crimson")
+    t.sign(1, F + 3, MID - 4, "east", [{"text": "Give I to X", "color": "gold", "bold": True},
+                                        {"text": "One wrong gift", "color": "gray"},
+                                        {"text": "and all must be", "color": "gray"},
+                                        {"text": "given again.", "color": "gray"}], wood="crimson")
     layout["regions"]["porch"] = [1, F, 1, 5, F + 10, Z - 2]
     layout["regions"]["inside"] = [1, F, 1, X - 2, ROOF, Z - 2]
     # Each room must be cleared, in order: this many of its mobs must die before its way on opens.
@@ -637,10 +665,49 @@ GUARDIAN_LOOT = {"type": "minecraft:entity", "pools": [
                              b.item("enchanted_golden_apple", 1)]}]}
 
 
+def scroll_entries(layout):
+    """The ten Offering Scrolls, as loot entries: paper that names one offering and its place in the order."""
+    out = []
+    for k, clue in enumerate(layout["scrolls"]):
+        out.append({"type": "minecraft:item", "name": "minecraft:paper", "weight": 1, "functions": [
+            {"function": "minecraft:set_custom_data", "tag": "{vigil_offering_scroll:%d}" % (k + 1)},
+            {"function": "minecraft:set_name", "target": "item_name",
+             "name": {"text": f"Offering Scroll {ROMAN[k]}", "color": "#C77DFF"}},
+            {"function": "minecraft:set_lore", "mode": "replace_all", "lore": [
+                {"text": f"The World's Edge asks, as gift {ROMAN[k]} of X:", "color": "gray", "italic": False},
+                {"text": clue, "color": "light_purple", "italic": True},
+                {"text": "Give it into hopper " + ROMAN[k] + " at the inner door.", "color": "dark_gray", "italic": False}]},
+            {"function": "minecraft:set_components", "components": {"minecraft:rarity": "epic",
+                                                                     "minecraft:enchantment_glint_override": True}}]})
+    return out
+
+
+def add_scrolls(layout):
+    """Hides the scrolls across the world: 1 room chest in 8 of every structure, every locked vault and ruin chest
+    now and then, and 1 castle chest in 3."""
+    import glob
+    import json
+    import os
+    entries = scroll_entries(layout)
+    chests = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                          "src", "main", "resources", "data", "vigil", "loot_table", "chests")
+    for path in sorted(glob.glob(os.path.join(chests, "*.json"))):
+        name = os.path.basename(path)[:-5]
+        empty = 7 if name.endswith("_room") else 2 if name in ("edge_castle",) or name.endswith("_keyvault") else 11 if name == "ruins" else None
+        if empty is None:
+            continue
+        with open(path) as f:
+            table = json.load(f)
+        table["pools"] = [p for p in table["pools"] if not any("vigil_offering_scroll" in json.dumps(e) for e in p["entries"])]
+        table["pools"].append({"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": empty * len(entries)}] + entries})
+        b.write(f"loot_table/chests/{name}.json", table)
+
+
 def write_all():
     b.write("loot_table/chests/edge_castle.json", CASTLE_LOOT)
     b.write("loot_table/entities/edge_guardian.json", GUARDIAN_LOOT)
     t, layout = castle(*build_citadel())
+    add_scrolls(layout)
     b.write("structure/edge/citadel.nbt", t.to_nbt())
     b.write("edge/layout.json", layout)
     return t, layout

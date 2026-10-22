@@ -1294,6 +1294,485 @@
           "weight": 2
         }
       ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 20
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:1}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll I",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift I of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "An egg from an age before ours.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper I at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:2}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll II",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift II of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "The star torn from the three-headed storm.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper II at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:3}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll III",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift III of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "Three hearts of the vault, heavier than iron.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper III at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:4}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll IV",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift IV of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "The charm that cheats death once.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper IV at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:5}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll V",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift V of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "The heart the ocean buries.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper V at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:6}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll VI",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift VI of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "The blackened skull of the fortress.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper VI at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:7}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll VII",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift VII of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "Gold that glows, the apple of old kings.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper VII at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:8}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll VIII",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift VIII of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "A bar forged from ancient debris.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper VIII at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:9}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll IX",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift IX of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "The crown of the End's last queen.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper IX at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:10}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll X",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift X of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "The drowned king's three-pronged spear.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper X at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }
