@@ -581,6 +581,17 @@ public final class EdgeKeep {
         // The offering at the inner door.
         if (!isOpen("entry")) {
             offering(w);
+            // Nobody gets past the inner door before the offering is made: anyone who got in some other way (through a
+            // wall, over the roof, a pearl) is put back in the porch.
+            int[] porch = lay.regions().get("porch");
+            for (ServerPlayerEntity p : inside) {
+                if (!exempt(p) && !in("porch", w, p.getX(), p.getY(), p.getZ())) {
+                    Mc.teleport(p, w, s.x + porch[0] + 1.5, s.y + porch[1] + 1, s.z + (porch[2] + porch[5]) / 2 + 0.5, -90f, 0f);
+                    p.fallDistance = 0;
+                    Msg.actionBar(p, "§c" + Msg.trFor(p, "edge.offer-first"));
+                    Mc.sound(p, SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1f, 0.6f);
+                }
+            }
         }
 
         // The entrance seals behind whoever goes in.
@@ -1088,6 +1099,7 @@ public final class EdgeKeep {
     public static final String GUARDIAN_TAG = "vigil_edge_guardian";
     /** How long a fallen guardian's post stays empty before another takes it. */
     static final long GUARD_RESPAWN = 20L * 60 * 3;
+    static final double GUARDIAN_HP = 5000;
     private static final Map<Integer, Long> POST_EMPTY_SINCE = new HashMap<>();
     private static long guardClock;
 
@@ -1117,7 +1129,13 @@ public final class EdgeKeep {
             }
             String tag = GUARDIAN_TAG + ":" + i;
             var near = new net.minecraft.util.math.Box(at).expand(24);
-            if (!w.getEntitiesByClass(MobEntity.class, near, m -> m.isAlive() && m.getCommandTags().contains(tag)).isEmpty()) {
+            var standing = w.getEntitiesByClass(MobEntity.class, near, m -> m.isAlive() && m.getCommandTags().contains(tag));
+            if (!standing.isEmpty()) {
+                for (MobEntity g : standing) {
+                    if (g.getCommandTags().stream().noneMatch(t -> t.startsWith(Bosses.HP_TAG))) {
+                        Bosses.bigHealth(g, GUARDIAN_HP); // one from before guardians had 5,000 health
+                    }
+                }
                 POST_EMPTY_SINCE.remove(i);
                 filledOnce.add(i);
                 continue;
@@ -1194,6 +1212,8 @@ public final class EdgeKeep {
                     scale, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
         }
         StructureMobs.guard(m);
+        // 5,000 health each.
+        Bosses.bigHealth(m, GUARDIAN_HP);
         m.addCommandTag(GUARDIAN_TAG);
         m.addCommandTag(tag);
         m.setCustomName(net.minecraft.text.Text.literal(name));
