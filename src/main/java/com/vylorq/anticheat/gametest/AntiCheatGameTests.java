@@ -571,6 +571,23 @@ public final class AntiCheatGameTests {
     }
 
     @GameTest
+    public void dungeonKeysAndVaults(TestContext ctx) {
+        var w = ctx.getWorld();
+        check(com.vylorq.anticheat.feature.DungeonKeys.isKey(com.vylorq.anticheat.feature.DungeonKeys.key()), "the key isn't a key");
+        check(!com.vylorq.anticheat.feature.DungeonKeys.isKey(new net.minecraft.item.ItemStack(net.minecraft.item.Items.TRIAL_KEY)),
+                "a plain trial key opens vaults");
+        BlockPos at = ctx.getAbsolutePos(new BlockPos(1, 2, 1));
+        w.setBlockState(at, net.minecraft.block.Blocks.CHEST.getDefaultState());
+        var chest = (net.minecraft.block.entity.ChestBlockEntity) w.getBlockEntity(at);
+        chest.setLootTable(net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.LOOT_TABLE,
+                net.minecraft.util.Identifier.of("vigil", "chests/buried_vault_keyvault")), 1L);
+        check(com.vylorq.anticheat.feature.DungeonKeys.lockedVault(chest), "the vault chest isn't locked");
+        var templates = w.getServer().getStructureTemplateManager();
+        check(templates.getTemplate(net.minecraft.util.Identifier.of("vigil", "buried_vault/key_vault")).isPresent(), "no vault room");
+        ctx.complete();
+    }
+
+    @GameTest
     public void edgeCitadelLoads(TestContext ctx) {
         var w = ctx.getWorld();
         var tpl = w.getStructureTemplateManager().getTemplate(net.minecraft.util.Identifier.of("vigil", "edge/citadel"));

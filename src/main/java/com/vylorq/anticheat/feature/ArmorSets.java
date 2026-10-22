@@ -338,9 +338,10 @@ public final class ArmorSets {
             }
             String name = id.getPath().substring("chests/".length());
             boolean room = name.endsWith("_room");
-            String kind = STRUCTURES.get(room ? name.substring(0, name.length() - 5) : name);
+            boolean vault = name.endsWith("_keyvault");
+            String kind = STRUCTURES.get(room ? name.substring(0, name.length() - 5) : vault ? name.substring(0, name.length() - 9) : name);
             Set s = kind == null ? null : ofBoss(kind);
-            if (s != null && context.getRandom().nextInt(room ? 20 : 8) == 0) {
+            if (s != null && context.getRandom().nextInt(room ? 20 : vault ? 2 : 8) == 0) {
                 drops.add(piece(s, context.getRandom().nextInt(4)));
             }
         });

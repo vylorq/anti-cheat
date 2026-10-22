@@ -207,6 +207,15 @@
         "processors": "minecraft:empty",
         "projection": "rigid"
       }
+    },
+    {
+      "weight": 3,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:desert_tomb/key_vault",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
     }
   ]
 }
