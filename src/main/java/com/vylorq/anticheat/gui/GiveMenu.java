@@ -96,6 +96,7 @@ public final class GiveMenu {
         for (int i = 0; i < 4; i++) {
             out.add(com.vylorq.anticheat.feature.BoiledFight.armor(i));
         }
+        out.add(com.vylorq.anticheat.feature.DungeonKeys.key());
         out.add(com.vylorq.anticheat.feature.BoiledOmens.lantern());
         out.add(com.vylorq.anticheat.feature.BoiledDread.cursedBone());
         out.add(com.vylorq.anticheat.feature.Lifestyle.claws());

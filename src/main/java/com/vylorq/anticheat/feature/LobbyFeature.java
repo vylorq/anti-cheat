@@ -202,6 +202,46 @@ public final class LobbyFeature {
         }
     }
 
+    private static final net.minecraft.particle.ParticleEffect AUTUMN_RED = new net.minecraft.particle.BlockStateParticleEffect(
+            net.minecraft.particle.ParticleTypes.FALLING_DUST, net.minecraft.block.Blocks.RED_TERRACOTTA.getDefaultState());
+    private static final net.minecraft.particle.ParticleEffect AUTUMN_ORANGE = new net.minecraft.particle.BlockStateParticleEffect(
+            net.minecraft.particle.ParticleTypes.FALLING_DUST, net.minecraft.block.Blocks.ORANGE_TERRACOTTA.getDefaultState());
+
+    /**
+     * The lobby dresses for the season (Seasons.java): snow in winter, falling leaves in autumn, cherry petals in
+     * spring, fireflies and sparkles in summer. Only players in the lobby see it, a little at a time.
+     */
+    public static void seasonFx(long ticks) {
+        if (ticks % 5 != 0 || !Features.on(Features.Feature.LOBBY) || !Ac.get().lobby.isSet()) {
+            return;
+        }
+        var area = Ac.get().lobby.data().area;
+        ServerWorld w = Mc.world(Ac.server(), area.world);
+        if (w == null) {
+            return;
+        }
+        Seasons.Season season = Seasons.now();
+        var r = w.getRandom();
+        for (ServerPlayerEntity p : w.getPlayers()) {
+            if (!in(p)) {
+                continue;
+            }
+            for (int i = 0; i < 6; i++) {
+                double x = p.getX() + (r.nextDouble() - 0.5) * 20;
+                double y = p.getY() + 3 + r.nextDouble() * 6;
+                double z = p.getZ() + (r.nextDouble() - 0.5) * 20;
+                net.minecraft.particle.ParticleEffect fx = switch (season) {
+                    case WINTER -> net.minecraft.particle.ParticleTypes.SNOWFLAKE;
+                    case AUTUMN -> r.nextBoolean() ? AUTUMN_RED : AUTUMN_ORANGE;
+                    case SPRING -> net.minecraft.particle.ParticleTypes.CHERRY_LEAVES;
+                    case SUMMER -> r.nextInt(3) == 0 ? net.minecraft.particle.ParticleTypes.WAX_ON : net.minecraft.particle.ParticleTypes.FIREFLY;
+                };
+                double fall = season == Seasons.Season.WINTER ? -0.05 : 0;
+                w.spawnParticles(p, fx, false, false, x, y, z, 1, 0.2, 0.1, 0.2, Math.abs(fall));
+            }
+        }
+    }
+
     /** Every second: hostile mobs that wander or spawn into the lobby vanish (named or mod mobs stay). */
     public static void clearMobs() {
         if (!Features.on(Features.Feature.LOBBY) || !Ac.get().lobby.isSet()) {

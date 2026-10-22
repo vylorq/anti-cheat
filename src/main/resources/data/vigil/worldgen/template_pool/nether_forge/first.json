@@ -180,6 +180,78 @@
         "processors": "minecraft:empty",
         "projection": "rigid"
       }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:nether_forge/alchemy_lab",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 4,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:nether_forge/forge_room",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 4,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:nether_forge/garden_hall",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 4,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:nether_forge/fountain_court",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:nether_forge/chasm_bridge",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 4,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:nether_forge/pillar_hall",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:nether_forge/map_room",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:nether_forge/aquarium",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
     }
   ]
 }

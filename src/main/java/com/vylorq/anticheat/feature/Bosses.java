@@ -382,6 +382,8 @@ public final class Bosses {
         int crowd = 1;
         /** Its rematch level (0 the first time): more health and harder hits each time it's beaten. */
         int level;
+        /** 0 Normal, 1 Hard, 2 Nightmare (chosen by the players before it woke). */
+        int difficulty;
         /** Charged by a thunderstorm. */
         boolean storm;
         /** When it rose (millis), for the fastest-kill record. */
@@ -440,6 +442,13 @@ public final class Bosses {
                     }
                     if (t.equals(CURSED_TAG)) {
                         l.cursed = true;
+                    }
+                    if (t.startsWith(DIFF_TAG)) {
+                        try {
+                            l.difficulty = Math.max(0, Math.min(2, Integer.parseInt(t.substring(DIFF_TAG.length()))));
+                        } catch (NumberFormatException ignored) {
+                            // normal
+                        }
                     }
                     if (t.startsWith(LEVEL_TAG)) {
                         try {
@@ -689,7 +698,7 @@ public final class Bosses {
 
     /** One health bar of this boss: its kind's, half as much again when it was cursed. */
     static double health(Live l) {
-        return l.kind.health() * (l.cursed ? CURSE : 1) * (1 + 0.25 * l.level) * (l.storm ? 1.25 : 1);
+        return l.kind.health() * (l.cursed ? CURSE : 1) * (1 + 0.25 * l.level) * (l.storm ? 1.25 : 1) * DIFF_HEALTH[l.difficulty];
     }
     private static final String PHASE_TAG = "vigil_phase:";
 
@@ -739,7 +748,7 @@ public final class Bosses {
         int max = (int) Math.round(one);
         int total = hp + (PHASES - phase) * max;
         String color = phase == 1 ? "§a" : phase == 2 ? "§e" : "§c";
-        m.setCustomName(Text.literal(k.color() + "§l" + k.name() + " §7[" + phase + "/" + PHASES + "] " + color + "❤ " + total + "/" + (max * PHASES) + (l != null && l.cursed ? " §5☠" : "")
+        m.setCustomName(Text.literal(k.color() + "§l" + k.name() + " §7[" + phase + "/" + PHASES + "] " + color + "❤ " + total + "/" + (max * PHASES) + (l != null && l.cursed ? " §5☠" : "") + (l != null && l.difficulty == 1 ? " §6✦" : l != null && l.difficulty == 2 ? " §4✦✦" : "")
                 + (l != null && l.level > 0 ? " §6★" + (l.level + 1) : "") + (l != null && l.storm ? " §e⚡" : "")));
     }
 
@@ -953,12 +962,29 @@ public final class Bosses {
                     Msg.actionBar(p, "§c" + Msg.trFor(p, "boss.asleep", left));
                     continue;
                 }
+                // Before it wakes, the players choose how hard the fight is (20 seconds, then Normal).
+                Integer chosen = CHOSEN.remove(key);
+                if (chosen == null) {
+                    Long asked = ASKED.get(key);
+                    long nowMs = System.currentTimeMillis();
+                    if (asked == null) {
+                        ASKED.put(key, nowMs);
+                        com.vylorq.anticheat.gui.BossDifficultyMenu.open(p, key, k.color() + k.name());
+                        continue;
+                    }
+                    if (nowMs - asked < 20_000) {
+                        continue;
+                    }
+                    chosen = 0;
+                }
+                ASKED.remove(key);
                 state().spawned.add(key);
                 save();
                 Vec3d at = new Vec3d(box.getCenter().getX() + 0.5, box.getMinY() + k.floor(), box.getCenter().getZ() + 0.5);
                 MobEntity risen = spawn(w, at, k.id());
                 if (risen != null) {
                     risen.addCommandTag(KEY_TAG + key);
+                    difficulty(risen, chosen);
                     int lvl = state().levels.getOrDefault(key, 0);
                     level(risen, lvl);
                     if (lvl > 0) {
@@ -1061,6 +1087,45 @@ public final class Bosses {
     }
 
     /** A rematch: each time this structure's boss was beaten, it comes back stronger (and drops more). */
+    static final String DIFF_TAG = "vigil_difficulty:";
+    private static final double[] DIFF_HEALTH = {1, 1.6, 2.5};
+    private static final double[] DIFF_DAMAGE = {0, 0.3, 0.7};
+    private static final Identifier DIFF = Identifier.of("vigil", "boss_difficulty");
+    /** Fights waiting for their difficulty (structure key -> when the players were asked). */
+    private static final Map<String, Long> ASKED = new ConcurrentHashMap<>();
+    /** The difficulty the players picked, until the boss rises. */
+    private static final Map<String, Integer> CHOSEN = new ConcurrentHashMap<>();
+
+    /** The menu's answer: the boss rises at the next check with this difficulty. */
+    public static void chooseDifficulty(ServerPlayerEntity p, String key, int difficulty) {
+        if (!ASKED.containsKey(key) || state().spawned.contains(key)) {
+            return;
+        }
+        CHOSEN.put(key, Math.max(0, Math.min(2, difficulty)));
+        for (ServerPlayerEntity o : p.getEntityWorld().getPlayers()) {
+            if (o.squaredDistanceTo(p) < 48 * 48) {
+                Msg.send(o, "boss.difficulty-chosen", p.getGameProfile().name(), Msg.trFor(o, "boss.difficulty." + difficulty));
+            }
+        }
+    }
+
+    private static void difficulty(MobEntity m, int d) {
+        if (d <= 0) {
+            return;
+        }
+        m.addCommandTag(DIFF_TAG + d);
+        Live l = LIVE.get(m.getUuid());
+        if (l != null) {
+            l.difficulty = d;
+            nameTag(m, l.kind);
+        }
+        var dmg = m.getAttributeInstance(EntityAttributes.ATTACK_DAMAGE);
+        if (dmg != null && dmg.getModifier(DIFF) == null) {
+            dmg.addPersistentModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(DIFF, DIFF_DAMAGE[d],
+                    net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        }
+    }
+
     private static void level(MobEntity m, int level) {
         if (level <= 0) {
             return;
@@ -1672,7 +1737,7 @@ public final class Bosses {
             }
         }
         String by = killer instanceof ServerPlayerEntity p ? p.getGameProfile().name() : null;
-        int times = l.cursed ? 2 : 1;
+        int times = (l.cursed ? 2 : 1) + l.difficulty;
         List<ItemStack> drops = new ArrayList<>();
         for (int i = 0; i < times; i++) {
             drops.add(new ItemStack(Items.DIAMOND, 4 + w.getRandom().nextInt(5)));
@@ -1698,6 +1763,10 @@ public final class Bosses {
         }
         if (w.getRandom().nextInt(4) == 0) {
             drops.add(cursedKey());
+        }
+        // A Dungeon Key opens a structure's locked vault: 1 in 3, 2 in 3 on Hard, always on Nightmare.
+        if (l.difficulty == 2 || w.getRandom().nextInt(3) < 1 + l.difficulty) {
+            drops.add(DungeonKeys.key());
         }
         drops.removeIf(s -> s.isEmpty() || !ContentToggles.allowed(s));     // what the owner turned off
         for (ItemStack s : drops) {
