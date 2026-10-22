@@ -123,6 +123,7 @@ public final class Ticker {
             ContainerLog.check(p);
             WaitingRoomFeature.tick(p);
             LobbyFeature.tickPlayer(p);
+            LobbyFeature.combatTimer(p);
             Claims.enforceInside(p);
             if (Tools.is(p.getMainHandStack(), Tools.CLAIM_STICK)) {
                 Claims.showBorders(p);

@@ -3307,5 +3307,7 @@
   "give.held.desc": "Edit a copy of what you're holding: enchantments, name, unbreakable, then give it.",
   "give.filter.all": "Everything",
   "give.filter.mod": "Mod items",
-  "give.filter.gear": "Armor, weapons & tools"
+  "give.filter.gear": "Armor, weapons & tools",
+  "combat.timer": "In combat: {0}s",
+  "combat.over": "You're out of combat"
 }
