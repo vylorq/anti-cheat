@@ -92,10 +92,14 @@ public final class EdgeKeep {
         public int offered;
         /** Which version of the layout stands in the world (an older one is rebuilt in place at start). */
         public int version;
+        /** Mobs killed in each room this run (rooms must be cleared, in order, before their way on opens). */
+        public Map<String, Integer> kills = new java.util.HashMap<>();
+        /** The Rift Gates: machines that take whoever feeds them an ender pearl to the citadel ("world|x|y|z"). */
+        public List<String> machines = new ArrayList<>();
     }
 
     /** Raise when the citadel's layout changes, so a placed one is rebuilt with it. */
-    static final int VERSION = 2;
+    static final int VERSION = 3;
 
     private static State state;
 
@@ -115,6 +119,12 @@ public final class EdgeKeep {
             }
             if (state.open == null) {
                 state.open = new HashSet<>();
+            }
+            if (state.kills == null) {
+                state.kills = new java.util.HashMap<>();
+            }
+            if (state.machines == null) {
+                state.machines = new ArrayList<>();
             }
         }
         return state;
@@ -358,6 +368,14 @@ public final class EdgeKeep {
             if (old != null) {
                 killBoss(old);
                 clearWave(old);
+                try {
+                    if (BlockSnapshots.exists(SNAP)) {
+                        BlockSnapshots.restore(old, SNAP);
+                        Files.deleteIfExists(BlockSnapshots.file(SNAP));
+                    }
+                } catch (Exception e) {
+                    Ac.LOG.warn("Could not put the ground back under the old Edge Citadel", e);
+                }
                 String error = placeAt(old, new BlockPos(s.x, s.y, s.z));
                 Ac.LOG.info("The World's Edge Citadel was rebuilt with its new layout{}", error == null ? "" : ": " + error);
             }
@@ -466,6 +484,7 @@ public final class EdgeKeep {
         s.bossDone = false;
         s.wave = 0;
         s.offered = 0;
+        s.kills.clear();
         clearWave(w);
         save();
     }
@@ -497,6 +516,7 @@ public final class EdgeKeep {
         if (ticks % 10 != 0) {
             return;
         }
+        machines();
         ServerWorld w = world();
         if (w == null) {
             return;
@@ -537,7 +557,9 @@ public final class EdgeKeep {
                     on.add(i);
                 }
             }
-            if (on.equals(lay.code())) {
+            if (on.equals(lay.code()) && !cleared(w, "levers")) {
+                // Right code, but the room isn't cleared yet: the levers wait.
+            } else if (on.equals(lay.code())) {
                 setGate(w, "code", true);
                 for (ServerPlayerEntity p : playersIn("levers", w)) {
                     Msg.actionBar(p, "§d" + Msg.trFor(p, "edge.code-right"));
@@ -547,8 +569,16 @@ public final class EdgeKeep {
             }
         }
 
-        // The lever at the maze's heart.
-        if (!isOpen("maze") && s.wave == 0 && s.boss == null && !s.bossDone && lever(w, at(lay.mazeLever()))) {
+        // The parkour room: its way down opens once it's cleared.
+        if (isOpen("code") && !isOpen("parkour") && cleared(w, "parkour")) {
+            setGate(w, "parkour", true);
+            for (ServerPlayerEntity p : playersIn("parkour", w)) {
+                Msg.actionBar(p, "§d" + Msg.trFor(p, "edge.room-cleared"));
+            }
+        }
+
+        // The lever at the maze's heart (once the maze is cleared).
+        if (!isOpen("maze") && s.wave == 0 && s.boss == null && !s.bossDone && lever(w, at(lay.mazeLever())) && cleared(w, "maze")) {
             setGate(w, "maze", true);
             for (ServerPlayerEntity p : playersIn("maze", w)) {
                 Msg.actionBar(p, "§d" + Msg.trFor(p, "edge.maze-open"));
@@ -626,6 +656,194 @@ public final class EdgeKeep {
                 }
                 Ac.LOG.info("{} claimed Mjolnir", s.claimedBy);
             }
+        }
+    }
+
+    // ---------------------------------------------------------------- clearing the rooms
+
+    private static Map<String, Integer> quotas;
+
+    private static int quota(String room) {
+        if (quotas == null) {
+            Map<String, Integer> q = new java.util.HashMap<>();
+            try {
+                var res = Ac.server().getResourceManager().getResource(LAYOUT).orElseThrow();
+                try (var in = new InputStreamReader(res.getInputStream(), StandardCharsets.UTF_8)) {
+                    JsonObject o = JsonParser.parseReader(in).getAsJsonObject();
+                    for (var e : o.getAsJsonObject("clear").entrySet()) {
+                        q.put(e.getKey(), e.getValue().getAsInt());
+                    }
+                }
+            } catch (Exception e) {
+                Ac.LOG.warn("Could not read the citadel's room quotas", e);
+            }
+            quotas = q;
+        }
+        return quotas.getOrDefault(room, 0);
+    }
+
+    private static final Map<String, Long> NAGGED = new java.util.HashMap<>();
+
+    /** Whether enough of the room's mobs have died; if not, the players in it are told how many are left. */
+    private static boolean cleared(ServerWorld w, String room) {
+        int need = quota(room);
+        int got = state().kills.getOrDefault(room, 0);
+        if (got >= need) {
+            return true;
+        }
+        long now = System.currentTimeMillis();
+        if (now - NAGGED.getOrDefault(room, 0L) > 4000) {
+            NAGGED.put(room, now);
+            for (ServerPlayerEntity p : playersIn(room, w)) {
+                Msg.actionBar(p, "§c" + Msg.trFor(p, "edge.clear-room", got, need));
+            }
+        }
+        return false;
+    }
+
+    /** A hostile mob died inside the citadel: it counts for the room it was in. */
+    private static void mobDied(net.minecraft.entity.LivingEntity e) {
+        if (!(e instanceof net.minecraft.entity.mob.Monster) || !(e.getEntityWorld() instanceof ServerWorld w)) {
+            return;
+        }
+        for (String room : List.of("levers", "parkour", "maze")) {
+            if (in(room, w, e.getX(), e.getY(), e.getZ())) {
+                state().kills.merge(room, 1, Integer::sum);
+                save();
+                return;
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------- the Rift Gate (owner's machine)
+
+    /** Owner: builds a Rift Gate in front of them. Anyone who drops an ender pearl in its hopper goes to the citadel. */
+    public static void placeMachine(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        if (!state().placed) {
+            Msg.send(p, "edge.none");
+            return;
+        }
+        ServerWorld w = p.getEntityWorld();
+        BlockPos c = p.getBlockPos().offset(p.getHorizontalFacing(), 3);
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                boolean corner = dx != 0 && dz != 0;
+                w.setBlockState(c.add(dx, -1, dz), (corner ? net.minecraft.block.Blocks.CRYING_OBSIDIAN
+                        : net.minecraft.block.Blocks.POLISHED_BLACKSTONE_BRICKS).getDefaultState());
+                if (corner) {
+                    w.setBlockState(c.add(dx, 0, dz), net.minecraft.block.Blocks.OBSIDIAN.getDefaultState());
+                    w.setBlockState(c.add(dx, 1, dz), net.minecraft.block.Blocks.PURPLE_STAINED_GLASS.getDefaultState());
+                    w.setBlockState(c.add(dx, 2, dz), net.minecraft.block.Blocks.END_ROD.getDefaultState());
+                }
+            }
+        }
+        w.setBlockState(c.down(), net.minecraft.block.Blocks.LODESTONE.getDefaultState());
+        w.setBlockState(c, net.minecraft.block.Blocks.HOPPER.getDefaultState());
+        state().machines.add(Mc.worldId(w) + "|" + c.getX() + "|" + c.getY() + "|" + c.getZ());
+        save();
+        Msg.send(p, "edge.machine-placed");
+    }
+
+    /** Owner: takes away the Rift Gate nearest them (within 8 blocks). */
+    public static void removeMachine(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        ServerWorld w = p.getEntityWorld();
+        String best = null;
+        double bestD = 64;
+        for (String m : state().machines) {
+            String[] k = m.split("\\|");
+            if (k[0].equals(Mc.worldId(w))) {
+                double d = p.squaredDistanceTo(Integer.parseInt(k[1]) + 0.5, Integer.parseInt(k[2]), Integer.parseInt(k[3]) + 0.5);
+                if (d < bestD) {
+                    bestD = d;
+                    best = m;
+                }
+            }
+        }
+        if (best == null) {
+            Msg.send(p, "edge.machine-none");
+            return;
+        }
+        String[] k = best.split("\\|");
+        BlockPos c = new BlockPos(Integer.parseInt(k[1]), Integer.parseInt(k[2]), Integer.parseInt(k[3]));
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                for (int dy = 0; dy <= 2; dy++) {
+                    w.setBlockState(c.add(dx, dy, dz), net.minecraft.block.Blocks.AIR.getDefaultState());
+                }
+            }
+        }
+        state().machines.remove(best);
+        save();
+        Msg.send(p, "edge.machine-removed");
+    }
+
+    /** Every half second: a pearl in a Rift Gate's hopper sends the nearest player (not in combat) to the citadel. */
+    private static void machines() {
+        State s = state();
+        if (s.machines.isEmpty() || !s.placed) {
+            return;
+        }
+        for (String m : new ArrayList<>(s.machines)) {
+            String[] k = m.split("\\|");
+            ServerWorld w = Mc.world(Ac.server(), k[0]);
+            if (w == null) {
+                continue;
+            }
+            BlockPos c = new BlockPos(Integer.parseInt(k[1]), Integer.parseInt(k[2]), Integer.parseInt(k[3]));
+            if (!w.isChunkLoaded(c.getX() >> 4, c.getZ() >> 4)) {
+                continue;
+            }
+            w.spawnParticles(net.minecraft.particle.ParticleTypes.PORTAL, c.getX() + 0.5, c.getY() + 1.2, c.getZ() + 0.5, 6, 0.4, 0.4, 0.4, 0.2);
+            if (!(w.getBlockEntity(c) instanceof Inventory inv)) {
+                continue;
+            }
+            int slot = -1;
+            for (int i = 0; i < inv.size(); i++) {
+                if (inv.getStack(i).isOf(Items.ENDER_PEARL)) {
+                    slot = i;
+                    break;
+                }
+            }
+            if (slot < 0) {
+                continue;
+            }
+            ServerPlayerEntity who = null;
+            double best = 6 * 6;
+            for (ServerPlayerEntity p : w.getPlayers()) {
+                double d = p.squaredDistanceTo(c.getX() + 0.5, c.getY(), c.getZ() + 0.5);
+                if (!p.isSpectator() && d < best) {
+                    best = d;
+                    who = p;
+                }
+            }
+            if (who == null) {
+                continue;
+            }
+            if (LobbyFeature.inCombat(who)) {
+                Msg.actionBar(who, "§c" + Msg.trFor(who, "lobby.in-combat"));
+                continue;
+            }
+            inv.getStack(slot).decrement(1);
+            inv.markDirty();
+            ServerWorld to = world();
+            if (to == null) {
+                continue;
+            }
+            int[] size = layout().size();
+            int tx = s.x - 4;
+            int tz = s.z + size[2] / 2;
+            to.getChunk(tx >> 4, tz >> 4);
+            int ty = to.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING, tx, tz);
+            w.playSound(null, c, SoundEvents.BLOCK_END_PORTAL_SPAWN, SoundCategory.BLOCKS, 0.6f, 1.4f);
+            Mc.teleport(who, to, tx + 0.5, ty, tz + 0.5, -90f, 0f);
+            who.fallDistance = 0;
+            Mc.title(who, "§d§lWorld's Edge", "§7" + Msg.trFor(who, "edge.machine-arrived"), 10, 60, 20);
         }
     }
 
@@ -923,6 +1141,11 @@ public final class EdgeKeep {
     }
 
     public static void register() {
+        net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((e, source) -> {
+            if (Ac.running() && state().placed) {
+                mobDied(e);
+            }
+        });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             try {
                 autoPlace(server);

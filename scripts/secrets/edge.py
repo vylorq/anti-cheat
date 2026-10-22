@@ -14,8 +14,9 @@ import build as b
 from build import Template
 
 F = 2                      # floor height (0..1 is foundation)
-X, Y, Z = 206, 34, 41
-MID = 20                   # the citadel's centre line (z)
+X, Y, Z = 240, 48, 51
+MID = 25                   # the citadel's centre line (z)
+ROOF = 33                  # the roof's height; the towers and spires rise above it
 WALL, FLOOR, TRIM, ACC = "obsidian", "polished_blackstone_bricks", "polished_blackstone_brick", "crying_obsidian"
 LIGHT = "pearlescent_froglight"
 PILLAR = "polished_blackstone_wall"
@@ -41,21 +42,82 @@ def build_citadel(seed=31171000):
     for x in range(X):
         for z in range(Z):
             if x in (0, X - 1) or z in (0, Z - 1):
-                for y in range(F, 24):
+                for y in range(F, ROOF + 1):
                     b._put(t, x, y, z, WALL)
-                if (x + z) % 6 == 0:
-                    t.set(x, 24, z, "polished_blackstone_brick_wall", **WALL_PROPS)
-    t.fill(1, 23, 1, X - 2, 23, Z - 2, "blackstone")
-    for x in range(6, X - 4, 10):
-        for z in (6, Z - 7):
-            t.set(x, 24, z, "end_rod", facing="up")
+                # Battlements: merlons every other block, gold-capped at the bays.
+                if (x + z) % 2 == 0:
+                    t.set(x, ROOF + 1, z, "polished_blackstone_bricks")
+                    if (x + z) % 8 == 0:
+                        t.set(x, ROOF + 2, z, "gilded_blackstone")
+                    else:
+                        t.set(x, ROOF + 2, z, "polished_blackstone_brick_slab", type="bottom", waterlogged=False)
+    t.fill(1, ROOF, 1, X - 2, ROOF, Z - 2, "blackstone")
+    # Outside: gold bands, crying-obsidian ribs between tall stained-glass windows.
+    for x in range(X):
+        for z in (0, Z - 1):
+            t.set(x, F + 9, z, "gilded_blackstone")
+            t.set(x, ROOF - 1, z, "gilded_blackstone")
+            if x % 10 == 0:
+                for y in range(F + 1, ROOF):
+                    t.set(x, y, z, ACC)
+            elif x % 10 in (4, 5, 6) and F + 12 <= ROOF - 4:
+                for y in range(F + 12, ROOF - 3):
+                    t.set(x, y, z, "purple_stained_glass" if x % 10 != 5 else "magenta_stained_glass")
+                t.set(x, ROOF - 3, z, "polished_blackstone_bricks")
+    for z in range(Z):
+        for x in (0, X - 1):
+            t.set(x, F + 9, z, "gilded_blackstone")
+            t.set(x, ROOF - 1, z, "gilded_blackstone")
+    # Inside: crying-obsidian bands and lights round every wall.
     for x in range(1, X - 1):
         for z in (1, Z - 2):
             t.set(x, F + 7, z, ACC)
+            t.set(x, F + 17, z, ACC)
             if x % 6 == 3:
                 t.set(x, F + 4, z, LIGHT)
+                t.set(x, F + 14, z, LIGHT)
 
-    def cross_wall(x, z0=1, z1=Z - 2, top=22):
+    def tower(x0, z0, size=7, top=Y - 4):
+        """A corner tower: solid to the roof, then a hollow crown with windows and a spire of crying obsidian."""
+        for x in range(x0, x0 + size):
+            for z in range(z0, z0 + size):
+                edge = x in (x0, x0 + size - 1) or z in (z0, z0 + size - 1)
+                for y in range(ROOF, top):
+                    if edge:
+                        corner = x in (x0, x0 + size - 1) and z in (z0, z0 + size - 1)
+                        window = not corner and (y - ROOF) % 6 in (2, 3) and (x - x0 == size // 2 or z - z0 == size // 2)
+                        t.set(x, y, z, "purple_stained_glass" if window else (ACC if corner else WALL))
+                t.set(x, top, z, "polished_blackstone_bricks")
+                if edge and (x + z) % 2 == 0:
+                    t.set(x, top + 1, z, "gilded_blackstone")
+        cx, cz = x0 + size // 2, z0 + size // 2
+        for k, y in enumerate(range(top + 1, min(Y, top + 4))):
+            t.set(cx, y, cz, ACC if k < 2 else "end_rod", **({"facing": "up"} if k >= 2 else {}))
+        t.set(cx, ROOF + 1, cz, LIGHT)
+
+    for (tx, tz) in [(0, 0), (X - 7, 0), (0, Z - 7), (X - 7, Z - 7)]:
+        tower(tx, tz)
+    # Spires along the roof.
+    for x in range(20, X - 20, 20):
+        for z in (8, Z - 9):
+            for k, w in enumerate((2, 1, 0)):
+                for dx in range(-w, w + 1):
+                    for dz in range(-w, w + 1):
+                        t.set(x + dx, ROOF + 1 + k, z + dz, "polished_blackstone_bricks" if w else ACC)
+            t.set(x, ROOF + 4, z, "end_rod", facing="up")
+            t.set(x, ROOF + 5, z, "end_rod", facing="up")
+
+    def chandelier(x, z, drop=6):
+        """A post from the roof down, a cross of lights and lanterns hanging under it."""
+        for y in range(ROOF - drop, ROOF):
+            t.set(x, y, z, PILLAR, **WALL_PROPS)
+        y = ROOF - drop - 1
+        t.set(x, y, z, LIGHT)
+        for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            t.set(x + dx, y, z + dz, "gilded_blackstone")
+            t.set(x + dx, y - 1, z + dz, "soul_lantern", hanging=True, waterlogged=False)
+
+    def cross_wall(x, z0=1, z1=Z - 2, top=ROOF - 1):
         for z in range(z0, z1 + 1):
             for y in range(F + 1, top + 1):
                 b._put(t, x, y, z, WALL)
@@ -66,6 +128,13 @@ def build_citadel(seed=31171000):
                 t.set(x, y, z, "air")
 
     # ---------------- A: entrance hall (x 0..22)
+    # A grand arch round the door: gold and crying obsidian, a keystone of light.
+    for z in range(MID - 5, MID + 6):
+        for y in range(F + 1, F + 12):
+            ring = abs(z - MID) in (4, 5) or y in (F + 10, F + 11)
+            if ring:
+                t.set(0, y, z, "gilded_blackstone" if (y + z) % 2 else ACC)
+    t.set(0, F + 11, MID, LIGHT)
     opening(0, F + 1, F + 6)
     layout["gates"].append(gate("seal", 3, 3, MID - 2, MID + 2, F + 1, F + 6, "reinforced_deepslate", closed=False))
     for x in range(4, 22, 4):
@@ -74,6 +143,11 @@ def build_citadel(seed=31171000):
     for z in range(MID - 2, MID + 3):
         for x in range(1, 22):
             t.set(x, F, z, "crying_obsidian" if z == MID else "polished_blackstone")
+    for z in range(2, Z - 2):
+        for x in range(8, 22):
+            if abs(z - MID) > 2 and (x + z) % 4 == 0:
+                t.set(x, F, z, "chiseled_polished_blackstone")
+    chandelier(14, MID)
     t.sign(21, F + 3, MID - 3, "west", [{"text": "World's Edge", "color": "dark_purple", "bold": True},
                                          {"text": "Mjolnir sleeps here.", "color": "gray"},
                                          {"text": "Only one may", "color": "gray"},
@@ -96,7 +170,9 @@ def build_citadel(seed=31171000):
                                      {"text": clue, "color": "light_purple"},
                                      {"text": "Give in order", "color": "gray"}], wood="crimson")
     layout["regions"]["porch"] = [1, F, 1, 5, F + 10, Z - 2]
-    layout["regions"]["inside"] = [1, F, 1, X - 2, 23, Z - 2]
+    layout["regions"]["inside"] = [1, F, 1, X - 2, ROOF, Z - 2]
+    # Each room must be cleared, in order: this many of its mobs must die before its way on opens.
+    layout["clear"] = {"levers": 8, "parkour": 6, "maze": 10}
     layout["regions"]["seal_trigger"] = [7, F, 1, 21, F + 10, Z - 2]
     cross_wall(22)
     opening(22, F + 1, F + 5)
@@ -167,8 +243,9 @@ def build_citadel(seed=31171000):
             t.set(x, y, 2, "tinted_glass")
     layout["regions"]["parkour"] = [49, F, 1, 84, TOP + 6, Z - 2]
 
-    # ---------------- D: down the stairs into the maze
+    # ---------------- D: down the stairs into the maze (the gate opens once the parkour room is cleared)
     cross_wall(89)
+    layout["gates"].append(gate("parkour", 89, 89, MID - 1, MID + 1, TOP + 1, TOP + 4, "reinforced_deepslate"))
     steps = TOP - F
     for k in range(steps + 1):
         xx = 89 + k
@@ -184,7 +261,7 @@ def build_citadel(seed=31171000):
             for y in range(F + 1, TOP + 6):
                 b._put(t, xx, y, z, WALL)
         t.set(xx, TOP + 6, MID, "soul_lantern", hanging=True, waterlogged=False)
-    cells = 11
+    cells = 15
     MX0 = 89 + steps + 1
     MX1 = MX0 + 1 + cells * 3
     t.fill(MX0, F + 1, 1, MX1, F + 4, Z - 2, "blackstone")
@@ -216,7 +293,8 @@ def build_citadel(seed=31171000):
         stack.append((ni, nj))
     t.fill(MX0, F + 1, MID - 1, MX0, F + 4, MID + 1, "air")
     t.fill(MX0 + 1, F + 1, MID - 1, MX0 + 2, F + 4, MID, "air")
-    t.fill(MX1, F + 1, MID - 1, MX1, F + 4, MID, "air")
+    # The way out: from the last column of cells through the maze's far wall.
+    t.fill(MX0 + cells * 3, F + 1, MID - 1, MX1, F + 4, MID, "air")
     # Darker than the Tempest Keep's: only a few lights.
     for i in range(1, cells, 5):
         for j in range(2, cells, 6):
@@ -234,12 +312,14 @@ def build_citadel(seed=31171000):
 
     # ---------------- E: the Trial Hall (three waves; the gate opens when the last one falls)
     T0 = MX1 + 2
-    T1 = T0 + 25
+    T1 = T0 + 31
     for x in range(T0, T1):
         for z in range(1, Z - 1):
             t.set(x, F, z, "chiseled_polished_blackstone" if (x + z) % 7 == 0 else FLOOR)
-    for (px, pz) in [(T0 + 5, MID - 9), (T0 + 5, MID + 9), (T0 + 19, MID - 9), (T0 + 19, MID + 9), (T0 + 12, MID)]:
-        b.column(t, px, pz, F + 1, F + 14, PILLAR, base=ACC, cap=LIGHT, **WALL_PROPS)
+    for (px, pz) in [(T0 + 5, MID - 11), (T0 + 5, MID + 11), (T0 + 25, MID - 11), (T0 + 25, MID + 11), (T0 + 15, MID)]:
+        b.column(t, px, pz, F + 1, F + 18, PILLAR, base=ACC, cap=LIGHT, **WALL_PROPS)
+    chandelier(T0 + 10, MID - 6)
+    chandelier(T0 + 20, MID + 6)
     t.sign(T0 + 1, F + 3, MID - 3, "east", [{"text": "The Trial", "color": "red", "bold": True},
                                              {"text": "Three waves.", "color": "gray"},
                                              {"text": "No way back.", "color": "gray"}], wood="crimson")
@@ -256,21 +336,35 @@ def build_citadel(seed=31171000):
     A0 = T1 + 1
 
     # ---------------- F: the arena
-    ax, az = A0 + 15, MID
-    for x in range(A0, A0 + 31):
+    ax, az = A0 + 18, MID
+    for x in range(A0, A0 + 37):
         for z in range(1, Z - 1):
-            for y in range(F + 1, 23):
+            for y in range(F + 1, ROOF):
                 t.set(x, y, z, "air")
             d = ((x - ax) ** 2 + (z - az) ** 2) ** 0.5
             t.set(x, F, z, "crying_obsidian" if d < 3 else ("gilded_blackstone" if int(d) % 4 == 0 else FLOOR))
-    for k in range(12):
-        a = k * math.pi * 2 / 12
-        px, pz = int(round(ax + 12.5 * math.cos(a))), int(round(az + 12.5 * math.sin(a)))
-        b.column(t, px, pz, F + 1, F + 12, PILLAR, base=ACC, cap="end_rod", **WALL_PROPS)
+    for k in range(16):
+        a = k * math.pi * 2 / 16
+        px, pz = int(round(ax + 15.5 * math.cos(a))), int(round(az + 15.5 * math.sin(a)))
+        b.column(t, px, pz, F + 1, F + 16, PILLAR, base=ACC, cap="end_rod", **WALL_PROPS)
         t.set(px, F + 6, pz, LIGHT)
+        t.set(px, F + 12, pz, "gilded_blackstone")
+    chandelier(ax, az, drop=9)
+    # The great tower above the arena: a crown of glass and crying obsidian over the Sovereign's throne room.
+    for x in range(ax - 5, ax + 6):
+        for z in range(az - 5, az + 6):
+            edge = abs(x - ax) == 5 or abs(z - az) == 5
+            for y in range(ROOF + 1, Y - 3):
+                if edge:
+                    corner = abs(x - ax) == 5 and abs(z - az) == 5
+                    t.set(x, y, z, ACC if corner else ("magenta_stained_glass" if (y - ROOF) % 4 != 0 else WALL))
+            t.set(x, Y - 3, z, "polished_blackstone_bricks")
+    for y in range(Y - 2, Y):
+        t.set(ax, y, az, "end_rod", facing="up")
+    t.set(ax, ROOF, az, LIGHT)
     layout["boss_spawn"] = [ax, F + 1, az]
-    layout["regions"]["arena"] = [A0 + 1, F, 1, A0 + 30, 22, Z - 2]
-    V = A0 + 31
+    layout["regions"]["arena"] = [A0 + 1, F, 1, A0 + 36, ROOF - 1, Z - 2]
+    V = A0 + 37
     cross_wall(V)
     layout["gates"].append(gate("vault", V, V, MID - 1, MID + 1, F + 1, F + 4, "reinforced_deepslate"))
 

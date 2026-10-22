@@ -3309,5 +3309,11 @@
   "give.filter.mod": "Mod items",
   "give.filter.gear": "Armor, weapons & tools",
   "combat.timer": "In combat: {0}s",
-  "combat.over": "You're out of combat"
+  "combat.over": "You're out of combat",
+  "edge.clear-room": "Clear this room first: {0}/{1} of its mobs defeated",
+  "edge.room-cleared": "Room cleared. The way on opens.",
+  "edge.machine-placed": "§aRift Gate built. Drop an ender pearl in its hopper to travel to the World's Edge Citadel. Remove it with §e/owner edge machine remove",
+  "edge.machine-none": "§7No Rift Gate within 8 blocks.",
+  "edge.machine-removed": "§aRift Gate removed.",
+  "edge.machine-arrived": "The Rift Gate carried you to the citadel."
 }

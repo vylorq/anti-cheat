@@ -3309,5 +3309,11 @@
   "give.filter.mod": "عناصر المود",
   "give.filter.gear": "الدروع والأسلحة والأدوات",
   "combat.timer": "في قتال: {0} ث",
-  "combat.over": "خرجت من القتال"
+  "combat.over": "خرجت من القتال",
+  "edge.clear-room": "نظّف هذه الغرفة أولاً: هُزم {0}/{1} من وحوشها",
+  "edge.room-cleared": "نُظّفت الغرفة. انفتح الطريق.",
+  "edge.machine-placed": "§aبُنيت بوابة الصدع. ضع لؤلؤة إندر في القادوس للانتقال إلى قلعة حافة العالم. أزلها بـ §e/owner edge machine remove",
+  "edge.machine-none": "§7لا توجد بوابة صدع ضمن 8 كتل.",
+  "edge.machine-removed": "§aأزيلت بوابة الصدع.",
+  "edge.machine-arrived": "حملتك بوابة الصدع إلى القلعة."
 }
