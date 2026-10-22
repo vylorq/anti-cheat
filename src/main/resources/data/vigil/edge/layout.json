@@ -272,6 +272,21 @@
     [
       21,
       3,
+      30
+    ],
+    [
+      21,
+      3,
+      32
+    ],
+    [
+      21,
+      3,
+      34
+    ],
+    [
+      21,
+      3,
       36
     ],
     [
@@ -288,13 +303,46 @@
       21,
       3,
       46
+    ],
+    [
+      21,
+      3,
+      48
+    ],
+    [
+      21,
+      3,
+      50
+    ],
+    [
+      21,
+      3,
+      52
     ]
   ],
   "offering": [
+    "sniffer_egg",
     "nether_star",
+    "heavy_core*3",
+    "totem_of_undying",
     "heart_of_the_sea",
-    "echo_shard",
-    "totem_of_undying"
+    "wither_skeleton_skull",
+    "enchanted_golden_apple",
+    "netherite_ingot",
+    "ominous_trial_key",
+    "trident"
+  ],
+  "scrolls": [
+    "An egg from an age before ours.",
+    "The star torn from the three-headed storm.",
+    "Three hearts of the vault, heavier than iron.",
+    "The charm that cheats death once.",
+    "The heart the ocean buries.",
+    "The blackened skull of the fortress.",
+    "Gold that glows, the apple of old kings.",
+    "A bar forged from ancient debris.",
+    "The dark key of an ominous trial.",
+    "The drowned king's three-pronged spear."
   ],
   "clear": {
     "levers": 8,

@@ -101,7 +101,7 @@ public final class EdgeKeep {
     }
 
     /** Raise when the citadel's layout changes, so a placed one is rebuilt with it. */
-    static final int VERSION = 5;
+    static final int VERSION = 6;
 
     private static State state;
 
@@ -1293,24 +1293,47 @@ public final class EdgeKeep {
             if (!(w.getBlockEntity(at(hoppers.get(i))) instanceof Inventory inv) || inv.isEmpty()) {
                 continue;
             }
-            Identifier want = Identifier.of(offering.get(i));
+            // "item" or "item*count": e.g. three heavy cores in one hopper.
+            String[] spec = offering.get(i).split("\\*");
+            Identifier want = Identifier.of(spec[0]);
+            int need = spec.length > 1 ? Integer.parseInt(spec[1]) : 1;
             boolean right = i == s.offered;
-            int slot = -1;
+            int have = 0;
+            boolean other = false;
             for (int k = 0; k < inv.size(); k++) {
                 ItemStack st = inv.getStack(k);
-                if (!st.isEmpty() && Registries.ITEM.getId(st.getItem()).equals(want)) {
-                    slot = k;
-                    break;
+                if (st.isEmpty()) {
+                    continue;
+                }
+                if (Registries.ITEM.getId(st.getItem()).equals(want)) {
+                    have += st.getCount();
+                } else {
+                    other = true;
                 }
             }
-            boolean accepted = right && slot >= 0;
+            if (right && !other && have > 0 && have < need) {
+                // The right gift, but not all of it yet: it waits in the hopper for the rest.
+                for (ServerPlayerEntity p : playersIn("porch", w)) {
+                    Msg.actionBar(p, "§d" + have + " / " + need);
+                }
+                continue;
+            }
+            boolean accepted = right && have >= need;
             if (accepted) {
-                inv.getStack(slot).decrement(1);
+                int left = need;
+                for (int k = 0; k < inv.size() && left > 0; k++) {
+                    ItemStack st = inv.getStack(k);
+                    if (!st.isEmpty() && Registries.ITEM.getId(st.getItem()).equals(want)) {
+                        int take = Math.min(left, st.getCount());
+                        st.decrement(take);
+                        left -= take;
+                    }
+                }
                 s.offered++;
                 save();
                 BlockPos hp = at(hoppers.get(i));
                 w.spawnParticles(net.minecraft.particle.ParticleTypes.END_ROD, hp.getX() + 0.5, hp.getY() + 1.2, hp.getZ() + 0.5, 30, 0.3, 0.4, 0.3, 0.05);
-                w.playSound(null, hp, SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, SoundCategory.BLOCKS, 1.5f, 0.6f + 0.15f * s.offered);
+                w.playSound(null, hp, SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, SoundCategory.BLOCKS, 1.5f, 0.6f + 0.1f * s.offered);
                 for (ServerPlayerEntity p : playersIn("porch", w)) {
                     Msg.actionBar(p, "§d" + Msg.trFor(p, "edge.offered", s.offered, hoppers.size()));
                 }
