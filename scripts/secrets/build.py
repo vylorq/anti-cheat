@@ -1518,6 +1518,8 @@ ROOMS = {
     "lava_parkour": (11, 17, "ns", 2),
     "collapsing_floor": (9, 17, "ns", 2),
     "puzzle_room": (13, 11, "ns", 2),
+    # A locked vault: its chest opens only with a Dungeon Key (DungeonKeys.java), which bosses drop.
+    "key_vault": (11, 11, "n", 3),
 }
 H = 9  # floor y0, air 1..7, ceiling y8
 
@@ -1702,6 +1704,28 @@ def _furnish(t, th, structure, kind, w, d):
             t.set(x, 3, d - 3, th["lantern"], hanging=False, waterlogged=False)
         mob_spawner(t, cx - 3, 1, cz - 1, mobs, structure)
         mob_spawner(t, cx + 3, 1, cz - 1, mobs, structure)
+    elif kind == "key_vault":
+        # Gold and iron bars round a raised chest, a sign saying what it needs, guards at the door.
+        for x in range(cx - 2, cx + 3):
+            for z in range(d - 5, d - 1):
+                t.set(x, 1, z, "gold_block" if (x + z) % 2 else acc if acc not in ("dark_oak_log", "quartz_pillar") else "gold_block")
+        for x in range(cx - 3, cx + 4):
+            for y in (2, 3, 4):
+                if x in (cx - 3, cx + 3) or y == 4:
+                    _bars(t, x, y, d - 6, True)
+        for x in (cx - 1, cx, cx + 1):
+            for y in (2, 3):
+                t.set(x, y, d - 6, "air")
+        t.chest(cx, 2, d - 3, f"{structure}_keyvault", facing="north")
+        t.set(cx, 3, d - 3, "air")
+        for x in (cx - 2, cx + 2):
+            t.set(x, 2, d - 3, "gilded_blackstone")
+            t.set(x, 3, d - 3, th["lantern"], hanging=False, waterlogged=False)
+        t.sign(cx - 2, 2, d - 4, "north", [{"text": "Locked Vault", "color": "gold", "bold": True},
+                                       {"text": "Needs a", "color": "gray"},
+                                       {"text": "Dungeon Key", "color": "light_purple"},
+                                       {"text": "(bosses drop them)", "color": "dark_gray"}])
+        mob_spawner(t, cx - 3, 1, cz - 2, mobs, structure)
 
 
 # ------------------------------------------------------------------ the newer rooms (harder: more spawners, traps)
@@ -2418,6 +2442,12 @@ def build():
         # Room chests: the structure's everyday loot, now and then one of its secret items.
         write(f"loot_table/chests/{name}_room.json", {"type": "minecraft:chest", "pools": [
             CHESTS[name][-1], CHESTS[name][0], bonus(), book()]})
+        # Locked vaults: the best loot in the structure, behind a Dungeon Key.
+        write(f"loot_table/chests/{name}_keyvault.json", {"type": "minecraft:chest", "pools": [
+            CHESTS[name][-1], CHESTS[name][-1], CHESTS[name][0], bonus(), bonus(), bonus(), book(), book(),
+            {"rolls": 1, "entries": [{"type": "minecraft:item", "name": "minecraft:netherite_ingot", "weight": 1},
+                                     {"type": "minecraft:item", "name": "minecraft:enchanted_golden_apple", "weight": 1},
+                                     {"type": "minecraft:item", "name": "minecraft:totem_of_undying", "weight": 2}]}]})
         s = {"type": "minecraft:jigsaw", "biomes": biomes, "step": step, "spawn_overrides": {}, "terrain_adaptation": terrain,
              "start_pool": f"vigil:{name}/start", "size": 14 if name in BIG else 12, "start_height": {"absolute": height},
              "max_distance_from_center": 116,

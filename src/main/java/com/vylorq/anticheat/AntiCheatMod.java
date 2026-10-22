@@ -61,6 +61,7 @@ public final class AntiCheatMod implements ModInitializer {
         com.vylorq.anticheat.feature.TempestKeep.register();
         com.vylorq.anticheat.feature.EdgeKeep.register();
         com.vylorq.anticheat.feature.OwnerXray.register();
+        com.vylorq.anticheat.feature.DungeonKeys.register();
         com.vylorq.anticheat.feature.Builds.register();
         com.vylorq.anticheat.feature.BoiledOne.register();
         com.vylorq.anticheat.feature.BoiledOmens.register();

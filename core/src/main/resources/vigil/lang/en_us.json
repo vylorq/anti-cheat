@@ -3308,6 +3308,18 @@
   "give.filter.all": "Everything",
   "give.filter.mod": "Mod items",
   "give.filter.gear": "Armor, weapons & tools",
+  "boss.difficulty.title": "Choose the difficulty",
+  "boss.difficulty.desc": "The boss wakes in 20 seconds (Normal if nobody picks). Harder fights pay more.",
+  "boss.difficulty.0": "§aNormal",
+  "boss.difficulty.1": "§6Hard",
+  "boss.difficulty.2": "§4Nightmare",
+  "boss.difficulty.0.desc": "The usual fight and loot. 1 in 3 chance of a Dungeon Key.",
+  "boss.difficulty.1.desc": "1.6× health, 30% harder hits. Double loot, 2 in 3 chance of a Dungeon Key.",
+  "boss.difficulty.2.desc": "2.5× health, 70% harder hits. Triple loot and a Dungeon Key for sure.",
+  "boss.difficulty.pick": "Fight at this difficulty",
+  "boss.difficulty-chosen": "§e{0} §7chose §f{1}§7. The boss wakes!",
+  "dkey.locked": "Locked: needs a Dungeon Key (bosses drop them)",
+  "dkey.opened": "The Dungeon Key turns. The vault opens!",
   "combat.timer": "In combat: {0}s",
   "combat.over": "You're out of combat"
 }

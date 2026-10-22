@@ -3308,6 +3308,18 @@
   "give.filter.all": "الكل",
   "give.filter.mod": "عناصر المود",
   "give.filter.gear": "الدروع والأسلحة والأدوات",
+  "boss.difficulty.title": "اختر الصعوبة",
+  "boss.difficulty.desc": "يستيقظ الزعيم خلال 20 ثانية (عادي إن لم يختر أحد). المعارك الأصعب تكافئ أكثر.",
+  "boss.difficulty.0": "§aعادي",
+  "boss.difficulty.1": "§6صعب",
+  "boss.difficulty.2": "§4كابوس",
+  "boss.difficulty.0.desc": "المعركة والغنائم المعتادة. فرصة 1 من 3 لمفتاح الزنزانة.",
+  "boss.difficulty.1.desc": "صحة ×1.6، ضربات أقوى 30%. غنائم مضاعفة، فرصة 2 من 3 لمفتاح الزنزانة.",
+  "boss.difficulty.2.desc": "صحة ×2.5، ضربات أقوى 70%. غنائم ×3 ومفتاح زنزانة مضمون.",
+  "boss.difficulty.pick": "قاتل بهذه الصعوبة",
+  "boss.difficulty-chosen": "§e{0} §7اختار §f{1}§7. الزعيم يستيقظ!",
+  "dkey.locked": "مقفل: يحتاج مفتاح زنزانة (تسقطه الزعماء)",
+  "dkey.opened": "دار مفتاح الزنزانة. انفتحت الخزنة!",
   "combat.timer": "في قتال: {0} ث",
   "combat.over": "خرجت من القتال"
 }
