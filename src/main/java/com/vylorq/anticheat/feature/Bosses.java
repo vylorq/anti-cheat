@@ -693,7 +693,37 @@ public final class Bosses {
     /** How much less a hit counts on this entity: 1 for anything that isn't a boss. */
     public static float damageScale(Entity e) {
         Live l = LIVE.get(e.getUuid());
-        return l == null ? 1f : (float) (health(l) / BAR * (1 + 0.3 * (l.crowd - 1)));
+        if (l == null) {
+            // A mob with more health than the game allows ("vigil_hp:<health>", on a bar of BAR): hits count for less.
+            for (String t : e.getCommandTags()) {
+                if (t.startsWith(HP_TAG)) {
+                    try {
+                        return (float) (Double.parseDouble(t.substring(HP_TAG.length())) / BAR);
+                    } catch (NumberFormatException ignored) {
+                        return 1f;
+                    }
+                }
+            }
+            return 1f;
+        }
+        return (float) (health(l) / BAR * (1 + 0.3 * (l.crowd - 1)));
+    }
+
+    public static final String HP_TAG = "vigil_hp:";
+
+    /** Gives a mob {@code health} health (more than the game's 1024 limit allows): a bar of BAR, its hits scaled down. */
+    public static void bigHealth(net.minecraft.entity.mob.MobEntity m, double health) {
+        var hp = m.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+        if (hp == null) {
+            return;
+        }
+        for (var mod : List.copyOf(hp.getModifiers())) {
+            hp.removeModifier(mod.id());
+        }
+        hp.setBaseValue(BAR);
+        m.setHealth((float) BAR);
+        m.getCommandTags().removeIf(t -> t.startsWith(HP_TAG));
+        m.addCommandTag(HP_TAG + (long) health);
     }
 
     /** One health bar of this boss: its kind's, half as much again when it was cursed. */
