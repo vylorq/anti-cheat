@@ -99,7 +99,7 @@ public final class EdgeKeep {
     }
 
     /** Raise when the citadel's layout changes, so a placed one is rebuilt with it. */
-    static final int VERSION = 3;
+    static final int VERSION = 4;
 
     private static State state;
 
@@ -360,24 +360,63 @@ public final class EdgeKeep {
      * The first time the server starts with it: the citadel builds itself at the east edge of the overworld's border,
      * level with the ground there. Only ever once by itself (the owner can move it with /owner edge remove + place).
      */
+    /** Chunks still to load before a queued build runs (a few each tick, so the server never stalls), and the build. */
+    private static final java.util.ArrayDeque<long[]> TO_LOAD = new java.util.ArrayDeque<>();
+    private static ServerWorld loadWorld;
+    private static Runnable afterLoad;
+
+    /** Loads the chunks under a box a couple per tick, then runs {@code then} on the server thread. */
+    private static void whenLoaded(ServerWorld w, int x0, int z0, int x1, int z1, Runnable then) {
+        TO_LOAD.clear();
+        for (int cx = (x0 >> 4) - 1; cx <= (x1 >> 4) + 1; cx++) {
+            for (int cz = (z0 >> 4) - 1; cz <= (z1 >> 4) + 1; cz++) {
+                TO_LOAD.add(new long[]{cx, cz});
+            }
+        }
+        loadWorld = w;
+        afterLoad = then;
+    }
+
+    private static void loadTick() {
+        if (afterLoad == null) {
+            return;
+        }
+        for (int k = 0; k < 2 && !TO_LOAD.isEmpty(); k++) {
+            long[] c = TO_LOAD.poll();
+            loadWorld.getChunk((int) c[0], (int) c[1]);
+        }
+        if (TO_LOAD.isEmpty()) {
+            Runnable then = afterLoad;
+            afterLoad = null;
+            try {
+                then.run();
+            } catch (Exception e) {
+                Ac.LOG.warn("The World's Edge Citadel couldn't build itself", e);
+            }
+        }
+    }
+
     static void autoPlace(net.minecraft.server.MinecraftServer server) {
         State s = state();
+        int[] size = layout().size();
         if (s.placed && s.version < VERSION) {
-            // An older citadel stands: rebuild it where it is with the new layout.
+            // An older citadel stands: rebuild it where it is with the new layout (once its chunks are loaded).
             ServerWorld old = world();
             if (old != null) {
-                killBoss(old);
-                clearWave(old);
-                try {
-                    if (BlockSnapshots.exists(SNAP)) {
-                        BlockSnapshots.restore(old, SNAP);
-                        Files.deleteIfExists(BlockSnapshots.file(SNAP));
+                whenLoaded(old, s.x, s.z, s.x + size[0], s.z + size[2], () -> {
+                    killBoss(old);
+                    clearWave(old);
+                    try {
+                        if (BlockSnapshots.exists(SNAP)) {
+                            BlockSnapshots.restore(old, SNAP);
+                            Files.deleteIfExists(BlockSnapshots.file(SNAP));
+                        }
+                    } catch (Exception e) {
+                        Ac.LOG.warn("Could not put the ground back under the old Edge Citadel", e);
                     }
-                } catch (Exception e) {
-                    Ac.LOG.warn("Could not put the ground back under the old Edge Citadel", e);
-                }
-                String error = placeAt(old, new BlockPos(s.x, s.y, s.z));
-                Ac.LOG.info("The World's Edge Citadel was rebuilt with its new layout{}", error == null ? "" : ": " + error);
+                    String error = placeAt(old, new BlockPos(s.x, s.y, s.z));
+                    Ac.LOG.info("The World's Edge Citadel was rebuilt with its new layout{}", error == null ? "" : ": " + error);
+                });
             }
             return;
         }
@@ -386,24 +425,23 @@ public final class EdgeKeep {
         }
         ServerWorld w = server.getOverworld();
         var border = w.getWorldBorder();
-        int[] size = layout().size();
         int x = (int) Math.floor(Math.min(border.getBoundEast(), 29_999_000)) - size[0] - 48;
         int z = (int) Math.floor(border.getCenterZ()) - size[2] / 2;
-        for (int cx = (x >> 4) - 1; cx <= ((x + size[0]) >> 4) + 1; cx++) {
-            for (int cz = (z >> 4) - 1; cz <= ((z + size[2]) >> 4) + 1; cz++) {
-                w.getChunk(cx, cz);
+        whenLoaded(w, x, z, x + size[0], z + size[2], () -> {
+            if (state().placed) {
+                return;
             }
-        }
-        int ground = w.getTopY(net.minecraft.world.Heightmap.Type.WORLD_SURFACE, x + size[0] / 2, z + size[2] / 2);
-        int y = Math.max(w.getSeaLevel(), Math.min(ground, w.getTopYInclusive() - size[1] - 4)) - 3;
-        String error = placeAt(w, new BlockPos(x, y, z));
-        s.autoPlaced = true;
-        save();
-        if (error != null) {
-            Ac.LOG.warn("The World's Edge Citadel couldn't build itself at the border: {}", error);
-        } else {
-            Ac.LOG.info("The World's Edge Citadel stands at the world border: {} {} {}", x, y, z);
-        }
+            int ground = w.getTopY(net.minecraft.world.Heightmap.Type.WORLD_SURFACE, x + size[0] / 2, z + size[2] / 2);
+            int y = Math.max(w.getSeaLevel(), Math.min(ground, w.getTopYInclusive() - size[1] - 4)) - 3;
+            String error = placeAt(w, new BlockPos(x, y, z));
+            s.autoPlaced = true;
+            save();
+            if (error != null) {
+                Ac.LOG.warn("The World's Edge Citadel couldn't build itself at the border: {}", error);
+            } else {
+                Ac.LOG.info("The World's Edge Citadel stands at the world border: {} {} {}", x, y, z);
+            }
+        });
     }
 
     public static void remove(ServerPlayerEntity p) {
@@ -1333,6 +1371,7 @@ public final class EdgeKeep {
                 mobDied(e);
             }
         });
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> loadTick());
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             try {
                 autoPlace(server);

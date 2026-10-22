@@ -390,8 +390,186 @@ def build_citadel(seed=31171000):
     return t, layout
 
 
+# ---------------------------------------------------------------- the castle round the citadel
+M = 16                     # the castle grounds on every side: bank, moat, curtain wall, courtyard
+CY = 72                    # the castle's full height, the great tower's roof included
+STONE, ROOF_TILE, GOLD = "polished_blackstone_bricks", "purple_terracotta", "gilded_blackstone"
+
+
+def castle(inner, layout):
+    """Puts the citadel inside a castle: a moat round it, a crenellated curtain wall with round towers, a gatehouse with
+    a drawbridge and portcullis in the west, a postern in the east, round towers with pointed roofs on the citadel's
+    four corners and a great spire over the Sovereign's arena. Everything in layout.json moves with the citadel."""
+    X2, Z2 = X + 2 * M, Z + 2 * M
+    t = Template(X2, CY, Z2)
+    for (x, y, z), v in inner.blocks.items():
+        t.blocks[(x + M, y, z + M)] = v
+    for (x, y, z), v in inner.nbt.items():
+        t.nbt[(x + M, y, z + M)] = v
+    K0x, K1x, K0z, K1z = M, M + X - 1, M, M + Z - 1
+    GZ = M + MID
+
+    def in_keep(x, z):
+        return K0x <= x <= K1x and K0z <= z <= K1z
+
+    # The grounds: a grassy bank, the moat, the curtain wall's footing and the courtyard.
+    for x in range(X2):
+        for z in range(Z2):
+            if in_keep(x, z):
+                continue
+            d = min(x, z, X2 - 1 - x, Z2 - 1 - z)
+            t.fill(x, 0, z, x, F - 1, z, "blackstone")
+            for y in range(F + 1, F + 32):
+                t.set(x, y, z, "air")
+            if d <= 1:
+                t.set(x, F - 1, z, "dirt")
+                t.set(x, F, z, "grass_block", snowy=False)
+            elif d <= 6:
+                t.set(x, 0, z, "obsidian")
+                t.fill(x, 1, z, x, F, z, "water", level=0)
+            elif d <= 9:
+                t.fill(x, 0, z, x, F + 14, z, STONE)
+                t.set(x, F + 13, z, GOLD)
+                if d == 7:
+                    if (x + z) % 2 == 0:
+                        t.set(x, F + 15, z, STONE)
+                        t.set(x, F + 16, z, "polished_blackstone_brick_slab", type="bottom", waterlogged=False)
+                    if (x + z) % 7 == 0:
+                        t.fill(x, F + 7, z, x, F + 9, z, "tinted_glass")
+            else:
+                ring = min(abs(x - K0x), abs(x - K1x), abs(z - K0z), abs(z - K1z))
+                t.set(x, F, z, "polished_blackstone" if ring <= 2 else ("moss_block" if (x * 7 + z * 3) % 5 else "coarse_dirt"))
+                if d == 10 and (x + z) % 10 == 0:
+                    b.column(t, x, z, F + 1, F + 4, PILLAR, base=STONE, **WALL_PROPS)
+                    t.set(x, F + 5, z, "soul_lantern", hanging=False, waterlogged=False)
+    # Stairs up to the wall walk from the courtyard, at the four inner corners.
+    for (sx, sz, dx) in [(16, 10, 1), (X2 - 17, 10, -1), (16, Z2 - 11, 1), (X2 - 17, Z2 - 11, -1)]:
+        for k in range(14):
+            x = sx + dx * k
+            t.fill(x, F + 1, sz, x, F + k, sz, STONE)
+            b.stairs(t, x, F + k + 1, sz, "polished_blackstone_brick", "east" if dx > 0 else "west")
+
+    def round_tower(cx, cz, r, y0, top, cone, skip=lambda x, y, z: False, windows=True):
+        """A round tower: a ring wall with gold bands and glass slits, a crenellated top and a pointed purple roof."""
+        for x in range(cx - r - 2, cx + r + 3):
+            for z in range(cz - r - 2, cz + r + 3):
+                dd = math.hypot(x - cx, z - cz)
+                if dd <= r + 0.5:
+                    for y in range(y0, top + 1):
+                        if skip(x, y, z):
+                            continue
+                        if dd >= r - 0.9:
+                            slit = windows and (y - y0) % 9 in (5, 6, 7) and (abs(x - cx) <= 0 or abs(z - cz) <= 0)
+                            t.set(x, y, z, "purple_stained_glass" if slit else (GOLD if (y - y0) % 9 == 0 else STONE))
+                        else:
+                            t.set(x, y, z, "air" if y < top else STONE)
+                    if r - 0.9 <= dd and not skip(x, top + 1, z) and (x + z) % 2 == 0:
+                        t.set(x, top + 1, z, STONE)
+                # The roof: one wider than the tower, narrowing to a gold point.
+                for k in range(cone):
+                    rr = (r + 1.5) * (1 - k / cone)
+                    if dd <= rr + 0.3 and dd > rr - 1.6:
+                        t.set(x, top + 2 + k, z, ROOF_TILE if k % 4 != 3 else "purple_glazed_terracotta")
+        t.set(cx, top + 2 + cone, cz, GOLD)
+        t.set(cx, top + 3 + cone, cz, "lightning_rod", facing="up", powered=False, waterlogged=False)
+        t.set(cx, top + 1, cz, LIGHT)
+
+    # Curtain-wall towers: the four corners and every forty blocks along the long sides.
+    for cx in (8, X2 - 9):
+        for cz in (8, Z2 - 9):
+            round_tower(cx, cz, 5, 0, F + 22, 12)
+    for cx in range(50, X2 - 40, 44):
+        for cz in (8, Z2 - 9):
+            round_tower(cx, cz, 4, 0, F + 19, 9)
+    # The gatehouse in the west: two towers, a hall over the gate, a portcullis of chains and a drawbridge.
+    for cz in (GZ - 7, GZ + 7):
+        round_tower(8, cz, 4, 0, F + 24, 11)
+    t.fill(5, F + 1, GZ - 4, 11, F + 20, GZ + 4, STONE)
+    t.fill(6, F + 10, GZ - 3, 10, F + 19, GZ + 3, "air")
+    for z in range(GZ - 4, GZ + 5):
+        t.set(5, F + 20, z, GOLD)
+        if z % 2 == 0:
+            t.set(5, F + 21, z, STONE)
+            t.set(11, F + 21, z, STONE)
+        for y in (F + 12, F + 13, F + 16, F + 17):
+            if abs(z - GZ) in (1, 2):
+                t.set(5, y, z, "purple_stained_glass")
+    t.fill(5, F + 1, GZ - 2, 11, F + 7, GZ + 2, "air")
+    for z in range(GZ - 3, GZ + 4):
+        for y in range(F + 1, F + 9):
+            if abs(z - GZ) == 3 or y == F + 8:
+                t.set(5, y, z, GOLD if (y + z) % 2 else ACC)
+    t.set(5, F + 8, GZ, LIGHT)
+    for z in range(GZ - 2, GZ + 3):
+        t.set(7, F + 7, z, "chain", axis="y", waterlogged=False)
+        t.set(7, F + 6, z, "chain", axis="y", waterlogged=False)
+    for z in range(GZ - 6, GZ + 7, 12):
+        for y in range(F + 9, F + 18):
+            t.set(4, y, z, "purple_wool" if y > F + 10 else "yellow_wool")
+            t.set(4, y, z + (1 if z < GZ else -1), "purple_wool" if y > F + 9 else "yellow_wool")
+    for x in range(0, 12):
+        for z in range(GZ - 2, GZ + 3):
+            t.set(x, F, z, "dark_oak_planks" if x < 7 else "polished_blackstone")
+    for x in (0, 6):
+        for z in (GZ - 3, GZ + 3):
+            b.column(t, x, z, F, F + 2, PILLAR, base=STONE, **WALL_PROPS)
+            t.set(x, F + 3, z, "soul_lantern", hanging=False, waterlogged=False)
+    # The postern in the east, where the vault's door lets out.
+    t.fill(X2 - 10, F + 1, GZ - 1, X2 - 8, F + 5, GZ + 1, "air")
+    for x in range(X2 - 10, X2):
+        for z in range(GZ - 1, GZ + 2):
+            t.set(x, F, z, "dark_oak_planks" if x >= X2 - 7 else "polished_blackstone")
+    for z in range(GZ - 2, GZ + 3):
+        for y in range(F + 1, F + 7):
+            if abs(z - GZ) == 2 or y == F + 6:
+                t.set(X2 - 8, y, z, GOLD if (y + z) % 2 else ACC)
+    # Paths across the courtyard to the citadel's doors.
+    for x in list(range(12, K0x)) + list(range(K1x + 1, X2 - 10)):
+        for z in range(GZ - 2, GZ + 3):
+            t.set(x, F, z, "crying_obsidian" if z == GZ else "polished_blackstone")
+
+    # Round towers on the citadel's corners, high over its roof (the small square ones there make way).
+    for (cx, cz) in [(K0x, K0z), (K1x, K0z), (K0x, K1z), (K1x, K1z)]:
+        x0, z0 = (cx if cx == K0x else cx - 6), (cz if cz == K0z else cz - 6)
+        t.fill(x0, ROOF + 1, z0, x0 + 6, Y - 1, z0 + 6, "air")
+        round_tower(cx, cz, 5, 0, ROOF + 14, 13, skip=lambda x, y, z: in_keep(x, z) and y <= ROOF)
+    # The great spire over the arena: the crown rises higher, then a pointed roof.
+    ax, _, az = layout["boss_spawn"]
+    ax, az = ax + M, az + M
+    for x in range(ax - 5, ax + 6):
+        for z in range(az - 5, az + 6):
+            edge = abs(x - ax) == 5 or abs(z - az) == 5
+            corner = abs(x - ax) == 5 and abs(z - az) == 5
+            for y in range(Y - 3, Y + 8):
+                t.set(x, y, z, (ACC if corner else ("magenta_stained_glass" if (y - ROOF) % 4 != 0 else WALL)) if edge else "air")
+            t.set(x, Y + 8, z, STONE)
+            if edge and (x + z) % 2 == 0:
+                t.set(x, Y + 9, z, GOLD)
+    for k in range(CY - Y - 12):
+        w = 6 - k * 6 // (CY - Y - 12)
+        for x in range(ax - w, ax + w + 1):
+            for z in range(az - w, az + w + 1):
+                if max(abs(x - ax), abs(z - az)) == w:
+                    t.set(x, Y + 10 + k, z, ROOF_TILE if k % 4 != 3 else "purple_glazed_terracotta")
+    t.set(ax, CY - 2, az, GOLD)
+    t.set(ax, CY - 1, az, "lightning_rod", facing="up", powered=False, waterlogged=False)
+
+    # Move everything in the layout with the citadel.
+    def mv(p):
+        return [p[0] + M, p[1], p[2] + M] + ([p[3] + M, p[4], p[5] + M] if len(p) == 6 else [])
+    out = dict(layout)
+    out["size"] = [X2, CY, Z2]
+    out["gates"] = [dict(g, box=mv(g["box"])) for g in layout["gates"]]
+    out["regions"] = {k: mv(v) for k, v in layout["regions"].items()}
+    for k in ("levers", "hoppers", "wave_spots"):
+        out[k] = [mv(p) for p in layout[k]]
+    for k in ("maze_lever", "boss_spawn", "vault_chest"):
+        out[k] = mv(layout[k])
+    return t, out
+
+
 def write_all():
-    t, layout = build_citadel()
+    t, layout = castle(*build_citadel())
     b.write("structure/edge/citadel.nbt", t.to_nbt())
     b.write("edge/layout.json", layout)
     return t, layout
