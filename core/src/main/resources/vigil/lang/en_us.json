@@ -3312,8 +3312,8 @@
   "combat.over": "You're out of combat",
   "edge.clear-room": "Clear this room first: {0}/{1} of its mobs defeated",
   "edge.room-cleared": "Room cleared. The way on opens.",
-  "edge.machine-placed": "§aRift Gate built (6 blocks ahead). Drop an ender pearl in its hopper: it charges up and sends whoever is closest to the World's Edge Citadel. Remove it with §e/owner edge machine remove",
-  "edge.machine-none": "§7No Rift Gate within 12 blocks.",
+  "edge.machine-placed": "§aRift Gate built in front of you (15×15, 16 tall). Walk in to the hopper in the middle and drop an ender pearl in: it charges up and sends whoever is closest to the World's Edge Citadel. Remove it with §e/owner edge machine remove",
+  "edge.machine-none": "§7No Rift Gate within 20 blocks.",
   "edge.machine-removed": "§aRift Gate removed.",
   "edge.machine-arrived": "The Rift Gate carried you to the citadel."
 }

@@ -727,7 +727,7 @@ public final class EdgeKeep {
             return;
         }
         ServerWorld w = p.getEntityWorld();
-        BlockPos c = p.getBlockPos().offset(p.getHorizontalFacing(), 6);
+        BlockPos c = p.getBlockPos().offset(p.getHorizontalFacing(), MR + 3);
         buildMachine(w, c);
         state().machines.add(Mc.worldId(w) + "|" + c.getX() + "|" + c.getY() + "|" + c.getZ());
         save();
@@ -738,85 +738,127 @@ public final class EdgeKeep {
         return b.getDefaultState();
     }
 
+    /** How far the Rift Gate reaches from its hopper (it is 2R+1 blocks across), and how tall it stands. */
+    static final int MR = 7;
+    static final int MH = 16;
+
     /**
-     * The Rift Gate: a 9x9 machine round a hopper. Four obsidian pylons with lit redstone lamps, a redstone circuit
-     * round the floor (live from redstone blocks, with repeaters, comparators and observers on it), copper coils with
-     * lightning rods round the hopper, and a crown of glass and crying obsidian over it all.
+     * The Rift Gate: a 15x15 machine, 16 tall, round a hopper. Four great pylons of obsidian at the corners stacked with
+     * lit redstone lamps, glass and crying obsidian; two rings of live redstone on the floor (dust fed by redstone
+     * blocks, repeaters, comparators, observers); copper tesla coils topped with lightning rods; daylight sensors and
+     * target blocks; a glass core rising from the hopper to a beacon and an amethyst crown high above. A clear walkway
+     * leads in from each side so anyone can reach the hopper.
      */
     static void buildMachine(ServerWorld w, BlockPos c) {
         var B = new Object() {
-            void at(int dx, int dy, int dz, net.minecraft.block.BlockState s) {
-                w.setBlockState(c.add(dx, dy, dz), s, 3);
+            void at(int dx, int dy, int dz, net.minecraft.block.Block b) {
+                w.setBlockState(c.add(dx, dy, dz), b.getDefaultState(), 3);
+            }
+
+            void at(int dx, int dy, int dz, net.minecraft.block.BlockState st) {
+                w.setBlockState(c.add(dx, dy, dz), st, 3);
             }
         };
-        net.minecraft.block.Block base = net.minecraft.block.Blocks.POLISHED_BLACKSTONE_BRICKS;
-        // Clear the space, then the base.
-        for (int dx = -4; dx <= 4; dx++) {
-            for (int dz = -4; dz <= 4; dz++) {
-                for (int dy = 0; dy <= 8; dy++) {
-                    B.at(dx, dy, dz, st(net.minecraft.block.Blocks.AIR));
+        // Clear the space, then the floor: a gold-and-crying-obsidian rim, stone, and a lodestone under the hopper.
+        for (int dx = -MR; dx <= MR; dx++) {
+            for (int dz = -MR; dz <= MR; dz++) {
+                for (int dy = 0; dy <= MH; dy++) {
+                    B.at(dx, dy, dz, net.minecraft.block.Blocks.AIR);
                 }
                 int ring = Math.max(Math.abs(dx), Math.abs(dz));
-                B.at(dx, -1, dz, st(ring == 4 ? ((dx + dz) % 2 == 0 ? net.minecraft.block.Blocks.GILDED_BLACKSTONE
-                        : net.minecraft.block.Blocks.CRYING_OBSIDIAN) : ring == 0 ? net.minecraft.block.Blocks.LODESTONE : base));
+                boolean walk = dx == 0 || dz == 0;
+                B.at(dx, -1, dz, ring == MR ? ((dx + dz) % 2 == 0 ? net.minecraft.block.Blocks.GILDED_BLACKSTONE : net.minecraft.block.Blocks.CRYING_OBSIDIAN)
+                        : ring == 0 ? net.minecraft.block.Blocks.LODESTONE
+                        : walk ? net.minecraft.block.Blocks.POLISHED_BLACKSTONE : net.minecraft.block.Blocks.POLISHED_BLACKSTONE_BRICKS);
             }
         }
-        // The redstone circuit: a loop of dust at ring 3, fed by redstone blocks, with repeaters toward the middle.
-        for (int dx = -3; dx <= 3; dx++) {
-            for (int dz = -3; dz <= 3; dz++) {
-                if (Math.max(Math.abs(dx), Math.abs(dz)) == 3) {
-                    B.at(dx, 0, dz, st(net.minecraft.block.Blocks.REDSTONE_WIRE));
+        // Two rings of redstone on the floor (gaps where the walkways cross), each fed by redstone blocks.
+        for (int r : new int[]{6, 3}) {
+            for (int dx = -r; dx <= r; dx++) {
+                for (int dz = -r; dz <= r; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) == r && dx != 0 && dz != 0) {
+                        B.at(dx, 0, dz, (Math.abs(dx) == r && Math.abs(dz) == r) ? net.minecraft.block.Blocks.REDSTONE_BLOCK
+                                : net.minecraft.block.Blocks.REDSTONE_WIRE);
+                    }
                 }
             }
         }
-        for (int[] m : new int[][]{{3, 0}, {-3, 0}, {0, 3}, {0, -3}}) {
-            B.at(m[0], 0, m[1], st(net.minecraft.block.Blocks.REDSTONE_BLOCK));
-        }
-        B.at(2, 0, 0, st(net.minecraft.block.Blocks.REPEATER).with(net.minecraft.block.RepeaterBlock.FACING, net.minecraft.util.math.Direction.EAST));
-        B.at(-2, 0, 0, st(net.minecraft.block.Blocks.REPEATER).with(net.minecraft.block.RepeaterBlock.FACING, net.minecraft.util.math.Direction.WEST));
-        B.at(0, 0, 2, st(net.minecraft.block.Blocks.REPEATER).with(net.minecraft.block.RepeaterBlock.FACING, net.minecraft.util.math.Direction.SOUTH));
-        B.at(0, 0, -2, st(net.minecraft.block.Blocks.REPEATER).with(net.minecraft.block.RepeaterBlock.FACING, net.minecraft.util.math.Direction.NORTH));
-        for (int[] m : new int[][]{{2, 2}, {-2, 2}, {2, -2}, {-2, -2}}) {
-            B.at(m[0], 0, m[1], st(net.minecraft.block.Blocks.COMPARATOR));
-        }
-        // Copper coils with lightning rods round the hopper.
-        for (int[] m : new int[][]{{1, 1}, {-1, 1}, {1, -1}, {-1, -1}}) {
-            B.at(m[0], 0, m[1], st(net.minecraft.block.Blocks.WAXED_OXIDIZED_CUT_COPPER));
-            B.at(m[0], 1, m[1], st(net.minecraft.block.Blocks.WAXED_OXIDIZED_COPPER_GRATE));
-            B.at(m[0], 2, m[1], st(net.minecraft.block.Blocks.WAXED_OXIDIZED_CUT_COPPER));
-            B.at(m[0], 3, m[1], st(net.minecraft.block.Blocks.LIGHTNING_ROD));
-        }
-        // Observers watching the hopper from the sides.
-        B.at(1, 0, 0, st(net.minecraft.block.Blocks.OBSERVER).with(net.minecraft.block.ObserverBlock.FACING, net.minecraft.util.math.Direction.WEST));
-        B.at(-1, 0, 0, st(net.minecraft.block.Blocks.OBSERVER).with(net.minecraft.block.ObserverBlock.FACING, net.minecraft.util.math.Direction.EAST));
-        B.at(0, 0, 1, st(net.minecraft.block.Blocks.TARGET));
-        B.at(0, 0, -1, st(net.minecraft.block.Blocks.TARGET));
-        // The four pylons: obsidian, a lit lamp on a redstone block, glass, an end rod.
-        for (int[] m : new int[][]{{4, 4}, {-4, 4}, {4, -4}, {-4, -4}}) {
-            B.at(m[0], 0, m[1], st(net.minecraft.block.Blocks.OBSIDIAN));
-            B.at(m[0], 1, m[1], st(net.minecraft.block.Blocks.REDSTONE_BLOCK));
-            B.at(m[0], 2, m[1], st(net.minecraft.block.Blocks.REDSTONE_LAMP));
-            B.at(m[0], 3, m[1], st(net.minecraft.block.Blocks.OBSIDIAN));
-            B.at(m[0], 4, m[1], st(net.minecraft.block.Blocks.PURPLE_STAINED_GLASS));
-            B.at(m[0], 5, m[1], st(net.minecraft.block.Blocks.CRYING_OBSIDIAN));
-            B.at(m[0], 6, m[1], st(net.minecraft.block.Blocks.END_ROD));
-        }
-        // Side columns: daylight sensors on sculk-like dark stone, with lamps.
-        for (int[] m : new int[][]{{4, 0}, {-4, 0}, {0, 4}, {0, -4}}) {
-            B.at(m[0], 0, m[1], st(net.minecraft.block.Blocks.CHISELED_POLISHED_BLACKSTONE));
-            B.at(m[0], 1, m[1], st(net.minecraft.block.Blocks.REDSTONE_LAMP));
-            B.at(m[0], 2, m[1], st(net.minecraft.block.Blocks.DAYLIGHT_DETECTOR));
-        }
-        // The crown over the hopper: a ring of glass held up by the coils, crying obsidian and amethyst on top.
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                B.at(dx, 4, dz, st(dx == 0 && dz == 0 ? net.minecraft.block.Blocks.CRYING_OBSIDIAN : net.minecraft.block.Blocks.MAGENTA_STAINED_GLASS));
+        // Repeaters and comparators along the rings, pointing in toward the hopper.
+        for (int r : new int[]{5, 2}) {
+            for (var d : new net.minecraft.util.math.Direction[]{net.minecraft.util.math.Direction.NORTH, net.minecraft.util.math.Direction.SOUTH,
+                    net.minecraft.util.math.Direction.EAST, net.minecraft.util.math.Direction.WEST}) {
+                int x = -d.getOffsetX() * r + (d.getOffsetZ() != 0 ? 2 : 0);
+                int z = -d.getOffsetZ() * r + (d.getOffsetX() != 0 ? 2 : 0);
+                B.at(x, 0, z, net.minecraft.block.Blocks.REPEATER.getDefaultState().with(net.minecraft.block.RepeaterBlock.FACING, d.getOpposite())
+                        .with(net.minecraft.block.RepeaterBlock.DELAY, 1 + (r % 4)));
+                B.at(-x, 0, -z, net.minecraft.block.Blocks.COMPARATOR.getDefaultState()
+                        .with(net.minecraft.block.ComparatorBlock.FACING, d));
             }
         }
-        B.at(0, 5, 0, st(net.minecraft.block.Blocks.BEACON));
-        B.at(0, 6, 0, st(net.minecraft.block.Blocks.AMETHYST_CLUSTER));
-        // The hopper last, so nothing around it is built over it.
-        B.at(0, 0, 0, st(net.minecraft.block.Blocks.HOPPER));
+        // Four great pylons at the corners.
+        for (int[] m : new int[][]{{MR - 1, MR - 1}, {-(MR - 1), MR - 1}, {MR - 1, -(MR - 1)}, {-(MR - 1), -(MR - 1)}}) {
+            for (int dy = 0; dy <= 12; dy++) {
+                net.minecraft.block.Block b = switch (dy % 4) {
+                    case 0 -> net.minecraft.block.Blocks.OBSIDIAN;
+                    case 1 -> net.minecraft.block.Blocks.REDSTONE_BLOCK;
+                    case 2 -> net.minecraft.block.Blocks.REDSTONE_LAMP;
+                    default -> net.minecraft.block.Blocks.PURPLE_STAINED_GLASS;
+                };
+                B.at(m[0], dy, m[1], b);
+                // Buttresses on the two outer sides.
+                if (dy <= 6) {
+                    B.at(m[0] + Integer.signum(m[0]), dy, m[1], net.minecraft.block.Blocks.POLISHED_BLACKSTONE_BRICKS);
+                    B.at(m[0], dy, m[1] + Integer.signum(m[1]), net.minecraft.block.Blocks.POLISHED_BLACKSTONE_BRICKS);
+                }
+            }
+            B.at(m[0], 13, m[1], net.minecraft.block.Blocks.CRYING_OBSIDIAN);
+            B.at(m[0], 14, m[1], net.minecraft.block.Blocks.END_ROD);
+            B.at(m[0], 15, m[1], net.minecraft.block.Blocks.END_ROD);
+        }
+        // Tesla coils: copper columns with lightning rods, four on the diagonals between the rings.
+        for (int[] m : new int[][]{{4, 4}, {-4, 4}, {4, -4}, {-4, -4}}) {
+            for (int dy = 0; dy <= 6; dy++) {
+                B.at(m[0], dy, m[1], dy % 2 == 0 ? net.minecraft.block.Blocks.WAXED_OXIDIZED_CUT_COPPER : net.minecraft.block.Blocks.WAXED_OXIDIZED_COPPER_GRATE);
+            }
+            B.at(m[0], 7, m[1], net.minecraft.block.Blocks.LIGHTNING_ROD);
+        }
+        // Observers and target blocks watching the core; daylight sensors on the side posts.
+        for (int[] m : new int[][]{{1, 1}, {-1, 1}, {1, -1}, {-1, -1}}) {
+            B.at(m[0], 0, m[1], net.minecraft.block.Blocks.OBSERVER);
+            B.at(m[0], 1, m[1], net.minecraft.block.Blocks.TARGET);
+        }
+        for (int[] m : new int[][]{{MR, 3}, {MR, -3}, {-MR, 3}, {-MR, -3}, {3, MR}, {-3, MR}, {3, -MR}, {-3, -MR}}) {
+            B.at(m[0], 0, m[1], net.minecraft.block.Blocks.CHISELED_POLISHED_BLACKSTONE);
+            B.at(m[0], 1, m[1], net.minecraft.block.Blocks.REDSTONE_LAMP);
+            B.at(m[0], 2, m[1], net.minecraft.block.Blocks.REDSTONE_BLOCK);
+            B.at(m[0], 3, m[1], net.minecraft.block.Blocks.DAYLIGHT_DETECTOR);
+        }
+        // The core: a glass column on four obsidian legs rising over the hopper, crowned with a beacon and amethyst.
+        for (int[] m : new int[][]{{2, 2}, {-2, 2}, {2, -2}, {-2, -2}}) {
+            for (int dy = 2; dy <= 8; dy++) {
+                B.at(m[0], dy, m[1], dy == 8 ? net.minecraft.block.Blocks.CRYING_OBSIDIAN : net.minecraft.block.Blocks.OBSIDIAN);
+            }
+        }
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                B.at(dx, 9, dz, Math.abs(dx) == 2 || Math.abs(dz) == 2 ? net.minecraft.block.Blocks.POLISHED_BLACKSTONE_BRICKS
+                        : net.minecraft.block.Blocks.MAGENTA_STAINED_GLASS);
+            }
+        }
+        for (int dy = 3; dy <= 8; dy++) {
+            B.at(0, dy, 0, dy % 2 == 0 ? net.minecraft.block.Blocks.PURPLE_STAINED_GLASS : net.minecraft.block.Blocks.MAGENTA_STAINED_GLASS);
+        }
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                B.at(dx, 10, dz, net.minecraft.block.Blocks.IRON_BLOCK);
+            }
+        }
+        B.at(0, 11, 0, net.minecraft.block.Blocks.BEACON);
+        B.at(0, 12, 0, net.minecraft.block.Blocks.CRYING_OBSIDIAN);
+        B.at(0, 13, 0, net.minecraft.block.Blocks.AMETHYST_BLOCK);
+        B.at(0, 14, 0, net.minecraft.block.Blocks.AMETHYST_CLUSTER);
+        // The hopper last, on the lodestone, with room above it to reach in.
+        B.at(0, 0, 0, net.minecraft.block.Blocks.HOPPER);
     }
 
     /** Owner: takes away the Rift Gate nearest them (within 8 blocks). */
@@ -826,7 +868,7 @@ public final class EdgeKeep {
         }
         ServerWorld w = p.getEntityWorld();
         String best = null;
-        double bestD = 12 * 12;
+        double bestD = 20 * 20;
         for (String m : state().machines) {
             String[] k = m.split("\\|");
             if (k[0].equals(Mc.worldId(w))) {
@@ -843,9 +885,9 @@ public final class EdgeKeep {
         }
         String[] k = best.split("\\|");
         BlockPos c = new BlockPos(Integer.parseInt(k[1]), Integer.parseInt(k[2]), Integer.parseInt(k[3]));
-        for (int dx = -4; dx <= 4; dx++) {
-            for (int dz = -4; dz <= 4; dz++) {
-                for (int dy = 8; dy >= 0; dy--) {
+        for (int dx = -MR; dx <= MR; dx++) {
+            for (int dz = -MR; dz <= MR; dz++) {
+                for (int dy = MH; dy >= 0; dy--) {
                     w.setBlockState(c.add(dx, dy, dz), net.minecraft.block.Blocks.AIR.getDefaultState());
                 }
                 w.setBlockState(c.add(dx, -1, dz), net.minecraft.block.Blocks.DIRT.getDefaultState());
@@ -915,13 +957,13 @@ public final class EdgeKeep {
                 OwnerPowers.later(tick, () -> {
                     w.spawnParticles(net.minecraft.particle.ParticleTypes.ELECTRIC_SPARK, c.getX() + 0.5, c.getY() + 1 + step * 0.1,
                             c.getZ() + 0.5, 20, 1.2, 0.8, 1.2, 0.2);
-                    w.spawnParticles(net.minecraft.particle.ParticleTypes.REVERSE_PORTAL, c.getX() + 0.5, c.getY() + 4.5, c.getZ() + 0.5,
-                            30, 0.6, 0.6, 0.6, 0.05);
+                    w.spawnParticles(net.minecraft.particle.ParticleTypes.REVERSE_PORTAL, c.getX() + 0.5, c.getY() + 10.5, c.getZ() + 0.5,
+                            40, 1.2, 1.2, 1.2, 0.05);
                     w.playSound(null, c, SoundEvents.BLOCK_BEACON_AMBIENT, SoundCategory.BLOCKS, 1.2f, 0.6f + step * 0.04f);
                 });
             }
             OwnerPowers.later(30, () -> {
-                OwnerCombat.bolt(w, Vec3d.ofBottomCenter(c.up(6)), false, null);
+                OwnerCombat.bolt(w, Vec3d.ofBottomCenter(c.up(15)), false, null);
                 if (!rider.isRemoved() && rider.isAlive() && !LobbyFeature.inCombat(rider)) {
                     sendToCitadel(rider, to);
                 }
