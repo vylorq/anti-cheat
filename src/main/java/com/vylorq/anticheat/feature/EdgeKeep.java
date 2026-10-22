@@ -727,24 +727,96 @@ public final class EdgeKeep {
             return;
         }
         ServerWorld w = p.getEntityWorld();
-        BlockPos c = p.getBlockPos().offset(p.getHorizontalFacing(), 3);
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                boolean corner = dx != 0 && dz != 0;
-                w.setBlockState(c.add(dx, -1, dz), (corner ? net.minecraft.block.Blocks.CRYING_OBSIDIAN
-                        : net.minecraft.block.Blocks.POLISHED_BLACKSTONE_BRICKS).getDefaultState());
-                if (corner) {
-                    w.setBlockState(c.add(dx, 0, dz), net.minecraft.block.Blocks.OBSIDIAN.getDefaultState());
-                    w.setBlockState(c.add(dx, 1, dz), net.minecraft.block.Blocks.PURPLE_STAINED_GLASS.getDefaultState());
-                    w.setBlockState(c.add(dx, 2, dz), net.minecraft.block.Blocks.END_ROD.getDefaultState());
-                }
-            }
-        }
-        w.setBlockState(c.down(), net.minecraft.block.Blocks.LODESTONE.getDefaultState());
-        w.setBlockState(c, net.minecraft.block.Blocks.HOPPER.getDefaultState());
+        BlockPos c = p.getBlockPos().offset(p.getHorizontalFacing(), 6);
+        buildMachine(w, c);
         state().machines.add(Mc.worldId(w) + "|" + c.getX() + "|" + c.getY() + "|" + c.getZ());
         save();
         Msg.send(p, "edge.machine-placed");
+    }
+
+    private static net.minecraft.block.BlockState st(net.minecraft.block.Block b) {
+        return b.getDefaultState();
+    }
+
+    /**
+     * The Rift Gate: a 9x9 machine round a hopper. Four obsidian pylons with lit redstone lamps, a redstone circuit
+     * round the floor (live from redstone blocks, with repeaters, comparators and observers on it), copper coils with
+     * lightning rods round the hopper, and a crown of glass and crying obsidian over it all.
+     */
+    static void buildMachine(ServerWorld w, BlockPos c) {
+        var B = new Object() {
+            void at(int dx, int dy, int dz, net.minecraft.block.BlockState s) {
+                w.setBlockState(c.add(dx, dy, dz), s, 3);
+            }
+        };
+        net.minecraft.block.Block base = net.minecraft.block.Blocks.POLISHED_BLACKSTONE_BRICKS;
+        // Clear the space, then the base.
+        for (int dx = -4; dx <= 4; dx++) {
+            for (int dz = -4; dz <= 4; dz++) {
+                for (int dy = 0; dy <= 8; dy++) {
+                    B.at(dx, dy, dz, st(net.minecraft.block.Blocks.AIR));
+                }
+                int ring = Math.max(Math.abs(dx), Math.abs(dz));
+                B.at(dx, -1, dz, st(ring == 4 ? ((dx + dz) % 2 == 0 ? net.minecraft.block.Blocks.GILDED_BLACKSTONE
+                        : net.minecraft.block.Blocks.CRYING_OBSIDIAN) : ring == 0 ? net.minecraft.block.Blocks.LODESTONE : base));
+            }
+        }
+        // The redstone circuit: a loop of dust at ring 3, fed by redstone blocks, with repeaters toward the middle.
+        for (int dx = -3; dx <= 3; dx++) {
+            for (int dz = -3; dz <= 3; dz++) {
+                if (Math.max(Math.abs(dx), Math.abs(dz)) == 3) {
+                    B.at(dx, 0, dz, st(net.minecraft.block.Blocks.REDSTONE_WIRE));
+                }
+            }
+        }
+        for (int[] m : new int[][]{{3, 0}, {-3, 0}, {0, 3}, {0, -3}}) {
+            B.at(m[0], 0, m[1], st(net.minecraft.block.Blocks.REDSTONE_BLOCK));
+        }
+        B.at(2, 0, 0, st(net.minecraft.block.Blocks.REPEATER).with(net.minecraft.block.RepeaterBlock.FACING, net.minecraft.util.math.Direction.EAST));
+        B.at(-2, 0, 0, st(net.minecraft.block.Blocks.REPEATER).with(net.minecraft.block.RepeaterBlock.FACING, net.minecraft.util.math.Direction.WEST));
+        B.at(0, 0, 2, st(net.minecraft.block.Blocks.REPEATER).with(net.minecraft.block.RepeaterBlock.FACING, net.minecraft.util.math.Direction.SOUTH));
+        B.at(0, 0, -2, st(net.minecraft.block.Blocks.REPEATER).with(net.minecraft.block.RepeaterBlock.FACING, net.minecraft.util.math.Direction.NORTH));
+        for (int[] m : new int[][]{{2, 2}, {-2, 2}, {2, -2}, {-2, -2}}) {
+            B.at(m[0], 0, m[1], st(net.minecraft.block.Blocks.COMPARATOR));
+        }
+        // Copper coils with lightning rods round the hopper.
+        for (int[] m : new int[][]{{1, 1}, {-1, 1}, {1, -1}, {-1, -1}}) {
+            B.at(m[0], 0, m[1], st(net.minecraft.block.Blocks.WAXED_OXIDIZED_CUT_COPPER));
+            B.at(m[0], 1, m[1], st(net.minecraft.block.Blocks.WAXED_OXIDIZED_COPPER_GRATE));
+            B.at(m[0], 2, m[1], st(net.minecraft.block.Blocks.WAXED_OXIDIZED_CUT_COPPER));
+            B.at(m[0], 3, m[1], st(net.minecraft.block.Blocks.LIGHTNING_ROD));
+        }
+        // Observers watching the hopper from the sides.
+        B.at(1, 0, 0, st(net.minecraft.block.Blocks.OBSERVER).with(net.minecraft.block.ObserverBlock.FACING, net.minecraft.util.math.Direction.WEST));
+        B.at(-1, 0, 0, st(net.minecraft.block.Blocks.OBSERVER).with(net.minecraft.block.ObserverBlock.FACING, net.minecraft.util.math.Direction.EAST));
+        B.at(0, 0, 1, st(net.minecraft.block.Blocks.TARGET));
+        B.at(0, 0, -1, st(net.minecraft.block.Blocks.TARGET));
+        // The four pylons: obsidian, a lit lamp on a redstone block, glass, an end rod.
+        for (int[] m : new int[][]{{4, 4}, {-4, 4}, {4, -4}, {-4, -4}}) {
+            B.at(m[0], 0, m[1], st(net.minecraft.block.Blocks.OBSIDIAN));
+            B.at(m[0], 1, m[1], st(net.minecraft.block.Blocks.REDSTONE_BLOCK));
+            B.at(m[0], 2, m[1], st(net.minecraft.block.Blocks.REDSTONE_LAMP));
+            B.at(m[0], 3, m[1], st(net.minecraft.block.Blocks.OBSIDIAN));
+            B.at(m[0], 4, m[1], st(net.minecraft.block.Blocks.PURPLE_STAINED_GLASS));
+            B.at(m[0], 5, m[1], st(net.minecraft.block.Blocks.CRYING_OBSIDIAN));
+            B.at(m[0], 6, m[1], st(net.minecraft.block.Blocks.END_ROD));
+        }
+        // Side columns: daylight sensors on sculk-like dark stone, with lamps.
+        for (int[] m : new int[][]{{4, 0}, {-4, 0}, {0, 4}, {0, -4}}) {
+            B.at(m[0], 0, m[1], st(net.minecraft.block.Blocks.CHISELED_POLISHED_BLACKSTONE));
+            B.at(m[0], 1, m[1], st(net.minecraft.block.Blocks.REDSTONE_LAMP));
+            B.at(m[0], 2, m[1], st(net.minecraft.block.Blocks.DAYLIGHT_DETECTOR));
+        }
+        // The crown over the hopper: a ring of glass held up by the coils, crying obsidian and amethyst on top.
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                B.at(dx, 4, dz, st(dx == 0 && dz == 0 ? net.minecraft.block.Blocks.CRYING_OBSIDIAN : net.minecraft.block.Blocks.MAGENTA_STAINED_GLASS));
+            }
+        }
+        B.at(0, 5, 0, st(net.minecraft.block.Blocks.BEACON));
+        B.at(0, 6, 0, st(net.minecraft.block.Blocks.AMETHYST_CLUSTER));
+        // The hopper last, so nothing around it is built over it.
+        B.at(0, 0, 0, st(net.minecraft.block.Blocks.HOPPER));
     }
 
     /** Owner: takes away the Rift Gate nearest them (within 8 blocks). */
@@ -754,7 +826,7 @@ public final class EdgeKeep {
         }
         ServerWorld w = p.getEntityWorld();
         String best = null;
-        double bestD = 64;
+        double bestD = 12 * 12;
         for (String m : state().machines) {
             String[] k = m.split("\\|");
             if (k[0].equals(Mc.worldId(w))) {
@@ -771,11 +843,12 @@ public final class EdgeKeep {
         }
         String[] k = best.split("\\|");
         BlockPos c = new BlockPos(Integer.parseInt(k[1]), Integer.parseInt(k[2]), Integer.parseInt(k[3]));
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                for (int dy = 0; dy <= 2; dy++) {
+        for (int dx = -4; dx <= 4; dx++) {
+            for (int dz = -4; dz <= 4; dz++) {
+                for (int dy = 8; dy >= 0; dy--) {
                     w.setBlockState(c.add(dx, dy, dz), net.minecraft.block.Blocks.AIR.getDefaultState());
                 }
+                w.setBlockState(c.add(dx, -1, dz), net.minecraft.block.Blocks.DIRT.getDefaultState());
             }
         }
         state().machines.remove(best);
@@ -835,16 +908,38 @@ public final class EdgeKeep {
             if (to == null) {
                 continue;
             }
-            int[] size = layout().size();
-            int tx = s.x - 4;
-            int tz = s.z + size[2] / 2;
-            to.getChunk(tx >> 4, tz >> 4);
-            int ty = to.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING, tx, tz);
-            w.playSound(null, c, SoundEvents.BLOCK_END_PORTAL_SPAWN, SoundCategory.BLOCKS, 0.6f, 1.4f);
-            Mc.teleport(who, to, tx + 0.5, ty, tz + 0.5, -90f, 0f);
-            who.fallDistance = 0;
-            Mc.title(who, "§d§lWorld's Edge", "§7" + Msg.trFor(who, "edge.machine-arrived"), 10, 60, 20);
+            // The machine charges for a moment: sparks up the coils, the crown flares, thunder, then away.
+            ServerPlayerEntity rider = who;
+            for (int k = 0; k < 30; k += 3) {
+                int step = k;
+                OwnerPowers.later(k, () -> {
+                    w.spawnParticles(net.minecraft.particle.ParticleTypes.ELECTRIC_SPARK, c.getX() + 0.5, c.getY() + 1 + step * 0.1,
+                            c.getZ() + 0.5, 20, 1.2, 0.8, 1.2, 0.2);
+                    w.spawnParticles(net.minecraft.particle.ParticleTypes.REVERSE_PORTAL, c.getX() + 0.5, c.getY() + 4.5, c.getZ() + 0.5,
+                            30, 0.6, 0.6, 0.6, 0.05);
+                    w.playSound(null, c, SoundEvents.BLOCK_BEACON_AMBIENT, SoundCategory.BLOCKS, 1.2f, 0.6f + step * 0.04f);
+                });
+            }
+            OwnerPowers.later(30, () -> {
+                OwnerCombat.bolt(w, Vec3d.ofBottomCenter(c.up(6)), false, null);
+                if (!rider.isRemoved() && rider.isAlive() && !LobbyFeature.inCombat(rider)) {
+                    sendToCitadel(rider, to);
+                }
+            });
         }
+    }
+
+    private static void sendToCitadel(ServerPlayerEntity who, ServerWorld to) {
+        State s = state();
+        int[] size = layout().size();
+        int tx = s.x - 4;
+        int tz = s.z + size[2] / 2;
+        to.getChunk(tx >> 4, tz >> 4);
+        int ty = to.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING, tx, tz);
+        Mc.teleport(who, to, tx + 0.5, ty, tz + 0.5, -90f, 0f);
+        who.fallDistance = 0;
+        to.playSound(null, who.getBlockPos(), SoundEvents.BLOCK_END_PORTAL_SPAWN, SoundCategory.BLOCKS, 0.6f, 1.4f);
+        Mc.title(who, "§d§lWorld's Edge", "§7" + Msg.trFor(who, "edge.machine-arrived"), 10, 60, 20);
     }
 
     // ---------------------------------------------------------------- the offering

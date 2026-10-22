@@ -3312,8 +3312,8 @@
   "combat.over": "خرجت من القتال",
   "edge.clear-room": "نظّف هذه الغرفة أولاً: هُزم {0}/{1} من وحوشها",
   "edge.room-cleared": "نُظّفت الغرفة. انفتح الطريق.",
-  "edge.machine-placed": "§aبُنيت بوابة الصدع. ضع لؤلؤة إندر في القادوس للانتقال إلى قلعة حافة العالم. أزلها بـ §e/owner edge machine remove",
-  "edge.machine-none": "§7لا توجد بوابة صدع ضمن 8 كتل.",
+  "edge.machine-placed": "§aبُنيت بوابة الصدع (6 كتل أمامك). ضع لؤلؤة إندر في القادوس: تشحن وترسل الأقرب إلى قلعة حافة العالم. أزلها بـ §e/owner edge machine remove",
+  "edge.machine-none": "§7لا توجد بوابة صدع ضمن 12 كتلة.",
   "edge.machine-removed": "§aأزيلت بوابة الصدع.",
   "edge.machine-arrived": "حملتك بوابة الصدع إلى القلعة."
 }
