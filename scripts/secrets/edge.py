@@ -32,7 +32,7 @@ ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
 OFFER = [
     ("nether_star", 1, "The star torn from the three-headed storm."),
     ("heavy_core", 3, "Three hearts of the vault, heavier than iron."),
-    ("dragon_head", 1, "The crown of the End's last queen."),
+    ("ominous_trial_key", 1, "The dark key of an ominous trial."),
     ("totem_of_undying", 1, "The charm that cheats death once."),
     ("heart_of_the_sea", 1, "The heart the ocean buries."),
     ("enchanted_golden_apple", 1, "Gold that glows, the apple of old kings."),
