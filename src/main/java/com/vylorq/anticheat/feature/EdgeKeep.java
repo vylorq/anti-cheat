@@ -728,10 +728,60 @@ public final class EdgeKeep {
         }
         ServerWorld w = p.getEntityWorld();
         BlockPos c = p.getBlockPos().offset(p.getHorizontalFacing(), MR + 3);
+        // Everything it will cover, as it was, so it can be undone exactly.
+        Map<BlockPos, net.minecraft.block.BlockState> before = new LinkedHashMap<>();
+        for (int dy = -1; dy <= MH; dy++) {
+            for (int dx = -MR; dx <= MR; dx++) {
+                for (int dz = -MR; dz <= MR; dz++) {
+                    BlockPos q = c.add(dx, dy, dz);
+                    before.put(q, w.getBlockState(q));
+                }
+            }
+        }
         buildMachine(w, c);
-        state().machines.add(Mc.worldId(w) + "|" + c.getX() + "|" + c.getY() + "|" + c.getZ());
+        String key = Mc.worldId(w) + "|" + c.getX() + "|" + c.getY() + "|" + c.getZ();
+        state().machines.add(key);
         save();
+        LAST_MACHINES.computeIfAbsent(p.getUuid(), k -> new java.util.ArrayDeque<>()).push(new Built(key, w, before));
         Msg.send(p, "edge.machine-placed");
+    }
+
+    private record Built(String key, ServerWorld world, Map<BlockPos, net.minecraft.block.BlockState> before) {
+    }
+
+    /** Each owner's machines, newest first, with what stood there before (until the server restarts). */
+    private static final Map<UUID, java.util.Deque<Built>> LAST_MACHINES = new java.util.HashMap<>();
+
+    /** Owner: takes away the last Rift Gate they built and puts back exactly what stood there. */
+    public static void undoMachine(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        var stack = LAST_MACHINES.get(p.getUuid());
+        Built b = null;
+        while (stack != null && !stack.isEmpty()) {
+            Built top = stack.pop();
+            if (state().machines.contains(top.key())) {
+                b = top;
+                break;
+            }
+        }
+        if (b == null) {
+            Msg.send(p, "edge.machine-nothing");
+            return;
+        }
+        // Top down, so nothing that needs support breaks on the way.
+        List<BlockPos> order = new ArrayList<>(b.before().keySet());
+        order.sort((x, y) -> Integer.compare(y.getY(), x.getY()));
+        for (BlockPos q : order) {
+            if (b.world().getBlockEntity(q) instanceof Inventory inv) {
+                inv.clear();
+            }
+            b.world().setBlockState(q, b.before().get(q), 2);
+        }
+        state().machines.remove(b.key());
+        save();
+        Msg.send(p, "edge.machine-undone");
     }
 
     private static net.minecraft.block.BlockState st(net.minecraft.block.Block b) {
