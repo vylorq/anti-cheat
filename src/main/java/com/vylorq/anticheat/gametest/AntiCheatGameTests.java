@@ -598,6 +598,7 @@ public final class AntiCheatGameTests {
         check(lay.gates().stream().anyMatch(g -> g.name().equals("entry")), "the inner door has no gate");
         check(lay.gates().stream().anyMatch(g -> g.name().equals("parkour")), "the parkour room has no gate");
         check(com.vylorq.anticheat.feature.EdgeKeep.offeringForTest().size() == 4, "the offering isn't four items");
+        check(com.vylorq.anticheat.feature.EdgeKeep.guardPostsForTest() > 20, "the castle has too few guardians");
         var mod = com.vylorq.anticheat.gui.GiveMenu.modItems();
         check(mod.stream().anyMatch(st -> com.vylorq.anticheat.feature.SecretItems.MJOLNIR.equals(com.vylorq.anticheat.feature.SecretItems.idOf(st))),
                 "Mjolnir isn't in the give menu");

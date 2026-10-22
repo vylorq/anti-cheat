@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.math.random.Random;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -50,7 +51,85 @@ public final class StructureMobs {
             {Items.IRON_HELMET, Items.IRON_CHESTPLATE, Items.IRON_LEGGINGS, Items.IRON_BOOTS},
             {Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS, Items.DIAMOND_BOOTS}};
 
+    /** Where a structure mob belongs ("vigil_home:x,y,z"), and how far it may stray from there ("vigil_leash:r"). */
+    public static final String HOME = "vigil_home:";
+    public static final String LEASH_TAG = "vigil_leash:";
+    /** How far a structure's mobs may go from where they were spawned before they're pulled back. */
+    static final int LEASH = 24;
+
+    private record Home(MobEntity mob, double x, double y, double z, int range) {}
+
+    private static final Map<java.util.UUID, Home> HOMES = new java.util.HashMap<>();
+
+    /** Keeps this mob near where it stands now: it is pulled back whenever it strays more than {@code range} blocks. */
+    public static void leash(MobEntity m, int range) {
+        m.getCommandTags().removeIf(t -> t.startsWith(HOME) || t.startsWith(LEASH_TAG));
+        m.addCommandTag(HOME + m.getBlockX() + "," + m.getBlockY() + "," + m.getBlockZ());
+        m.addCommandTag(LEASH_TAG + range);
+        track(m);
+    }
+
+    private static void track(MobEntity m) {
+        double[] h = null;
+        int range = LEASH;
+        for (String t : m.getCommandTags()) {
+            if (t.startsWith(HOME)) {
+                String[] p = t.substring(HOME.length()).split(",");
+                if (p.length == 3) {
+                    try {
+                        h = new double[]{Integer.parseInt(p[0]) + 0.5, Integer.parseInt(p[1]), Integer.parseInt(p[2]) + 0.5};
+                    } catch (NumberFormatException ignored) {
+                        // a hand-made tag: no home
+                    }
+                }
+            } else if (t.startsWith(LEASH_TAG)) {
+                try {
+                    range = Integer.parseInt(t.substring(LEASH_TAG.length()));
+                } catch (NumberFormatException ignored) {
+                    // keep the default
+                }
+            }
+        }
+        if (h != null) {
+            HOMES.put(m.getUuid(), new Home(m, h[0], h[1], h[2], range));
+        }
+    }
+
+    /** Once a second: every leashed mob that has strayed too far is pulled back home and forgets its target. */
+    public static void tick(long ticks) {
+        if (ticks % 20 != 0 || HOMES.isEmpty()) {
+            return;
+        }
+        var it = HOMES.values().iterator();
+        while (it.hasNext()) {
+            Home h = it.next();
+            MobEntity m = h.mob();
+            if (m.isRemoved() || !m.isAlive()) {
+                it.remove();
+                continue;
+            }
+            double dx = m.getX() - h.x();
+            double dz = m.getZ() - h.z();
+            double dy = m.getY() - h.y();
+            if (dx * dx + dz * dz > (double) h.range() * h.range() || Math.abs(dy) > h.range()) {
+                if (m.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld w) {
+                    w.spawnParticles(net.minecraft.particle.ParticleTypes.PORTAL, m.getX(), m.getY() + 1, m.getZ(), 20, 0.3, 0.6, 0.3, 0.2);
+                }
+                m.setTarget(null);
+                m.getNavigation().stop();
+                m.requestTeleport(h.x(), h.y(), h.z());
+                m.fallDistance = 0;
+            }
+        }
+    }
+
     public static void register() {
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((e, w) -> HOMES.remove(e.getUuid()));
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, w) -> {
+            if (Ac.running() && e instanceof MobEntity m && m.getCommandTags().stream().anyMatch(t -> t.startsWith(HOME))) {
+                track(m);
+            }
+        });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, w) -> {
             if (Ac.running() && e instanceof MobEntity m && !m.getCommandTags().contains(ARMED)) {
                 for (String t : m.getCommandTags()) {
@@ -63,6 +142,7 @@ public final class StructureMobs {
                             break;
                         }
                         arm(m, structure);
+                        leash(m, LEASH);
                         break;
                     }
                 }
@@ -130,6 +210,60 @@ public final class StructureMobs {
         }
     }
 
+    /** One room mob in this many is one of the new kinds (see {@link #variant}). */
+    static final float VARIANT_CHANCE = 1f / 4;
+    public static final String VARIANT_TAG = "vigil_variant";
+    private static final net.minecraft.util.Identifier VARIANT = net.minecraft.util.Identifier.of("vigil", "variant");
+
+    /**
+     * The structures' own kinds of mob, made from the game's (so they work for Bedrock players too): giant Brutes and
+     * quick little Runts among the zombies, Broodmothers among the spiders, Sharpshooters among the skeletons, shielded
+     * Knights among the wither skeletons, Infernos among the blazes and Hulks of anything else.
+     */
+    static void variant(MobEntity m) {
+        Random r = m.getRandom();
+        String name;
+        if (m instanceof net.minecraft.entity.mob.SpiderEntity) {
+            name = "§2Broodmother";
+            vary(m, 1.6, 1.2, 0.4, 0.05);
+        } else if (m instanceof ZombieEntity && r.nextBoolean()) {
+            name = "§4Brute";
+            vary(m, 1.4, 1.3, 0.6, -0.1);
+        } else if (m instanceof ZombieEntity) {
+            name = "§eRunt";
+            vary(m, 0.6, -0.4, 0, 0.4);
+        } else if (m instanceof WitherSkeletonEntity) {
+            name = "§8Knight";
+            vary(m, 1.2, 0.9, 0.3, 0);
+            m.equipStack(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
+            m.setEquipmentDropChance(EquipmentSlot.OFFHAND, 0f);
+        } else if (m instanceof AbstractSkeletonEntity) {
+            name = "§bSharpshooter";
+            vary(m, 1.0, 0.4, 0.5, 0.2);
+            boost(m, EntityAttributes.FOLLOW_RANGE, 1.0, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        } else if (m instanceof net.minecraft.entity.mob.BlazeEntity) {
+            name = "§6Inferno";
+            vary(m, 1.4, 1.0, 0.5, 0);
+        } else {
+            name = "§5Hulk";
+            vary(m, 1.3, 0.8, 0.4, -0.05);
+        }
+        m.addCommandTag(VARIANT_TAG);
+        m.setCustomName(net.minecraft.text.Text.literal(name + " §7" + m.getType().getName().getString()));
+        m.setCustomNameVisible(true);
+        m.setHealth(m.getMaxHealth());
+    }
+
+    private static void vary(MobEntity m, double scale, double health, double damage, double speed) {
+        for (var e : List.of(Map.entry(EntityAttributes.SCALE, scale - 1), Map.entry(EntityAttributes.MAX_HEALTH, health),
+                Map.entry(EntityAttributes.ATTACK_DAMAGE, damage), Map.entry(EntityAttributes.MOVEMENT_SPEED, speed))) {
+            var i = m.getAttributeInstance(e.getKey());
+            if (i != null && e.getValue() != 0 && i.getModifier(VARIANT) == null) {
+                i.addPersistentModifier(new EntityAttributeModifier(VARIANT, e.getValue(), EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+            }
+        }
+    }
+
     private static final Item[] DIAMOND = {Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS, Items.DIAMOND_BOOTS};
     private static final net.minecraft.util.Identifier GUARD = net.minecraft.util.Identifier.of("vigil", "boss_guard");
 
@@ -174,6 +308,8 @@ public final class StructureMobs {
         noDrops(m);
         if (m.getRandom().nextFloat() < ELITE_CHANCE) {
             elite(m);
+        } else if (m.getRandom().nextFloat() < VARIANT_CHANCE) {
+            variant(m);
         }
         Item weapon = WEAPONS.get(structure);
         if (weapon == null) {
