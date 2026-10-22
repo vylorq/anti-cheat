@@ -281,7 +281,8 @@ public final class AdminCommands {
                 .then(literal("reset").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::reset)))
                 .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::info)))
                 .then(literal("machine").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::placeMachine))
-                        .then(literal("remove").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::removeMachine)))));
+                        .then(literal("remove").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::removeMachine)))
+                        .then(literal("undo").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::undoMachine)))));
         var boiledSend = literal("send");
         for (String how : new String[]{"watch", "scare", "peek", "behind", "breakin", "glimpse", "footsteps", "knock", "door",
                 "whisper", "torches", "fakechat", "trail", "mimic", "mimicplayer", "atdoor", "sounds", "reflection", "shadow", "paralysis", "eyes", "ear", "hall", "midnight", "double", "snap"}) {

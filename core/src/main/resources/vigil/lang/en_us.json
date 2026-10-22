@@ -3327,5 +3327,7 @@
   "edge.machine-placed": "§aRift Gate built in front of you (15×15, 16 tall). Walk in to the hopper in the middle and drop an ender pearl in: it charges up and sends whoever is closest to the World's Edge Citadel. Remove it with §e/owner edge machine remove",
   "edge.machine-none": "§7No Rift Gate within 20 blocks.",
   "edge.machine-removed": "§aRift Gate removed.",
-  "edge.machine-arrived": "The Rift Gate carried you to the citadel."
+  "edge.machine-arrived": "The Rift Gate carried you to the citadel.",
+  "edge.machine-nothing": "§7No Rift Gate of yours to undo (it was already removed, or the server restarted since).",
+  "edge.machine-undone": "§aRift Gate undone: everything there is back as it was."
 }
