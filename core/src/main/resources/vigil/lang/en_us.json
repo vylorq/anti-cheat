@@ -3330,5 +3330,8 @@
   "edge.machine-arrived": "The Rift Gate carried you to the citadel.",
   "edge.machine-nothing": "§7No Rift Gate of yours to undo (it was already removed, or the server restarted since).",
   "edge.machine-undone": "§aRift Gate undone: everything there is back as it was.",
-  "edge.offer-first": "The citadel is sealed: give the ten offerings at the hoppers first. Their names are on Offering Scrolls hidden in chests across the world."
+  "edge.offer-first": "The citadel is sealed: give the ten offerings at the hoppers first. Their names are on Offering Scrolls hidden in chests across the world.",
+  "boiled.fled": "§4{0} left the game while The Boiled One was hunting them. It will be waiting when they come back, and it follows them until it gets them.",
+  "boiled.fled-title": "YOU CAN'T LEAVE",
+  "boiled.fled-sub": "It waited for you."
 }
