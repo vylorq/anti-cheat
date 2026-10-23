@@ -91,6 +91,8 @@ public final class BoiledOne {
         public List<BreakIn> breakIns = new ArrayList<>();
         /** One night in this many starts The Boiling Night by itself (0 = never). */
         public int eventNights = 20;
+        /** Players who left the game while it was hunting them (uuid -> name): it is waiting when they come back. */
+        public Map<String, String> fled = new HashMap<>();
     }
 
     private static State state;
@@ -115,6 +117,9 @@ public final class BoiledOne {
             }
             if (state.breakIns == null) {
                 state.breakIns = new ArrayList<>();
+            }
+            if (state.fled == null) {
+                state.fled = new HashMap<>();
             }
         }
         return state;
@@ -208,6 +213,69 @@ public final class BoiledOne {
             if (Ac.running() && player instanceof ServerPlayerEntity p) {
                 mining(p);
             }
+        });
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            if (Ac.running()) {
+                fled(handler.player);
+            }
+        });
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            if (Ac.running()) {
+                returned(handler.player.getUuid());
+            }
+        });
+    }
+
+    // ---------------------------------------------------------------- leaving doesn't save you
+
+    /** Left the game while it hunted them: it follows them from now on (until it gets them) and waits for them. */
+    private static void fled(ServerPlayerEntity p) {
+        boolean chased = false;
+        for (Hunt h : HUNTS.values()) {
+            if (h.victim.equals(p.getUuid()) && switch (h.mode) {
+                case STALK, PEEK, RUSH, BREAK_IN, PASS, GRAB, HALL, DOOR, PARALYSIS -> true;
+                default -> false;
+            }) {
+                chased = true;
+            }
+        }
+        if (!chased) {
+            return;
+        }
+        State s = state();
+        String name = p.getGameProfile().name();
+        s.fled.put(p.getUuidAsString(), name);
+        s.hunted.put(p.getUuidAsString(), name);
+        save();
+        for (ServerPlayerEntity o : Ac.server().getPlayerManager().getPlayerList()) {
+            if (com.vylorq.anticheat.perm.Perms.isOwner(o.getUuid()) && !o.getUuid().equals(p.getUuid())) {
+                Msg.send(o, "boiled.fled", name);
+            }
+        }
+    }
+
+    /** Back after running away: a few seconds after they join, it comes for them. */
+    private static void returned(UUID id) {
+        State s = state();
+        if (!s.fled.containsKey(id.toString())) {
+            return;
+        }
+        OwnerPowers.later(100, () -> {
+            ServerPlayerEntity p = Ac.server().getPlayerManager().getPlayer(id);
+            if (p == null || !p.isAlive() || !s.enabled) {
+                return;
+            }
+            s.fled.remove(id.toString());
+            save();
+            Mc.title(p, "§4§l" + Msg.trFor(p, "boiled.fled-title"), "§7" + Msg.trFor(p, "boiled.fled-sub"), 5, 60, 20);
+            Mc.sound(p, SoundEvents.ENTITY_WARDEN_HEARTBEAT, 1f, 0.5f);
+            if (canHunt(p)) {
+                NEXT.put(p.getUuid(), now + 20L * 60);
+                if (appear(p, inBase(p) ? Mode.BREAK_IN : Mode.RUSH) == null) {
+                    appear(p, Mode.STALK);
+                }
+            }
+            // Wherever they are (even somewhere safe for now), it keeps following them until it gets them.
         });
     }
 
