@@ -41,6 +41,8 @@ public final class Team {
     public boolean shareMap = true;
     /** Team experience (playtime, kills, trades, wars): decides the level. */
     public long xp;
+    /** The owner's own vault size for this team (slots, a multiple of 9), or 0 to go by its level. */
+    public int vaultSlots;
     /** Team bank: currency items held for the team. */
     public long bank;
     /** Recent bank deposits and withdrawals, newest last. */

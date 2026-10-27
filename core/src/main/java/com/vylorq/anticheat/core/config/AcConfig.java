@@ -499,8 +499,10 @@ public class AcConfig {
         public int raidAlertSeconds = 30;
         /** Extra chunks for every team level above 1. */
         public int chunksPerLevel = 2;
-        /** Team level at which the vault becomes a double chest. */
+        /** Team level at which the vault becomes a double chest (old setting: vaultSlots below is used now). */
         public int bigVaultLevel = 3;
+        /** Vault slots at each team level (level 1 first); the owner can change them in the Teams menu. */
+        public java.util.List<Integer> vaultSlots = new java.util.ArrayList<>(java.util.List.of(27, 36, 54, 54, 54, 54, 54, 54, 54, 54));
         /** Team XP: per online member per minute, per player kill, per trade. */
         public int xpPerMinute = 1;
         public int xpPerKill = 10;

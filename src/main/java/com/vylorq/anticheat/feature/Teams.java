@@ -144,16 +144,66 @@ public final class Teams {
 
     private static final Map<String, net.minecraft.inventory.SimpleInventory> VAULTS = new HashMap<>();
 
-    /** The team's shared chest (27 slots), saved whenever it changes. */
-    /** 27 slots, or a double chest (54) from the configured team level. */
+    /** The team's vault size: the owner's own for this team, or its level's (9 to 54 slots, whole rows). */
     public static int vaultSize(Team t) {
-        return TeamManager.level(t.xp) >= cfg().bigVaultLevel ? 54 : 27;
+        if (t.vaultSlots > 0) {
+            return rows(t.vaultSlots);
+        }
+        return levelSlots(TeamManager.level(t.xp));
+    }
+
+    /** The vault slots a team gets at this level (from the config; the last one set counts for higher levels). */
+    public static int levelSlots(int level) {
+        var list = cfg().vaultSlots;
+        if (list == null || list.isEmpty()) {
+            return level >= cfg().bigVaultLevel ? 54 : 27;
+        }
+        return rows(list.get(Math.max(0, Math.min(list.size() - 1, level - 1))));
+    }
+
+    /** Owner: sets the vault slots at a level (rounded to whole rows, 9 to 54). */
+    public static void setLevelSlots(int level, int slots) {
+        var list = cfg().vaultSlots;
+        if (list == null) {
+            list = new java.util.ArrayList<>();
+            cfg().vaultSlots = list;
+        }
+        while (list.size() < TeamManager.MAX_LEVEL) {
+            list.add(list.isEmpty() ? 27 : list.get(list.size() - 1));
+        }
+        list.set(level - 1, rows(slots));
+        Ac.get().configManager.save();
+    }
+
+    /** Owner: this team's own vault size (0 = by its level). */
+    public static void setTeamSlots(Team t, int slots) {
+        t.vaultSlots = slots <= 0 ? 0 : rows(slots);
+        Ac.markDirty("teams");
+    }
+
+    private static int rows(int slots) {
+        return Math.max(1, Math.min(6, (slots + 8) / 9)) * 9;
+    }
+
+    /** A chest screen as big as the vault (1 to 6 rows). */
+    public static net.minecraft.screen.ScreenHandler vaultScreen(int syncId, net.minecraft.entity.player.PlayerInventory playerInv,
+                                                                 net.minecraft.inventory.Inventory inv) {
+        int rows = inv.size() / 9;
+        var type = switch (rows) {
+            case 1 -> net.minecraft.screen.ScreenHandlerType.GENERIC_9X1;
+            case 2 -> net.minecraft.screen.ScreenHandlerType.GENERIC_9X2;
+            case 3 -> net.minecraft.screen.ScreenHandlerType.GENERIC_9X3;
+            case 4 -> net.minecraft.screen.ScreenHandlerType.GENERIC_9X4;
+            case 5 -> net.minecraft.screen.ScreenHandlerType.GENERIC_9X5;
+            default -> net.minecraft.screen.ScreenHandlerType.GENERIC_9X6;
+        };
+        return new net.minecraft.screen.GenericContainerScreenHandler(type, syncId, playerInv, inv, rows);
     }
 
     public static net.minecraft.inventory.SimpleInventory vault(Team t) {
         net.minecraft.inventory.SimpleInventory cached = VAULTS.get(t.id);
         if (cached != null && cached.size() != vaultSize(t)) {
-            // The team levelled up: rebuild bigger (t.vault already holds every item by slot).
+            // Its size changed (a new level, or the owner): rebuild it (t.vault already holds every item by slot).
             closeViewers(cached);
             VAULTS.remove(t.id);
         }
@@ -171,7 +221,8 @@ public final class Teams {
                 if (now == null) {
                     return;
                 }
-                now.vault.clear();
+                // Items in slots past the end (the vault got smaller) are kept, and come back if it grows again.
+                now.vault.removeIf(e -> com.vylorq.anticheat.util.ItemConv.slotOf(e) < changed.size());
                 for (int i = 0; i < changed.size(); i++) {
                     if (!changed.getStack(i).isEmpty()) {
                         now.vault.add(com.vylorq.anticheat.util.ItemConv.encodeSlot(i, changed.getStack(i)));
@@ -191,9 +242,7 @@ public final class Teams {
         }
         var inv = vault(t);
         p.openHandledScreen(new net.minecraft.screen.SimpleNamedScreenHandlerFactory(
-                (syncId, playerInv, pl) -> inv.size() == 54
-                        ? net.minecraft.screen.GenericContainerScreenHandler.createGeneric9x6(syncId, playerInv, inv)
-                        : net.minecraft.screen.GenericContainerScreenHandler.createGeneric9x3(syncId, playerInv, inv),
+                (syncId, playerInv, pl) -> vaultScreen(syncId, playerInv, inv),
                 Text.literal(tagText(t) + " §8" + Msg.trFor(p, "team.vault"))));
     }
 

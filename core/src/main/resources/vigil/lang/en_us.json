@@ -3333,5 +3333,16 @@
   "edge.offer-first": "The citadel is sealed: give the ten offerings at the hoppers first. Their names are on Offering Scrolls hidden in chests across the world.",
   "boiled.fled": "§4{0} left the game while The Boiled One was hunting them. It will be waiting when they come back, and it follows them until it gets them.",
   "boiled.fled-title": "YOU CAN'T LEAVE",
-  "boiled.fled-sub": "It waited for you."
+  "boiled.fled-sub": "It waited for you.",
+  "oteams.slots": "Vault size",
+  "oteams.slots.desc": "Give this team its own vault size, whatever its level.",
+  "oteams.slots.own": "{0} slots (set by you)",
+  "oteams.slots.level": "{0} slots (from its level)",
+  "oteams.slots.more": "One row more (+9)",
+  "oteams.slots.less": "One row less (-9)",
+  "oteams.slots.reset": "Back to its level's size",
+  "oteams.levels": "Vault size per level",
+  "oteams.levels.desc": "How many vault slots a team gets at each level (9 to 54, whole rows). Items never get lost when a vault shrinks: they come back when it grows.",
+  "oteams.levels.level": "Level {0}",
+  "oteams.levels.slots": "{0} slots"
 }

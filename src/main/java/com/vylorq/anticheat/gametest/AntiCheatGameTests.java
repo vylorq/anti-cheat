@@ -2049,6 +2049,17 @@ public final class AntiCheatGameTests {
             var big = com.vylorq.anticheat.feature.Teams.vault(t);
             check(big.size() == 54, "vault didn't grow");
             check(big.getStack(5).isOf(net.minecraft.item.Items.DIAMOND), "vault items lost when it grew");
+            // The owner shrinks it and grows it back: items past the end are kept, not lost.
+            big.setStack(40, new net.minecraft.item.ItemStack(net.minecraft.item.Items.EMERALD, 3));
+            com.vylorq.anticheat.feature.Teams.setTeamSlots(t, 9);
+            var small = com.vylorq.anticheat.feature.Teams.vault(t);
+            check(small.size() == 9, "owner's vault size not used: " + small.size());
+            small.setStack(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.STICK));
+            com.vylorq.anticheat.feature.Teams.setTeamSlots(t, 0);
+            var back = com.vylorq.anticheat.feature.Teams.vault(t);
+            check(back.size() == 54 && back.getStack(40).isOf(net.minecraft.item.Items.EMERALD) && back.getStack(0).isOf(net.minecraft.item.Items.STICK),
+                    "items lost when the vault shrank and grew back");
+            check(com.vylorq.anticheat.feature.Teams.levelSlots(2) == 36, "level 2 vault isn't bigger");
         } finally {
             var t = tm.get(name);
             if (t != null) {

@@ -164,10 +164,14 @@ public final class Movement {
                 || in.inPowderSnow || in.inBubbleColumn || in.levitation >= 0 || in.blockAbove || in.inVehicle || in.gliding
                 || in.flightAllowed || in.creativeOrSpectator || in.touchingHoney || in.ticksSinceGhostBlock < 40 || in.riptiding
                 || in.inBerryBush);
+        boolean owner = com.vylorq.anticheat.perm.Perms.isOwner(p.getUuid());
         for (MoveResult.Violation v : r.violations) {
-            ac.engine.flag(p.getUuid(), p.getGameProfile().name(), v.check(), v.points(), v.detail(), s.bedrock);
+            if (!owner) {
+                ac.engine.flag(p.getUuid(), p.getGameProfile().name(), v.check(), v.points(), v.detail(), s.bedrock);
+            }
         }
-        if (r.setbackTo != null && ac.exempt.setbacksApply(p.getUuid())) {
+        // The owner is never pulled back (their own items can move them however they like).
+        if (r.setbackTo != null && ac.exempt.setbacksApply(p.getUuid()) && !owner) {
             Vec3 safe = SafeSpot.find(view(world), r.setbackTo, 6);
             if (safe == null) {
                 safe = from;
@@ -177,6 +181,30 @@ public final class Movement {
             return true;
         }
         return false;
+    }
+
+    private static final java.util.Map<java.util.UUID, Long> SPEAR_UNTIL = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * Spears throw their holder forward (a charge while held, a lunge on a jab, faster with enchantments or a custom
+     * spear): for a second and a half after one, the move is treated like a riptide's and not set back.
+     */
+    private static boolean spearLunge(ServerPlayerEntity p) {
+        long now = p.getEntityWorld().getTime();
+        var held = p.getMainHandStack();
+        boolean spear = !held.isEmpty() && net.minecraft.registry.Registries.ITEM.getId(held.getItem()).getPath().endsWith("spear");
+        if (spear && (p.isUsingItem() || p.handSwinging)) {
+            SPEAR_UNTIL.put(p.getUuid(), now + 30);
+        }
+        Long until = SPEAR_UNTIL.get(p.getUuid());
+        if (until == null) {
+            return false;
+        }
+        if (now > until) {
+            SPEAR_UNTIL.remove(p.getUuid());
+            return false;
+        }
+        return true;
     }
 
     /** Setback: not a punishment, just cancels the move. */
@@ -347,7 +375,7 @@ public final class Movement {
         }
         in.flightAllowed = p.getAbilities().allowFlying;
         in.creativeOrSpectator = p.isCreative() || p.isSpectator();
-        in.riptiding = p.isUsingRiptide();
+        in.riptiding = p.isUsingRiptide() || spearLunge(p);
         if (in.riptiding) {
             s.ticksSinceRiptide = 0;
         }

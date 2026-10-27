@@ -32,9 +32,12 @@ say "Installing Java 21, git and tools"
 sudo apt-get update -y
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-21-jdk-headless git curl jq unzip iptables-persistent
 
-say "Opening ports 25565/tcp (Java) and 19132/udp (Bedrock) in the server firewall"
+say "Opening ports 25565/tcp (Java) and 19132/udp+tcp, 19133/udp (Bedrock) in the server firewall"
 sudo iptables -C INPUT -p tcp --dport 25565 -j ACCEPT 2>/dev/null || sudo iptables -I INPUT 5 -p tcp --dport 25565 -j ACCEPT
 sudo iptables -C INPUT -p udp --dport 19132 -j ACCEPT 2>/dev/null || sudo iptables -I INPUT 5 -p udp --dport 19132 -j ACCEPT
+# Bedrock's new connection method (NetherNet, from October 2026): its signaling on 19132/tcp, its data on 19133/udp.
+sudo iptables -C INPUT -p tcp --dport 19132 -j ACCEPT 2>/dev/null || sudo iptables -I INPUT 5 -p tcp --dport 19132 -j ACCEPT
+sudo iptables -C INPUT -p udp --dport 19133 -j ACCEPT 2>/dev/null || sudo iptables -I INPUT 5 -p udp --dport 19133 -j ACCEPT
 sudo netfilter-persistent save
 
 say "Getting the mod source"
@@ -222,10 +225,18 @@ sudo systemctl restart geyser
 GEYSER_CFG="$GEYSER_DIR/config.yml"
 for _ in $(seq 1 36); do [ -f "$GEYSER_CFG" ] && break; sleep 5; done
 if [ -f "$GEYSER_CFG" ]; then
+  CHANGED=0
   if ! grep -q "auth-type: floodgate" "$GEYSER_CFG" || grep -q "address: auto" "$GEYSER_CFG"; then
     sed -i 's/auth-type: .*/auth-type: floodgate/; s/address: auto/address: 127.0.0.1/' "$GEYSER_CFG"
-    sudo systemctl restart geyser
+    CHANGED=1
   fi
+  # Both of Bedrock's ways in: the old one (RakNet, 19132/udp) and the new one (NetherNet, 19133/udp + 19132/tcp),
+  # so players on any Bedrock version can join.
+  if grep -qE "^\s*transport:" "$GEYSER_CFG" && ! grep -qE "^\s*transport: both" "$GEYSER_CFG"; then
+    sed -i -E 's/^(\s*)transport: .*/\1transport: both/; s/^(\s*)webrtc-port: .*/\1webrtc-port: 19133/' "$GEYSER_CFG"
+    CHANGED=1
+  fi
+  [ "$CHANGED" = 1 ] && sudo systemctl restart geyser
   echo "  Geyser OK"
 else
   echo "  Geyser did not create its settings yet. Check: journalctl -u geyser -n 50"
@@ -276,5 +287,6 @@ cat <<EOF
   Update the mod:    run the same setup command again
   Set the owner:     run the setup command again with OWNER=YourName
 
-  Remember to also open 25565 TCP and 19132 UDP in Oracle's Security List (see ORACLE_HOSTING.md).
+  Remember to also open these in Oracle's Security List (see ORACLE_HOSTING.md):
+    25565 TCP,  19132 UDP,  19132 TCP,  19133 UDP
 EOF

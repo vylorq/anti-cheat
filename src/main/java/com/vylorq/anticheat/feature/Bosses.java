@@ -513,7 +513,15 @@ public final class Bosses {
                 Msg.actionBar(sp, "§c" + Msg.trFor(sp, "boss.too-far"));
                 return false;
             }
-            if (l.group.isEmpty() || !(source.getAttacker() instanceof ServerPlayerEntity p) || l.group.contains(p.getUuid())) {
+            if (!(source.getAttacker() instanceof ServerPlayerEntity p)) {
+                return true;
+            }
+            if (l.group.isEmpty()) {
+                // The first to hit it owns the fight, with their team (and allies) and whoever came with them.
+                claim(l, p);
+                return true;
+            }
+            if (mayFight(l, p)) {
                 return true;
             }
             // Someone else's fight: they can't steal it.
@@ -1034,6 +1042,52 @@ public final class Bosses {
 
     // ---------------------------------------------------------------- fighting
 
+    /** Whether two players fight on the same side: the same team, or allied teams. */
+    static boolean friends(UUID a, UUID b) {
+        if (a.equals(b)) {
+            return true;
+        }
+        try {
+            var tm = Teams.tm();
+            var ta = tm.teamOf(a);
+            var tb = tm.teamOf(b);
+            return ta != null && (ta == tb || tm.allied(a, b));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean teamless(UUID id) {
+        try {
+            return Teams.tm().teamOf(id) == null;
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    /** The first hit: the attacker owns the fight, with their teammates and allies, and anyone near with no team. */
+    private static void claim(Live l, ServerPlayerEntity p) {
+        l.group.add(p.getUuid());
+        boolean loner = teamless(p.getUuid());
+        for (ServerPlayerEntity o : fighters((ServerWorld) l.mob.getEntityWorld(), l.mob.getEntityPos(), 48)) {
+            if (friends(p.getUuid(), o.getUuid()) || loner && teamless(o.getUuid())) {
+                l.group.add(o.getUuid());
+            }
+        }
+    }
+
+    /** May this player hit it? Those in the fight, and any teammate or ally of theirs (who then joins it). */
+    private static boolean mayFight(Live l, ServerPlayerEntity p) {
+        if (l.group.contains(p.getUuid())) {
+            return true;
+        }
+        boolean friend = l.group.stream().anyMatch(g -> friends(g, p.getUuid()));
+        if (friend) {
+            l.group.add(p.getUuid());
+        }
+        return friend;
+    }
+
     private static List<ServerPlayerEntity> fighters(ServerWorld w, Vec3d c, double r) {
         List<ServerPlayerEntity> out = new ArrayList<>();
         for (ServerPlayerEntity p : w.getPlayers()) {
@@ -1184,10 +1238,7 @@ public final class Bosses {
         }
         if (!near.isEmpty()) {
             l.lastPlayerNear = now;
-            if (l.group.isEmpty()) {
-                // Whoever is here when the fight starts owns it.
-                near.forEach(p -> l.group.add(p.getUuid()));
-            }
+            // (The fight belongs to whoever hits it first: see claim.)
         } else if (now - l.lastPlayerNear > 1200) {
             // Everyone left a minute ago: the fight is open to anyone again, and it recovers, very slowly (0.5% of this
             // health bar every 5 seconds; it stays on the phase it reached).
@@ -1628,7 +1679,7 @@ public final class Bosses {
             Msg.send(p, "boss.curse-already");
             return;
         }
-        if (l.phase > 1 || m.getHealth() < m.getMaxHealth() || !l.group.isEmpty() && !l.group.contains(p.getUuid())) {
+        if (l.phase > 1 || m.getHealth() < m.getMaxHealth() || !l.group.isEmpty() && !mayFight(l, p)) {
             Msg.send(p, "boss.curse-late");
             return;
         }
