@@ -52,7 +52,9 @@ jobs:
           pkill -f Geyser.jar || true; sleep 3
           sed -i 's/auth-type: .*/auth-type: floodgate/; s/address: auto/address: 127.0.0.1/' config.yml
           grep -q "validate-bedrock-login" config.yml && sed -i 's/validate-bedrock-login: .*/validate-bedrock-login: false/' config.yml || echo "validate-bedrock-login: false" >> config.yml
-          grep -nE "auth-type|address|port|validate" config.yml | head
+          # Newest Geyser defaults to NetherNet only; the bot speaks RakNet, so accept both (NetherNet on 19133).
+          sed -i -E 's/^(\s*)transport: .*/\1transport: both/; s/^(\s*)webrtc-port: .*/\1webrtc-port: 19133/' config.yml
+          grep -nE "auth-type|address|port|validate|transport" config.yml | head -20
           nohup java -Xmx1G -jar Geyser.jar --nogui > geyser.log 2>&1 < /dev/null &
           for i in $(seq 1 60); do grep -qi "Done (" geyser.log && break; sleep 2; done
           tail -n 15 geyser.log

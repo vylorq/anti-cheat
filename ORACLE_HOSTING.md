@@ -42,12 +42,14 @@ Everything below works **from your phone** (no PC needed).
 ## 3. Open the Minecraft ports (Oracle side)
 
 1. On your instance page, click the **Subnet** link (under "Primary VNIC").
-2. Click the **Default Security List** → **Add Ingress Rules**, and add **two** rules:
+2. Click the **Default Security List** → **Add Ingress Rules**, and add **four** rules:
 
 | Source CIDR | IP Protocol | Destination Port | What for |
 |---|---|---|---|
 | `0.0.0.0/0` | TCP | `25565` | Java players |
 | `0.0.0.0/0` | UDP | `19132` | Bedrock players |
+| `0.0.0.0/0` | TCP | `19132` | Bedrock players (new connection method, from October 2026) |
+| `0.0.0.0/0` | UDP | `19133` | Bedrock players (new connection method, from October 2026) |
 
 ## 4. Connect to the server (from your phone, using Oracle Cloud Shell)
 
