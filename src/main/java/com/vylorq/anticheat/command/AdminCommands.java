@@ -280,6 +280,7 @@ public final class AdminCommands {
                 .then(literal("remove").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::remove)))
                 .then(literal("reset").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::reset)))
                 .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::info)))
+                .then(literal("scrolls").then(literal("reset").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::resetScrolls))))
                 .then(literal("machine").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::placeMachine))
                         .then(literal("remove").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::removeMachine)))
                         .then(literal("undo").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::undoMachine)))));
