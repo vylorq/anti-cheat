@@ -3345,6 +3345,7 @@
   "oteams.levels.desc": "How many vault slots a team gets at each level (9 to 54, whole rows). Items never get lost when a vault shrinks: they come back when it grows.",
   "oteams.levels.level": "Level {0}",
   "oteams.levels.slots": "{0} slots",
+  "in.restore-again": "Restore again (owner)",
   "edge.scrolls-found": "§7Offering Scrolls found: §f{0}/10 §8{1} §7(each exists once; /owner edge scrolls reset lets them all be found again)",
   "edge.scrolls-reset": "§aEvery Offering Scroll can be found again (one copy each)."
 }
