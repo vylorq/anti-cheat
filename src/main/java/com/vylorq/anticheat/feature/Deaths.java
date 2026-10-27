@@ -129,7 +129,7 @@ public final class Deaths {
         Ac.markDirty("deaths");
     }
 
-    /** Restore a death's items once (section 16). */
+    /** Restore a death's items: staff once (section 16), the owner as many times as they like. */
     public static void restore(ServerPlayerEntity admin, long deathId) {
         Ac ac = Ac.get();
         DeathRecord r = ac.deaths.get(deathId);
@@ -153,7 +153,8 @@ public final class Deaths {
             Msg.send(admin, "deaths.no-room", r.playerName, needed - free);
             return;
         }
-        DeathLog.RestoreResult res = ac.deaths.markRestored(deathId, admin.getGameProfile().name());
+        DeathLog.RestoreResult res = ac.deaths.markRestored(deathId, admin.getGameProfile().name(),
+                com.vylorq.anticheat.perm.Perms.isOwner(admin.getUuid()));
         switch (res) {
             case ALREADY_RESTORED -> {
                 Msg.send(admin, "deaths.already");

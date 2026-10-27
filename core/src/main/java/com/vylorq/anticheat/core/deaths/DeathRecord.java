@@ -45,6 +45,8 @@ public final class DeathRecord {
     public boolean restored;
     public String restoredBy;
     public long restoredAt;
+    /** How many times it was given back (the owner can restore one again and again). */
+    public int restoreCount;
     /** Unique tag stamped on the dropped items so pickups can be traced back to this death. */
     public String dropTag;
 

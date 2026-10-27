@@ -128,6 +128,9 @@ class GameplayTest {
         log.add(r);
         assertEquals(DeathLog.RestoreResult.OK, log.markRestored(r.id, "admin"));
         assertEquals(DeathLog.RestoreResult.ALREADY_RESTORED, log.markRestored(r.id, "admin"));
+        assertEquals(DeathLog.RestoreResult.OK, log.markRestored(r.id, "owner", true), "the owner restores again");
+        assertEquals(DeathLog.RestoreResult.OK, log.markRestored(r.id, "owner", true), "and again");
+        assertEquals(3, r.restoreCount);
         DeathRecord r2 = new DeathRecord();
         r2.player = a;
         log.add(r2);
