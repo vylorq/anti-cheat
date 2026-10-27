@@ -69,7 +69,9 @@ jobs:
           const { execSync } = require('child_process')
           const sleep = (ms) => new Promise(r => setTimeout(r, ms))
           const mc = (c) => { try { console.log('RCON', c, '->', execSync('python3 ../scripts/mc ' + c).toString().trim()) } catch (e) { console.log('RCON failed', c, e.message) } }
-          const client = bedrock.createClient({ host: '127.0.0.1', port: 19132, username: 'BedrockBot', offline: true, skipPing: false })
+          // Geyser may announce a Bedrock version newer than bedrock-protocol knows: join as the newest one it does know.
+          const newest = require('minecraft-data').versions.bedrock[0].minecraftVersion
+          const client = bedrock.createClient({ host: '127.0.0.1', port: 19132, username: 'BedrockBot', offline: true, skipPing: true, version: newest })
           let figures = 0, removed = 0, containers = 0, items = 0, forms = 0, menus = 0
           const run = (cmd) => client.queue('command_request', { command: cmd, origin: { type: 'player', uuid: '00000000-0000-0000-0000-000000000000', request_id: '', player_entity_id: 0n }, internal: false, version: '1' })
           client.on('container_open', (p) => { containers++; console.log('BEDROCK container_open:', p.window_type || p.type || JSON.stringify(p).slice(0, 80)) })
