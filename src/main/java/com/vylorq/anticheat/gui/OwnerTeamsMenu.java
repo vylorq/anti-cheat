@@ -40,6 +40,31 @@ public final class OwnerTeamsMenu {
                             .line(Msg.tr("oteams.land", t.chunks.size()))
                             .left(Msg.tr("owner.open")).build(),
                     t -> (pl, c) -> team(pl, t.id), t -> t.name + " " + t.tag, List.of(), Msg.tr("oteams.none"), "");
+            menu.set(6, Btn.of(Items.CHEST).color(Theme.GOLD_LIGHT).name(Msg.tr("oteams.levels"))
+                    .desc(Msg.tr("oteams.levels.desc")).left(Msg.tr("owner.open")).build(), null, (pl, c) -> vaultLevels(pl));
+        });
+        m.open(p);
+    }
+
+    /** Owner: the vault slots a team gets at each level. Left +9, right -9 (whole rows, 9 to 54). */
+    public static void vaultLevels(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        Menu m = Menu.std(Category.VIGIL, Msg.trFor(p, "oteams.title"), Msg.trFor(p, "oteams.levels"));
+        m.renderer(menu -> {
+            menu.info(Btn.of(Items.CHEST).name(Category.VIGIL, Msg.tr("oteams.levels")).desc(Msg.tr("oteams.levels.desc")).build());
+            int[] slots = {19, 20, 21, 22, 23, 24, 25, 28, 29, 30};
+            for (int lv = 1; lv <= TeamManager.MAX_LEVEL && lv <= slots.length; lv++) {
+                int level = lv;
+                int size = Teams.levelSlots(level);
+                menu.set(slots[lv - 1], Btn.of(Items.CHEST).color(Theme.GOLD_LIGHT).name(Msg.tr("oteams.levels.level", level))
+                        .status(Theme.GOLD_LIGHT, Msg.tr("oteams.levels.slots", size))
+                        .left(Msg.tr("oteams.slots.more")).right(Msg.tr("oteams.slots.less")).build(), null, (pl, c) -> {
+                    Teams.setLevelSlots(level, size + (c.isRight() ? -9 : 9));
+                    menu.refresh();
+                });
+            }
         });
         m.open(p);
     }
@@ -103,6 +128,19 @@ public final class OwnerTeamsMenu {
             menu.set(11, Btn.of(Items.ENDER_CHEST).color(Theme.GOLD_LIGHT).name(Msg.tr("oteams.vault"))
                     .desc(Msg.tr("oteams.vault.desc")).status(Theme.GOLD_LIGHT, Msg.tr("oteams.vault.items", t.vault.size(), Teams.vaultSize(t)))
                     .left(Msg.tr("owner.open")).build(), null, (pl, c) -> vault(pl, t));
+            menu.set(12, Btn.of(Items.CHEST).color(Theme.GOLD_LIGHT).name(Msg.tr("oteams.slots"))
+                    .desc(Msg.tr("oteams.slots.desc"))
+                    .status(Theme.GOLD_LIGHT, t.vaultSlots > 0 ? Msg.tr("oteams.slots.own", Teams.vaultSize(t))
+                            : Msg.tr("oteams.slots.level", Teams.vaultSize(t)))
+                    .left(Msg.tr("oteams.slots.more")).right(Msg.tr("oteams.slots.less")).shift(Msg.tr("oteams.slots.reset")).build(), null,
+                    (pl, c) -> {
+                        if (c.isShift()) {
+                            Teams.setTeamSlots(t, 0);
+                        } else {
+                            Teams.setTeamSlots(t, Teams.vaultSize(t) + (c.isRight() ? -9 : 9));
+                        }
+                        menu.refresh();
+                    });
             int[] center = landCenter(t);
             menu.set(13, Btn.of(Items.RED_BED).color(Theme.GOLD_LIGHT).name(Msg.tr("oteams.base"))
                     .line(Msg.tr("oteams.home", home(t)))
@@ -140,9 +178,7 @@ public final class OwnerTeamsMenu {
     private static void vault(ServerPlayerEntity p, Team t) {
         var inv = Teams.vault(t);
         p.openHandledScreen(new net.minecraft.screen.SimpleNamedScreenHandlerFactory(
-                (syncId, playerInv, pl) -> inv.size() == 54
-                        ? net.minecraft.screen.GenericContainerScreenHandler.createGeneric9x6(syncId, playerInv, inv)
-                        : net.minecraft.screen.GenericContainerScreenHandler.createGeneric9x3(syncId, playerInv, inv),
+                (syncId, playerInv, pl) -> Teams.vaultScreen(syncId, playerInv, inv),
                 Text.literal(Teams.tagText(t) + " §8" + Msg.trFor(p, "team.vault"))));
     }
 
