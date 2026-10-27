@@ -794,13 +794,17 @@ public final class InspectMenu {
                 }
             });
             Btn restore = Btn.of(d.restored ? Items.GRAY_DYE : Items.LIME_DYE).name(Category.DEATHS, Msg.tr("in.restore")).desc(Msg.tr("in.restore-desc"));
+            boolean again = Perms.isOwner(admin.getUuid());
             if (d.restored) {
-                restore.status(Theme.SOFT, Theme.Sym.CHECK.sp() + Msg.tr("in.restored"));
+                restore.status(Theme.SOFT, Theme.Sym.CHECK.sp() + Msg.tr("in.restored") + (d.restoreCount > 1 ? " ×" + d.restoreCount : ""));
+                if (again) {
+                    restore.left(Msg.tr("in.restore-again"));
+                }
             } else {
                 restore.left(Msg.tr("cm.action.restore"));
             }
             menu.set(43, restore.build(), Perm.DEATH_RESTORE, (a, c) -> {
-                if (d.restored) {
+                if (d.restored && !Perms.isOwner(a.getUuid())) {
                     return;
                 }
                 Confirm.open(a, Category.DEATHS, Msg.tr("in.confirm-restore", d.playerName), Msg.tr("in.restore-desc"),

@@ -3344,5 +3344,6 @@
   "oteams.levels": "Vault size per level",
   "oteams.levels.desc": "How many vault slots a team gets at each level (9 to 54, whole rows). Items never get lost when a vault shrinks: they come back when it grows.",
   "oteams.levels.level": "Level {0}",
-  "oteams.levels.slots": "{0} slots"
+  "oteams.levels.slots": "{0} slots",
+  "in.restore-again": "Restore again (owner)"
 }

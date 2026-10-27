@@ -83,18 +83,24 @@ public final class DeathLog {
      * the items back up (that would duplicate them).
      */
     public synchronized RestoreResult markRestored(long id, String by) {
+        return markRestored(id, by, false);
+    }
+
+    /** @param again the owner: restore it again, as many times as they like (no once-only or picked-up check). */
+    public synchronized RestoreResult markRestored(long id, String by, boolean again) {
         DeathRecord r = data.deaths.get(id);
         if (r == null) {
             return RestoreResult.NOT_FOUND;
         }
-        if (r.restored) {
+        if (r.restored && !again) {
             return RestoreResult.ALREADY_RESTORED;
         }
         for (DeathRecord.Pickup p : r.pickups) {
-            if (p.by.equals(r.player)) {
+            if (p.by.equals(r.player) && !again) {
                 return RestoreResult.ITEMS_RECOVERED;
             }
         }
+        r.restoreCount++;
         r.restored = true;
         r.restoredBy = by;
         r.restoredAt = clock.nowMillis();
