@@ -98,6 +98,8 @@ public final class EdgeKeep {
         public Map<String, Integer> kills = new java.util.HashMap<>();
         /** The Rift Gates: machines that take whoever feeds them an ender pearl to the citadel ("world|x|y|z"). */
         public List<String> machines = new ArrayList<>();
+        /** Offering Scrolls already found (1 to 10): each exists only once, so no chest gives it again. */
+        public Set<Integer> scrollsFound = new HashSet<>();
     }
 
     /** Raise when the citadel's layout changes, so a placed one is rebuilt with it. */
@@ -127,6 +129,9 @@ public final class EdgeKeep {
             }
             if (state.machines == null) {
                 state.machines = new ArrayList<>();
+            }
+            if (state.scrollsFound == null) {
+                state.scrollsFound = new HashSet<>();
             }
         }
         return state;
@@ -506,6 +511,7 @@ public final class EdgeKeep {
         Msg.send(p, "edge.info", s.world.replace("minecraft:", ""), s.x, s.y, s.z,
                 s.claimed ? Msg.trFor(p, "edge.info.claimed", s.claimedBy) : s.filled ? Msg.trFor(p, "edge.info.waiting")
                         : Msg.trFor(p, "edge.info.sealed"));
+        Msg.send(p, "edge.scrolls-found", s.scrollsFound.size(), new java.util.TreeSet<>(s.scrollsFound).toString());
     }
 
     // ---------------------------------------------------------------- the run
@@ -1562,7 +1568,45 @@ public final class EdgeKeep {
         return Perms.isOwner(p.getUuid());
     }
 
+    /** Which Offering Scroll a stack is (1 to 10), or 0. */
+    static int scrollOf(ItemStack st) {
+        var c = st.get(net.minecraft.component.DataComponentTypes.CUSTOM_DATA);
+        return c == null ? 0 : c.copyNbt().getInt("vigil_offering_scroll").orElse(0);
+    }
+
+    /** Owner: every scroll can be found again (one copy each). */
+    public static void resetScrolls(ServerPlayerEntity p) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        state().scrollsFound.clear();
+        save();
+        Msg.send(p, "edge.scrolls-reset");
+    }
+
     public static void register() {
+        // Each Offering Scroll exists once: the first chest to give it marks it found, later chests drop it.
+        net.fabricmc.fabric.api.loot.v3.LootTableEvents.MODIFY_DROPS.register((table, context, drops) -> {
+            if (!Ac.running()) {
+                return;
+            }
+            boolean changed = false;
+            var it = drops.iterator();
+            while (it.hasNext()) {
+                int n = scrollOf(it.next());
+                if (n == 0) {
+                    continue;
+                }
+                if (!state().scrollsFound.add(n)) {
+                    it.remove();
+                } else {
+                    changed = true;
+                }
+            }
+            if (changed) {
+                save();
+            }
+        });
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((e, source) -> {
             if (Ac.running() && state().placed) {
                 mobDied(e);
