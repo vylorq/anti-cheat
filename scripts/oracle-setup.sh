@@ -169,6 +169,9 @@ set_prop enable-rcon true
 set_prop rcon.port 25575
 set_prop rcon.password "$RCON_PASS"
 set_prop broadcast-rcon-to-ops false
+# A huge explosion (an orbital strike) can make one tick take long: give it 5 minutes before the game's watchdog
+# shuts the server down (the default is 1 minute).
+set_prop max-tick-time 300000
 chmod +x "$SRC_DIR/scripts/mc"
 sudo ln -sf "$SRC_DIR/scripts/mc" /usr/local/bin/mc
 
