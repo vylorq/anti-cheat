@@ -3347,5 +3347,11 @@
   "oteams.levels.slots": "{0} slots",
   "in.restore-again": "Restore again (owner)",
   "edge.scrolls-found": "§7Offering Scrolls found: §f{0}/10 §8{1} §7(each exists once; /owner edge scrolls reset lets them all be found again)",
-  "edge.scrolls-reset": "§aEvery Offering Scroll can be found again (one copy each)."
+  "edge.scrolls-reset": "§aEvery Offering Scroll can be found again (one copy each).",
+  "wipe.warn": "§4§lServer wipe§c: everything starts over except the lobby, the jail, the waiting room, the arenas, your builds and every base ({0} chunks kept, {1} of them bases). Everyone loses their inventory, ender chest, XP and advancements; bases lose every chest and item; team vaults are emptied; the citadel and the bosses start over. Money, teams and ranks stay. The world is backed up first. §fType §e/owner wipe confirm §fwithin a minute to do it (the server restarts).",
+  "wipe.ask-first": "§cType /owner wipe first, then /owner wipe confirm within a minute.",
+  "wipe.failed": "§cThe wipe couldn't start: {0}",
+  "wipe.kick": "The server is being wiped for a fresh start. Join again in a few minutes!",
+  "wipe.title": "A FRESH START",
+  "wipe.subtitle": "The world was wiped. Only the lobby and the bases remain."
 }

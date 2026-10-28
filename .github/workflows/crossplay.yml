@@ -114,5 +114,8 @@ jobs:
           rc=0; node bot.js || rc=$?
           echo "--- server log"; grep -E "BedrockBot|joined the game|lost connection|floodgate|Floodgate|Watcher|Exception" ../srv/run.log | tail -n 40
           echo "--- geyser log"; tail -n 25 ../geyser/geyser.log
+          # If the Java server crashed, show why.
+          for f in ../srv/crash-reports/*.txt; do [ -f "$f" ] && { echo "--- $f"; head -n 80 "$f"; }; done
+          grep -nE "ERROR|Exception|at com\.vylorq" ../srv/run.log | tail -n 40 || true
           grep -q "joined the game" ../srv/run.log
           exit $rc
