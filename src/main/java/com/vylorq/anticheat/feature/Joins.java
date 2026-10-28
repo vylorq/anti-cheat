@@ -115,6 +115,7 @@ public final class Joins {
             }
             Ac.markDirty("misc");
         }
+        WorldWipe.onJoin(p);
         TempAdmins.onJoin(p);
         BuilderMode.onJoin(p);
         Teams.onJoin(p);

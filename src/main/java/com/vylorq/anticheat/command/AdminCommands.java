@@ -275,6 +275,8 @@ public final class AdminCommands {
                 .then(literal("reset").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::reset)))
                 .then(literal("info").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.TempestKeep::info))));
         owner.then(literal("xray").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.OwnerXray::toggle)));
+        owner.then(literal("wipe").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.WorldWipe::ask))
+                .then(literal("confirm").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.WorldWipe::confirm))));
         owner.then(literal("edge")
                 .then(literal("place").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::place)))
                 .then(literal("remove").executes(ctx -> owner(ctx, com.vylorq.anticheat.feature.EdgeKeep::remove)))
