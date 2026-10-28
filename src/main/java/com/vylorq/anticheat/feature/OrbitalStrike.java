@@ -467,6 +467,53 @@ public final class OrbitalStrike {
         }
     }
 
+    /** At most this many of the cannon's TNT in the air at once: the next wave waits for room. */
+    static final int LIVE_CAP = 160;
+    /** At most this many explode-on-landing TNT lit per tick (each a few ticks apart), so no tick has hundreds of blasts. */
+    static final int LIGHT_PER_TICK = 24;
+    public static final String TNT_TAG = "vigil_orbital";
+
+    private static int alive() {
+        int n = 0;
+        for (Strike st : STRIKES) {
+            n += st.live.size();
+        }
+        return n;
+    }
+
+    /**
+     * After a crash or restart: the cannon's TNT left in the world is defused and removed (no strike is falling any
+     * more), and the chunks it kept loaded are let go. Without this, a strike that crashed the server went off again
+     * every time it started, and nobody could join.
+     */
+    public static void register() {
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, w) -> {
+            if (!(e instanceof TntEntity t)) {
+                return;
+            }
+            boolean leftover = t.getCommandTags().contains(TNT_TAG) && STRIKES.stream().noneMatch(st -> st.live.contains(t));
+            // Older strikes' TNT wasn't tagged: any primed TNT loaded in the first minute after a start goes too.
+            boolean early = !t.getCommandTags().contains(TNT_TAG) && w.getServer() != null && w.getServer().getTicks() < 1200;
+            if (leftover || early) {
+                t.setFuse(72000);
+                t.setVelocity(Vec3d.ZERO);
+                OwnerPowers.later(1, t::discard);
+            }
+        });
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            int freed = 0;
+            for (ServerWorld w : server.getWorlds()) {
+                for (long key : new java.util.ArrayList<>(w.getForcedChunks())) {
+                    w.setChunkForced(net.minecraft.util.math.ChunkPos.getPackedX(key), net.minecraft.util.math.ChunkPos.getPackedZ(key), false);
+                    freed++;
+                }
+            }
+            if (freed > 0) {
+                Ac.LOG.info("Let go of {} chunk(s) an orbital strike kept loaded before the restart", freed);
+            }
+        });
+    }
+
     public static void tick(long ticks) {
         now = ticks;
         if (STRIKES.isEmpty()) {
@@ -475,9 +522,10 @@ public final class OrbitalStrike {
             }
             return;
         }
+        int lit = 0;
         for (Strike st : STRIKES) {
             Settings s = st.s;
-            if (st.next < st.offsets.size() && ticks >= st.at) {
+            if (st.next < st.offsets.size() && ticks >= st.at && alive() < LIVE_CAP) {
                 if (st.follow != null) {
                     ServerPlayerEntity t = Ac.server().getPlayerManager().getPlayer(st.follow);
                     if (t != null && t.getEntityWorld() == st.world) {
@@ -492,11 +540,12 @@ public final class OrbitalStrike {
                     double z = st.center.z + o[2];
                     double y = st.center.y + s.height + o[1];
                     TntEntity tnt = new TntEntity(st.world, x, y, z, owner);
+                    tnt.addCommandTag(TNT_TAG);
                     tnt.setVelocity(0, -0.6, 0);
                     tnt.setFuse(s.fuse > 0 ? s.fuse : 600);
                     setPower(tnt, s.power);
+                    st.live.add(tnt); // before it spawns, so it isn't taken for a leftover
                     st.world.spawnEntity(tnt);
-                    st.live.add(tnt);
                     if ("column".equals(s.pattern)) {
                         st.aim.put(tnt, new double[]{x, z});
                     }
@@ -517,9 +566,13 @@ public final class OrbitalStrike {
             // Explode-on-landing: light the fuse the moment each one touches down.
             if (s.fuse == 0) {
                 for (TntEntity t : st.live) {
+                    if (lit >= LIGHT_PER_TICK) {
+                        break; // the rest go off over the next ticks: hundreds in one tick froze the server
+                    }
                     if (!t.isRemoved() && t.age > 2 && t.getFuse() > 2 && (t.isOnGround() || t.isTouchingWater()
                             || Math.abs(t.getVelocity().y) < 0.01)) {
-                        t.setFuse(1);
+                        t.setFuse(1 + lit / 8);
+                        lit++;
                     }
                 }
             }
