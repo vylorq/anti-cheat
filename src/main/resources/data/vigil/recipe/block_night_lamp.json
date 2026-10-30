@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    " G ",
+    "GLG",
+    " D "
+  ],
+  "key": {
+    "G": "minecraft:glowstone_dust",
+    "L": "minecraft:redstone_lamp",
+    "D": "minecraft:daylight_detector"
+  },
+  "result": {
+    "id": "minecraft:redstone_lamp",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "block:night_lamp"
+      },
+      "minecraft:item_name": {
+        "text": "Night Lamp",
+        "color": "yellow"
+      }
+    }
+  }
+}

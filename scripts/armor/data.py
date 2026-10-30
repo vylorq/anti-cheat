@@ -53,7 +53,7 @@ def main():
     # old generated files out first
     rdir = os.path.join(DATA, "recipe")
     for f in os.listdir(rdir):
-        if f.startswith(("gem_", "armor_", "ruby_", "bloodstone_", "sapphire_", "topaz_", "gemset_")):
+        if f.startswith(("gem_", "armor_", "ruby_", "bloodstone_", "sapphire_", "topaz_", "gemset_", "block_")):
             os.remove(os.path.join(rdir, f))
     n = 0
     # Raw chunk -> gem (furnace and blast furnace)
@@ -117,6 +117,19 @@ def main():
                                               "key": {"M": "minecraft:phantom_membrane", "A": f"minecraft:diamond_{p}"},
                                               "result": made(f"minecraft:chainmail_{p}", f"armor:silk:{i}", f"Phantom Silk {p.capitalize()}",
                                                              "#cfc8ee", f"armor_silk_{p}")})
+        n += 1
+    # Special blocks (SpecialBlocks.java): the Elevator, the Night Lamp and the Trophy Pedestal.
+    blocks = {"elevator": (["WWW", "WEW", "WWW"], {"W": "#minecraft:wool", "E": "minecraft:ender_pearl"}, "minecraft:chiseled_tuff_bricks",
+                           "Elevator", "aqua", 2),
+              "night_lamp": ([" G ", "GLG", " D "], {"G": "minecraft:glowstone_dust", "L": "minecraft:redstone_lamp",
+                                                     "D": "minecraft:daylight_detector"}, "minecraft:redstone_lamp", "Night Lamp", "yellow", 1),
+              "pedestal": (["QGQ", " Q ", "QQQ"], {"Q": "minecraft:quartz_block", "G": "minecraft:gold_ingot"},
+                           "minecraft:chiseled_quartz_block", "Trophy Pedestal", "gold", 1)}
+    for b, (pattern, key, item, title, color, count) in blocks.items():
+        write(f"recipe/block_{b}.json", {"type": "minecraft:crafting_shaped", "category": "building", "pattern": pattern, "key": key,
+                                         "result": {"id": item, "count": count, "components": {
+                                             "minecraft:custom_data": {"vigil_make": f"block:{b}"},
+                                             "minecraft:item_name": {"text": title, "color": color}}}})
         n += 1
     # Bloodstone: the Lantern of Dawn, and Boiled Armor
     write("recipe/bloodstone_lantern.json", {"type": "minecraft:crafting_shapeless", "category": "misc",

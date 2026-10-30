@@ -3355,5 +3355,6 @@
   "wipe.title": "A FRESH START",
   "wipe.subtitle": "The world was wiped. Only the lobby and the bases remain.",
   "boss.health-set": "§aBosses now have {0}% of their health (new fights).",
-  "boss.damage-set": "§aBosses now hit for {0}% of their damage."
+  "boss.damage-set": "§aBosses now hit for {0}% of their damage.",
+  "blocks.banner-given": "§aHere's your team banner: place it and your team's name shows above it."
 }

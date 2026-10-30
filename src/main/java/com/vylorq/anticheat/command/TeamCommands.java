@@ -319,6 +319,12 @@ public final class TeamCommands {
                     Teams.openVault(p);
                     return 1;
                 }))
+                .then(literal("banner").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null || mine(ctx, p, null) == null) return 0;
+                    com.vylorq.anticheat.feature.SpecialBlocks.teamBanner(p);
+                    return 1;
+                }))
                 .then(literal("ally").then(Args.word("team").executes(ctx -> ally(ctx, true))))
                 .then(literal("unally").then(Args.word("team").executes(ctx -> ally(ctx, false))))
                 .then(literal("allies").executes(TeamCommands::allies))

@@ -280,6 +280,9 @@ public final class Gems {
                 var set = ArmorSets.SETS.get(parts[1]);
                 return set == null ? null : ArmorSets.piece(set, Integer.parseInt(parts[2]));
             }
+            case "block" -> {
+                return SpecialBlocks.item(parts[1]);
+            }
             case "dawn_lantern" -> {
                 return BoiledOmens.lantern();
             }
