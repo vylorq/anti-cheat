@@ -43,6 +43,12 @@ public final class StructureMobs {
             Map.entry("mushroom_cave", Items.IRON_AXE),
             Map.entry("sunken_ship", Items.IRON_SWORD),
             Map.entry("soul_sanctum", Items.DIAMOND_SWORD),
+            Map.entry("volcano_forge", Items.DIAMOND_AXE),
+            Map.entry("frozen_ship", Items.IRON_SWORD),
+            Map.entry("sky_temple", Items.GOLDEN_SWORD),
+            Map.entry("mine_town", Items.IRON_PICKAXE),
+            Map.entry("pyramid_maze", Items.GOLDEN_SWORD),
+            Map.entry("witch_tower", Items.IRON_SWORD),
             Map.entry("crimson_citadel", Items.GOLDEN_AXE),
             Map.entry("void_spire", Items.DIAMOND_SWORD),
             Map.entry("ender_crypt", Items.DIAMOND_AXE));

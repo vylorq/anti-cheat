@@ -278,6 +278,24 @@ CHESTS = {
     "watchers_hollow": [secret([("voidblade", 1), ("tidecaller", 1)]), secret([("phoenix_feather", 1)]),
                         filler([("ender_pearl", 8, 1, 3), ("echo_shard", 4, 1, 2), ("sculk", 8, 2, 6), ("emerald", 6, 1, 4),
                                 ("iron_ingot", 8, 2, 6)])],
+    "volcano_forge": [secret([("phoenix_feather", 2), ("stormbreaker", 1)]),
+                      filler([("magma_cream", 8, 2, 6), ("blaze_rod", 6, 1, 4), ("gold_ingot", 8, 2, 6), ("obsidian", 6, 2, 6),
+                              ("iron_ingot", 8, 2, 6), ("netherite_scrap", 1, 1, 1), ("diamond", 2, 1, 2)])],
+    "frozen_ship": [secret([("tidecaller", 2), ("seeker_compass", 1)]),
+                    filler([("gold_nugget", 8, 4, 12), ("gold_ingot", 8, 1, 4), ("emerald", 6, 1, 4), ("blue_ice", 6, 2, 6),
+                            ("cod", 6, 2, 6), ("heart_of_the_sea", 1, 1, 1), ("diamond", 2, 1, 2)])],
+    "sky_temple": [secret([("phoenix_feather", 2), ("shadow_cloak", 1)]),
+                   filler([("feather", 8, 2, 6), ("gold_ingot", 8, 2, 5), ("golden_apple", 3, 1, 2), ("emerald", 6, 1, 4),
+                           ("phantom_membrane", 5, 1, 3), ("diamond", 3, 1, 2)])],
+    "mine_town": [secret([("voidblade", 1), ("seeker_compass", 2)]),
+                  filler([("coal", 10, 4, 12), ("iron_ingot", 10, 2, 8), ("raw_iron", 8, 2, 8), ("gold_ingot", 6, 1, 4),
+                          ("rail", 6, 4, 12), ("redstone", 6, 4, 12), ("diamond", 3, 1, 3)])],
+    "pyramid_maze": [secret([("shadow_cloak", 2), ("seeker_compass", 1)]),
+                     filler([("gold_ingot", 10, 2, 6), ("gold_block", 2, 1, 1), ("bone", 8, 2, 6), ("rotten_flesh", 6, 2, 6),
+                             ("emerald", 6, 1, 4), ("lapis_lazuli", 6, 2, 8), ("diamond", 3, 1, 2)])],
+    "witch_tower": [secret([("shadow_cloak", 2), ("phoenix_feather", 1)]),
+                    filler([("glass_bottle", 8, 2, 6), ("nether_wart", 6, 2, 6), ("glowstone_dust", 6, 2, 6), ("redstone", 6, 2, 8),
+                            ("spider_eye", 6, 1, 4), ("emerald", 6, 1, 4), ("diamond", 2, 1, 2)])],
 }
 
 
@@ -1263,6 +1281,168 @@ def soul_sanctum():
     return themed_arena("soul_sanctum", _soul_deco)
 
 
+def _volcano_deco(t, th, S, c, Hh):
+    """The forge inside a volcano: a lava pool round the boss's anvil, magma veins in the floor, lava falls down the
+    walls behind iron bars, anvils and blast furnaces along the sides."""
+    import math
+    for x in range(1, S - 1):
+        for z in range(1, S - 1):
+            d = math.hypot(x - c, z - c)
+            if 5.5 < d < 7 and (x + z) % 3:
+                t.set(x, 0, z, "lava", level=0)
+            elif int(d) % 5 == 0 and d > 8:
+                t.set(x, 0, z, "magma_block")
+    t.set(c, 1, c, "anvil", facing="north")
+    for (x, z) in [(c - 1, c - 1), (c + 1, c + 1), (c - 1, c + 1), (c + 1, c - 1)]:
+        t.set(x, 1, z, "gilded_blackstone")
+    for i in range(4, S - 4, 6):
+        for (x, z, f) in [(i, 1, "south"), (1, i, "east"), (S - 2, i, "west")]:
+            for y in range(Hh - 3, Hh):
+                t.set(x, y, z, "lava", level=0)
+            t.set(x, Hh - 4, z, "magma_block")
+            t.set(x, 1, z, "blast_furnace", facing=f, lit=True)
+
+
+def volcano_forge():
+    """A forge in the heart of a badlands volcano: blackstone and gold, lava pools and lava falls, and the Magma Lord
+    at his anvil."""
+    return themed_arena("volcano_forge", _volcano_deco, height=14)
+
+
+def _frozen_ship_deco(t, th, S, c, Hh):
+    """A pirate ship's deck frozen into an iceberg: a mast and frozen sails, cannons of black glazed terracotta,
+    barrels, ropes of chains and blue ice crusting everything."""
+    import random as _r
+    r = _r.Random(16)
+    for y in range(1, Hh):
+        t.set(c, y, c - 5, "stripped_spruce_log")
+    for x in range(c - 4, c + 5):
+        for y in range(4, Hh - 2):
+            if (x + y) % 5:
+                t.set(x, y, c - 4, "white_wool")
+    for (x, z) in [(3, c - 3), (3, c + 3), (S - 4, c - 3), (S - 4, c + 3)]:
+        t.set(x, 1, z, "black_glazed_terracotta")
+        t.set(x, 2, z, "polished_blackstone_button", face="floor", facing="north", powered=False)
+    for _ in range(18):
+        x, z = r.randint(2, S - 3), r.randint(2, S - 3)
+        if abs(x - c) > 3 or abs(z - c) > 3:
+            t.set(x, 1, z, r.choice(["barrel", "blue_ice", "packed_ice", "snow_block"]))
+    for x in range(3, S - 3, 5):
+        for k in range(1, 3):
+            t.set(x, Hh - k, 3, "chain", axis="y", waterlogged=False)
+
+
+def frozen_ship():
+    """A pirate ship stuck in an iceberg in the frozen ocean, its decks iced over, the Frost Captain still aboard."""
+    return themed_arena("frozen_ship", _frozen_ship_deco)
+
+
+def _sky_temple_deco(t, th, S, c, Hh):
+    """An open temple in the clouds: a ring of white columns with gold capitals, gold and quartz mosaic, flowering
+    azaleas and a beacon-like crown of light over the altar."""
+    import math
+    for k in range(12):
+        a = k * math.pi / 6
+        x, z = int(round(c + math.cos(a) * (S / 2 - 3))), int(round(c + math.sin(a) * (S / 2 - 3)))
+        for y in range(1, Hh - 1):
+            t.set(x, y, z, "quartz_pillar", axis="y")
+        t.set(x, Hh - 1, z, "gold_block")
+    for k in range(8):
+        a = k * math.pi / 4
+        for d in range(2, 7):
+            x, z = int(round(c + math.cos(a) * d)), int(round(c + math.sin(a) * d))
+            t.set(x, 0, z, "gold_block" if d % 2 else "smooth_quartz")
+    for (x, z) in [(3, 3), (S - 4, 3), (3, S - 6), (S - 4, S - 6)]:
+        t.set(x, 1, z, "flowering_azalea")
+        t.set(x, 0, z, "moss_block")
+    t.set(c, 0, c, "pearlescent_froglight")
+
+
+def sky_temple():
+    """A white-and-gold temple floating high in the sky, columns open to the wind, guarded by the Sky Templar."""
+    return themed_arena("sky_temple", _sky_temple_deco)
+
+
+def _mine_deco(t, th, S, c, Hh):
+    """An abandoned mining town's square: rails crossing the floor, mine carts, a wooden headframe over a shaft, ore
+    in the walls, cobwebs and lanterns on posts."""
+    import random as _r
+    r = _r.Random(18)
+    for x in range(1, S - 1):
+        t.set(x, 1, c, "rail", shape="east_west", waterlogged=False)
+    for z in range(1, S - 1):
+        if z != c:
+            t.set(c, 1, z, "rail", shape="north_south", waterlogged=False)
+    for (x, z) in [(c - 4, c - 4), (c + 4, c - 4), (c - 4, c + 4), (c + 4, c + 4)]:
+        for y in range(1, 6):
+            t.set(x, y, z, "spruce_fence", north=False, south=False, east=False, west=False, waterlogged=False)
+        t.set(x, 6, z, "lantern", hanging=False, waterlogged=False)
+    for _ in range(40):
+        x, z, y = r.randint(0, S - 1), r.choice([0, S - 1]), r.randint(1, Hh - 2)
+        if r.random() < 0.5:
+            x, z = z, x
+        t.set(x, y, z, r.choice(["coal_ore", "iron_ore", "copper_ore", "gold_ore", "redstone_ore"]))
+    for _ in range(12):
+        t.set(r.randint(2, S - 3), Hh - 1, r.randint(2, S - 3), "cobweb")
+
+
+def mine_town():
+    """An abandoned mining town deep underground: tuff and timber, rails and ore, and the Foreman who never left."""
+    return themed_arena("mine_town", _mine_deco)
+
+
+def _pyramid_deco(t, th, S, c, Hh):
+    """The pyramid's burial chamber: a gold sarcophagus, blue terracotta mosaic, orange-and-gold banded walls, urns of
+    decorated pots and sand drifts in the corners."""
+    for x in range(1, S - 1):
+        for y in (3, 6, 9):
+            if y < Hh:
+                t.set(x, y, 1, "orange_terracotta")
+    for z in range(1, S - 1):
+        for y in (3, 6, 9):
+            if y < Hh:
+                t.set(1, y, z, "orange_terracotta")
+                t.set(S - 2, y, z, "orange_terracotta")
+    for x in range(c - 3, c + 4):
+        for z in range(c - 3, c + 4):
+            t.set(x, 0, z, "blue_terracotta" if (x + z) % 2 else "gold_block")
+    for x in range(c - 1, c + 2):
+        t.set(x, 1, c, "gold_block")
+    for (x, z) in [(3, 3), (S - 4, 3), (3, S - 6), (S - 4, S - 6)]:
+        t.set(x, 1, z, "decorated_pot", facing="north", cracked=False, waterlogged=False)
+        t.set(x + (1 if x < c else -1), 1, z, "sand")
+
+
+def pyramid_maze():
+    """A great pyramid in the desert, its halls a maze of traps, and the Mummy King asleep in the burial chamber."""
+    return themed_arena("pyramid_maze", _pyramid_deco, height=14)
+
+
+def _witch_deco(t, th, S, c, Hh):
+    """The witch's tower room: cauldrons bubbling on campfires, brewing stands on shelves of bookcases, hanging
+    mangrove roots and lanterns, a ring of mushrooms and a pool of murky water."""
+    import random as _r
+    r = _r.Random(20)
+    for (x, z) in [(c - 3, c), (c + 3, c), (c, c - 3)]:
+        t.set(x, 0, z, "campfire", lit=True, facing="north", signal_fire=False, waterlogged=False)
+        t.set(x, 1, z, "water_cauldron", level=3)
+    for x in range(3, S - 3, 2):
+        t.set(x, 1, 2, "bookshelf")
+        t.set(x, 2, 2, "brewing_stand", has_bottle_0=False, has_bottle_1=False, has_bottle_2=False)
+    for _ in range(20):
+        x, z = r.randint(2, S - 3), r.randint(2, S - 3)
+        t.set(x, Hh - 1, z, "hanging_roots", waterlogged=False)
+    for _ in range(10):
+        x, z = r.randint(2, S - 3), r.randint(2, S - 3)
+        if abs(x - c) > 4 or abs(z - c) > 4:
+            t.set(x, 1, z, r.choice(["red_mushroom", "brown_mushroom"]))
+
+
+def witch_tower():
+    """A crooked mangrove tower in the swamp, full of cauldrons and potions, where the Swamp Witch brews."""
+    return themed_arena("witch_tower", _witch_deco)
+
+
 def _crimson_deco(t, th, S, c, Hh):
     import random as _r
     r = _r.Random(12)
@@ -1437,6 +1617,24 @@ THEMES = {
     "watchers_hollow": dict(wall="dark_oak_planks", accent="dark_oak_log", floor=("deepslate_tiles", "mud_bricks"),
                             light="ochre_froglight", ceil="dark_oak_planks", trim="dark_oak", decor=["bookshelf", "dark_oak_log"],
                             mobs=[("wither_skeleton", 2), ("skeleton", 2), ("zombie", 1)], lantern="soul_lantern"),
+    "volcano_forge": dict(wall="polished_blackstone_bricks", accent="gilded_blackstone", floor=("polished_blackstone", "blackstone"),
+                          light="shroomlight", ceil="blackstone", trim="polished_blackstone_brick", decor=["magma_block", "gilded_blackstone"],
+                          mobs=[("magma_cube", 2), ("blaze", 2), ("wither_skeleton", 1)], lantern="lantern"),
+    "frozen_ship": dict(wall="packed_ice", accent="stripped_spruce_log", floor=("spruce_planks", "blue_ice"),
+                        light="sea_lantern", ceil="spruce_planks", trim="spruce", decor=["barrel", "blue_ice"],
+                        mobs=[("stray", 3), ("drowned", 1)], lantern="lantern"),
+    "sky_temple": dict(wall="calcite", accent="quartz_pillar", floor=("smooth_quartz", "calcite"),
+                       light="pearlescent_froglight", ceil=None, trim="quartz", decor=["gold_block", "flowering_azalea"],
+                       mobs=[("stray", 2), ("skeleton", 2), ("vindicator", 1)], lantern="lantern", open=True),
+    "mine_town": dict(wall="tuff_bricks", accent="stripped_oak_log", floor=("oak_planks", "cobblestone"),
+                      light="glowstone", ceil="spruce_planks", trim="tuff_brick", decor=["coal_ore", "iron_ore"],
+                      mobs=[("zombie", 3), ("skeleton", 2), ("cave_spider", 1)], lantern="lantern"),
+    "pyramid_maze": dict(wall="sandstone", accent="chiseled_red_sandstone", floor=("smooth_sandstone", "cut_sandstone"),
+                         light="glowstone", ceil="smooth_sandstone", trim="smooth_sandstone", decor=["gold_block", "orange_terracotta"],
+                         mobs=[("husk", 3), ("skeleton", 1), ("spider", 1)], lantern="lantern"),
+    "witch_tower": dict(wall="mangrove_planks", accent="mangrove_log", floor=("mud_bricks", "moss_block"),
+                        light="ochre_froglight", ceil="mangrove_planks", trim="mangrove", decor=["cauldron", "bookshelf"],
+                        mobs=[("witch", 2), ("zombie", 2), ("spider", 1)], lantern="soul_lantern"),
 }
 
 LIGHT_ANY = {"block_light_limit": {"min_inclusive": 0, "max_inclusive": 15},
@@ -1529,6 +1727,11 @@ ROOMS = {
     "pillar_hall": (15, 21, "nsew", 2),
     "map_room": (13, 11, "nw", 2),
     "aquarium": (15, 15, "ns", 2),
+    # More puzzles and challenges (vanilla redstone, so they work for everyone)
+    "archery_puzzle": (13, 13, "ns", 2),
+    "parkour_tower": (11, 11, "ns", 2),
+    "trap_hall": (9, 19, "ns", 2),
+    "spider_nest": (15, 15, "nsew", 2),
 }
 # Every room is built 4 blocks wider and deeper than listed, and 11 tall: room for the grander furnishing.
 ROOMS = {k: (w + 4, d + 4, doors, weight) for k, (w, d, doors, weight) in ROOMS.items()}
@@ -1556,6 +1759,7 @@ TRAPS = {
     "library": lambda w, d: [(w // 2, 2), (w // 2, d - 3)],
     "throne_room": lambda w, d: [(w // 2, 8), (w // 2, 12)],
     "mess_hall": lambda w, d: [(w // 2, d // 2)],
+    "trap_hall": lambda w, d: [(w // 2 + dx, z) for z in range(4, d - 4, 3) for dx in (-1, 1) if (z // 3 + dx) % 2 == 0],
 }
 
 
@@ -2278,13 +2482,79 @@ def aquarium(t, th, structure, w, d):
     t.chest(cx, 1, d - 3, f"{structure}_room", facing="north")
 
 
+def archery_puzzle(t, th, structure, w, d):
+    """Hit the mark: the chest sits behind an iron door, and the only way to open it is an arrow in the target block
+    over the door. A sign says so; a dispenser on the far wall hands out a few arrows."""
+    x0, x1, z0, z1 = w - 6, w - 2, d - 6, d - 2
+    for x in range(x0, x1 + 1):
+        for z in range(z0, z1 + 1):
+            for y in range(1, 5):
+                t.set(x, y, z, th["wall"] if x in (x0, x1) or z in (z0, z1) else "air")
+    dx = x0 + 2
+    t.set(dx, 1, z0, "iron_door", facing="south", half="lower", hinge="left", open=False, powered=False)
+    t.set(dx, 2, z0, "iron_door", facing="south", half="upper", hinge="left", open=False, powered=False)
+    t.set(dx, 3, z0, "target", power=0)
+    t.chest(dx, 1, z0 + 2, f"{structure}_room", facing="north")
+    t.sign(dx - 1, 3, z0 - 1, "north", [{"text": "Hit the mark", "color": "gold", "bold": True},
+                                         {"text": "and the door", "color": "gray"}, {"text": "will open.", "color": "gray"}])
+    t.set(2, 2, 3, "dropper", facing="east", triggered=False)
+    t.nbt[(2, 2, 3)] = {"id": S("minecraft:dropper"),
+                        "Items": L(10, [C({"Slot": B(0), "id": S("minecraft:arrow"), "count": I(8)})])}
+    t.set(2, 1, 3, "stone_button", face="floor", facing="north", powered=False)
+    mob_spawner(t, 2, 1, d - 3, th["mobs"], structure)
+
+
+def parkour_tower(t, th, structure, w, d):
+    """A spiral of stepping stones up the walls to a high ledge where the chest waits; fall, and climb again."""
+    stone = th["accent"] if th["accent"] not in ("dark_oak_log", "quartz_pillar", "stripped_spruce_log", "stripped_oak_log",
+                                                "mangrove_log") else th["floor"][1]
+    path = [(2, 3), (2, 5), (3, 7), (5, 8), (7, 8), (8, 6), (8, 4), (7, 2), (5, 2), (3, 3), (2, 5), (3, 7)]
+    for i, (x, z) in enumerate(path):
+        y = 1 + i * 2 // 3 + 1
+        if y > 8:
+            break
+        _put(t, min(x, w - 3), y, min(z, d - 3), stone)
+    for x in range(w - 5, w - 1):
+        for z in range(d - 5, d - 1):
+            t.set(x, 8, z, th["floor"][0])
+    t.chest(w - 3, 9, d - 3, f"{structure}_room", facing="west")
+    t.set(w - 4, 9, d - 3, th["lantern"], hanging=False, waterlogged=False)
+    mob_spawner(t, w // 2, 1, d // 2, th["mobs"], structure)
+
+
+def trap_hall(t, th, structure, w, d):
+    """A long hall paved with hidden traps (TRAPS puts them in a checked pattern: step on the wrong stone and arrows
+    fly up); a chest waits halfway along by the wall."""
+    t.chest(w - 2, 1, d // 2, f"{structure}_room", facing="west")
+
+
+def spider_nest(t, th, structure, w, d):
+    """A room choked with cobwebs and egg sacs (white wool), spiders crawling from two spawners, the chest wrapped up
+    in the middle."""
+    import random as _r
+    r = _r.Random(len(structure) * 11 + w)
+    cx, cz = w // 2, d // 2
+    for _ in range(int(w * d * 0.35)):
+        x, z, y = r.randint(2, w - 3), r.randint(2, d - 3), r.randint(1, H - 3)
+        if abs(x - cx) > 1 or abs(z - cz) > 1:
+            t.set(x, y, z, "cobweb")
+    for _ in range(6):
+        t.set(r.randint(2, w - 3), H - 2, r.randint(2, d - 3), "white_wool")
+    t.chest(cx, 1, cz, f"{structure}_room", facing="north")
+    for (x, z) in [(cx - 1, cz), (cx + 1, cz), (cx, cz - 1), (cx, cz + 1)]:
+        t.set(x, 1, z, "cobweb")
+    mob_spawner(t, 2, 1, 2, [("spider", 2), ("cave_spider", 2)], structure)
+    mob_spawner(t, w - 3, 1, d - 3, [("spider", 2), ("cave_spider", 2)], structure)
+
+
 NEW_ROOMS = {"great_hall": great_hall, "barracks": barracks, "prison": prison, "library": library,
              "gauntlet": gauntlet, "armory": armory, "throne_room": throne_room, "crypt": crypt,
              "ritual_chamber": ritual_chamber, "storage_vault": storage_vault, "courtyard": courtyard,
              "mess_hall": mess_hall, "mine_tunnel": mine_tunnel, "flooded_room": flooded_room, "lava_parkour": lava_parkour,
              "collapsing_floor": collapsing_floor, "puzzle_room": puzzle_room,
              "alchemy_lab": alchemy_lab, "forge_room": forge_room, "garden_hall": garden_hall, "fountain_court": fountain_court,
-             "chasm_bridge": chasm_bridge, "pillar_hall": pillar_hall, "map_room": map_room, "aquarium": aquarium}
+             "chasm_bridge": chasm_bridge, "pillar_hall": pillar_hall, "map_room": map_room, "aquarium": aquarium,
+             "archery_puzzle": archery_puzzle, "parkour_tower": parkour_tower, "trap_hall": trap_hall, "spider_nest": spider_nest}
 
 
 def cap(structure):
@@ -2322,6 +2592,12 @@ ARENA_DOORS = {
     "frozen_bastion": [("w", 12, 0, 2, False), ("e", 12, 0, 2, False), ("n", 7, 0, 2, False)],
     "overgrown_labyrinth": [("e", 14, 0, 1, False), ("n", 14, 0, 1, False), ("s", 14, 0, 1, False)],
     "watchers_hollow": [("w", 11, 0, 3, False), ("e", 11, 0, 3, False), ("n", 11, 0, 3, False)],
+    "volcano_forge": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
+    "frozen_ship": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
+    "sky_temple": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
+    "mine_town": [("w", 13, 0, 2, True), ("e", 13, 0, 2, True), ("n", 13, 0, 2, True)],
+    "pyramid_maze": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
+    "witch_tower": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
 }
 
 
@@ -2512,6 +2788,14 @@ STRUCTURES = {
                                         "minecraft:ice_spikes", "minecraft:grove"], "surface_structures", 0, "WORLD_SURFACE_WG", 55, 25, 31170807, "beard_thin"),
     "overgrown_labyrinth": (overgrown_labyrinth, "#minecraft:is_jungle", "surface_structures", -1, "WORLD_SURFACE_WG", 55, 25, 31170808, "beard_thin"),
     "watchers_hollow": (watchers_hollow, "minecraft:dark_forest", "surface_structures", 0, "WORLD_SURFACE_WG", 80, 40, 31170806, "beard_thin"),
+    "volcano_forge": (volcano_forge, "#minecraft:is_badlands", "surface_structures", 0, "WORLD_SURFACE_WG", 55, 25, 31170816, "beard_thin"),
+    "frozen_ship": (frozen_ship, ["minecraft:frozen_ocean", "minecraft:deep_frozen_ocean"], "surface_structures", 0, "WORLD_SURFACE_WG",
+                    55, 25, 31170817, "beard_thin"),
+    "sky_temple": (sky_temple, "#minecraft:is_overworld", "surface_structures", 220, None, 70, 32, 31170818, "none"),
+    "mine_town": (mine_town, "#minecraft:is_overworld", "underground_structures", -30, None, 60, 30, 31170819, "none"),
+    "pyramid_maze": (pyramid_maze, "minecraft:desert", "surface_structures", 0, "WORLD_SURFACE_WG", 55, 25, 31170820, "beard_thin"),
+    "witch_tower": (witch_tower, ["minecraft:swamp", "minecraft:mangrove_swamp"], "surface_structures", 0, "WORLD_SURFACE_WG",
+                    50, 22, 31170821, "beard_thin"),
 }
 
 

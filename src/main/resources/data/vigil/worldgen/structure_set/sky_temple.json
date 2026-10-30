@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "vigil:sky_temple",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 140,
+    "separation": 64,
+    "salt": 31170818
+  }
+}
