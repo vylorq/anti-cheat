@@ -792,6 +792,243 @@
           ]
         }
       ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 24
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:gold_nugget",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:haste_ring"
+                },
+                "minecraft:item_name": {
+                  "text": "Ring of Haste",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:amethyst_shard",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:moon_charm"
+                },
+                "minecraft:item_name": {
+                  "text": "Moon Charm",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:flint",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:anchor_stone"
+                },
+                "minecraft:item_name": {
+                  "text": "Anchor Stone",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:ghast_tear",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:vampire_fang"
+                },
+                "minecraft:item_name": {
+                  "text": "Vampire Fang",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:breeze_rod",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:wind_charm"
+                },
+                "minecraft:item_name": {
+                  "text": "Wind Charm",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:resin_brick",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:thorn_heart"
+                },
+                "minecraft:item_name": {
+                  "text": "Thorn Heart",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:copper_ingot",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:magnet_ring"
+                },
+                "minecraft:item_name": {
+                  "text": "Magnet Ring",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:prismarine_crystals",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:frost_amulet"
+                },
+                "minecraft:item_name": {
+                  "text": "Frost Amulet",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:emerald",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:lucky_clover"
+                },
+                "minecraft:item_name": {
+                  "text": "Lucky Clover",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:nether_star",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:heart_crystal"
+                },
+                "minecraft:item_name": {
+                  "text": "Heart Crystal",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:blaze_powder",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:ember_core"
+                },
+                "minecraft:item_name": {
+                  "text": "Ember Core",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:nautilus_shell",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:tide_pearl"
+                },
+                "minecraft:item_name": {
+                  "text": "Tide Pearl",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -3359,5 +3359,10 @@
   "pets.called": "Your pet is here!",
   "pets.home": "Your pet went home.",
   "pets.fell": "Your pet fell! It can come back in a minute.",
-  "pets.resting": "Your pet is resting: {0}s."
+  "pets.resting": "Your pet is resting: {0}s.",
+  "artifacts.already": "You already wear that artifact.",
+  "artifacts.full": "Your armor already holds {0} artifacts (the most it can).",
+  "artifacts.set": "{0} is set into your armor!",
+  "artifacts.no-armor": "Wear some armor first: the artifact goes into it.",
+  "artifacts.lost": "§cThe artifacts in your armor shattered when you died."
 }

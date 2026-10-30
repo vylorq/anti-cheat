@@ -66,6 +66,7 @@ public final class Ticker {
         EdgeKeep.tick(ticks);
         StructureMobs.tick(ticks);
         Pets.tick(ticks);
+        Artifacts.tick(ticks);
         OwnerXray.tick(ticks);
         LobbyFeature.seasonFx(ticks);
         Builds.tick(ticks);
