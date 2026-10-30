@@ -239,6 +239,25 @@ public final class Bosses {
                         new Guard(EntityType.VEX, "§dCrypt Wisp", 2, m -> { })),
                 m -> { }, null, null, 0, 0));
         // The six newer structures' bosses.
+        // The Nether's and the End's newer bosses.
+        add(new Kind("warped_shaman", "The Warped Shaman", "§3", "warped_shrine", 1, EntityType.EVOKER, 5500, 22, 20, 2.0f,
+                List.of(Ability.VOID_PULL, Ability.SPORES, Ability.LIGHTNING), 0x2FC4B2,
+                List.of(new Guard(EntityType.ENDERMAN, "§3Warped Wanderer", 2, m -> { }),
+                        new Guard(EntityType.SKELETON, "§bShrine Archer", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.BOW)))),
+                m -> { }, null, null, 0, 0));
+        add(new Kind("cinder_king", "The Cinder King", "§c", "cinder_keep", 1, EntityType.WITHER_SKELETON, 6000, 28, 24, 2.3f,
+                List.of(Ability.FIRE_RING, Ability.ROCKS, Ability.LEAP), 0xFF4A1A,
+                List.of(new Guard(EntityType.BLAZE, "§6Ember Sentinel", 2, m -> { }),
+                        new Guard(EntityType.WITHER_SKELETON, "§8Cinder Guard", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD)))),
+                m -> {
+                    wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.NETHERITE_SWORD));
+                    wear(m, EquipmentSlot.HEAD, new ItemStack(Items.GOLDEN_HELMET));
+                }, null, null, 0, 0));
+        add(new Kind("chorus_knight", "The Chorus Knight", "§d", "chorus_garden", 1, EntityType.VINDICATOR, 5500, 24, 22, 2.2f,
+                List.of(Ability.VOID_PULL, Ability.LEAP, Ability.SHOCKWAVE), 0xC77DFF,
+                List.of(new Guard(EntityType.ENDERMAN, "§5Garden Keeper", 2, m -> { }),
+                        new Guard(EntityType.SKELETON, "§dChorus Archer", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.BOW)))),
+                m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.DIAMOND_AXE)), null, null, 0, 0));
         add(new Kind("magma_lord", "The Magma Lord", "§6", "volcano_forge", 1, EntityType.BLAZE, 5500, 26, 22, 2.4f,
                 List.of(Ability.FIRE_RING, Ability.ROCKS, Ability.SHOCKWAVE), 0xFF6A00,
                 List.of(new Guard(EntityType.MAGMA_CUBE, "§6Lava Slime", 2, m -> { }),

@@ -1,0 +1,2086 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 4,
+        "max": 6
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:magma_cream",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:blaze_powder",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:gold_ingot",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:basalt",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:fire_charge",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_scrap",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:arrow",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 12
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:cooked_beef",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:torch",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 12
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:experience_bottle",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 4,
+        "max": 6
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:magma_cream",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:blaze_powder",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:gold_ingot",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:basalt",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:fire_charge",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_scrap",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:arrow",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 12
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:cooked_beef",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:torch",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 12
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:experience_bottle",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 999930
+        },
+        {
+          "type": "minecraft:loot_table",
+          "value": "vigil:items/phoenix_feather",
+          "weight": 50
+        },
+        {
+          "type": "minecraft:loot_table",
+          "value": "vigil:items/stormbreaker",
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 2
+      },
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_sword",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 20,
+                "max": 30
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_chestplate",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 20,
+                "max": 30
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_pickaxe",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 20,
+                "max": 30
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_sword",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 25,
+                "max": 35
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_pickaxe",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 25,
+                "max": 35
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_chestplate",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 25,
+                "max": 35
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_helmet",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 25,
+                "max": 35
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bow",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 20,
+                "max": 30
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:golden_apple",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:ender_pearl",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond",
+          "weight": 9,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:emerald",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 3,
+                "max": 9
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:experience_bottle",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:gold_ingot",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 3,
+                "max": 8
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:name_tag",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:saddle",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_scrap",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_golden_apple",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:totem_of_undying",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_ingot",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:compass",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_boss_compass:\"1\"}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Boss Compass",
+                "color": "#E0533D"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "Right-click: points to the nearest boss",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "that hasn't been beaten yet",
+                  "color": "gray",
+                  "italic": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 2
+      },
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_sword",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 20,
+                "max": 30
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_chestplate",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 20,
+                "max": 30
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_pickaxe",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 20,
+                "max": 30
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_sword",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 25,
+                "max": 35
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_pickaxe",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 25,
+                "max": 35
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_chestplate",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 25,
+                "max": 35
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_helmet",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 25,
+                "max": 35
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bow",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 20,
+                "max": 30
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:golden_apple",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:ender_pearl",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond",
+          "weight": 9,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:emerald",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 3,
+                "max": 9
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:experience_bottle",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:gold_ingot",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 3,
+                "max": 8
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:name_tag",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:saddle",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_scrap",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_golden_apple",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:totem_of_undying",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_ingot",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:compass",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_boss_compass:\"1\"}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Boss Compass",
+                "color": "#E0533D"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "Right-click: points to the nearest boss",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "that hasn't been beaten yet",
+                  "color": "gray",
+                  "italic": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 2
+      },
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_sword",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 20,
+                "max": 30
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_chestplate",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 20,
+                "max": 30
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_pickaxe",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 20,
+                "max": 30
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_sword",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 25,
+                "max": 35
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_pickaxe",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 25,
+                "max": 35
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_chestplate",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 25,
+                "max": 35
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_helmet",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 25,
+                "max": 35
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bow",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:enchant_with_levels",
+              "levels": {
+                "type": "minecraft:uniform",
+                "min": 20,
+                "max": 30
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:golden_apple",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:ender_pearl",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond",
+          "weight": 9,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:emerald",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 3,
+                "max": 9
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:experience_bottle",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:gold_ingot",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 3,
+                "max": 8
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:name_tag",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:saddle",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_scrap",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_golden_apple",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:totem_of_undying",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_ingot",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:compass",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_boss_compass:\"1\"}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Boss Compass",
+                "color": "#E0533D"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "Right-click: points to the nearest boss",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "that hasn't been beaten yet",
+                  "color": "gray",
+                  "italic": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 9
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:enchant_randomly"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 9
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:enchant_randomly"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 12
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:gold_nugget",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:haste_ring"
+                },
+                "minecraft:item_name": {
+                  "text": "Ring of Haste",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:amethyst_shard",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:moon_charm"
+                },
+                "minecraft:item_name": {
+                  "text": "Moon Charm",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:flint",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:anchor_stone"
+                },
+                "minecraft:item_name": {
+                  "text": "Anchor Stone",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:ghast_tear",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:vampire_fang"
+                },
+                "minecraft:item_name": {
+                  "text": "Vampire Fang",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:breeze_rod",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:wind_charm"
+                },
+                "minecraft:item_name": {
+                  "text": "Wind Charm",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:resin_brick",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:thorn_heart"
+                },
+                "minecraft:item_name": {
+                  "text": "Thorn Heart",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:copper_ingot",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:magnet_ring"
+                },
+                "minecraft:item_name": {
+                  "text": "Magnet Ring",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:prismarine_crystals",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:frost_amulet"
+                },
+                "minecraft:item_name": {
+                  "text": "Frost Amulet",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:emerald",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:lucky_clover"
+                },
+                "minecraft:item_name": {
+                  "text": "Lucky Clover",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:nether_star",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:heart_crystal"
+                },
+                "minecraft:item_name": {
+                  "text": "Heart Crystal",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:blaze_powder",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:ember_core"
+                },
+                "minecraft:item_name": {
+                  "text": "Ember Core",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:nautilus_shell",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "artifact:tide_pearl"
+                },
+                "minecraft:item_name": {
+                  "text": "Tide Pearl",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 9
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:goat_horn",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "mount:steed"
+                },
+                "minecraft:item_name": {
+                  "text": "Storm Steed Whistle",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bone_meal",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "mount:stallion"
+                },
+                "minecraft:item_name": {
+                  "text": "Bone Stallion Whistle",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:ghast_tear",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "mount:ghast"
+                },
+                "minecraft:item_name": {
+                  "text": "Sky Ghast Whistle",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_ingot",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_golden_apple",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:totem_of_undying",
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 20
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:1}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll I",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift I of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "An egg from an age before ours.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper I at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:2}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll II",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift II of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "The star torn from the three-headed storm.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper II at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:3}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll III",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift III of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "Three hearts of the vault, heavier than iron.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper III at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:4}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll IV",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift IV of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "The charm that cheats death once.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper IV at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:5}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll V",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift V of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "The heart the ocean buries.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper V at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:6}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll VI",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift VI of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "The blackened skull of the fortress.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper VI at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:7}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll VII",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift VII of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "Gold that glows, the apple of old kings.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper VII at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:8}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll VIII",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift VIII of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "A bar forged from ancient debris.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper VIII at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:9}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll IX",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift IX of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "The dark key of an ominous trial.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper IX at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_custom_data",
+              "tag": "{vigil_offering_scroll:10}"
+            },
+            {
+              "function": "minecraft:set_name",
+              "target": "item_name",
+              "name": {
+                "text": "Offering Scroll X",
+                "color": "#C77DFF"
+              }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "text": "The World's Edge asks, as gift X of X:",
+                  "color": "gray",
+                  "italic": false
+                },
+                {
+                  "text": "The drowned king's three-pronged spear.",
+                  "color": "light_purple",
+                  "italic": true
+                },
+                {
+                  "text": "Give it into hopper X at the inner door.",
+                  "color": "dark_gray",
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:rarity": "epic",
+                "minecraft:enchantment_glint_override": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

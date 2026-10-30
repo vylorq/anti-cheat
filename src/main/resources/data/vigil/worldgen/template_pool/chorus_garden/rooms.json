@@ -1,0 +1,329 @@
+{
+  "fallback": "vigil:chorus_garden/caps",
+  "elements": [
+    {
+      "weight": 5,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/corridor",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/hall",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 3,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/guard_room",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/shrine",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/crossroad",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/treasure",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/great_hall",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 3,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/barracks",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/prison",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/library",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 3,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/gauntlet",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/armory",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/throne_room",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/crypt",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/ritual_chamber",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/storage_vault",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/courtyard",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/mess_hall",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/mine_tunnel",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/flooded_room",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/lava_parkour",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/collapsing_floor",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/puzzle_room",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 3,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/key_vault",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/alchemy_lab",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/forge_room",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/garden_hall",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/fountain_court",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/chasm_bridge",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/pillar_hall",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/map_room",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/aquarium",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/archery_puzzle",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/parkour_tower",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/trap_hall",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "vigil:chorus_garden/spider_nest",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    }
+  ]
+}
