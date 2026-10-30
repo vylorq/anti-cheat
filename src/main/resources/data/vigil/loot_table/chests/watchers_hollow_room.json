@@ -723,6 +723,258 @@
       "entries": [
         {
           "type": "minecraft:empty",
+          "weight": 44
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:written_book_content": {
+                  "title": "The First Watch",
+                  "author": "Keeper Aldren",
+                  "pages": [
+                    "Before the towns, before the roads, there were the Keepers. Seven of them, sworn to watch the edges of the world.",
+                    "Each Keeper built a hall where the land was wildest: in fire, in ice, in the sky, under the sand and under the stone.",
+                    "When the Keepers grew old they left wardens in their halls. The wardens never grew old. They are waiting there still."
+                  ],
+                  "resolved": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:written_book_content": {
+                  "title": "On the Magma Lord",
+                  "author": "a forge apprentice",
+                  "pages": [
+                    "The volcano is not a mountain. It is a roof. Under it the Magma Lord keeps the oldest forge in the land.",
+                    "He throws fire in a ring and rocks from the ceiling. Stand still and you burn. Keep moving, keep your potions close.",
+                    "They say his chest holds what no smith alive can make."
+                  ],
+                  "resolved": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:written_book_content": {
+                  "title": "Log of the Frost Captain",
+                  "author": "the ship's mate",
+                  "pages": [
+                    "Day 40. The sea froze around us in one night. The captain says we wait for the thaw.",
+                    "Day 90. No thaw. The captain no longer sleeps. His eyes have gone pale blue and his breath freezes the deck.",
+                    "Day ???. If you find this, do not wake him. If you must, bring fire, and never stand where the ice shards fall."
+                  ],
+                  "resolved": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:written_book_content": {
+                  "title": "The Sky Temple",
+                  "author": "a wandering monk",
+                  "pages": [
+                    "Above the clouds a golden dome catches the first light of every morning. Its keeper is a knight of the sky.",
+                    "He calls lightning down on those who climb too fast, and leaps across his hall like the wind itself.",
+                    "Climb slowly. Climb humbly. The temple remembers those who respect it."
+                  ],
+                  "resolved": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:written_book_content": {
+                  "title": "Notes from Mine Town",
+                  "author": "the last foreman's clerk",
+                  "pages": [
+                    "We dug too deep. The tunnels went on below the bottom of every map we had.",
+                    "The foreman would not leave. He swore the richest vein was one more blast away. The ceiling came down on all of us.",
+                    "Now he walks the town with his pick, and the rocks still fall where he points."
+                  ],
+                  "resolved": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:written_book_content": {
+                  "title": "The Pyramid's Curse",
+                  "author": "a desert guide",
+                  "pages": [
+                    "The pyramid in the sand is a maze inside a maze. Its king was wrapped in linen and gold and sealed in the middle.",
+                    "He brings the sandstorm and the dark. The walls move when you are not looking; mark your way with torches.",
+                    "The guides say: one path in, one path out, and a king who wants neither."
+                  ],
+                  "resolved": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:written_book_content": {
+                  "title": "A Warning about the Swamp",
+                  "author": "a fisherman",
+                  "pages": [
+                    "Don't follow the purple lights over the marsh. The crooked tower is no home for anyone good.",
+                    "The old woman inside throws spores that make you sick and pulls you in when you try to run.",
+                    "If you go anyway, bring milk, and go in daylight."
+                  ],
+                  "resolved": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:written_book_content": {
+                  "title": "Artifacts",
+                  "author": "the collector Mirel",
+                  "pages": [
+                    "Small things of great power are hidden in the old halls: rings, charms, stones that hum in your hand.",
+                    "Set one into your armor and it works for you. Two at most; more and they fight each other.",
+                    "Two of the same can become one Greater charm. And some pairs, worn together, wake a power of their own.",
+                    "But they are fragile. Fall in battle and they shatter."
+                  ],
+                  "resolved": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:written_book_content": {
+                  "title": "Gems and Steel",
+                  "author": "a smith of the north",
+                  "pages": [
+                    "A gem held against a blade sinks into the steel and stays there. Two gems is all a weapon can carry.",
+                    "Ruby makes the blade heavier, topaz quicker. Emberite burns, frostshard chills, bloodstone drinks.",
+                    "Starmetal fell from the sky. Strike with it and sometimes the sky strikes with you."
+                  ],
+                  "resolved": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:written_book_content": {
+                  "title": "The Guardians",
+                  "author": "an old soldier",
+                  "pages": [
+                    "In the rooms of the halls you will sometimes meet one bigger than the rest, with a red name over its head.",
+                    "Those are the Guardians. Beat one and it will leave you a key to the locked vaults, or something rarer.",
+                    "Don't fight one alone."
+                  ],
+                  "resolved": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:written_book_content": {
+                  "title": "The Edge",
+                  "author": "unsigned",
+                  "pages": [
+                    "At the edge of the world stands a citadel that no one has opened.",
+                    "Its door wants ten offerings, in the right order. The order was written down once, on scrolls, and the scrolls were scattered.",
+                    "Every scroll exists only once. Whoever finds them all holds the key to the end of the world."
+                  ],
+                  "resolved": true
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:empty",
           "weight": 70
         },
         {

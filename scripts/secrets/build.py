@@ -251,6 +251,66 @@ def artifact(one_in):
     return {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": len(entries) * (one_in - 1)}] + entries}
 
 
+# Lore books, found now and then in room chests: the story of the land and its keepers, and hints at what's hidden.
+LORE = [
+    ("The First Watch", "Keeper Aldren", [
+        "Before the towns, before the roads, there were the Keepers. Seven of them, sworn to watch the edges of the world.",
+        "Each Keeper built a hall where the land was wildest: in fire, in ice, in the sky, under the sand and under the stone.",
+        "When the Keepers grew old they left wardens in their halls. The wardens never grew old. They are waiting there still."]),
+    ("On the Magma Lord", "a forge apprentice", [
+        "The volcano is not a mountain. It is a roof. Under it the Magma Lord keeps the oldest forge in the land.",
+        "He throws fire in a ring and rocks from the ceiling. Stand still and you burn. Keep moving, keep your potions close.",
+        "They say his chest holds what no smith alive can make."]),
+    ("Log of the Frost Captain", "the ship's mate", [
+        "Day 40. The sea froze around us in one night. The captain says we wait for the thaw.",
+        "Day 90. No thaw. The captain no longer sleeps. His eyes have gone pale blue and his breath freezes the deck.",
+        "Day ???. If you find this, do not wake him. If you must, bring fire, and never stand where the ice shards fall."]),
+    ("The Sky Temple", "a wandering monk", [
+        "Above the clouds a golden dome catches the first light of every morning. Its keeper is a knight of the sky.",
+        "He calls lightning down on those who climb too fast, and leaps across his hall like the wind itself.",
+        "Climb slowly. Climb humbly. The temple remembers those who respect it."]),
+    ("Notes from Mine Town", "the last foreman's clerk", [
+        "We dug too deep. The tunnels went on below the bottom of every map we had.",
+        "The foreman would not leave. He swore the richest vein was one more blast away. The ceiling came down on all of us.",
+        "Now he walks the town with his pick, and the rocks still fall where he points."]),
+    ("The Pyramid's Curse", "a desert guide", [
+        "The pyramid in the sand is a maze inside a maze. Its king was wrapped in linen and gold and sealed in the middle.",
+        "He brings the sandstorm and the dark. The walls move when you are not looking; mark your way with torches.",
+        "The guides say: one path in, one path out, and a king who wants neither."]),
+    ("A Warning about the Swamp", "a fisherman", [
+        "Don't follow the purple lights over the marsh. The crooked tower is no home for anyone good.",
+        "The old woman inside throws spores that make you sick and pulls you in when you try to run.",
+        "If you go anyway, bring milk, and go in daylight."]),
+    ("Artifacts", "the collector Mirel", [
+        "Small things of great power are hidden in the old halls: rings, charms, stones that hum in your hand.",
+        "Set one into your armor and it works for you. Two at most; more and they fight each other.",
+        "Two of the same can become one Greater charm. And some pairs, worn together, wake a power of their own.",
+        "But they are fragile. Fall in battle and they shatter."]),
+    ("Gems and Steel", "a smith of the north", [
+        "A gem held against a blade sinks into the steel and stays there. Two gems is all a weapon can carry.",
+        "Ruby makes the blade heavier, topaz quicker. Emberite burns, frostshard chills, bloodstone drinks.",
+        "Starmetal fell from the sky. Strike with it and sometimes the sky strikes with you."]),
+    ("The Guardians", "an old soldier", [
+        "In the rooms of the halls you will sometimes meet one bigger than the rest, with a red name over its head.",
+        "Those are the Guardians. Beat one and it will leave you a key to the locked vaults, or something rarer.",
+        "Don't fight one alone."]),
+    ("The Edge", "unsigned", [
+        "At the edge of the world stands a citadel that no one has opened.",
+        "Its door wants ten offerings, in the right order. The order was written down once, on scrolls, and the scrolls were scattered.",
+        "Every scroll exists only once. Whoever finds them all holds the key to the end of the world."]),
+]
+
+
+def lore_pool(one_in):
+    """One of the lore books, in one chest out of one_in."""
+    entries = []
+    for title, author, pages in LORE:
+        entries.append({"type": "minecraft:item", "name": "minecraft:written_book", "weight": 1, "functions": [{
+            "function": "minecraft:set_components", "components": {"minecraft:written_book_content": {
+                "title": title, "author": author, "pages": pages, "resolved": True}}}]})
+    return {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": len(entries) * (one_in - 1)}] + entries}
+
+
 CHESTS = {
     "sky_island": [secret([("phoenix_feather", 2), ("seeker_compass", 1)]),
                    filler([("feather", 8, 2, 6), ("emerald", 6, 1, 4), ("gold_ingot", 6, 1, 4), ("phantom_membrane", 5, 1, 3),
@@ -2576,6 +2636,153 @@ NEW_ROOMS = {"great_hall": great_hall, "barracks": barracks, "prison": prison, "
              "archery_puzzle": archery_puzzle, "parkour_tower": parkour_tower, "trap_hall": trap_hall, "spider_nest": spider_nest}
 
 
+def landmark(structure, t, arena_size):
+    """What makes each newer structure known from afar: something big on the arena's roof (a volcano, an iced ship,
+    a golden dome, a pyramid, a crooked witch's tower). The underground mine town has none."""
+    import math
+    import random as _r
+    r = _r.Random(structure)
+    X, Y, Z = arena_size
+    M = COURT
+    cx, cz = M + X // 2, M + Z // 2
+    y0 = Y  # just above the arena's roof
+    extra = {"volcano_forge": 20, "frozen_ship": 22, "sky_temple": 18, "pyramid_maze": 15, "witch_tower": 32}.get(structure)
+    if extra is None:
+        return t
+    W, H, D = t.size
+    t.size = (W, max(H, y0 + extra), D)
+
+    def disc(y, rad, fn):
+        for x in range(cx - int(rad) - 1, cx + int(rad) + 2):
+            for z in range(cz - int(rad) - 1, cz + int(rad) + 2):
+                d = math.hypot(x - cx, z - cz)
+                if d <= rad:
+                    b = fn(x, z, d)
+                    if b:
+                        t.set(x, y, z, b)
+
+    if structure == "volcano_forge":
+        top = 17
+        for k in range(top):
+            rad = 13.4 - k * 0.62
+            crater = 2.2 + k * 0.12 if k >= top - 6 else -1
+            disc(y0 + k, rad, lambda x, z, d: None if d < crater else
+                 ("magma_block" if r.random() < 0.12 else
+                  r.choice(["blackstone", "basalt", "blackstone", "polished_blackstone", "tuff"])))
+        # The crater's lake of lava, held in by the rim.
+        disc(y0 + top - 6, 3.0 + (top - 6) * 0.12, lambda x, z, d: "lava")
+        # Lava running down the sides, frozen in place as magma.
+        for a in range(0, 360, 45):
+            for k in range(top - 2):
+                rad = 13.4 - k * 0.62
+                x, z = cx + int(round(math.cos(math.radians(a)) * rad)), cz + int(round(math.sin(math.radians(a)) * rad))
+                t.set(x, y0 + k, z, "magma_block")
+        for (x, z) in [(cx - 1, cz), (cx + 1, cz), (cx, cz - 1)]:
+            t.set(x, y0 + top - 7, z, "campfire", lit=True, facing="north", signal_fire=True, waterlogged=False)
+    elif structure == "frozen_ship":
+        L, half = 25, 4
+        x0 = cx - L // 2
+        for i in range(L):
+            x = x0 + i
+            taper = min(i, L - 1 - i)
+            w = min(half, 1 + taper // 2)
+            for j in range(4):  # the hull, narrower at the keel
+                ww = max(0, w - (3 - j) // 2)
+                for z in range(cz - ww, cz + ww + 1):
+                    edge = abs(z - cz) == ww
+                    t.set(x, y0 + j, z, "spruce_planks" if edge or j == 0 else "air")
+            for z in range(cz - w + 1, cz + w):
+                t.set(x, y0 + 3, z, "dark_oak_planks" if r.random() > 0.25 else "packed_ice")
+                if r.random() < 0.35:
+                    t.set(x, y0 + 4, z, "snow", layers=1)
+            for z in (cz - w, cz + w):
+                t.set(x, y0 + 4, z, "spruce_fence", north=False, south=False, east=False, west=False, waterlogged=False)
+        # The bowsprit and the stern cabin.
+        for i in range(4):
+            t.set(x0 + L + i - 1, y0 + 3 + i // 2, cz, "spruce_log", axis="x")
+        for x in range(x0 + 1, x0 + 6):
+            for z in range(cz - 3, cz + 4):
+                for y in range(y0 + 4, y0 + 8):
+                    edge = x in (x0 + 1, x0 + 5) or z in (cz - 3, cz + 3) or y == y0 + 7
+                    t.set(x, y, z, ("spruce_planks" if y < y0 + 7 else "packed_ice") if edge else "air")
+        t.set(x0 + 5, y0 + 5, cz, "glass_pane", north=False, south=False, east=False, west=False, waterlogged=False)
+        # Two masts with frozen sails.
+        for mx, h in ((x0 + 10, 17), (x0 + 17, 14)):
+            for y in range(y0 + 4, y0 + 4 + h):
+                t.set(mx, y, cz, "spruce_log", axis="y")
+            for y in range(y0 + 7, y0 + 4 + h - 2):
+                for z in range(cz - 4, cz + 5):
+                    if z != cz:
+                        t.set(mx + 1, y, z, "white_wool" if r.random() > 0.2 else "light_blue_wool")
+            for z in range(cz - 5, cz + 6):
+                t.set(mx, y0 + 4 + h - 2, z, "spruce_log", axis="z")
+            t.set(mx, y0 + 4 + h, cz, "lantern", hanging=False, waterlogged=False)
+        # Ice crusted round the hull.
+        for _ in range(40):
+            x, z = r.randint(x0, x0 + L), r.choice([cz - half - 1, cz + half + 1])
+            t.set(x, y0 + r.randint(0, 2), z, r.choice(["packed_ice", "blue_ice", "ice"]))
+    elif structure == "sky_temple":
+        # A ring of columns, a golden dome on top, and a sun spire.
+        for a in range(0, 360, 30):
+            x, z = cx + int(round(math.cos(math.radians(a)) * 11)), cz + int(round(math.sin(math.radians(a)) * 11))
+            for y in range(y0, y0 + 6):
+                t.set(x, y, z, "quartz_pillar", axis="y")
+            t.set(x, y0 + 6, z, "chiseled_quartz_block")
+        disc(y0 + 6, 12, lambda x, z, d: "smooth_quartz" if d > 10.5 else None)
+        for k in range(10):
+            rad = math.sqrt(max(0, 100 - (k * 1.05) ** 2))
+            disc(y0 + 6 + k, rad, lambda x, z, d, rad=rad: ("gold_block" if (x + z + k) % 5 else "yellow_stained_glass")
+                 if d > rad - 1.2 else None)
+        for y in range(y0 + 16, y0 + 18):
+            t.set(cx, y, cz, "gold_block")
+        t.set(cx, y0 + 18 - 1, cz, "lightning_rod", facing="up", powered=False, waterlogged=False)
+        t.size = (W, max(t.size[1], y0 + 19), D)
+    elif structure == "pyramid_maze":
+        for k in range(14):
+            h = 13 - k
+            for x in range(cx - h, cx + h + 1):
+                for z in range(cz - h, cz + h + 1):
+                    edge = max(abs(x - cx), abs(z - cz)) == h
+                    if edge:
+                        t.set(x, y0 + k, z, "chiseled_sandstone" if k % 4 == 3 else ("cut_sandstone" if k % 2 else "sandstone"))
+                    elif k < 2:
+                        t.set(x, y0 + k, z, "sandstone")
+        t.set(cx, y0 + 14, cz, "gold_block")
+        for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+            t.set(cx + dx * 13, y0, cz + dz * 13, "orange_terracotta")
+    elif structure == "witch_tower":
+        tx, tz = cx + 6, cz + 6
+        for y in range(y0, y0 + 20):
+            for x in range(tx - 4, tx + 5):
+                for z in range(tz - 4, tz + 5):
+                    d = math.hypot(x - tx, z - tz)
+                    if d <= 4.3:
+                        wall = d > 3.2
+                        if wall:
+                            t.set(x, y, z, r.choice(["mud_bricks", "packed_mud", "mossy_cobblestone", "mud_bricks"]))
+                        elif y in (y0, y0 + 10):
+                            t.set(x, y, z, "dark_oak_planks")
+                        else:
+                            t.set(x, y, z, "air")
+            if y % 5 == 2:
+                for (dx, dz) in [(4, 0), (-4, 0), (0, 4), (0, -4)]:
+                    t.set(tx + dx, y, tz + dz, "purple_stained_glass")
+        t.set(tx, y0 + 11, tz, "cauldron")
+        t.set(tx, y0 + 19, tz, "lantern", hanging=True, waterlogged=False)
+        # The hat: a wide brim, then a cone that bends over at the tip.
+        disc_x, disc_z = tx, tz
+        for k in range(12):
+            rad = 6.5 - k * 0.55 if k else 6.8
+            ox = k * k // 24
+            for x in range(disc_x - 8, disc_x + 9):
+                for z in range(disc_z - 8, disc_z + 9):
+                    if math.hypot(x - disc_x - ox, z - disc_z) <= max(0.6, rad):
+                        t.set(x, y0 + 20 + k, z, "purple_terracotta" if k != 1 else "black_terracotta")
+        for (x, z) in [(tx - 5, tz), (tx + 5, tz), (tx, tz - 5), (tx, tz + 5)]:
+            t.set(x, y0 + 19, z, "vine", north=False, south=False, east=False, west=False, up=True)
+    return t
+
+
 def cap(structure):
     """The wall plug a door gets when nothing more is built behind it."""
     th = THEMES[structure]
@@ -3028,7 +3235,8 @@ def build():
         # The arena's altar chest: sealed until the boss is beaten, so it holds a little more.
         write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [bonus(), bonus(), book(), artifact(3)]})
     for name, (fn, biomes, step, height, heightmap, spacing, sep, salt, terrain) in STRUCTURES.items():
-        arena = grand(name, arena_doors(name, fn()))
+        inner = arena_doors(name, fn())
+        arena = landmark(name, grand(name, inner), inner.size)
         # The old single-piece name stays, so structures generated before still find their template.
         write(f"structure/{name}.nbt", arena.to_nbt())
         write(f"worldgen/template_pool/{name}.json", pool([name]))
@@ -3046,7 +3254,7 @@ def build():
                    fallback=f"vigil:{name}/rooms"))
         # Room chests: the structure's everyday loot, now and then one of its secret items.
         write(f"loot_table/chests/{name}_room.json", {"type": "minecraft:chest", "pools": [
-            CHESTS[name][-1], CHESTS[name][0], bonus(), book(), artifact(15)]})
+            CHESTS[name][-1], CHESTS[name][0], bonus(), book(), artifact(15), lore_pool(5)]})
         # Locked vaults: the best loot in the structure, behind a Dungeon Key.
         write(f"loot_table/chests/{name}_keyvault.json", {"type": "minecraft:chest", "pools": [
             CHESTS[name][-1], CHESTS[name][-1], CHESTS[name][0], bonus(), bonus(), bonus(), book(), book(), artifact(2),
