@@ -408,6 +408,12 @@ public final class AdminCommands {
                 }))));
             }
         }
+        for (String what : java.util.List.of("health", "damage")) {
+            owner.then(literal("bosses").then(literal(what).then(net.minecraft.server.command.CommandManager.argument("percent",
+                    com.mojang.brigadier.arguments.IntegerArgumentType.integer(10, 500)).executes(ctx -> owner(ctx, p ->
+                    com.vylorq.anticheat.feature.Bosses.setStrength(p, what.equals("health"),
+                            com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "percent")))))));
+        }
         owner.then(literal("worldcontent").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerMenu::worldContent)));
         owner.then(literal("world").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerWorldMenu::world)));
         owner.then(literal("tracker").executes(ctx -> owner(ctx, com.vylorq.anticheat.gui.OwnerWorldMenu::tracker)));

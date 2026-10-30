@@ -367,13 +367,20 @@ public final class EdgeKeep {
      * The first time the server starts with it: the citadel builds itself at the east edge of the overworld's border,
      * level with the ground there. Only ever once by itself (the owner can move it with /owner edge remove + place).
      */
-    /** Chunks still to load before a queued build runs (a few each tick, so the server never stalls), and the build. */
+    /**
+     * Chunks still to load before a queued build runs, and the build. They're asked for in the background (a forced
+     * chunk ticket each, a few per tick) and the build waits until every one is there: loading them one by one on the
+     * server thread stalled it for over a minute out at the border, where the chunks had never been generated, and
+     * the game's watchdog shut the server down.
+     */
     private static final java.util.ArrayDeque<long[]> TO_LOAD = new java.util.ArrayDeque<>();
+    private static final List<long[]> REQUESTED = new ArrayList<>();
     private static ServerWorld loadWorld;
     private static Runnable afterLoad;
 
-    /** Loads the chunks under a box a couple per tick, then runs {@code then} on the server thread. */
+    /** Loads the chunks under a box in the background, then runs {@code then} on the server thread. */
     private static void whenLoaded(ServerWorld w, int x0, int z0, int x1, int z1, Runnable then) {
+        release();
         TO_LOAD.clear();
         for (int cx = (x0 >> 4) - 1; cx <= (x1 >> 4) + 1; cx++) {
             for (int cz = (z0 >> 4) - 1; cz <= (z1 >> 4) + 1; cz++) {
@@ -384,22 +391,41 @@ public final class EdgeKeep {
         afterLoad = then;
     }
 
+    /** Lets go of the chunks this kept loaded for a build. */
+    private static void release() {
+        if (loadWorld != null) {
+            for (long[] c : REQUESTED) {
+                loadWorld.setChunkForced((int) c[0], (int) c[1], false);
+            }
+        }
+        REQUESTED.clear();
+    }
+
     private static void loadTick() {
         if (afterLoad == null) {
             return;
         }
-        for (int k = 0; k < 2 && !TO_LOAD.isEmpty(); k++) {
+        for (int k = 0; k < 8 && !TO_LOAD.isEmpty(); k++) {
             long[] c = TO_LOAD.poll();
-            loadWorld.getChunk((int) c[0], (int) c[1]);
+            loadWorld.setChunkForced((int) c[0], (int) c[1], true);
+            REQUESTED.add(c);
         }
-        if (TO_LOAD.isEmpty()) {
-            Runnable then = afterLoad;
-            afterLoad = null;
-            try {
-                then.run();
-            } catch (Exception e) {
-                Ac.LOG.warn("The World's Edge Citadel couldn't build itself", e);
+        if (!TO_LOAD.isEmpty()) {
+            return;
+        }
+        for (long[] c : REQUESTED) {
+            if (!loadWorld.isChunkLoaded((int) c[0], (int) c[1])) {
+                return; // still generating in the background
             }
+        }
+        Runnable then = afterLoad;
+        afterLoad = null;
+        try {
+            then.run();
+        } catch (Exception e) {
+            Ac.LOG.warn("The World's Edge Citadel couldn't build itself", e);
+        } finally {
+            release();
         }
     }
 
