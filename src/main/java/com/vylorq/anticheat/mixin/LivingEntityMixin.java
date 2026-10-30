@@ -39,7 +39,9 @@ public abstract class LivingEntityMixin {
                 return Math.min(original, com.vylorq.anticheat.feature.SecretItems.playerCap(source)); // never OP on players
             }
         }
-        return original / com.vylorq.anticheat.feature.Bosses.damageScale((LivingEntity) (Object) this);
+        // Hits from a boss count for the owner's damage percent.
+        return original * com.vylorq.anticheat.feature.Bosses.outgoingScale(source)
+                / com.vylorq.anticheat.feature.Bosses.damageScale((LivingEntity) (Object) this);
     }
 
     @ModifyReturnValue(method = "isPushable", at = @At("RETURN"), require = 0)

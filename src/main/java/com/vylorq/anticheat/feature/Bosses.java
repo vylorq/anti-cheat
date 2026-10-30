@@ -272,6 +272,9 @@ public final class Bosses {
     // ---------------------------------------------------------------- saved state
 
     public static final class State {
+        /** Every boss's health and hits, in percent of its own (the owner sets them: /owner bosses health|damage). */
+        public int healthPercent = 40;
+        public int damagePercent = 60;
         /** Structures that already had their boss ("sunken_vault@12,-40"). */
         public Set<String> spawned = new HashSet<>();
         /** Structure mobs players killed in each structure ("sunken_vault@12,-40" -> kills). */
@@ -422,6 +425,27 @@ public final class Bosses {
 
     public static boolean isBoss(Entity e) {
         return LIVE.containsKey(e.getUuid());
+    }
+
+    /** What a hit from a boss (its swing, its abilities, its arrows) counts for: the owner's damage percent. */
+    public static float outgoingScale(net.minecraft.entity.damage.DamageSource source) {
+        Entity a = source.getAttacker();
+        return a != null && LIVE.containsKey(a.getUuid()) ? state().damagePercent / 100f : 1f;
+    }
+
+    /** Owner: every boss's health or damage, in percent (10 to 500). Bosses already up keep theirs until they rise again. */
+    public static void setStrength(ServerPlayerEntity p, boolean health, int percent) {
+        if (!OwnerPowers.require(p)) {
+            return;
+        }
+        percent = Math.max(10, Math.min(500, percent));
+        if (health) {
+            state().healthPercent = percent;
+        } else {
+            state().damagePercent = percent;
+        }
+        save();
+        Msg.send(p, health ? "boss.health-set" : "boss.damage-set", percent);
     }
 
     public static void register() {
@@ -584,8 +608,8 @@ public final class Bosses {
         k.gear().accept(mob);
         set(mob, EntityAttributes.MAX_HEALTH, BAR);
         set(mob, EntityAttributes.ATTACK_DAMAGE, k.damage());
-        set(mob, EntityAttributes.ARMOR, k.armor());
-        set(mob, EntityAttributes.ARMOR_TOUGHNESS, 8);
+        set(mob, EntityAttributes.ARMOR, k.armor() * 0.6);
+        set(mob, EntityAttributes.ARMOR_TOUGHNESS, 4);
         set(mob, EntityAttributes.KNOCKBACK_RESISTANCE, 1.0);
         set(mob, EntityAttributes.FOLLOW_RANGE, 40);
         set(mob, EntityAttributes.SCALE, k.scale());
@@ -736,7 +760,8 @@ public final class Bosses {
 
     /** One health bar of this boss: its kind's, half as much again when it was cursed. */
     static double health(Live l) {
-        return l.kind.health() * (l.cursed ? CURSE : 1) * (1 + 0.25 * l.level) * (l.storm ? 1.25 : 1) * DIFF_HEALTH[l.difficulty];
+        return l.kind.health() * (l.cursed ? CURSE : 1) * (1 + 0.25 * l.level) * (l.storm ? 1.25 : 1) * DIFF_HEALTH[l.difficulty]
+                * state().healthPercent / 100.0;
     }
     private static final String PHASE_TAG = "vigil_phase:";
 
