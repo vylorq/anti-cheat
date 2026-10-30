@@ -43,6 +43,8 @@ public final class Team {
     public long xp;
     /** The owner's own vault size for this team (slots, a multiple of 9), or 0 to go by its level. */
     public int vaultSlots;
+    /** Base upgrades bought from the bank: shield / buff / vault -> tier. */
+    public java.util.Map<String, Integer> upgrades = new java.util.HashMap<>();
     /** Team bank: currency items held for the team. */
     public long bank;
     /** Recent bank deposits and withdrawals, newest last. */

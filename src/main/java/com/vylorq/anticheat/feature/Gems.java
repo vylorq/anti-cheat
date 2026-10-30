@@ -286,6 +286,9 @@ public final class Gems {
             case "artifact" -> {
                 return Artifacts.item(parts[1]);
             }
+            case "mount" -> {
+                return Mounts.KINDS.contains(parts[1]) ? Mounts.whistle(parts[1]) : null;
+            }
             case "pet" -> {
                 return Pets.KINDS.contains(parts[1]) ? Pets.token(parts[1]) : null;
             }

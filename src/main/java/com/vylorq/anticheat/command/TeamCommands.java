@@ -313,6 +313,43 @@ public final class TeamCommands {
                     Msg.ok(ctx.getSource(), t.friendlyFire ? "team.ff-on" : "team.ff-off");
                     return true;
                 })))
+                .then(literal("upgrade").executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    Team t = p == null ? null : mine(ctx, p, null);
+                    if (t == null) return 0;
+                    com.vylorq.anticheat.feature.TeamUpgrades.list(p, t);
+                    return 1;
+                }).then(Args.word("what").suggests((c, b) -> {
+                    com.vylorq.anticheat.feature.TeamUpgrades.ALL.keySet().forEach(b::suggest);
+                    return b.buildFuture();
+                }).executes(ctx -> {
+                    ServerPlayerEntity p = self(ctx);
+                    if (p == null) return 0;
+                    String what = Args.str(ctx, "what");
+                    Team t = tm().teamOf(p.getUuid());
+                    int price = com.vylorq.anticheat.feature.TeamUpgrades.nextPrice(t, what);
+                    if (!com.vylorq.anticheat.feature.TeamUpgrades.ALL.containsKey(what)) {
+                        Msg.err(ctx.getSource(), "team.up.unknown");
+                        return 0;
+                    }
+                    if (t != null && price < 0) {
+                        Msg.err(ctx.getSource(), "team.up.at-max");
+                        return 0;
+                    }
+                    Result r = tm().buyUpgrade(p.getUuid(), p.getGameProfile().name(), what,
+                            com.vylorq.anticheat.feature.TeamUpgrades.ALL.get(what).prices().length, Math.max(0, price));
+                    if (r == Result.OK) {
+                        Ac.markDirty("teams");
+                        tellTeam(tm().teamOf(p.getUuid()), "team.up.bought", p.getGameProfile().name(), Msg.tr("team.up." + what),
+                                com.vylorq.anticheat.feature.TeamUpgrades.tier(tm().teamOf(p.getUuid()), what));
+                        return 1;
+                    }
+                    if (r == Result.NOT_ENOUGH) {
+                        Msg.err(ctx.getSource(), "team.up.no-money", com.vylorq.anticheat.feature.Markets.money(price));
+                        return 0;
+                    }
+                    return result(ctx.getSource(), r, null);
+                })))
                 .then(literal("vault").executes(ctx -> {
                     ServerPlayerEntity p = self(ctx);
                     if (p == null || mine(ctx, p, null) == null) return 0;
