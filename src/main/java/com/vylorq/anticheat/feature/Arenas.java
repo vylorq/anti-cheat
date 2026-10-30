@@ -306,6 +306,7 @@ public final class Arenas {
         String winners = teamNames(m, m.winnerTeam);
         Ac.server().getPlayerManager().broadcast(Text.literal(Msg.tr("arena.winner", winners, m.mode.label(), m.arena.name)), false);
         am().recordResult(m);
+        ArenaSeasons.record(m);
         am().end(m);
         for (UUID id : m.players()) {
             ServerPlayerEntity p = ac.server.getPlayerManager().getPlayer(id);

@@ -38,6 +38,7 @@ public final class Achievements {
         FEATS.put("feat:socket", "Gemsmith: set a gem into a weapon");
         FEATS.put("feat:vault", "Key Holder: open a locked vault");
         FEATS.put("feat:all_new_biomes", "Wanderer: see all five new biomes");
+        FEATS.put("feat:season_top3", "Champion: finish an arena season in the top three");
     }
 
     public static final java.util.List<String> NEW_BIOMES = java.util.List.of("vigil:autumn_forest", "vigil:lavender_fields",
