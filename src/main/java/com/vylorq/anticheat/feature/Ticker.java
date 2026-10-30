@@ -68,6 +68,8 @@ public final class Ticker {
         Pets.tick(ticks);
         Mounts.tick(ticks);
         Artifacts.tick(ticks);
+        WeatherEvents.tick(ticks);
+        ArenaSeasons.tick(ticks);
         TeamUpgrades.tick(ticks);
         Skills.tick(ticks);
         Achievements.tick(ticks);

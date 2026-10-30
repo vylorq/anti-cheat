@@ -3410,5 +3410,14 @@
   "mounts.resting": "Your mount is recovering: {0}s.",
   "mounts.not-here": "No mounts in the lobby.",
   "mounts.called": "Your mount is here!",
-  "mounts.fell": "Your mount fell! It can come back in 5 minutes."
+  "mounts.fell": "Your mount fell! It can come back in 5 minutes.",
+  "fog.title": "Fog Night",
+  "fog.sub": "A thick fog rolls in. Monsters beaten in it drop emeralds.",
+  "storm.crystal": "Lightning struck nearby and left a crystal!",
+  "season.ended": "§6§lArena season {0} is over! §e{1}",
+  "season.prize": "§6You finished the arena season in place §e#{0}§6: here are your prizes!",
+  "season.header": "§6§lArena season {0} §7(win 3 pts, kill 1 pt, 30 pts a day at most; top 3 win prizes)",
+  "season.row": "§e#{0} §f{1} §7- {2} pts",
+  "season.empty": "§7No matches yet this season.",
+  "season.mine": "§7Your points: §f{0}"
 }
