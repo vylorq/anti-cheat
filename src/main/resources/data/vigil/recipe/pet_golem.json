@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IPI",
+    "INI",
+    "III"
+  ],
+  "key": {
+    "I": "minecraft:iron_block",
+    "P": "minecraft:carved_pumpkin",
+    "N": "minecraft:name_tag"
+  },
+  "result": {
+    "id": "minecraft:iron_nugget",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "pet:golem"
+      },
+      "minecraft:item_name": {
+        "text": "Golem Pet",
+        "color": "gray"
+      }
+    }
+  }
+}

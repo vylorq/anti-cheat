@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSS",
+    "SNS",
+    "SSS"
+  ],
+  "key": {
+    "S": "minecraft:sweet_berries",
+    "N": "minecraft:name_tag"
+  },
+  "result": {
+    "id": "minecraft:rabbit_foot",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "pet:fox"
+      },
+      "minecraft:item_name": {
+        "text": "Fox Pet",
+        "color": "gold"
+      }
+    }
+  }
+}

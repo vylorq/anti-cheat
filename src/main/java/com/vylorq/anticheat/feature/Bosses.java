@@ -238,6 +238,48 @@ public final class Bosses {
                 List.of(new Guard(EntityType.VINDICATOR, "§5Crypt Guard", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE))),
                         new Guard(EntityType.VEX, "§dCrypt Wisp", 2, m -> { })),
                 m -> { }, null, null, 0, 0));
+        // The six newer structures' bosses.
+        add(new Kind("magma_lord", "The Magma Lord", "§6", "volcano_forge", 1, EntityType.BLAZE, 5500, 26, 22, 2.4f,
+                List.of(Ability.FIRE_RING, Ability.ROCKS, Ability.SHOCKWAVE), 0xFF6A00,
+                List.of(new Guard(EntityType.MAGMA_CUBE, "§6Lava Slime", 2, m -> { }),
+                        new Guard(EntityType.WITHER_SKELETON, "§8Forge Thrall", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE)))),
+                m -> { }, null, null, 0, 0));
+        add(new Kind("frost_captain", "The Frost Captain", "§b", "frozen_ship", 1, EntityType.STRAY, 5000, 24, 20, 2.2f,
+                List.of(Ability.ICE_SHARDS, Ability.FREEZE_AURA, Ability.LEAP), 0x9FE6FF,
+                List.of(new Guard(EntityType.STRAY, "§bFrozen Deckhand", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD))),
+                        new Guard(EntityType.DROWNED, "§3Iced Sailor", 2, m -> { })),
+                m -> {
+                    wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.DIAMOND_SWORD));
+                    wear(m, EquipmentSlot.HEAD, dyed(Items.LEATHER_HELMET, 0x1B2631));
+                    wear(m, EquipmentSlot.CHEST, dyed(Items.LEATHER_CHESTPLATE, 0x5DADE2));
+                }, null, null, 0, 0));
+        add(new Kind("sky_templar", "The Sky Templar", "§e", "sky_temple", 1, EntityType.VINDICATOR, 5000, 24, 20, 2.2f,
+                List.of(Ability.LIGHTNING, Ability.LEAP, Ability.SHOCKWAVE), 0xFFE680,
+                List.of(new Guard(EntityType.STRAY, "§fTemple Archer", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.BOW))),
+                        new Guard(EntityType.VEX, "§eSun Spirit", 2, m -> { })),
+                m -> {
+                    wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_AXE));
+                    wear(m, EquipmentSlot.HEAD, new ItemStack(Items.GOLDEN_HELMET));
+                }, null, null, 0, 0));
+        add(new Kind("foreman", "The Foreman", "§7", "mine_town", 1, EntityType.ZOMBIE, 5000, 26, 22, 2.3f,
+                List.of(Ability.ROCKS, Ability.SHOCKWAVE, Ability.LEAP), 0xA0A0A0,
+                List.of(new Guard(EntityType.ZOMBIE, "§7Lost Miner", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_PICKAXE))),
+                        new Guard(EntityType.CAVE_SPIDER, "§8Tunnel Crawler", 2, m -> { })),
+                m -> {
+                    wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.DIAMOND_PICKAXE));
+                    wear(m, EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+                    wear(m, EquipmentSlot.CHEST, dyed(Items.LEATHER_CHESTPLATE, 0x6E4B2A));
+                }, null, null, 0, 0));
+        add(new Kind("mummy_king", "The Mummy King", "§e", "pyramid_maze", 1, EntityType.HUSK, 5500, 26, 22, 2.5f,
+                List.of(Ability.SANDSTORM, Ability.DARKNESS, Ability.SHOCKWAVE), 0xE8C77A,
+                List.of(new Guard(EntityType.HUSK, "§eTomb Guard", 3, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD))),
+                        new Guard(EntityType.SKELETON, "§fScarab Archer", 2, m -> wear(m, EquipmentSlot.MAINHAND, new ItemStack(Items.BOW)))),
+                m -> wear(m, EquipmentSlot.HEAD, new ItemStack(Items.GOLDEN_HELMET)), null, null, 0, 0));
+        add(new Kind("swamp_witch", "The Swamp Witch", "§2", "witch_tower", 1, EntityType.WITCH, 5000, 22, 18, 1.9f,
+                List.of(Ability.SPORES, Ability.DARKNESS, Ability.VOID_PULL), 0x52BE80,
+                List.of(new Guard(EntityType.ZOMBIE, "§2Bog Walker", 3, m -> { }),
+                        new Guard(EntityType.SPIDER, "§aSwamp Spider", 2, m -> { })),
+                m -> { }, null, null, 0, 0));
         // The Tempest Keep's lord (TempestKeep.java spawns him; no structure of his own, and no weapon to drop:
         // his prize is the Stormbreaker in the vault behind him).
         add(new Kind(TEMPEST_LORD, "The Tempest Lord", "§b", "tempest", 1, EntityType.WITHER_SKELETON, 7500, 34, 26, 2.6f,
@@ -1742,12 +1784,8 @@ public final class Bosses {
         }
         s.set(DataComponentTypes.LORE, new net.minecraft.component.type.LoreComponent(lore));
         s.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
-        com.vylorq.anticheat.util.ItemConv.setTag(s, TROPHY_TAG, "1");
         return s;
     }
-
-    /** Marks a boss trophy (a Trophy Pedestal shows its name). */
-    public static final String TROPHY_TAG = "vigil_trophy";
 
     // ---------------------------------------------------------------- thrown rocks and ice
 

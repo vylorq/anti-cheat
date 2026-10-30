@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "vigil:frozen_ship",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 110,
+    "separation": 50,
+    "salt": 31170817
+  }
+}

@@ -88,8 +88,8 @@ public final class GiveMenu {
                 out.add(com.vylorq.anticheat.feature.Gems.gemTool(gem, tool));
             }
         }
-        for (String kind : com.vylorq.anticheat.feature.SpecialBlocks.KINDS) {
-            out.add(com.vylorq.anticheat.feature.SpecialBlocks.item(kind));
+        for (String kind : com.vylorq.anticheat.feature.Pets.KINDS) {
+            out.add(com.vylorq.anticheat.feature.Pets.token(kind));
         }
         for (var g : com.vylorq.anticheat.feature.Gems.all()) {
             out.add(com.vylorq.anticheat.feature.Gems.gem(g, 1));

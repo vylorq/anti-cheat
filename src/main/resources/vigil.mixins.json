@@ -45,7 +45,8 @@
     "TntEntityMixin",
     "VillagerEntityMixin",
     "WorldAccessor",
-    "WorldMixin"
+    "WorldMixin",
+    "MultiNoiseBiomeSourceMixin"
   ],
   "injectors": {
     "defaultRequire": 1

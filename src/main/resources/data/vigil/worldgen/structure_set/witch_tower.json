@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "vigil:witch_tower",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 100,
+    "separation": 44,
+    "salt": 31170821
+  }
+}

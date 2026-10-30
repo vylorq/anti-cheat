@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "vigil:pyramid_maze",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 110,
+    "separation": 50,
+    "salt": 31170820
+  }
+}
