@@ -65,6 +65,7 @@ public final class AntiCheatMod implements ModInitializer {
         com.vylorq.anticheat.feature.WorldWipe.register();
         com.vylorq.anticheat.feature.Pets.register();
         com.vylorq.anticheat.feature.Artifacts.register();
+        com.vylorq.anticheat.feature.WeaponSockets.register();
         com.vylorq.anticheat.feature.DungeonKeys.register();
         com.vylorq.anticheat.feature.Builds.register();
         com.vylorq.anticheat.feature.BoiledOne.register();

@@ -376,6 +376,11 @@ public final class Gems {
                         && Lifestyle.socket(p, other, p.getStackInHand(hand), g.id())) {
                     return ActionResult.SUCCESS;
                 }
+                // Any gem but Voidstone (that one upgrades netherite) into a weapon in the other hand.
+                if (g != null && !g.id().equals("voidstone") && WeaponSockets.isWeapon(other)
+                        && WeaponSockets.socket(p, other, p.getStackInHand(hand), g.id())) {
+                    return ActionResult.SUCCESS;
+                }
                 if (g != null && g.id().equals("voidstone") && SecretItems.GRAPPLE.equals(SecretItems.idOf(other))) {
                     return SecretItems.upgradeHook(p, other, p.getStackInHand(hand)) ? ActionResult.SUCCESS : ActionResult.FAIL;
                 }

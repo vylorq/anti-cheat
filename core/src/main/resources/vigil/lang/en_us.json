@@ -3364,5 +3364,15 @@
   "artifacts.full": "Your armor already holds {0} artifacts (the most it can).",
   "artifacts.set": "{0} is set into your armor!",
   "artifacts.no-armor": "Wear some armor first: the artifact goes into it.",
-  "artifacts.lost": "§cThe artifacts in your armor shattered when you died."
+  "artifacts.lost": "§cThe artifacts in your armor shattered when you died.",
+  "wsocket.same": "That gem is already in this weapon.",
+  "wsocket.full": "This weapon already holds {0} gems (the most it can).",
+  "wsocket.done": "The gem is set into your weapon!",
+  "wsocket.hold": "§cHold a sword, axe, spear, mace, trident or bow in your main hand.",
+  "wsocket.no-gem": "§cYou don't have that gem.",
+  "wsocket.help": "§eGem sockets: §7hold a weapon and type §f/socket <gem>§7 (or hold the gem in your other hand and use it). Two gems per weapon. §fruby§7: damage, §ftopaz§7: speed, §fsapphire§7: you run, §fvoidstone§7: wither, §fbloodstone§7: heal, §femberite§7: fire, §ffrostshard§7: slow, §fstarmetal§7: star strike, §fsoulstone§7: weakness.",
+  "artifacts.max-level": "This artifact is already Greater.",
+  "artifacts.combined": "The two became one: {0}!",
+  "artifacts.need-two": "You need two of this artifact to combine them.",
+  "artifacts.set-made": "§dSet complete: §f{0}§d - {1}!"
 }
