@@ -621,6 +621,95 @@
   ],
   "scale": 0.48
  },
+ "foreman": {
+  "parts": [
+   {
+    "id": "foreman__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.8125,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "foreman__leg_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.2188,
+     0.8125,
+     0.0
+    ],
+    "role": "leg",
+    "side": -1
+   },
+   {
+    "id": "foreman__leg_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.2188,
+     0.8125,
+     0.0
+    ],
+    "role": "leg",
+    "side": 1
+   },
+   {
+    "id": "foreman__arm_r",
+    "parent": "foreman__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.7188,
+     1.75,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "foreman__arm_l",
+    "parent": "foreman__body",
+    "phase": 0.0,
+    "pivot": [
+     0.7188,
+     1.75,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "foreman__pick",
+    "parent": "foreman__arm_l",
+    "phase": 0.0,
+    "pivot": [
+     0.7188,
+     0.6875,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   },
+   {
+    "id": "foreman__head",
+    "parent": "foreman__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.8125,
+     0.0625
+    ],
+    "role": "head",
+    "side": 0
+   }
+  ],
+  "scale": 1.4769
+ },
  "forge_brute": {
   "parts": [
    {
@@ -822,6 +911,95 @@
    }
   ],
   "scale": 1.707
+ },
+ "frost_captain": {
+  "parts": [
+   {
+    "id": "frost_captain__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.875,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "frost_captain__leg_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.1875,
+     0.875,
+     0.0
+    ],
+    "role": "leg",
+    "side": -1
+   },
+   {
+    "id": "frost_captain__leg_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.1875,
+     0.875,
+     0.0
+    ],
+    "role": "leg",
+    "side": 1
+   },
+   {
+    "id": "frost_captain__arm_r",
+    "parent": "frost_captain__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.625,
+     1.875,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "frost_captain__arm_l",
+    "parent": "frost_captain__body",
+    "phase": 0.0,
+    "pivot": [
+     0.625,
+     1.875,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "frost_captain__blade",
+    "parent": "frost_captain__arm_l",
+    "phase": 0.0,
+    "pivot": [
+     0.625,
+     0.75,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   },
+   {
+    "id": "frost_captain__head",
+    "parent": "frost_captain__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.9375,
+     0.0625
+    ],
+    "role": "head",
+    "side": 0
+   }
+  ],
+  "scale": 1.3363
  },
  "frost_titan": {
   "parts": [
@@ -1433,6 +1611,148 @@
    }
   ],
   "scale": 0.9955
+ },
+ "magma_lord": {
+  "parts": [
+   {
+    "id": "magma_lord__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "magma_lord__arm_r",
+    "parent": "magma_lord__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.6875,
+     1.75,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "magma_lord__arm_l",
+    "parent": "magma_lord__body",
+    "phase": 0.0,
+    "pivot": [
+     0.6875,
+     1.75,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "magma_lord__head",
+    "parent": "magma_lord__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.875,
+     0.0625
+    ],
+    "role": "head",
+    "side": 0
+   }
+  ],
+  "scale": 1.3913
+ },
+ "mummy_king": {
+  "parts": [
+   {
+    "id": "mummy_king__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.0625,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "mummy_king__leg_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.1875,
+     1.0625,
+     0.0
+    ],
+    "role": "leg",
+    "side": -1
+   },
+   {
+    "id": "mummy_king__leg_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.1875,
+     1.0625,
+     0.0
+    ],
+    "role": "leg",
+    "side": 1
+   },
+   {
+    "id": "mummy_king__arm_r",
+    "parent": "mummy_king__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.5938,
+     2.0,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "mummy_king__arm_l",
+    "parent": "mummy_king__body",
+    "phase": 0.0,
+    "pivot": [
+     0.5938,
+     2.0,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "mummy_king__crook",
+    "parent": "mummy_king__arm_l",
+    "phase": 0.0,
+    "pivot": [
+     0.5938,
+     0.9375,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   },
+   {
+    "id": "mummy_king__head",
+    "parent": "mummy_king__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     2.0625,
+     0.0
+    ],
+    "role": "head",
+    "side": 0
+   }
+  ],
+  "scale": 1.3511
  },
  "owl": {
   "parts": [
@@ -2076,6 +2396,119 @@
   ],
   "scale": 0.76
  },
+ "sky_templar": {
+  "parts": [
+   {
+    "id": "sky_templar__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.1875,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "sky_templar__leg_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.1875,
+     1.1875,
+     0.0
+    ],
+    "role": "leg",
+    "side": -1
+   },
+   {
+    "id": "sky_templar__leg_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.1875,
+     1.1875,
+     0.0
+    ],
+    "role": "leg",
+    "side": 1
+   },
+   {
+    "id": "sky_templar__arm_r",
+    "parent": "sky_templar__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.5938,
+     2.125,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "sky_templar__arm_l",
+    "parent": "sky_templar__body",
+    "phase": 0.0,
+    "pivot": [
+     0.5938,
+     2.125,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "sky_templar__spear",
+    "parent": "sky_templar__arm_l",
+    "phase": 0.0,
+    "pivot": [
+     0.5938,
+     1.125,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   },
+   {
+    "id": "sky_templar__wing_r",
+    "parent": "sky_templar__body",
+    "phase": 0.0,
+    "pivot": [
+     -0.1875,
+     2.0,
+     -0.25
+    ],
+    "role": "wing",
+    "side": -1
+   },
+   {
+    "id": "sky_templar__wing_l",
+    "parent": "sky_templar__body",
+    "phase": 0.0,
+    "pivot": [
+     0.1875,
+     2.0,
+     -0.25
+    ],
+    "role": "wing",
+    "side": 1
+   },
+   {
+    "id": "sky_templar__head",
+    "parent": "sky_templar__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     2.1875,
+     0.0
+    ],
+    "role": "head",
+    "side": 0
+   }
+  ],
+  "scale": 1.3913
+ },
  "sky_warden": {
   "parts": [
    {
@@ -2561,6 +2994,71 @@
    }
   ],
   "scale": 1.6941
+ },
+ "swamp_witch": {
+  "parts": [
+   {
+    "id": "swamp_witch__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.125,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "swamp_witch__arm_r",
+    "parent": "swamp_witch__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.5625,
+     1.9375,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "swamp_witch__arm_l",
+    "parent": "swamp_witch__body",
+    "phase": 0.0,
+    "pivot": [
+     0.5625,
+     1.9375,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "swamp_witch__potion",
+    "parent": "swamp_witch__arm_l",
+    "phase": 0.0,
+    "pivot": [
+     0.5625,
+     0.75,
+     0.125
+    ],
+    "role": "static",
+    "side": 0
+   },
+   {
+    "id": "swamp_witch__head",
+    "parent": "swamp_witch__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     2.0,
+     0.0625
+    ],
+    "role": "head",
+    "side": 0
+   }
+  ],
+  "scale": 1.1291
  },
  "tempest_lord": {
   "parts": [

@@ -1128,6 +1128,163 @@ def owl():
 
 
 
+MOLTEN = Mat(["#2a0c05", "#4a1508", "#6e200c", "#962e10"], "plates", veins="#ffb02a", vein_density=0.16)
+FROST_COAT = Mat(["#0f2234", "#173350", "#21476e", "#2f5f90"], "bands")
+TEMPLAR = Mat(["#b8b2a2", "#d4cebe", "#e8e4d8", "#faf8f0"], "plates")
+TEMPLAR_CLOTH = Mat(["#8a6a10", "#b08a1c", "#d4ac2c", "#f2d25a"], "bands")
+MINER_CLOTH = Mat(["#2a1f14", "#3a2c1c", "#4d3b26", "#634d33"], "bands")
+MINER_SKIN = Mat(["#2a3a24", "#3a4f31", "#4b6440", "#5f7d50"])
+WITCH_ROBE = Mat(["#140a1c", "#20102c", "#2e1840", "#3e2256"], "bands", veins="#7fd04a", vein_density=0.03)
+WITCH_SKIN = Mat(["#3d5a2a", "#4f7236", "#628c44", "#78a854"])
+
+
+def magma_lord():
+    """A floating lava giant: a cracked molten body, magma fists, rock pauldrons, a crown of fire."""
+    m = Model("magma_lord")
+    m.part("body", (0, 14, 0), "body")
+    m.box((-8, 10, -5), (16, 18, 10), MOLTEN)
+    m.box((-5, 2, -3), (10, 9, 6), MOLTEN)
+    for x, h in ((-4, 4), (-1, 6), (2, 5)):
+        m.box((x, -2, -1), (2, h, 2), MAGMA)
+    m.box((-3, 16, 4.6), (6, 8, 1), MAGMA)
+    m.pair((-13, 24, -5.5), (6, 6, 11), BLACKSTONE)
+    m.part("arm", (-11, 26, 0), "arm", mirror=True)
+    m.pair((-14, 10, -3), (6, 16, 6), MOLTEN)
+    m.pair((-15, 5, -4), (8, 6, 8), MAGMA)
+    m.part("head", (0, 28, 1), "head")
+    m.box((-5, 28, -4), (10, 10, 9), BLACKSTONE,
+          decal={"south": face("#ffe36b", eye_w=2, eye_h=2, eye_row=0.35, gap=2, brow="#000000",
+                              mouth="#ff8a1f", mouth_row=0.7, mouth_w=6, mouth_h=2, teeth="#1e0905")})
+    for x, h in ((-5, 4), (-2, 6), (1, 5), (4, 4)):
+        m.box((x, 38, -1), (1.5, h, 1.5), MAGMA)
+    return m
+
+
+def frost_captain():
+    """A frozen ship's captain: an iced blue coat, a frost-rimmed tricorn, an icicle beard and an ice cutlass."""
+    m = Model("frost_captain")
+    m.part("leg", (-3, 14, 0), "leg", mirror=True)
+    m.pair((-6, 0, -3), (5, 14, 6), FROST_COAT)
+    m.part("body", (0, 14, 0), "body")
+    m.box((-8, 13, -4.5), (16, 18, 9), FROST_COAT)
+    m.box((-8.5, 7, -5), (17, 7, 10), FROST_COAT)
+    m.box((-8, 19, 4.6), (16, 2, 1), ICE_RAW)
+    m.pair((-12, 27, -5), (4, 4, 10), ICE)
+    m.part("arm", (-10, 30, 0), "arm", mirror=True)
+    m.pair((-12, 12, -2.5), (4, 18, 5), FROST_COAT)
+    m.part("blade", (10, 12, 0), "static", parent="arm_l")
+    m.box((9.5, 12, -9), (1, 2, 18), ICE_RAW)
+    m.box((8.5, 11.5, 6), (3, 3, 1), IRON_DARK)
+    m.part("head", (0, 31, 1), "head")
+    m.box((-4.5, 31, -4), (9, 9, 8), FROST_SKIN,
+          decal={"south": face("#bff4ff", eye_w=2, eye_h=2, eye_row=0.35, gap=2, brow="#0a1420", mask=0.3)})
+    for x in (-3.5, -1, 1.5):
+        m.box((x, 26, 3), (1.5, 6, 1.5), ICE_RAW, rot=("x", 22.5))
+    m.box((-7, 39.5, -6), (14, 2, 13), FROST_COAT)
+    m.box((-4.5, 41.5, -4), (9, 4, 8), FROST_COAT)
+    m.pair((-8, 40.5, -3), (2, 2, 8), ICE_RAW)
+    return m
+
+
+def sky_templar():
+    """A temple knight from the clouds: white and gold plate, feathered wings, a sun halo and a long spear."""
+    m = Model("sky_templar")
+    m.part("leg", (-3, 15, 0), "leg", mirror=True)
+    m.pair((-6, 0, -3), (5, 15, 6), TEMPLAR)
+    m.part("body", (0, 15, 0), "body")
+    m.box((-7.5, 15, -4), (15, 16, 8), TEMPLAR)
+    m.box((-3, 6, 4.1), (6, 22, 1), TEMPLAR_CLOTH)
+    m.pair((-11, 27, -4.5), (5, 5, 9), GOLD)
+    m.part("arm", (-9.5, 30, 0), "arm", mirror=True)
+    m.pair((-11.5, 14, -2.5), (4, 16, 5), TEMPLAR)
+    m.part("spear", (9.5, 14, 0), "static", parent="arm_l")
+    m.box((9, -4, -1), (1, 34, 1), GOLD_RAW)
+    m.box((8.5, 30, -1.5), (2, 6, 2), LIGHTNING)
+    m.part("wing", (-3, 28, -4), "wing", mirror=True)
+    m.pair((-17, 14, -5), (14, 16, 1), FEATHER, rot=("z", -22.5, (-3, 28, -4)))
+    m.part("head", (0, 31, 0), "head")
+    m.box((-4.5, 31, -4.5), (9, 9, 9), TEMPLAR,
+          decal={"south": face("#fff4a8", eye_w=6, eye_h=1, eye_row=0.4, gap=0, brow="#2a2416")})
+    m.box((-6, 41, -0.5), (12, 1, 1), GOLD_RAW)
+    m.pair((-6, 37, -0.5), (1, 5, 1), GOLD_RAW)
+    return m
+
+
+def foreman():
+    """An undead mine foreman: a heavy work coat, a helmet with a lamp, a pickaxe and a lantern on the belt."""
+    m = Model("foreman")
+    m.part("leg", (-3.5, 13, 0), "leg", mirror=True)
+    m.pair((-7, 0, -3.5), (6, 13, 7), MINER_CLOTH)
+    m.part("body", (0, 13, 0), "body")
+    m.box((-9, 13, -5), (18, 16, 10), MINER_CLOTH)
+    m.box((-9.5, 13, -5.5), (19, 3, 11), Mat(["#140e08", "#1f160c", "#2b1f12", "#3a2a18"]))
+    m.box((5, 9, 5), (3, 4, 3), GOLD_RAW)
+    m.pair((-13, 25, -5.5), (5, 5, 11), IRON_DARK)
+    m.part("arm", (-11.5, 28, 0), "arm", mirror=True)
+    m.pair((-14, 10, -3), (5, 18, 6), MINER_SKIN)
+    m.part("pick", (11.5, 11, 0), "static", parent="arm_l")
+    m.box((11, 9, -1), (1.5, 22, 1.5), WOOD)
+    m.box((10, 29, -8), (3, 2, 16), IRON_DARK)
+    m.part("head", (0, 29, 1), "head")
+    m.box((-4.5, 29, -3.5), (9, 9, 8), MINER_SKIN,
+          decal={"south": face("#ffd25a", eye_w=2, eye_h=2, eye_row=0.4, gap=2, brow="#0e140c")})
+    m.box((-5.5, 36, -4.5), (11, 3, 10), Mat(["#6a5014", "#8a6a1c", "#a8842a", "#c8a03a"]))
+    m.box((-1.5, 36.5, 5.5), (3, 2, 1), LIGHTNING)
+    return m
+
+
+def mummy_king():
+    """A pharaoh risen from the pyramid: gold collar and headdress, loose wraps, a crook and glowing eyes."""
+    m = Model("mummy_king")
+    m.part("leg", (-3, 15, 0), "leg", mirror=True)
+    m.pair((-6, 0, -3), (5, 15, 6), WRAPS)
+    m.part("body", (0, 15, 0), "body")
+    m.box((-7.5, 15, -4), (15, 16, 8), WRAPS)
+    m.box((-3, 18, 4.1), (6, 9, 1), MUMMY_RIBS)
+    m.box((-8, 28, -4.5), (16, 3, 9), GOLD)
+    m.box((-3, 8, 4.2), (6, 8, 1), LAPIS)
+    m.part("arm", (-9.5, 30, 0), "arm", mirror=True)
+    m.pair((-11.5, 13, -2.5), (4, 17, 5), WRAPS_DARK)
+    m.pair((-11.5, 22, -3), (4, 2, 6), GOLD)
+    m.part("crook", (9.5, 13, 0), "static", parent="arm_l")
+    m.box((9, -2, -1), (1.5, 28, 1.5), GOLD_RAW)
+    m.box((9, 25, -1), (1.5, 1.5, 5), GOLD_RAW)
+    m.part("head", (0, 31, 0), "head")
+    m.box((-4.5, 31, -4), (9, 9, 8), WRAPS_DARK,
+          decal={"south": face("#3fe0ff", eye_w=2, eye_h=1, eye_row=0.4, gap=2, brow="#0b0906")})
+    m.box((-6, 33, -5), (12, 9, 1), LAPIS)
+    m.pair((-6.5, 30, -4.5), (2, 10, 8), GOLD)
+    m.box((-1, 40, 3.5), (2, 3, 2), GOLD_RAW)
+    return m
+
+
+def swamp_witch():
+    """An old bog witch: a tall crooked hat, a ragged robe dripping moss, green skin, a long nose and a potion."""
+    m = Model("swamp_witch")
+    m.part("body", (0, 16, 0), "body")
+    m.box((-7, 0, -5), (14, 30, 10), WITCH_ROBE)
+    m.box((-8, 0, -6), (16, 5, 12), WITCH_ROBE)
+    for x in (-7, -2, 3):
+        m.box((x, -2, 5.5), (2, 6, 1), VINE)
+    m.box((-3, 20, 5.1), (6, 3, 1), Mat(["#1d140a", "#2a1d0e", "#3a2814", "#4d361c"]))
+    m.part("arm", (-9, 29, 0), "arm", mirror=True)
+    m.pair((-11, 13, -2.5), (4, 16, 5), WITCH_ROBE)
+    m.pair((-11, 10, -2), (4, 3, 4), WITCH_SKIN)
+    m.part("potion", (9, 10, 2), "static", parent="arm_l")
+    m.box((7.5, 4, 0.5), (3, 4, 3), Mat(["#2a7a1a", "#3aa024", "#56c836", "#8af05a"], cell=1))
+    m.box((8.5, 8, 1.5), (1, 2, 1), WOOD)
+    m.part("head", (0, 30, 1), "head")
+    m.box((-4.5, 30, -3.5), (9, 10, 8), WITCH_SKIN,
+          decal={"south": face("#d6ff3a", eye_w=2, eye_h=1, eye_row=0.35, gap=2, brow="#0a1006",
+                              mouth="#1a0f08", mouth_row=0.8, mouth_w=4, mouth_h=1)})
+    m.box((-1, 32, 4.5), (2, 4, 3), WITCH_SKIN)
+    m.box((-7, 40, -6), (14, 1.5, 14), WITCH_ROBE)
+    m.box((-4, 41.5, -3), (8, 6, 8), WITCH_ROBE)
+    m.box((-2.5, 47.5, -1.5), (5, 5, 5), WITCH_ROBE, rot=("x", -22.5))
+    m.box((-4.2, 41.5, -3.2), (8.4, 1.5, 8.4), Mat(["#5a3a0a", "#7a5010", "#9a6a18", "#ba8a28"]))
+    return m
+
+
 MODELS = {
     "deepslate_colossus": (deepslate_colossus, 4.3), "drowned_warden": (drowned_warden, 3.3),
     "storm_phantom": (storm_phantom, 2.4), "forgemaster": (forgemaster, 3.7), "sand_colossus": (sand_colossus, 4.2),
@@ -1141,5 +1298,7 @@ MODELS = {
     "sky_warden": (sky_warden, 3.4), "sporemother": (sporemother, 4.6), "drowned_captain": (drowned_captain, 4.0),
     "soul_reaper": (soul_reaper, 4.8), "hoglin_king": (hoglin_king, 3.4), "void_stalker": (void_stalker, 5.6),
     "void_evoker": (void_evoker, 4.0), "edge_sovereign": (edge_sovereign, 6.6),
+    "magma_lord": (magma_lord, 4.0), "frost_captain": (frost_captain, 3.8), "sky_templar": (sky_templar, 4.0),
+    "foreman": (foreman, 3.6), "mummy_king": (mummy_king, 3.8), "swamp_witch": (swamp_witch, 3.9),
     "deer": (deer, 1.9), "owl": (owl, 0.7),
 }
