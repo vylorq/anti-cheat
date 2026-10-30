@@ -130,6 +130,11 @@ public final class StructureMobs {
     }
 
     public static void register() {
+        net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((e, source) -> {
+            if (Ac.running() && e instanceof MobEntity m && m.getCommandTags().contains(GUARDIAN_TAG)) {
+                guardianDrop(m);
+            }
+        });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((e, w) -> HOMES.remove(e.getUuid()));
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, w) -> {
             if (Ac.running() && e instanceof MobEntity m && m.getCommandTags().stream().anyMatch(t -> t.startsWith(HOME))) {
@@ -188,6 +193,56 @@ public final class StructureMobs {
                         "data merge entity " + m.getUuidAsString() + " {DeathLootTable:\"minecraft:empty\"}");
             }
         });
+    }
+
+    /** One room mob in this many is the rooms' Guardian, a mini-boss (rarer than an elite, much tougher). */
+    static final float GUARDIAN_CHANCE = 1f / 60;
+    public static final String GUARDIAN_TAG = "vigil_guardian";
+    private static final net.minecraft.util.Identifier GUARDIAN = net.minecraft.util.Identifier.of("vigil", "room_guardian");
+
+    /** A Guardian: bigger, four times the health, hard hits, a red name; it drops a Dungeon Key or an artifact. */
+    static void guardian(MobEntity m, String structure) {
+        m.addCommandTag(GUARDIAN_TAG);
+        guardianBoost(m, EntityAttributes.MAX_HEALTH, 3.0, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        guardianBoost(m, EntityAttributes.ATTACK_DAMAGE, 0.8, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        guardianBoost(m, EntityAttributes.MOVEMENT_SPEED, 0.1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        guardianBoost(m, EntityAttributes.SCALE, 0.45, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        guardianBoost(m, EntityAttributes.KNOCKBACK_RESISTANCE, 0.6, EntityAttributeModifier.Operation.ADD_VALUE);
+        m.setHealth(m.getMaxHealth());
+        m.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.FIRE_RESISTANCE,
+                net.minecraft.entity.effect.StatusEffectInstance.INFINITE, 0, false, false));
+        StringBuilder where = new StringBuilder();
+        for (String w : structure.split("_")) {
+            where.append(where.isEmpty() ? "" : " ").append(Character.toUpperCase(w.charAt(0))).append(w.substring(1));
+        }
+        m.setCustomName(net.minecraft.text.Text.literal("§4§l☠ §cGuardian of the " + where));
+        m.setCustomNameVisible(true);
+        m.setPersistent();
+    }
+
+    private static void guardianBoost(MobEntity m, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> a,
+                                      double v, EntityAttributeModifier.Operation op) {
+        var i = m.getAttributeInstance(a);
+        if (i != null && i.getModifier(GUARDIAN) == null) {
+            i.addPersistentModifier(new EntityAttributeModifier(GUARDIAN, v, op));
+        }
+    }
+
+    /** What a fallen Guardian leaves: a Dungeon Key mostly, an artifact now and then. */
+    static void guardianDrop(MobEntity m) {
+        if (!(m.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld w)) {
+            return;
+        }
+        ItemStack loot;
+        if (m.getRandom().nextFloat() < 0.35f) {
+            var ids = new java.util.ArrayList<>(Artifacts.DEFS.keySet());
+            loot = Artifacts.item(ids.get(m.getRandom().nextInt(ids.size())));
+        } else {
+            loot = DungeonKeys.key();
+        }
+        w.spawnEntity(new net.minecraft.entity.ItemEntity(w, m.getX(), m.getY() + 0.5, m.getZ(), loot));
+        w.playSound(null, m.getX(), m.getY(), m.getZ(), net.minecraft.sound.SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
+                net.minecraft.sound.SoundCategory.HOSTILE, 0.8f, 1.2f);
     }
 
     /** One room mob in this many is an elite. */
@@ -312,7 +367,9 @@ public final class StructureMobs {
         m.addCommandTag(ARMED);
         toughen(m);
         noDrops(m);
-        if (m.getRandom().nextFloat() < ELITE_CHANCE) {
+        if (m.getRandom().nextFloat() < GUARDIAN_CHANCE) {
+            guardian(m, structure);
+        } else if (m.getRandom().nextFloat() < ELITE_CHANCE) {
             elite(m);
         } else if (m.getRandom().nextFloat() < VARIANT_CHANCE) {
             variant(m);
