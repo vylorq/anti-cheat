@@ -60,7 +60,8 @@ public final class ModelMobs {
             Map.entry("thornback_beast", Style.QUAD), Map.entry("frostbite_bear", Style.QUAD), Map.entry("jungle_stalker", Style.QUAD),
             Map.entry("stone_crawler", Style.CRAWLER), Map.entry("scarab", Style.CRAWLER), Map.entry("sculk_lurker", Style.CRAWLER),
             Map.entry("vine_creeper", Style.CRAWLER), Map.entry("sand_colossus", Style.CRAWLER),
-            Map.entry("sky_warden", Style.FLYER), Map.entry("hoglin_king", Style.QUAD));
+            Map.entry("sky_warden", Style.FLYER),
+            Map.entry("dragon_hatchling", Style.FLYER), Map.entry("dragon_young", Style.FLYER), Map.entry("dragon_adult", Style.FLYER), Map.entry("hoglin_king", Style.QUAD));
 
     /** Scale and parts of every model (written by scripts/models/cubes.py). */
     static synchronized Map<String, Spec> specs() {
