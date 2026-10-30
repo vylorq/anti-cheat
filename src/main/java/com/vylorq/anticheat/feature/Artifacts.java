@@ -34,6 +34,8 @@ import java.util.Map;
  * Artifacts: rare charms found in the structures' chests. Use one while wearing armor and it is set into that armor
  * (the chestplate first, else the helmet, leggings or boots). Two artifacts at most on a player; they work while the
  * armor is worn. When the player dies, every artifact set in their armor is lost.
+ * <p>Two of the same artifact combine (sneak and use one) into a Greater one, which works harder. Some pairs worn
+ * together make a set with a bonus of its own.
  */
 public final class Artifacts {
     private Artifacts() {
@@ -42,6 +44,7 @@ public final class Artifacts {
     static final String TAG = "vigil_artifact";
     /** On an armor piece: the artifacts set into it, comma separated. */
     static final String IN_ARMOR = "vigil_artifacts";
+    static final String LEVEL = "vigil_artifact_lvl";
     public static final int MAX = 2;
 
     record Def(String id, Item item, String name, String color, String what) {
@@ -68,48 +71,96 @@ public final class Artifacts {
         add("tide_pearl", Items.NAUTILUS_SHELL, "Tide Pearl", "§3", "Water Breathing and Dolphin's Grace.");
     }
 
+    /** Pairs that make a set when both are worn: id -> (first, second, what it adds). */
+    record Set(String name, String a, String b, String what) {
+    }
+
+    public static final List<Set> SETS = List.of(
+            new Set("Night Blaze", "ember_core", "moon_charm", "your hits set enemies on fire"),
+            new Set("Storm Rider", "wind_charm", "anchor_stone", "no fall damage"),
+            new Set("Blood Thorns", "vampire_fang", "thorn_heart", "damage you send back heals you"),
+            new Set("Deep Freeze", "frost_amulet", "tide_pearl", "your hits freeze enemies solid"),
+            new Set("Prospector", "haste_ring", "lucky_clover", "Haste and Luck one level higher"),
+            new Set("Lifeline", "heart_crystal", "magnet_ring", "Regeneration"));
+
     private static final EquipmentSlot[] ARMOR = {EquipmentSlot.CHEST, EquipmentSlot.HEAD, EquipmentSlot.LEGS, EquipmentSlot.FEET};
     private static final Identifier HEART = Identifier.of("vigil", "artifact_heart");
     private static final Identifier ANCHOR = Identifier.of("vigil", "artifact_anchor");
 
+    private static String title(Def d, int level) {
+        return (level >= 2 ? "Greater " : "") + d.name();
+    }
+
+    private static Set setOf(String id) {
+        for (Set s : SETS) {
+            if (s.a().equals(id) || s.b().equals(id)) {
+                return s;
+            }
+        }
+        return null;
+    }
+
     public static ItemStack item(String id) {
+        return item(id, 1);
+    }
+
+    public static ItemStack item(String id, int level) {
         Def d = DEFS.get(id);
         if (d == null) {
             return null;
         }
         ItemStack s = new ItemStack(d.item());
-        s.set(DataComponentTypes.CUSTOM_NAME, Text.literal(d.color() + "✦ " + d.name()).styled(x -> x.withItalic(false)));
-        s.set(DataComponentTypes.LORE, new LoreComponent(List.of(
-                Text.literal("§7Artifact: " + d.what()).styled(x -> x.withItalic(false)),
-                Text.literal("§8Use it while wearing armor to set it in.").styled(x -> x.withItalic(false)),
-                Text.literal("§8Two at most. Lost when you die.").styled(x -> x.withItalic(false)))));
+        s.set(DataComponentTypes.CUSTOM_NAME, Text.literal(d.color() + "✦ " + title(d, level) + (level >= 2 ? " II" : ""))
+                .styled(x -> x.withItalic(false)));
+        List<Text> lore = new ArrayList<>();
+        lore.add(Text.literal("§7Artifact: " + d.what() + (level >= 2 ? " §d(stronger)" : "")).styled(x -> x.withItalic(false)));
+        Set set = setOf(id);
+        if (set != null) {
+            Def other = DEFS.get(set.a().equals(id) ? set.b() : set.a());
+            lore.add(Text.literal("§5Set §d" + set.name() + "§5 with " + other.name() + ": " + set.what()).styled(x -> x.withItalic(false)));
+        }
+        lore.add(Text.literal("§8Use it while wearing armor to set it in.").styled(x -> x.withItalic(false)));
+        if (level < 2) {
+            lore.add(Text.literal("§8Sneak and use with two of them: a Greater one.").styled(x -> x.withItalic(false)));
+        }
+        lore.add(Text.literal("§8Two at most. Lost when you die.").styled(x -> x.withItalic(false)));
+        s.set(DataComponentTypes.LORE, new LoreComponent(lore));
         s.set(DataComponentTypes.RARITY, Rarity.EPIC);
         s.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
         s.set(DataComponentTypes.MAX_STACK_SIZE, 1);
         ItemConv.setTag(s, TAG, id);
+        if (level >= 2) {
+            ItemConv.setTag(s, LEVEL, "2");
+        }
         return s;
     }
 
-    private static List<String> in(ItemStack armor) {
+    private static int levelOf(ItemStack s) {
+        return "2".equals(ItemConv.tag(s, LEVEL)) ? 2 : 1;
+    }
+
+    /** What is set into one armor piece: id -> level ("id" or "id@2" in the tag). */
+    private static Map<String, Integer> in(ItemStack armor) {
         String v = armor.isEmpty() ? null : ItemConv.tag(armor, IN_ARMOR);
-        List<String> out = new ArrayList<>();
+        Map<String, Integer> out = new LinkedHashMap<>();
         if (v != null) {
-            for (String id : v.split(",")) {
+            for (String e : v.split(",")) {
+                String id = e.endsWith("@2") ? e.substring(0, e.length() - 2) : e;
                 if (DEFS.containsKey(id)) {
-                    out.add(id);
+                    out.put(id, e.endsWith("@2") ? 2 : 1);
                 }
             }
         }
         return out;
     }
 
-    /** The artifacts working on this player now (from the armor they wear; two at most). */
-    public static List<String> worn(ServerPlayerEntity p) {
-        List<String> out = new ArrayList<>();
+    /** The artifacts working on this player now, with their levels (from the armor they wear; two at most). */
+    public static Map<String, Integer> worn(ServerPlayerEntity p) {
+        Map<String, Integer> out = new LinkedHashMap<>();
         for (EquipmentSlot slot : ARMOR) {
-            for (String id : in(p.getEquippedStack(slot))) {
-                if (out.size() < MAX && !out.contains(id)) {
-                    out.add(id);
+            for (var e : in(p.getEquippedStack(slot)).entrySet()) {
+                if (out.size() < MAX && !out.containsKey(e.getKey())) {
+                    out.put(e.getKey(), e.getValue());
                 }
             }
         }
@@ -117,10 +168,20 @@ public final class Artifacts {
     }
 
     public static boolean has(ServerPlayerEntity p, String id) {
-        return worn(p).contains(id);
+        return worn(p).containsKey(id);
     }
 
-    private static void write(ItemStack armor, List<String> ids) {
+    /** The set this player wears, or null. */
+    public static Set set(Map<String, Integer> w) {
+        for (Set s : SETS) {
+            if (w.containsKey(s.a()) && w.containsKey(s.b())) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    private static void write(ItemStack armor, Map<String, Integer> ids) {
         List<Text> lore = new ArrayList<>();
         LoreComponent old = armor.get(DataComponentTypes.LORE);
         if (old != null) {
@@ -130,21 +191,52 @@ public final class Artifacts {
                 }
             }
         }
-        for (String id : ids) {
-            Def d = DEFS.get(id);
-            lore.add(Text.literal(d.color() + "✦ " + d.name() + " §7- " + d.what()).styled(x -> x.withItalic(false)));
+        List<String> tag = new ArrayList<>();
+        for (var e : ids.entrySet()) {
+            Def d = DEFS.get(e.getKey());
+            lore.add(Text.literal(d.color() + "✦ " + title(d, e.getValue()) + " §7- " + d.what()).styled(x -> x.withItalic(false)));
+            tag.add(e.getValue() >= 2 ? e.getKey() + "@2" : e.getKey());
         }
         if (ids.isEmpty()) {
             ItemConv.removeTag(armor, IN_ARMOR);
         } else {
-            ItemConv.setTag(armor, IN_ARMOR, String.join(",", ids));
+            ItemConv.setTag(armor, IN_ARMOR, String.join(",", tag));
         }
         armor.set(DataComponentTypes.LORE, new LoreComponent(lore));
     }
 
+    /** Sneak + use: two of the same (plain) artifact become one Greater artifact. */
+    private static boolean combine(ServerPlayerEntity p, ItemStack held, String id) {
+        if (levelOf(held) >= 2) {
+            Msg.actionBar(p, "§c" + Msg.trFor(p, "artifacts.max-level"));
+            return true;
+        }
+        var inv = p.getInventory();
+        for (int i = 0; i < inv.size(); i++) {
+            ItemStack s = inv.getStack(i);
+            if (s != held && !s.isEmpty() && id.equals(ItemConv.tag(s, TAG)) && levelOf(s) == 1) {
+                s.decrement(1);
+                held.decrement(1);
+                ItemStack greater = item(id, 2);
+                if (!inv.insertStack(greater)) {
+                    p.dropItem(greater, false);
+                }
+                p.getEntityWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_ANVIL_USE, SoundCategory.PLAYERS, 0.7f, 1.4f);
+                Msg.actionBar(p, "§d" + Msg.trFor(p, "artifacts.combined", title(DEFS.get(id), 2)));
+                return true;
+            }
+        }
+        Msg.actionBar(p, "§c" + Msg.trFor(p, "artifacts.need-two"));
+        return true;
+    }
+
     private static void use(ServerPlayerEntity p, ItemStack held, String id) {
-        List<String> now = worn(p);
-        if (now.contains(id)) {
+        if (p.isSneaking()) {
+            combine(p, held, id);
+            return;
+        }
+        Map<String, Integer> now = worn(p);
+        if (now.containsKey(id)) {
             Msg.actionBar(p, "§c" + Msg.trFor(p, "artifacts.already"));
             return;
         }
@@ -156,17 +248,22 @@ public final class Artifacts {
             Msg.actionBar(p, "§c" + Msg.trFor(p, "artifacts.full", MAX));
             return;
         }
+        int level = levelOf(held);
         for (EquipmentSlot slot : ARMOR) {
             ItemStack armor = p.getEquippedStack(slot);
             if (armor.isEmpty()) {
                 continue;
             }
-            List<String> ids = in(armor);
-            ids.add(id);
+            Map<String, Integer> ids = in(armor);
+            ids.put(id, level);
             write(armor, ids);
             held.decrement(1);
             p.getEntityWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_SMITHING_TABLE_USE, SoundCategory.PLAYERS, 0.8f, 1.3f);
-            Msg.actionBar(p, "§a" + Msg.trFor(p, "artifacts.set", DEFS.get(id).name()));
+            Msg.actionBar(p, "§a" + Msg.trFor(p, "artifacts.set", title(DEFS.get(id), level)));
+            Set set = set(worn(p));
+            if (set != null && (set.a().equals(id) || set.b().equals(id))) {
+                Msg.send(p, "artifacts.set-made", set.name(), set.what());
+            }
             return;
         }
         Msg.actionBar(p, "§c" + Msg.trFor(p, "artifacts.no-armor"));
@@ -182,14 +279,14 @@ public final class Artifacts {
         for (int i = 0; i < inv.size(); i++) {
             ItemStack s = inv.getStack(i);
             if (!s.isEmpty() && ItemConv.tag(s, IN_ARMOR) != null) {
-                write(s, List.of());
+                write(s, Map.of());
                 lost = true;
             }
         }
         for (EquipmentSlot slot : ARMOR) {
             ItemStack s = p.getEquippedStack(slot);
             if (!s.isEmpty() && ItemConv.tag(s, IN_ARMOR) != null) {
-                write(s, List.of());
+                write(s, Map.of());
                 lost = true;
             }
         }
@@ -209,13 +306,16 @@ public final class Artifacts {
         if (inst == null) {
             return;
         }
-        if (on && !inst.hasModifier(id)) {
-            inst.addTemporaryModifier(new EntityAttributeModifier(id, v, EntityAttributeModifier.Operation.ADD_VALUE));
-        } else if (!on && inst.hasModifier(id)) {
+        var cur = inst.getModifier(id);
+        if (cur != null && (!on || cur.value() != v)) {
             inst.removeModifier(id);
             if (p.getHealth() > p.getMaxHealth()) {
                 p.setHealth(p.getMaxHealth());
             }
+            cur = null;
+        }
+        if (on && cur == null) {
+            inst.addTemporaryModifier(new EntityAttributeModifier(id, v, EntityAttributeModifier.Operation.ADD_VALUE));
         }
     }
 
@@ -224,33 +324,57 @@ public final class Artifacts {
             return;
         }
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
-            List<String> w = worn(p);
-            if (w.contains("magnet_ring")) {
+            Map<String, Integer> w = worn(p);
+            if (w.containsKey("magnet_ring")) {
                 SecretItems.magnetTick(p);
             }
             if (ticks % 20 != 0) {
                 continue;
             }
-            modifier(p, EntityAttributes.MAX_HEALTH, HEART, 8, w.contains("heart_crystal"));
-            modifier(p, EntityAttributes.KNOCKBACK_RESISTANCE, ANCHOR, 1, w.contains("anchor_stone"));
-            for (String id : w) {
-                switch (id) {
-                    case "haste_ring" -> effect(p, StatusEffects.HASTE, 1);
+            Set set = set(w);
+            int plus = set != null && set.name().equals("Prospector") ? 1 : 0;
+            modifier(p, EntityAttributes.MAX_HEALTH, HEART, w.getOrDefault("heart_crystal", 0) * 8, w.containsKey("heart_crystal"));
+            modifier(p, EntityAttributes.KNOCKBACK_RESISTANCE, ANCHOR, 1, w.containsKey("anchor_stone"));
+            if (set != null && set.name().equals("Lifeline")) {
+                effect(p, StatusEffects.REGENERATION, 0);
+            }
+            for (var e : w.entrySet()) {
+                int lv = e.getValue() - 1; // Greater ones are one level higher
+                switch (e.getKey()) {
+                    case "haste_ring" -> effect(p, StatusEffects.HASTE, 1 + lv + plus);
                     case "moon_charm" -> {
                         effect(p, StatusEffects.NIGHT_VISION, 0);
                         if (p.getEntityWorld().isNight()) {
-                            effect(p, StatusEffects.STRENGTH, 0);
+                            effect(p, StatusEffects.STRENGTH, lv);
+                        }
+                    }
+                    case "anchor_stone" -> {
+                        if (lv > 0) {
+                            effect(p, StatusEffects.RESISTANCE, 0);
                         }
                     }
                     case "wind_charm" -> {
-                        effect(p, StatusEffects.JUMP_BOOST, 1);
-                        effect(p, StatusEffects.SPEED, 0);
+                        effect(p, StatusEffects.JUMP_BOOST, 1 + lv);
+                        effect(p, StatusEffects.SPEED, lv);
                     }
-                    case "lucky_clover" -> effect(p, StatusEffects.LUCK, 1);
-                    case "ember_core" -> effect(p, StatusEffects.FIRE_RESISTANCE, 0);
+                    case "lucky_clover" -> effect(p, StatusEffects.LUCK, 1 + lv + plus);
+                    case "ember_core" -> {
+                        effect(p, StatusEffects.FIRE_RESISTANCE, 0);
+                        if (lv > 0) {
+                            effect(p, StatusEffects.STRENGTH, 0);
+                        }
+                    }
                     case "tide_pearl" -> {
                         effect(p, StatusEffects.WATER_BREATHING, 0);
                         effect(p, StatusEffects.DOLPHINS_GRACE, 0);
+                        if (lv > 0) {
+                            effect(p, StatusEffects.CONDUIT_POWER, 0);
+                        }
+                    }
+                    case "magnet_ring" -> {
+                        if (lv > 0) {
+                            effect(p, StatusEffects.HASTE, 0);
+                        }
                     }
                     default -> {
                     }
@@ -271,22 +395,49 @@ public final class Artifacts {
             }
             return ActionResult.PASS;
         });
+        // Storm Rider: no fall damage.
+        net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
+            if (Ac.running() && entity instanceof ServerPlayerEntity p && source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_FALL)) {
+                Set set = set(worn(p));
+                return set == null || !set.name().equals("Storm Rider");
+            }
+            return true;
+        });
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {
             if (!Ac.running() || taken <= 0 || source.getSource() != source.getAttacker() || source.isOf(net.minecraft.entity.damage.DamageTypes.THORNS)) {
                 return;
             }
             if (source.getAttacker() instanceof ServerPlayerEntity a && entity != a) {
-                List<String> w = worn(a);
-                if (w.contains("vampire_fang")) {
-                    a.heal(taken * 0.2f);
+                Map<String, Integer> w = worn(a);
+                Set set = set(w);
+                if (w.containsKey("vampire_fang")) {
+                    a.heal(taken * (w.get("vampire_fang") >= 2 ? 0.35f : 0.2f));
                 }
-                if (w.contains("frost_amulet")) {
-                    entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 1));
+                if (w.containsKey("frost_amulet")) {
+                    entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, w.get("frost_amulet") >= 2 ? 80 : 60,
+                            w.get("frost_amulet") >= 2 ? 2 : 1));
+                }
+                if (set != null && set.name().equals("Deep Freeze")) {
+                    entity.setFrozenTicks(Math.max(entity.getFrozenTicks(), entity.getMinFreezeDamageTicks() + 60));
+                    entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 40, 3));
+                }
+                if (set != null && set.name().equals("Night Blaze")) {
+                    entity.setOnFireFor(4);
+                }
+                if (w.getOrDefault("ember_core", 0) >= 2) {
+                    entity.setOnFireFor(3);
                 }
             }
-            if (entity instanceof ServerPlayerEntity v && source.getAttacker() instanceof LivingEntity a && a != v
-                    && has(v, "thorn_heart")) {
-                a.damage(v.getEntityWorld(), v.getDamageSources().thorns(v), taken * 0.25f);
+            if (entity instanceof ServerPlayerEntity v && source.getAttacker() instanceof LivingEntity a && a != v) {
+                Map<String, Integer> w = worn(v);
+                if (w.containsKey("thorn_heart")) {
+                    float back = taken * (w.get("thorn_heart") >= 2 ? 0.45f : 0.25f);
+                    a.damage(v.getEntityWorld(), v.getDamageSources().thorns(v), back);
+                    Set set = set(w);
+                    if (set != null && set.name().equals("Blood Thorns")) {
+                        v.heal(back * 0.5f);
+                    }
+                }
             }
         });
     }
