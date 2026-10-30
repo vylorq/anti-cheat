@@ -491,6 +491,31 @@ public final class TeamManager {
         return Result.OK;
     }
 
+    /** Leader or officer: buys the next tier of a base upgrade from the bank. TOO_MANY when it's already at max. */
+    public synchronized Result buyUpgrade(UUID by, String byName, String what, int maxTier, int price) {
+        Team t = teamOf(by);
+        if (t == null) {
+            return Result.NOT_IN_TEAM;
+        }
+        if (!t.role(by).atLeast(Team.Role.OFFICER)) {
+            return Result.NOT_ALLOWED;
+        }
+        if (t.upgrades == null) {
+            t.upgrades = new java.util.HashMap<>();
+        }
+        int tier = t.upgrades.getOrDefault(what, 0);
+        if (tier >= maxTier) {
+            return Result.TOO_MANY;
+        }
+        if (price > t.bank) {
+            return Result.NOT_ENOUGH;
+        }
+        t.bank -= price;
+        t.upgrades.put(what, tier + 1);
+        bankLog(t, clock.nowMillis() + "|" + byName + "|-" + price);
+        return Result.OK;
+    }
+
     public synchronized War warOf(String teamId) {
         for (War w : data.wars) {
             if (w.involves(teamId)) {

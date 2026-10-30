@@ -311,6 +311,19 @@ def lore_pool(one_in):
     return {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": len(entries) * (one_in - 1)}] + entries}
 
 
+
+def mount_pool(one_in):
+    """A Mount Whistle (Mounts.java) in one chest out of one_in."""
+    kinds = {"steed": ("goat_horn", "Storm Steed Whistle"), "stallion": ("bone_meal", "Bone Stallion Whistle"),
+             "ghast": ("ghast_tear", "Sky Ghast Whistle")}
+    entries = [{"type": "minecraft:item", "name": f"minecraft:{item}", "weight": 1, "functions": [{
+        "function": "minecraft:set_components", "components": {
+            "minecraft:custom_data": {"vigil_make": f"mount:{k}"},
+            "minecraft:item_name": {"text": name, "color": "light_purple"}}}]}
+               for k, (item, name) in kinds.items()]
+    return {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": len(entries) * (one_in - 1)}] + entries}
+
+
 CHESTS = {
     "sky_island": [secret([("phoenix_feather", 2), ("seeker_compass", 1)]),
                    filler([("feather", 8, 2, 6), ("emerald", 6, 1, 4), ("gold_ingot", 6, 1, 4), ("phantom_membrane", 5, 1, 3),
@@ -3233,7 +3246,7 @@ def build():
         write(f"recipe/{item_id}.json", recipe(item_id))
     for name, pools in CHESTS.items():
         # The arena's altar chest: sealed until the boss is beaten, so it holds a little more.
-        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [bonus(), bonus(), book(), artifact(3)]})
+        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [bonus(), bonus(), book(), artifact(3), mount_pool(6)]})
     for name, (fn, biomes, step, height, heightmap, spacing, sep, salt, terrain) in STRUCTURES.items():
         inner = arena_doors(name, fn())
         arena = landmark(name, grand(name, inner), inner.size)
@@ -3257,7 +3270,7 @@ def build():
             CHESTS[name][-1], CHESTS[name][0], bonus(), book(), artifact(15), lore_pool(5)]})
         # Locked vaults: the best loot in the structure, behind a Dungeon Key.
         write(f"loot_table/chests/{name}_keyvault.json", {"type": "minecraft:chest", "pools": [
-            CHESTS[name][-1], CHESTS[name][-1], CHESTS[name][0], bonus(), bonus(), bonus(), book(), book(), artifact(2),
+            CHESTS[name][-1], CHESTS[name][-1], CHESTS[name][0], bonus(), bonus(), bonus(), book(), book(), artifact(2), mount_pool(4),
             {"rolls": 1, "entries": [{"type": "minecraft:item", "name": "minecraft:netherite_ingot", "weight": 1},
                                      {"type": "minecraft:item", "name": "minecraft:enchanted_golden_apple", "weight": 1},
                                      {"type": "minecraft:item", "name": "minecraft:totem_of_undying", "weight": 2}]}]})

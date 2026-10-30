@@ -64,6 +64,7 @@ public final class AntiCheatMod implements ModInitializer {
         com.vylorq.anticheat.feature.OrbitalStrike.register();
         com.vylorq.anticheat.feature.WorldWipe.register();
         com.vylorq.anticheat.feature.Pets.register();
+        com.vylorq.anticheat.feature.Mounts.register();
         com.vylorq.anticheat.feature.Artifacts.register();
         com.vylorq.anticheat.feature.WeaponSockets.register();
         com.vylorq.anticheat.feature.Skills.register();

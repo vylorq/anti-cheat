@@ -149,7 +149,8 @@ public final class Teams {
         if (t.vaultSlots > 0) {
             return rows(t.vaultSlots);
         }
-        return levelSlots(TeamManager.level(t.xp));
+        // The Bigger Vault upgrade adds a row per tier.
+        return rows(levelSlots(TeamManager.level(t.xp)) + 9 * TeamUpgrades.tier(t, "vault"));
     }
 
     /** The vault slots a team gets at this level (from the config; the last one set counts for higher levels). */
