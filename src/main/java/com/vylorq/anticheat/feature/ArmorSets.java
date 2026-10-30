@@ -102,6 +102,22 @@ public final class ArmorSets {
         add(new Set("tide", "Tide Armor", "§3", false, "craft", items("iron"), new int[]{3, 7, 6, 3}, 1, 0, 0, 0,
                 "tide", "diamond", 0, List.of(fx(StatusEffects.WATER_BREATHING, 0), fx(StatusEffects.DOLPHINS_GRACE, 0)), OnHit.NONE,
                 "Water Breathing, Dolphin's Grace"));
+        // ---- made from the newer gems (and Phantom Silk from phantom membrane): between diamond and netherite
+        add(new Set("ember", "Ember Armor", "§6", false, "craft", items("netherite"), new int[]{3, 8, 6, 3}, 2.5, 0.05, 0, 0,
+                null, null, 0, List.of(fx(StatusEffects.FIRE_RESISTANCE, 0), fx(StatusEffects.STRENGTH, 0)), OnHit.BURN,
+                "Fire Resistance, Strength; walk on lava; whoever hits you catches fire"));
+        add(new Set("silk", "Phantom Silk Armor", "§d", false, "craft", items("chain"), new int[]{3, 6, 5, 3}, 1, 0, 0, 0.04,
+                null, null, 0, List.of(fx(StatusEffects.SLOW_FALLING, 0), fx(StatusEffects.SPEED, 0)), OnHit.NONE,
+                "Slow Falling, Speed; double jump; invisible while sneaking"));
+        add(new Set("tidecrown", "Tidecrown Armor", "§3", false, "craft", items("diamond"), new int[]{3, 8, 6, 3}, 2, 0, 0, 0,
+                null, null, 0, List.of(fx(StatusEffects.WATER_BREATHING, 0), fx(StatusEffects.DOLPHINS_GRACE, 0), fx(StatusEffects.CONDUIT_POWER, 0)),
+                OnHit.LIGHTNING, "Water Breathing, Dolphin's Grace, Conduit Power; lightning strikes those who hit you"));
+        add(new Set("golem", "Golem Plate", "§7", false, "craft", items("netherite"), new int[]{5, 10, 8, 5}, 4, 0.25, 2, -0.03,
+                null, null, 0, List.of(fx(StatusEffects.RESISTANCE, 1)), OnHit.THORNS,
+                "Resistance II, can't be knocked back, more health; a third of every hit goes back"));
+        add(new Set("shadowstep", "Shadowstep Armor", "§5", false, "craft", items("netherite"), new int[]{3, 8, 6, 3}, 2.5, 0, 0, 0.02,
+                null, null, 0, List.of(fx(StatusEffects.NIGHT_VISION, 0), fx(StatusEffects.SPEED, 1)), OnHit.NONE,
+                "Night Vision, Speed II; sneak in the air to blink forward"));
         // ---- secret (bosses and their structures)
         add(new Set("abyssal", "Abyssal Armor", "§3§l", true, "drowned_warden", items("netherite"), new int[]{4, 9, 7, 4}, 3.5, 0.1, 2, 0,
                 "tide", "lapis", 0, List.of(fx(StatusEffects.CONDUIT_POWER, 0), fx(StatusEffects.DOLPHINS_GRACE, 0),
@@ -263,8 +279,98 @@ public final class ArmorSets {
             p.addStatusEffect(new StatusEffectInstance(e.getKey(), e.getKey() == StatusEffects.NIGHT_VISION ? 320 : 60, e.getValue(),
                     true, false, true));
         }
-        if (s.id().equals("hollow") && p.isSneaking()) {
+        if ((s.id().equals("hollow") || s.id().equals("silk")) && p.isSneaking()) {
             p.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, 30, 0, true, false, true));
+        }
+    }
+
+    private static final Map<java.util.UUID, Long> NEXT_MOVE = new java.util.HashMap<>();
+    private static final java.util.Set<java.util.UUID> AIR_JUMPED = new java.util.HashSet<>();
+    private static final java.util.Set<java.util.UUID> WAS_SNEAKING = new java.util.HashSet<>();
+
+    /**
+     * Every tick, for whoever wears one of these sets: Ember Armor hardens the lava under their feet into magma for a
+     * moment (so they walk on it); Phantom Silk gives a second jump in the air (sneak while falling); Shadowstep blinks
+     * them forward six blocks (sneak in the air). Each move waits a little before it works again.
+     */
+    static void moves(long ticks) {
+        for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
+            boolean sneaking = p.isSneaking();
+            boolean pressed = sneaking && !WAS_SNEAKING.contains(p.getUuid());
+            if (sneaking) {
+                WAS_SNEAKING.add(p.getUuid());
+            } else {
+                WAS_SNEAKING.remove(p.getUuid());
+            }
+            if (p.isOnGround()) {
+                AIR_JUMPED.remove(p.getUuid());
+            }
+            if (ticks % 4 != 0 && !pressed) {
+                continue;
+            }
+            Set s = wearing(p);
+            if (s == null || p.isSpectator()) {
+                continue;
+            }
+            ServerWorld w = p.getEntityWorld();
+            long now = w.getTime();
+            switch (s.id()) {
+                case "ember" -> {
+                    if (ticks % 4 == 0 && !sneaking) {
+                        var feet = p.getBlockPos().down();
+                        for (int dx = -1; dx <= 1; dx++) {
+                            for (int dz = -1; dz <= 1; dz++) {
+                                var q = feet.add(dx, 0, dz);
+                                var st = w.getBlockState(q);
+                                if (st.isOf(net.minecraft.block.Blocks.LAVA) && st.getFluidState().isStill()
+                                        && w.getBlockState(q.up()).isAir() && !WorldGuard.claimedOrLobby(w, q)) {
+                                    w.setBlockState(q, net.minecraft.block.Blocks.MAGMA_BLOCK.getDefaultState());
+                                    OwnerPowers.later(60, () -> {
+                                        if (w.getBlockState(q).isOf(net.minecraft.block.Blocks.MAGMA_BLOCK)) {
+                                            w.setBlockState(q, net.minecraft.block.Blocks.LAVA.getDefaultState());
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+                case "silk" -> {
+                    if (pressed && !p.isOnGround() && !p.isTouchingWater() && AIR_JUMPED.add(p.getUuid())) {
+                        var v = p.getVelocity();
+                        p.setVelocity(v.x * 1.2, 0.62, v.z * 1.2);
+                        Movement.grace(p, 30);
+                        p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(p));
+                        p.fallDistance = 0;
+                        w.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD, p.getX(), p.getY(), p.getZ(), 10, 0.3, 0.1, 0.3, 0.02);
+                    }
+                }
+                case "shadowstep" -> {
+                    if (pressed && !p.isOnGround() && now >= NEXT_MOVE.getOrDefault(p.getUuid(), 0L)) {
+                        var look = p.getRotationVector().multiply(1, 0, 1).normalize();
+                        var to = p.getEntityPos();
+                        for (int i = 6; i >= 1; i--) {
+                            var c = p.getEntityPos().add(look.multiply(i));
+                            var box = p.getBoundingBox().offset(c.subtract(p.getEntityPos()));
+                            if (w.isSpaceEmpty(p, box)) {
+                                to = c;
+                                break;
+                            }
+                        }
+                        if (!to.equals(p.getEntityPos()) && !WorldGuard.claimedOrLobby(w, net.minecraft.util.math.BlockPos.ofFloored(to))) {
+                            w.spawnParticles(net.minecraft.particle.ParticleTypes.REVERSE_PORTAL, p.getX(), p.getY() + 1, p.getZ(), 20, 0.3, 0.6, 0.3, 0.05);
+                            Movement.grace(p, 30);
+                            p.requestTeleport(to.x, to.y, to.z);
+                            p.fallDistance = 0;
+                            w.playSound(null, p.getX(), p.getY(), p.getZ(), net.minecraft.sound.SoundEvents.ENTITY_ENDERMAN_TELEPORT,
+                                    net.minecraft.sound.SoundCategory.PLAYERS, 0.6f, 1.5f);
+                            NEXT_MOVE.put(p.getUuid(), now + 60);
+                        }
+                    }
+                }
+                default -> {
+                }
+            }
         }
     }
 
@@ -303,6 +409,7 @@ public final class ArmorSets {
     // ---------------------------------------------------------------- hooks
 
     public static void tick(long ticks) {
+        moves(ticks);
         if (ticks % 20 != 0) {
             return;
         }

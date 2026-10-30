@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:phantom_membrane",
+    "A": "minecraft:diamond_boots"
+  },
+  "result": {
+    "id": "minecraft:chainmail_boots",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:silk:3"
+      },
+      "minecraft:item_name": {
+        "text": "Phantom Silk Boots",
+        "color": "#cfc8ee"
+      },
+      "minecraft:item_model": "vigil:x2784d89cc4",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x2784d89cc4"
+        ]
+      }
+    }
+  }
+}

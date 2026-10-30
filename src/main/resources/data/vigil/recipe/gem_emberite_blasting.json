@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": {
+    "fabric:type": "fabric:custom_data",
+    "base": "minecraft:disc_fragment_5",
+    "nbt": "{vigil_raw:\"emberite\"}"
+  },
+  "result": {
+    "id": "minecraft:disc_fragment_5",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_gem": "emberite"
+      },
+      "minecraft:custom_name": {
+        "text": "Emberite",
+        "color": "#ff7a1a",
+        "italic": false
+      },
+      "minecraft:lore": [
+        {
+          "text": "Makes Ember Armor.",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:rarity": "rare",
+      "minecraft:item_model": "vigil:x4d018238f6",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x4d018238f6"
+        ]
+      }
+    }
+  },
+  "experience": 1.0,
+  "cookingtime": 100
+}

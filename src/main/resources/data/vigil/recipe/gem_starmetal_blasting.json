@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": {
+    "fabric:type": "fabric:custom_data",
+    "base": "minecraft:disc_fragment_5",
+    "nbt": "{vigil_raw:\"starmetal\"}"
+  },
+  "result": {
+    "id": "minecraft:disc_fragment_5",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_gem": "starmetal"
+      },
+      "minecraft:custom_name": {
+        "text": "Starmetal",
+        "color": "#b9c0ff",
+        "italic": false
+      },
+      "minecraft:lore": [
+        {
+          "text": "Makes Golem Plate. Only found where meteors fell.",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:rarity": "rare",
+      "minecraft:item_model": "vigil:xd5d84a5d40",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:xd5d84a5d40"
+        ]
+      }
+    }
+  },
+  "experience": 1.0,
+  "cookingtime": 100
+}

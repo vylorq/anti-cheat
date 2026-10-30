@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": {
+    "fabric:type": "fabric:custom_data",
+    "base": "minecraft:disc_fragment_5",
+    "nbt": "{vigil_raw:\"soulstone\"}"
+  },
+  "result": {
+    "id": "minecraft:disc_fragment_5",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_gem": "soulstone"
+      },
+      "minecraft:custom_name": {
+        "text": "Soulstone",
+        "color": "#3fd6c8",
+        "italic": false
+      },
+      "minecraft:lore": [
+        {
+          "text": "Makes Shadowstep Armor.",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:rarity": "rare",
+      "minecraft:item_model": "vigil:xf3538b58ef",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:xf3538b58ef"
+        ]
+      }
+    }
+  },
+  "experience": 1.0,
+  "cookingtime": 200
+}

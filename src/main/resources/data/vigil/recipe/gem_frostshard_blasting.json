@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": {
+    "fabric:type": "fabric:custom_data",
+    "base": "minecraft:disc_fragment_5",
+    "nbt": "{vigil_raw:\"frostshard\"}"
+  },
+  "result": {
+    "id": "minecraft:disc_fragment_5",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_gem": "frostshard"
+      },
+      "minecraft:custom_name": {
+        "text": "Frostshard",
+        "color": "#7fd4ff",
+        "italic": false
+      },
+      "minecraft:lore": [
+        {
+          "text": "Makes Tidecrown Armor.",
+          "color": "gray",
+          "italic": false
+        }
+      ],
+      "minecraft:rarity": "rare",
+      "minecraft:item_model": "vigil:xb8c768616f",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:xb8c768616f"
+        ]
+      }
+    }
+  },
+  "experience": 1.0,
+  "cookingtime": 100
+}

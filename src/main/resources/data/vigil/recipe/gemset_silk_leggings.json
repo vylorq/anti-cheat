@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:phantom_membrane",
+    "A": "minecraft:diamond_leggings"
+  },
+  "result": {
+    "id": "minecraft:chainmail_leggings",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:silk:2"
+      },
+      "minecraft:item_name": {
+        "text": "Phantom Silk Leggings",
+        "color": "#cfc8ee"
+      },
+      "minecraft:item_model": "vigil:x7193fab523",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x7193fab523"
+        ]
+      }
+    }
+  }
+}

@@ -129,7 +129,7 @@ public final class Meteors {
         land(w, ground);
     }
 
-    /** A small meteorite on the ground: magma round a heart of rare ore (a gem, now and then ancient debris). */
+    /** A small meteorite on the ground: magma round a heart of rare ore (often Starmetal, a gem, now and then ancient debris). */
     static void land(ServerWorld w, BlockPos ground) {
         if (WorldGuard.claimedOrLobby(w, ground) || Builds.protects(w, ground) || TempestKeep.protects(w, ground) || EdgeKeep.protects(w, ground)
                 || !free(w, ground) || w.getBlockState(ground.down()).isAir()) {
@@ -137,8 +137,9 @@ public final class Meteors {
         }
         var r = w.getRandom();
         var gems = Gems.all();
+        // Starmetal comes only from the sky: half the meteorites carry it.
         BlockState heart = r.nextInt(6) == 0 ? Blocks.ANCIENT_DEBRIS.getDefaultState()
-                : Gems.oreState(gems.get(r.nextInt(gems.size())));
+                : r.nextBoolean() ? Gems.oreState(Gems.GEMS.get("starmetal")) : Gems.oreState(gems.get(r.nextInt(gems.size())));
         w.setBlockState(ground, heart);
         for (BlockPos q : List.of(ground.east(), ground.west(), ground.north(), ground.south(), ground.up())) {
             if (free(w, q) && r.nextInt(4) != 0) {

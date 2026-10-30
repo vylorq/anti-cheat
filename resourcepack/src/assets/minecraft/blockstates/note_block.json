@@ -13,6 +13,26 @@
     {
       "when": {
         "instrument": "dragon",
+        "note": "6",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/ore_emberite"
+      }
+    },
+    {
+      "when": {
+        "instrument": "dragon",
+        "note": "7",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/ore_frostshard"
+      }
+    },
+    {
+      "when": {
+        "instrument": "dragon",
         "note": "1",
         "powered": "false"
       },
@@ -28,6 +48,26 @@
       },
       "apply": {
         "model": "vigil:block/ore_sapphire"
+      }
+    },
+    {
+      "when": {
+        "instrument": "dragon",
+        "note": "9",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/ore_soulstone"
+      }
+    },
+    {
+      "when": {
+        "instrument": "dragon",
+        "note": "8",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "vigil:block/ore_starmetal"
       }
     },
     {
