@@ -280,6 +280,9 @@ public final class Gems {
                 var set = ArmorSets.SETS.get(parts[1]);
                 return set == null ? null : ArmorSets.piece(set, Integer.parseInt(parts[2]));
             }
+            case "pet" -> {
+                return Pets.KINDS.contains(parts[1]) ? Pets.token(parts[1]) : null;
+            }
             case "block" -> {
                 return SpecialBlocks.item(parts[1]);
             }

@@ -53,7 +53,7 @@ def main():
     # old generated files out first
     rdir = os.path.join(DATA, "recipe")
     for f in os.listdir(rdir):
-        if f.startswith(("gem_", "armor_", "ruby_", "bloodstone_", "sapphire_", "topaz_", "gemset_", "block_")):
+        if f.startswith(("gem_", "armor_", "ruby_", "bloodstone_", "sapphire_", "topaz_", "gemset_", "block_", "pet_")):
             os.remove(os.path.join(rdir, f))
     n = 0
     # Raw chunk -> gem (furnace and blast furnace)
@@ -143,6 +143,17 @@ def main():
                                          "result": {"id": item, "count": count, "components": {
                                              "minecraft:custom_data": {"vigil_make": f"block:{b}"},
                                              "minecraft:item_name": {"text": title, "color": color}}}})
+        n += 1
+    # Pet Tokens (Pets.java)
+    pets = {"wolf": (["BBB", "BNB", "BBB"], {"B": "minecraft:bone", "N": "minecraft:name_tag"}, "minecraft:bone", "Wolf Pet", "white"),
+            "fox": (["SSS", "SNS", "SSS"], {"S": "minecraft:sweet_berries", "N": "minecraft:name_tag"}, "minecraft:rabbit_foot", "Fox Pet", "gold"),
+            "golem": (["IPI", "INI", "III"], {"I": "minecraft:iron_block", "P": "minecraft:carved_pumpkin", "N": "minecraft:name_tag"},
+                      "minecraft:iron_nugget", "Golem Pet", "gray")}
+    for k, (pattern, key, item, title, color) in pets.items():
+        write(f"recipe/pet_{k}.json", {"type": "minecraft:crafting_shaped", "category": "misc", "pattern": pattern, "key": key,
+                                       "result": {"id": item, "count": 1, "components": {
+                                           "minecraft:custom_data": {"vigil_make": f"pet:{k}"},
+                                           "minecraft:item_name": {"text": title, "color": color}}}})
         n += 1
     # Bloodstone: the Lantern of Dawn, and Boiled Armor
     write("recipe/bloodstone_lantern.json", {"type": "minecraft:crafting_shapeless", "category": "misc",

@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BBB",
+    "BNB",
+    "BBB"
+  ],
+  "key": {
+    "B": "minecraft:bone",
+    "N": "minecraft:name_tag"
+  },
+  "result": {
+    "id": "minecraft:bone",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "pet:wolf"
+      },
+      "minecraft:item_name": {
+        "text": "Wolf Pet",
+        "color": "white"
+      }
+    }
+  }
+}
