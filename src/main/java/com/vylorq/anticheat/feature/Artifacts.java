@@ -47,7 +47,7 @@ public final class Artifacts {
     static final String LEVEL = "vigil_artifact_lvl";
     public static final int MAX = 2;
 
-    record Def(String id, Item item, String name, String color, String what) {
+    public record Def(String id, Item item, String name, String color, String what) {
     }
 
     public static final Map<String, Def> DEFS = new LinkedHashMap<>();
@@ -72,7 +72,7 @@ public final class Artifacts {
     }
 
     /** Pairs that make a set when both are worn: id -> (first, second, what it adds). */
-    record Set(String name, String a, String b, String what) {
+    public record Set(String name, String a, String b, String what) {
     }
 
     public static final List<Set> SETS = List.of(
