@@ -313,7 +313,6 @@ public final class Dragons {
         for (LivingEntity e : near) {
             Vec3d away = e.getEntityPos().subtract(p.getEntityPos()).normalize().multiply(1.4);
             e.addVelocity(away.x, 0.5, away.z);
-            e.velocityModified = true;
             e.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 100, 0));
             e.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 100, 1));
         }
