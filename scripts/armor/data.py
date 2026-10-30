@@ -118,32 +118,6 @@ def main():
                                               "result": made(f"minecraft:chainmail_{p}", f"armor:silk:{i}", f"Phantom Silk {p.capitalize()}",
                                                              "#cfc8ee", f"armor_silk_{p}")})
         n += 1
-    # Special blocks (SpecialBlocks.java): the Elevator, the Night Lamp and the Trophy Pedestal.
-    blocks = {"elevator": (["WWW", "WEW", "WWW"], {"W": "#minecraft:wool", "E": "minecraft:ender_pearl"}, "minecraft:chiseled_tuff_bricks",
-                           "Elevator", "aqua", 2),
-              "night_lamp": ([" G ", "GLG", " D "], {"G": "minecraft:glowstone_dust", "L": "minecraft:redstone_lamp",
-                                                     "D": "minecraft:daylight_detector"}, "minecraft:redstone_lamp", "Night Lamp", "yellow", 1),
-              "pedestal": (["QGQ", " Q ", "QQQ"], {"Q": "minecraft:quartz_block", "G": "minecraft:gold_ingot"},
-                           "minecraft:chiseled_quartz_block", "Trophy Pedestal", "gold", 1),
-              # Machines (Machines.java)
-              "miner": (["IPI", "RBR", "III"], {"I": "minecraft:iron_ingot", "P": "minecraft:diamond_pickaxe", "R": "minecraft:redstone",
-                                                "B": "minecraft:blast_furnace"}, "minecraft:blast_furnace", "Auto-Miner", "gold", 1),
-              "crusher": (["IAI", "IBI", "III"], {"I": "minecraft:iron_ingot", "A": "minecraft:anvil", "B": "minecraft:barrel"},
-                          "minecraft:barrel", "Ore Crusher", "gray", 1),
-              "farm": ([" H ", "WCW", "BBB"], {"H": "minecraft:diamond_hoe", "W": "minecraft:water_bucket", "C": "minecraft:composter",
-                                               "B": "minecraft:bone_block"}, "minecraft:composter", "Auto-Farm", "green", 1),
-              "grinder": (["SSS", "SGS", "IRI"], {"S": "minecraft:iron_sword", "G": "minecraft:grindstone", "I": "minecraft:iron_block",
-                                                  "R": "minecraft:redstone_block"}, "minecraft:grindstone", "Mob Grinder", "red", 1),
-              "pad": (["EEE", "EOE", "EEE"], {"E": "minecraft:ender_pearl", "O": "minecraft:crying_obsidian"},
-                      "minecraft:lodestone", "Teleport Pad", "light_purple", 1),
-              "sorter": (["CHC", "HOH", "CHC"], {"C": "minecraft:copper_ingot", "H": "minecraft:hopper", "O": "minecraft:observer"},
-                         "minecraft:chiseled_copper", "Item Sorter", "dark_aqua", 1)}
-    for b, (pattern, key, item, title, color, count) in blocks.items():
-        write(f"recipe/block_{b}.json", {"type": "minecraft:crafting_shaped", "category": "building", "pattern": pattern, "key": key,
-                                         "result": {"id": item, "count": count, "components": {
-                                             "minecraft:custom_data": {"vigil_make": f"block:{b}"},
-                                             "minecraft:item_name": {"text": title, "color": color}}}})
-        n += 1
     # Pet Tokens (Pets.java)
     pets = {"wolf": (["BBB", "BNB", "BBB"], {"B": "minecraft:bone", "N": "minecraft:name_tag"}, "minecraft:bone", "Wolf Pet", "white"),
             "fox": (["SSS", "SNS", "SSS"], {"S": "minecraft:sweet_berries", "N": "minecraft:name_tag"}, "minecraft:rabbit_foot", "Fox Pet", "gold"),

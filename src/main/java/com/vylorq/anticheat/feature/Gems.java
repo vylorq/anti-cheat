@@ -283,9 +283,6 @@ public final class Gems {
             case "pet" -> {
                 return Pets.KINDS.contains(parts[1]) ? Pets.token(parts[1]) : null;
             }
-            case "block" -> {
-                return SpecialBlocks.item(parts[1]);
-            }
             case "dawn_lantern" -> {
                 return BoiledOmens.lantern();
             }

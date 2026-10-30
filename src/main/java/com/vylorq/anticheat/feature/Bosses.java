@@ -1784,12 +1784,8 @@ public final class Bosses {
         }
         s.set(DataComponentTypes.LORE, new net.minecraft.component.type.LoreComponent(lore));
         s.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
-        com.vylorq.anticheat.util.ItemConv.setTag(s, TROPHY_TAG, "1");
         return s;
     }
-
-    /** Marks a boss trophy (a Trophy Pedestal shows its name). */
-    public static final String TROPHY_TAG = "vigil_trophy";
 
     // ---------------------------------------------------------------- thrown rocks and ice
 

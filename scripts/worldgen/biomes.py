@@ -73,7 +73,7 @@ def caves():
         "direction": "down", "allowed_placement": {"type": "minecraft:matching_blocks", "blocks": "minecraft:air"},
         "prioritize_tip": True, "layers": [
             {"height": {"type": "minecraft:uniform", "min_inclusive": 1, "max_inclusive": 4},
-             "provider": {"type": "minecraft:simple_state_provider", "state": {"Name": "minecraft:chain", "Properties": {"axis": "y", "waterlogged": "false"}}}},
+             "provider": {"type": "minecraft:simple_state_provider", "state": {"Name": "minecraft:iron_chain", "Properties": {"axis": "y", "waterlogged": "false"}}}},
             {"height": 1, "provider": {"type": "minecraft:simple_state_provider",
                                        "state": {"Name": "minecraft:lantern", "Properties": {"hanging": "true", "waterlogged": "false"}}}}]}})
     write("worldgen/placed_feature/cave_lanterns.json", {"feature": "vigil:cave_lanterns", "placement": ceiling(2, -40, 50)})

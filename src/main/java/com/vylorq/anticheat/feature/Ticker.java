@@ -65,7 +65,6 @@ public final class Ticker {
         TempestKeep.tick(ticks);
         EdgeKeep.tick(ticks);
         StructureMobs.tick(ticks);
-        SpecialBlocks.tick(ticks);
         Pets.tick(ticks);
         OwnerXray.tick(ticks);
         LobbyFeature.seasonFx(ticks);
