@@ -66,7 +66,13 @@ public final class Ticker {
         EdgeKeep.tick(ticks);
         StructureMobs.tick(ticks);
         Pets.tick(ticks);
+        Mounts.tick(ticks);
         Artifacts.tick(ticks);
+        WeatherEvents.tick(ticks);
+        ArenaSeasons.tick(ticks);
+        TeamUpgrades.tick(ticks);
+        Skills.tick(ticks);
+        Achievements.tick(ticks);
         OwnerXray.tick(ticks);
         LobbyFeature.seasonFx(ticks);
         Builds.tick(ticks);

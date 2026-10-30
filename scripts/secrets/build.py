@@ -311,6 +311,19 @@ def lore_pool(one_in):
     return {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": len(entries) * (one_in - 1)}] + entries}
 
 
+
+def mount_pool(one_in):
+    """A Mount Whistle (Mounts.java) in one chest out of one_in."""
+    kinds = {"steed": ("goat_horn", "Storm Steed Whistle"), "stallion": ("bone_meal", "Bone Stallion Whistle"),
+             "ghast": ("ghast_tear", "Sky Ghast Whistle")}
+    entries = [{"type": "minecraft:item", "name": f"minecraft:{item}", "weight": 1, "functions": [{
+        "function": "minecraft:set_components", "components": {
+            "minecraft:custom_data": {"vigil_make": f"mount:{k}"},
+            "minecraft:item_name": {"text": name, "color": "light_purple"}}}]}
+               for k, (item, name) in kinds.items()]
+    return {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": len(entries) * (one_in - 1)}] + entries}
+
+
 CHESTS = {
     "sky_island": [secret([("phoenix_feather", 2), ("seeker_compass", 1)]),
                    filler([("feather", 8, 2, 6), ("emerald", 6, 1, 4), ("gold_ingot", 6, 1, 4), ("phantom_membrane", 5, 1, 3),
@@ -357,6 +370,15 @@ CHESTS = {
     "watchers_hollow": [secret([("voidblade", 1), ("tidecaller", 1)]), secret([("phoenix_feather", 1)]),
                         filler([("ender_pearl", 8, 1, 3), ("echo_shard", 4, 1, 2), ("sculk", 8, 2, 6), ("emerald", 6, 1, 4),
                                 ("iron_ingot", 8, 2, 6)])],
+    "warped_shrine": [secret([("shadow_cloak", 2), ("voidblade", 1)]),
+                      filler([("warped_fungus", 8, 1, 4), ("ender_pearl", 6, 1, 3), ("gold_ingot", 8, 1, 5), ("quartz", 6, 3, 8),
+                              ("twisting_vines", 6, 2, 6), ("iron_ingot", 6, 2, 5), ("netherite_scrap", 1, 1, 1)])],
+    "cinder_keep": [secret([("phoenix_feather", 2), ("stormbreaker", 1)]),
+                    filler([("magma_cream", 8, 2, 6), ("blaze_powder", 8, 2, 6), ("gold_ingot", 8, 2, 6), ("basalt", 6, 4, 10),
+                            ("fire_charge", 6, 2, 6), ("netherite_scrap", 2, 1, 1), ("diamond", 2, 1, 2)])],
+    "chorus_garden": [secret([("voidblade", 1), ("seeker_compass", 1), ("phoenix_feather", 1)]),
+                      filler([("chorus_fruit", 10, 2, 8), ("popped_chorus_fruit", 6, 2, 6), ("ender_pearl", 8, 1, 4), ("end_rod", 4, 1, 3),
+                              ("emerald", 6, 1, 4), ("shulker_shell", 1, 1, 1), ("diamond", 3, 1, 2)])],
     "volcano_forge": [secret([("phoenix_feather", 2), ("stormbreaker", 1)]),
                       filler([("magma_cream", 8, 2, 6), ("blaze_rod", 6, 1, 4), ("gold_ingot", 8, 2, 6), ("obsidian", 6, 2, 6),
                               ("iron_ingot", 8, 2, 6), ("netherite_scrap", 1, 1, 1), ("diamond", 2, 1, 2)])],
@@ -1360,6 +1382,86 @@ def soul_sanctum():
     return themed_arena("soul_sanctum", _soul_deco)
 
 
+def _warped_deco(t, th, S, c, Hh):
+    """The Warped Shrine: huge warped fungi under the roof, twisting vines climbing up, soul fire pits, and a ring of
+    shroomlights round the shaman's circle."""
+    import math
+    import random as _r
+    r = _r.Random(31)
+    for (fx, fz) in [(5, 5), (S - 6, 5), (5, S - 9), (S - 6, S - 9), (c, 4)]:
+        for y in range(1, Hh - 4):
+            t.set(fx, y, fz, "warped_stem", axis="y")
+        for dx in range(-2, 3):
+            for dz in range(-2, 3):
+                if abs(dx) + abs(dz) < 4:
+                    t.set(fx + dx, Hh - 4, fz + dz, "warped_wart_block")
+                    if r.random() < 0.3:
+                        t.set(fx + dx, Hh - 5, fz + dz, "shroomlight")
+    for _ in range(26):
+        x, z = r.randint(2, S - 3), r.randint(2, S - 3)
+        if t.blocks.get((x, 1, z), ("air",))[0] == "air" and math.hypot(x - c, z - c) > 6:
+            h = r.randint(2, 6)
+            for y in range(1, 1 + h):
+                t.set(x, y, z, "twisting_vines_plant" if y < h else "twisting_vines", **({} if y < h else {"age": 20}))
+    for (x, z) in [(c - 6, c), (c + 6, c), (c, c - 6)]:
+        t.set(x, 0, z, "soul_soil")
+        t.set(x, 1, z, "soul_fire")
+    ring(t, c, c, 4.5, 5.2, 0, "shroomlight")
+
+
+def warped_shrine():
+    """A shrine of nether brick and warped stems in the warped forest, where the Warped Shaman calls the void."""
+    return themed_arena("warped_shrine", _warped_deco, height=14)
+
+
+def _cinder_deco(t, th, S, c, Hh):
+    """The Cinder Keep: a channel of lava down the middle under a basalt bridge, cauldrons of lava hanging on chains,
+    and braziers of fire along the walls."""
+    for z in range(3, S - 7):
+        for x in (c - 7, c + 7):
+            t.set(x, 0, z, "lava", level=0)
+    for x in range(c - 8, c + 9):
+        t.set(x, 0, 2, th["floor"][0])
+    for (x, z) in [(c - 4, c - 4), (c + 4, c - 4), (c - 4, c + 4), (c + 4, c + 4)]:
+        for y in range(Hh - 3, Hh):
+            t.set(x, y, z, "iron_chain", axis="y", waterlogged=False)
+        t.set(x, Hh - 4, z, "lava_cauldron")
+    for i in range(4, S - 4, 5):
+        for (x, z) in [(1, i), (S - 2, i)]:
+            t.set(x, 1, z, "netherrack")
+            t.set(x, 2, z, "fire", age=0)
+    t.set(c, 1, c, "gilded_blackstone")
+
+
+def cinder_keep():
+    """A keep of deepslate and basalt in the Ember Wastes, ruled by the Cinder King on his burning throne."""
+    return themed_arena("cinder_keep", _cinder_deco, height=14)
+
+
+def _chorus_deco(t, th, S, c, Hh):
+    """The Chorus Garden: open to the void sky, tall chorus trees between the pillars, end rods along the paths and
+    purpur planters round the knight's circle."""
+    import random as _r
+    r = _r.Random(57)
+    for (x, z) in [(4, 4), (S - 5, 4), (4, S - 8), (S - 5, S - 8), (c - 8, c), (c + 8, c), (c, 4)]:
+        t.set(x, 0, z, "end_stone")
+        h = r.randint(4, 7)
+        for y in range(1, h):
+            t.set(x, y, z, "chorus_plant", up=True, down=True, north=False, south=False, east=False, west=False)
+        t.set(x, h, z, "chorus_flower", age=5)
+    for i in range(3, S - 3, 4):
+        for (x, z) in [(i, 2), (2, i), (S - 3, i)]:
+            t.set(x, 1, z, "end_rod", facing="up")
+    for (x, z) in [(c - 3, c - 3), (c + 3, c - 3), (c - 3, c + 3), (c + 3, c + 3)]:
+        t.set(x, 1, z, "purpur_block")
+        t.set(x, 2, z, "chorus_flower", age=5)
+
+
+def chorus_garden():
+    """A walled garden of chorus trees in the End's midlands, open to the void, kept by the Chorus Knight."""
+    return themed_arena("chorus_garden", _chorus_deco, height=12)
+
+
 def _volcano_deco(t, th, S, c, Hh):
     """The forge inside a volcano: a lava pool round the boss's anvil, magma veins in the floor, lava falls down the
     walls behind iron bars, anvils and blast furnaces along the sides."""
@@ -1696,6 +1798,15 @@ THEMES = {
     "watchers_hollow": dict(wall="dark_oak_planks", accent="dark_oak_log", floor=("deepslate_tiles", "mud_bricks"),
                             light="ochre_froglight", ceil="dark_oak_planks", trim="dark_oak", decor=["bookshelf", "dark_oak_log"],
                             mobs=[("wither_skeleton", 2), ("skeleton", 2), ("zombie", 1)], lantern="soul_lantern"),
+    "warped_shrine": dict(wall="nether_bricks", accent="warped_hyphae", floor=("warped_nylium", "warped_wart_block"),
+                          light="shroomlight", ceil="warped_planks", trim="nether_brick", decor=["warped_wart_block", "shroomlight"],
+                          mobs=[("enderman", 1), ("zombified_piglin", 2), ("skeleton", 1)], lantern="soul_lantern"),
+    "cinder_keep": dict(wall="deepslate_bricks", accent="polished_basalt", floor=("polished_deepslate", "basalt"),
+                        light="shroomlight", ceil="deepslate_tiles", trim="deepslate_brick", decor=["magma_block", "basalt"],
+                        mobs=[("blaze", 2), ("magma_cube", 2), ("wither_skeleton", 1)], lantern="lantern"),
+    "chorus_garden": dict(wall="end_stone_bricks", accent="purpur_pillar", floor=("end_stone", "purpur_block"),
+                          light="pearlescent_froglight", ceil=None, trim="purpur", decor=["purpur_block", "end_stone"],
+                          mobs=[("enderman", 2), ("endermite", 1), ("skeleton", 1)], lantern="lantern", open=True),
     "volcano_forge": dict(wall="polished_blackstone_bricks", accent="gilded_blackstone", floor=("polished_blackstone", "blackstone"),
                           light="shroomlight", ceil="blackstone", trim="polished_blackstone_brick", decor=["magma_block", "gilded_blackstone"],
                           mobs=[("magma_cube", 2), ("blaze", 2), ("wither_skeleton", 1)], lantern="lantern"),
@@ -2818,6 +2929,9 @@ ARENA_DOORS = {
     "frozen_bastion": [("w", 12, 0, 2, False), ("e", 12, 0, 2, False), ("n", 7, 0, 2, False)],
     "overgrown_labyrinth": [("e", 14, 0, 1, False), ("n", 14, 0, 1, False), ("s", 14, 0, 1, False)],
     "watchers_hollow": [("w", 11, 0, 3, False), ("e", 11, 0, 3, False), ("n", 11, 0, 3, False)],
+    "warped_shrine": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
+    "cinder_keep": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
+    "chorus_garden": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
     "volcano_forge": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
     "frozen_ship": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
     "sky_temple": [("w", 13, 0, 2, False), ("e", 13, 0, 2, False), ("n", 13, 0, 2, False)],
@@ -3022,6 +3136,10 @@ STRUCTURES = {
     "pyramid_maze": (pyramid_maze, "minecraft:desert", "surface_structures", 0, "WORLD_SURFACE_WG", 55, 25, 31170820, "beard_thin"),
     "witch_tower": (witch_tower, ["minecraft:swamp", "minecraft:mangrove_swamp"], "surface_structures", 0, "WORLD_SURFACE_WG",
                     50, 22, 31170821, "beard_thin"),
+    "warped_shrine": (warped_shrine, "minecraft:warped_forest", "surface_structures", 40, None, 32, 15, 31170822, "beard_box"),
+    "cinder_keep": (cinder_keep, "vigil:ember_wastes", "surface_structures", 40, None, 32, 15, 31170823, "beard_box"),
+    "chorus_garden": (chorus_garden, "minecraft:end_midlands", "surface_structures", 0, "WORLD_SURFACE_WG", 45, 20, 31170824,
+                      "beard_thin"),
 }
 
 
@@ -3233,7 +3351,7 @@ def build():
         write(f"recipe/{item_id}.json", recipe(item_id))
     for name, pools in CHESTS.items():
         # The arena's altar chest: sealed until the boss is beaten, so it holds a little more.
-        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [bonus(), bonus(), book(), artifact(3)]})
+        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [bonus(), bonus(), book(), artifact(3), mount_pool(6)]})
     for name, (fn, biomes, step, height, heightmap, spacing, sep, salt, terrain) in STRUCTURES.items():
         inner = arena_doors(name, fn())
         arena = landmark(name, grand(name, inner), inner.size)
@@ -3257,7 +3375,7 @@ def build():
             CHESTS[name][-1], CHESTS[name][0], bonus(), book(), artifact(15), lore_pool(5)]})
         # Locked vaults: the best loot in the structure, behind a Dungeon Key.
         write(f"loot_table/chests/{name}_keyvault.json", {"type": "minecraft:chest", "pools": [
-            CHESTS[name][-1], CHESTS[name][-1], CHESTS[name][0], bonus(), bonus(), bonus(), book(), book(), artifact(2),
+            CHESTS[name][-1], CHESTS[name][-1], CHESTS[name][0], bonus(), bonus(), bonus(), book(), book(), artifact(2), mount_pool(4),
             {"rolls": 1, "entries": [{"type": "minecraft:item", "name": "minecraft:netherite_ingot", "weight": 1},
                                      {"type": "minecraft:item", "name": "minecraft:enchanted_golden_apple", "weight": 1},
                                      {"type": "minecraft:item", "name": "minecraft:totem_of_undying", "weight": 2}]}]})

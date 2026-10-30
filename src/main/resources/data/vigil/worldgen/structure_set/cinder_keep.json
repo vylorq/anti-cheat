@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "vigil:cinder_keep",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 64,
+    "separation": 30,
+    "salt": 31170823
+  }
+}

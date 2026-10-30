@@ -75,6 +75,196 @@
   ],
   "scale": 1.0
  },
+ "chorus_knight": {
+  "parts": [
+   {
+    "id": "chorus_knight__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.9375,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "chorus_knight__leg_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.1875,
+     0.9375,
+     0.0
+    ],
+    "role": "leg",
+    "side": -1
+   },
+   {
+    "id": "chorus_knight__leg_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.1875,
+     0.9375,
+     0.0
+    ],
+    "role": "leg",
+    "side": 1
+   },
+   {
+    "id": "chorus_knight__arm_r",
+    "parent": "chorus_knight__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.5938,
+     1.875,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "chorus_knight__arm_l",
+    "parent": "chorus_knight__body",
+    "phase": 0.0,
+    "pivot": [
+     0.5938,
+     1.875,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "chorus_knight__axe",
+    "parent": "chorus_knight__arm_l",
+    "phase": 0.0,
+    "pivot": [
+     0.5938,
+     0.875,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   },
+   {
+    "id": "chorus_knight__shield",
+    "parent": "chorus_knight__arm_r",
+    "phase": 0.0,
+    "pivot": [
+     -0.5938,
+     1.875,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   },
+   {
+    "id": "chorus_knight__head",
+    "parent": "chorus_knight__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.9375,
+     0.0
+    ],
+    "role": "head",
+    "side": 0
+   }
+  ],
+  "scale": 1.3617
+ },
+ "cinder_king": {
+  "parts": [
+   {
+    "id": "cinder_king__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.625,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "cinder_king__leg_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.1875,
+     1.625,
+     0.0
+    ],
+    "role": "leg",
+    "side": -1
+   },
+   {
+    "id": "cinder_king__leg_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.1875,
+     1.625,
+     0.0
+    ],
+    "role": "leg",
+    "side": 1
+   },
+   {
+    "id": "cinder_king__arm_r",
+    "parent": "cinder_king__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.5938,
+     2.5,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "cinder_king__arm_l",
+    "parent": "cinder_king__body",
+    "phase": 0.0,
+    "pivot": [
+     0.5938,
+     2.5,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "cinder_king__sword",
+    "parent": "cinder_king__arm_l",
+    "phase": 0.0,
+    "pivot": [
+     0.5938,
+     1.375,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   },
+   {
+    "id": "cinder_king__head",
+    "parent": "cinder_king__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     2.5625,
+     0.0
+    ],
+    "role": "head",
+    "side": 0
+   }
+  ],
+  "scale": 1.28
+ },
  "deepslate_colossus": {
   "parts": [
    {
@@ -3759,5 +3949,70 @@
    }
   ],
   "scale": 2.643
+ },
+ "warped_shaman": {
+  "parts": [
+   {
+    "id": "warped_shaman__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.7581,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "warped_shaman__arm_r",
+    "parent": "warped_shaman__body",
+    "phase": 3.142,
+    "pivot": [
+     -0.4264,
+     1.4688,
+     0.0
+    ],
+    "role": "arm",
+    "side": -1
+   },
+   {
+    "id": "warped_shaman__arm_l",
+    "parent": "warped_shaman__body",
+    "phase": 0.0,
+    "pivot": [
+     0.4264,
+     1.4688,
+     0.0
+    ],
+    "role": "arm",
+    "side": 1
+   },
+   {
+    "id": "warped_shaman__staff",
+    "parent": "warped_shaman__arm_l",
+    "phase": 0.0,
+    "pivot": [
+     0.4501,
+     1.4688,
+     0.0
+    ],
+    "role": "static",
+    "side": 0
+   },
+   {
+    "id": "warped_shaman__head",
+    "parent": "warped_shaman__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.5161,
+     0.0474
+    ],
+    "role": "head",
+    "side": 0
+   }
+  ],
+  "scale": 1.7963
  }
 }

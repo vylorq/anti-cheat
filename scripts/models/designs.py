@@ -1288,6 +1288,84 @@ def swamp_witch():
     return m
 
 
+WARPED_ROBE = Mat(["#0a2a2a", "#10403e", "#165a56", "#1f7a72"], "bands", veins="#3ff0d0", vein_density=0.05)
+WARPED_CAP = Mat(["#0f5a54", "#16786f", "#1f9a8e", "#2fc4b2"], cell=2, veins="#ff7a1a", vein_density=0.06)
+STEM = Mat(["#2a1a3a", "#3e2a52", "#2a6a6a", "#3a8a8a"], "bark")
+CHAR_BONE = Mat(["#141414", "#202020", "#2e2e2e", "#3e3e3e"], cell=1, veins="#ff4a1a", vein_density=0.08)
+PURPUR_PLATE = Mat(["#5a3a6e", "#7a5290", "#9a6ab0", "#b88ad0"], "plates")
+CHORUS = Mat(["#4a2a5a", "#6a3e7e", "#8a54a0", "#c08ad8"], cell=1)
+
+
+def warped_shaman():
+    """A shaman of the warped forest: a teal robe, a warped-fungus cap for a hood, glowing eyes and a stem staff."""
+    m = Model("warped_shaman")
+    m.part("body", (0, 14, 0), "body")
+    m.box((-7, 0, -5), (14, 30, 10), WARPED_ROBE)
+    m.box((-8.5, 0, -6), (17, 5, 12), WARPED_ROBE)
+    m.box((-2, 6, 5), (4, 20, 1), STEM)
+    m.part("arm", (-9, 29, 0), "arm", mirror=True)
+    m.pair((-12, 12, -2.5), (5, 18, 5), WARPED_ROBE)
+    m.part("staff", (9.5, 29, 0), "static", parent="arm_l")
+    m.box((9, -2, 2), (2, 36, 2), STEM)
+    m.box((6, 34, -0.5), (8, 4, 7), WARPED_CAP)
+    m.part("head", (0, 30, 1), "head")
+    m.box((-4.5, 30, -3.5), (9, 9, 8), Mat(["#1a2a24", "#24382f", "#2e483c", "#3a5a4a"]),
+          decal={"south": face("#3ff0d0", eye_w=2, eye_h=1, eye_row=0.4, gap=2, brow="#000000", mask=0.3)})
+    m.box((-8, 39, -7), (16, 3, 15), WARPED_CAP)
+    m.box((-5, 42, -4), (10, 3, 9), WARPED_CAP)
+    return m
+
+
+def cinder_king():
+    """A charred skeleton king: black bones with ember cracks, a golden crown, a cape of embers and a great sword."""
+    m = Model("cinder_king")
+    m.part("leg", (-3, 16, 0), "leg", mirror=True)
+    m.pair((-5, 0, -2), (3, 16, 3), CHAR_BONE)
+    m.part("body", (0, 16, 0), "body")
+    m.box((-7, 16, -3), (14, 15, 6), CHAR_BONE)
+    m.box((-3, 18, 3.1), (6, 10, 1), MAGMA)
+    m.box((-8, 4, -4.5), (16, 26, 1), EMBER)
+    m.pair((-11, 28, -4), (5, 5, 8), GOLD)
+    m.part("arm", (-9.5, 30, 0), "arm", mirror=True)
+    m.pair((-11, 12, -1.5), (3, 18, 3), CHAR_BONE)
+    m.part("sword", (9.5, 12, 0), "static", parent="arm_l")
+    m.box((9, -10, 2), (1.5, 24, 3), Mat(["#1a1a1a", "#2a2a2a", "#3a2a2a", "#ff6a2a"], "plates"))
+    m.box((7.5, 12, 1.5), (4.5, 1.5, 4), GOLD_RAW)
+    m.part("head", (0, 31, 0), "head")
+    m.box((-4.5, 31, -4.5), (9, 9, 9), CHAR_BONE,
+          decal={"south": face("#ff8a1f", eye_w=2, eye_h=2, eye_row=0.35, gap=2, brow="#000000",
+                              mouth="#ff4a1a", mouth_row=0.75, mouth_w=5, mouth_h=1, teeth="#000000")})
+    m.box((-5, 40, -5), (10, 2, 10), GOLD)
+    for x in (-5, -1, 3):
+        m.box((x, 42, -5), (2, 3, 1), GOLD_RAW)
+        m.box((x, 42, 4), (2, 3, 1), GOLD_RAW)
+    return m
+
+
+def chorus_knight():
+    """A knight of the End's gardens: purpur plate, a helm with a chorus plume, a shield of end stone and an axe."""
+    m = Model("chorus_knight")
+    m.part("leg", (-3, 15, 0), "leg", mirror=True)
+    m.pair((-6, 0, -3), (5, 15, 6), PURPUR_PLATE)
+    m.part("body", (0, 15, 0), "body")
+    m.box((-7.5, 15, -4), (15, 16, 8), PURPUR_PLATE)
+    m.box((-3, 18, 4.1), (6, 8, 1), CHORUS)
+    m.pair((-11, 27, -4.5), (5, 5, 9), PURPUR_PLATE)
+    m.part("arm", (-9.5, 30, 0), "arm", mirror=True)
+    m.pair((-11.5, 14, -2.5), (4, 16, 5), PURPUR_PLATE)
+    m.part("axe", (9.5, 14, 0), "static", parent="arm_l")
+    m.box((9, 0, 3), (1.5, 22, 1.5), Mat(["#2a1a3a", "#3e2a52", "#54386e", "#6e4a8e"], "bark"))
+    m.box((9, 17, 4.5), (1.5, 6, 5), Mat(["#8a8a9a", "#aaaabb", "#ccccdd", "#eeeeff"], "plates"))
+    m.part("shield", (-9.5, 30, 0), "static", parent="arm_r")
+    m.box((-14, 12, -5), (1.5, 12, 10), Mat(["#c8c48a", "#dcd8a0", "#ece8b8", "#f8f6d4"], "brick"))
+    m.part("head", (0, 31, 0), "head")
+    m.box((-4.5, 31, -4.5), (9, 10, 9), PURPUR_PLATE,
+          decal={"south": face("#e3a8ff", eye_w=6, eye_h=1, eye_row=0.4, gap=0, brow="#1a0a22")})
+    for y in range(41, 47, 2):
+        m.box((-1, y, -2 - (y - 41) // 2), (2, 2, 2), CHORUS)
+    return m
+
+
 MODELS = {
     "deepslate_colossus": (deepslate_colossus, 4.3), "drowned_warden": (drowned_warden, 3.3),
     "storm_phantom": (storm_phantom, 2.4), "forgemaster": (forgemaster, 3.7), "sand_colossus": (sand_colossus, 4.2),
@@ -1303,5 +1381,6 @@ MODELS = {
     "void_evoker": (void_evoker, 4.0), "edge_sovereign": (edge_sovereign, 6.6),
     "magma_lord": (magma_lord, 4.0), "frost_captain": (frost_captain, 3.8), "sky_templar": (sky_templar, 4.0),
     "foreman": (foreman, 3.6), "mummy_king": (mummy_king, 3.8), "swamp_witch": (swamp_witch, 3.9),
+    "warped_shaman": (warped_shaman, 4.0), "cinder_king": (cinder_king, 4.4), "chorus_knight": (chorus_knight, 4.0),
     "deer": (deer, 1.9), "owl": (owl, 0.7),
 }

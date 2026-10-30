@@ -248,6 +248,9 @@ public final class Gems {
                 continue;
             }
             ItemStack done = make(make);
+            if (done != null && make.startsWith("artifact:")) {
+                Achievements.unlock(p, make);
+            }
             if (done != null) {
                 done.setCount(Math.max(1, st.getCount()));
                 inv.setStack(i, done);
@@ -282,6 +285,9 @@ public final class Gems {
             }
             case "artifact" -> {
                 return Artifacts.item(parts[1]);
+            }
+            case "mount" -> {
+                return Mounts.KINDS.contains(parts[1]) ? Mounts.whistle(parts[1]) : null;
             }
             case "pet" -> {
                 return Pets.KINDS.contains(parts[1]) ? Pets.token(parts[1]) : null;

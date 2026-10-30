@@ -49,6 +49,9 @@ public final class StructureMobs {
             Map.entry("mine_town", Items.IRON_PICKAXE),
             Map.entry("pyramid_maze", Items.GOLDEN_SWORD),
             Map.entry("witch_tower", Items.IRON_SWORD),
+            Map.entry("warped_shrine", Items.GOLDEN_SWORD),
+            Map.entry("cinder_keep", Items.STONE_SWORD),
+            Map.entry("chorus_garden", Items.DIAMOND_SWORD),
             Map.entry("crimson_citadel", Items.GOLDEN_AXE),
             Map.entry("void_spire", Items.DIAMOND_SWORD),
             Map.entry("ender_crypt", Items.DIAMOND_AXE));
@@ -133,6 +136,10 @@ public final class StructureMobs {
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((e, source) -> {
             if (Ac.running() && e instanceof MobEntity m && m.getCommandTags().contains(GUARDIAN_TAG)) {
                 guardianDrop(m);
+                if (source.getAttacker() instanceof net.minecraft.server.network.ServerPlayerEntity p) {
+                    Achievements.unlock(p, "feat:guardian");
+                    Skills.add(p, "combat", 40);
+                }
             }
         });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((e, w) -> HOMES.remove(e.getUuid()));

@@ -32,7 +32,7 @@ public final class TestStructures {
     public static final List<String> NAMES = List.of("sunken_vault", "buried_vault", "sky_citadel", "nether_forge",
             "desert_tomb", "frozen_bastion", "overgrown_labyrinth", "watchers_hollow", "sky_island", "mushroom_cave", "sunken_ship",
             "soul_sanctum", "crimson_citadel", "void_spire", "ender_crypt", "volcano_forge", "frozen_ship", "sky_temple", "mine_town",
-            "pyramid_maze", "witch_tower");
+            "pyramid_maze", "witch_tower", "warped_shrine", "cinder_keep", "chorus_garden");
 
     /** How far the rooms can reach from the middle (the structures' max distance plus a room). */
     private static final int REACH = 136;
@@ -80,7 +80,7 @@ public final class TestStructures {
             case "mine_town" -> new int[]{-45, -10};
             case "buried_vault" -> new int[]{-50, -20};
             case "mushroom_cave" -> new int[]{-35, -5};
-            case "nether_forge", "soul_sanctum", "crimson_citadel" -> new int[]{30, 70};
+            case "nether_forge", "soul_sanctum", "crimson_citadel", "warped_shrine", "cinder_keep" -> new int[]{30, 70};
             default -> {
                 int ground = w.getTopY(structure.equals("sunken_vault") || structure.equals("sunken_ship") ? Heightmap.Type.OCEAN_FLOOR : Heightmap.Type.WORLD_SURFACE, x, z);
                 yield new int[]{ground - 22, ground + 22};

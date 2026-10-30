@@ -1541,6 +1541,72 @@
       "rolls": 1,
       "entries": [
         {
+          "type": "minecraft:empty",
+          "weight": 9
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:goat_horn",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "mount:steed"
+                },
+                "minecraft:item_name": {
+                  "text": "Storm Steed Whistle",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bone_meal",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "mount:stallion"
+                },
+                "minecraft:item_name": {
+                  "text": "Bone Stallion Whistle",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:ghast_tear",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "vigil_make": "mount:ghast"
+                },
+                "minecraft:item_name": {
+                  "text": "Sky Ghast Whistle",
+                  "color": "light_purple"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
           "type": "minecraft:item",
           "name": "minecraft:netherite_ingot",
           "weight": 1
