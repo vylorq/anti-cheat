@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "SSS",
+    "SGS",
+    "IRI"
+  ],
+  "key": {
+    "S": "minecraft:iron_sword",
+    "G": "minecraft:grindstone",
+    "I": "minecraft:iron_block",
+    "R": "minecraft:redstone_block"
+  },
+  "result": {
+    "id": "minecraft:grindstone",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "block:grinder"
+      },
+      "minecraft:item_name": {
+        "text": "Mob Grinder",
+        "color": "red"
+      }
+    }
+  }
+}

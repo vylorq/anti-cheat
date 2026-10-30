@@ -124,7 +124,20 @@ def main():
               "night_lamp": ([" G ", "GLG", " D "], {"G": "minecraft:glowstone_dust", "L": "minecraft:redstone_lamp",
                                                      "D": "minecraft:daylight_detector"}, "minecraft:redstone_lamp", "Night Lamp", "yellow", 1),
               "pedestal": (["QGQ", " Q ", "QQQ"], {"Q": "minecraft:quartz_block", "G": "minecraft:gold_ingot"},
-                           "minecraft:chiseled_quartz_block", "Trophy Pedestal", "gold", 1)}
+                           "minecraft:chiseled_quartz_block", "Trophy Pedestal", "gold", 1),
+              # Machines (Machines.java)
+              "miner": (["IPI", "RBR", "III"], {"I": "minecraft:iron_ingot", "P": "minecraft:diamond_pickaxe", "R": "minecraft:redstone",
+                                                "B": "minecraft:blast_furnace"}, "minecraft:blast_furnace", "Auto-Miner", "gold", 1),
+              "crusher": (["IAI", "IBI", "III"], {"I": "minecraft:iron_ingot", "A": "minecraft:anvil", "B": "minecraft:barrel"},
+                          "minecraft:barrel", "Ore Crusher", "gray", 1),
+              "farm": ([" H ", "WCW", "BBB"], {"H": "minecraft:diamond_hoe", "W": "minecraft:water_bucket", "C": "minecraft:composter",
+                                               "B": "minecraft:bone_block"}, "minecraft:composter", "Auto-Farm", "green", 1),
+              "grinder": (["SSS", "SGS", "IRI"], {"S": "minecraft:iron_sword", "G": "minecraft:grindstone", "I": "minecraft:iron_block",
+                                                  "R": "minecraft:redstone_block"}, "minecraft:grindstone", "Mob Grinder", "red", 1),
+              "pad": (["EEE", "EOE", "EEE"], {"E": "minecraft:ender_pearl", "O": "minecraft:crying_obsidian"},
+                      "minecraft:lodestone", "Teleport Pad", "light_purple", 1),
+              "sorter": (["CHC", "HOH", "CHC"], {"C": "minecraft:copper_ingot", "H": "minecraft:hopper", "O": "minecraft:observer"},
+                         "minecraft:chiseled_copper", "Item Sorter", "dark_aqua", 1)}
     for b, (pattern, key, item, title, color, count) in blocks.items():
         write(f"recipe/block_{b}.json", {"type": "minecraft:crafting_shaped", "category": "building", "pattern": pattern, "key": key,
                                          "result": {"id": item, "count": count, "components": {

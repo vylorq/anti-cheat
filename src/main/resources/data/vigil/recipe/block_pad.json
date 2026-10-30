@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "EEE",
+    "EOE",
+    "EEE"
+  ],
+  "key": {
+    "E": "minecraft:ender_pearl",
+    "O": "minecraft:crying_obsidian"
+  },
+  "result": {
+    "id": "minecraft:lodestone",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "block:pad"
+      },
+      "minecraft:item_name": {
+        "text": "Teleport Pad",
+        "color": "light_purple"
+      }
+    }
+  }
+}

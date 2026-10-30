@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "IPI",
+    "RBR",
+    "III"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "P": "minecraft:diamond_pickaxe",
+    "R": "minecraft:redstone",
+    "B": "minecraft:blast_furnace"
+  },
+  "result": {
+    "id": "minecraft:blast_furnace",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "block:miner"
+      },
+      "minecraft:item_name": {
+        "text": "Auto-Miner",
+        "color": "gold"
+      }
+    }
+  }
+}

@@ -57,7 +57,21 @@ public final class SpecialBlocks {
 
     static final String TAG = "vigil_block";
     static final String DISPLAY_TAG = "vigil_block_display";
-    public static final List<String> KINDS = List.of("elevator", "night_lamp", "pedestal");
+    /** A special block: the plain block it is, its name and what it does. */
+    record Def(Item base, String name, String line1, String line2) {
+    }
+
+    static final Map<String, Def> DEFS = new LinkedHashMap<>();
+
+    static {
+        DEFS.put("elevator", new Def(Items.CHISELED_TUFF_BRICKS, "§bElevator", "§7Jump on it: up to the next elevator above.",
+                "§7Sneak on it: down to the next one below."));
+        DEFS.put("night_lamp", new Def(Items.REDSTONE_LAMP, "§eNight Lamp", "§7Lights up by itself at dusk,", "§7goes out at dawn."));
+        DEFS.put("pedestal", new Def(Items.CHISELED_QUARTZ_BLOCK, "§6Trophy Pedestal", "§7Put a boss trophy on top:", "§7its name shines above it."));
+        Machines.defs(DEFS);
+    }
+
+    public static final List<String> KINDS = List.copyOf(DEFS.keySet());
 
     public static final class State {
         /** "world|x|y|z" -> kind ("elevator", "night_lamp", "pedestal", "banner:<team id>", "trophy:<name>"). */
@@ -107,27 +121,15 @@ public final class SpecialBlocks {
 
     // ---------------------------------------------------------------- items
 
-    private static Item base(String kind) {
-        return switch (kind) {
-            case "elevator" -> Items.CHISELED_TUFF_BRICKS;
-            case "night_lamp" -> Items.REDSTONE_LAMP;
-            default -> Items.CHISELED_QUARTZ_BLOCK;
-        };
-    }
-
     public static ItemStack item(String kind) {
-        if (!KINDS.contains(kind)) {
+        Def d = DEFS.get(kind);
+        if (d == null) {
             return null;
         }
-        ItemStack s = new ItemStack(base(kind));
-        String[] info = switch (kind) {
-            case "elevator" -> new String[]{"§bElevator", "§7Jump on it: up to the next elevator above.", "§7Sneak on it: down to the next one below."};
-            case "night_lamp" -> new String[]{"§eNight Lamp", "§7Lights up by itself at dusk,", "§7goes out at dawn."};
-            default -> new String[]{"§6Trophy Pedestal", "§7Put a boss trophy on top:", "§7its name shines above it."};
-        };
-        s.set(DataComponentTypes.CUSTOM_NAME, Text.literal(info[0]).styled(x -> x.withItalic(false)));
-        s.set(DataComponentTypes.LORE, new LoreComponent(List.of(Text.literal(info[1]).styled(x -> x.withItalic(false)),
-                Text.literal(info[2]).styled(x -> x.withItalic(false)))));
+        ItemStack s = new ItemStack(d.base());
+        s.set(DataComponentTypes.CUSTOM_NAME, Text.literal(d.name()).styled(x -> x.withItalic(false)));
+        s.set(DataComponentTypes.LORE, new LoreComponent(List.of(Text.literal(d.line1()).styled(x -> x.withItalic(false)),
+                Text.literal(d.line2()).styled(x -> x.withItalic(false)))));
         s.set(DataComponentTypes.RARITY, Rarity.UNCOMMON);
         ItemConv.setTag(s, TAG, kind);
         return s;
@@ -192,7 +194,11 @@ public final class SpecialBlocks {
                 }
                 return;
             }
-            state().blocks.put(key(w, at), kind);
+            String stored = Machines.placed(p, w, at, kind);
+            if (stored == null) {
+                return;
+            }
+            state().blocks.put(key(w, at), stored);
             if (kind.startsWith("banner:")) {
                 Team t = Teams.tm().get(kind.substring(7));
                 if (t != null) {
@@ -222,7 +228,8 @@ public final class SpecialBlocks {
         if (kind.startsWith("trophy:")) {
             return true;      // the head drops as itself (the trophy's name stays on it)
         }
-        ItemStack drop = kind.startsWith("banner:") ? null : item(kind);
+        Machines.broken(w, pos, kind);
+        ItemStack drop = kind.startsWith("banner:") ? null : item(kind.split(":")[0]);
         if (drop == null) {
             return true;
         }
@@ -360,7 +367,36 @@ public final class SpecialBlocks {
         }
     }
 
+    /** Every remembered block of a kind ("miner" also finds "miner:12"), as world + position. */
+    static List<Map.Entry<ServerWorld, BlockPos>> all(String kind) {
+        List<Map.Entry<ServerWorld, BlockPos>> out = new ArrayList<>();
+        for (var e : state().blocks.entrySet()) {
+            String v = e.getValue();
+            if (!v.equals(kind) && !v.startsWith(kind + ":")) {
+                continue;
+            }
+            String[] p = e.getKey().split("\\|");
+            ServerWorld w = Mc.world(Ac.server(), p[0]);
+            if (w != null) {
+                out.add(Map.entry(w, new BlockPos(Integer.parseInt(p[1]), Integer.parseInt(p[2]), Integer.parseInt(p[3]))));
+            }
+        }
+        return out;
+    }
+
+    static void set(ServerWorld w, BlockPos pos, String value) {
+        state().blocks.put(key(w, pos), value);
+        dirty = true;
+    }
+
+    private static boolean dirty;
+
     public static void tick(long ticks) {
+        if (dirty && ticks % 200 == 0) {
+            dirty = false;
+            save();
+        }
+        Machines.tick(ticks);
         elevators(ticks);
         if (ticks % 40 == 0) {
             slow(ticks);
