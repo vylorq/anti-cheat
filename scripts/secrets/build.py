@@ -232,6 +232,25 @@ def secret(weights, rolls=1):
     return {"rolls": rolls, "entries": [{"type": "minecraft:empty", "weight": empty}] + entries}
 
 
+# Artifacts (Artifacts.java): charms set into armor. Each kind of chest has its own chance of holding one.
+ARTIFACTS = {"haste_ring": ("gold_nugget", "Ring of Haste"), "moon_charm": ("amethyst_shard", "Moon Charm"),
+             "anchor_stone": ("flint", "Anchor Stone"), "vampire_fang": ("ghast_tear", "Vampire Fang"),
+             "wind_charm": ("breeze_rod", "Wind Charm"), "thorn_heart": ("resin_brick", "Thorn Heart"),
+             "magnet_ring": ("copper_ingot", "Magnet Ring"), "frost_amulet": ("prismarine_crystals", "Frost Amulet"),
+             "lucky_clover": ("emerald", "Lucky Clover"), "heart_crystal": ("nether_star", "Heart Crystal"),
+             "ember_core": ("blaze_powder", "Ember Core"), "tide_pearl": ("nautilus_shell", "Tide Pearl")}
+
+
+def artifact(one_in):
+    """A pool that holds one random artifact in one chest out of one_in."""
+    entries = [{"type": "minecraft:item", "name": f"minecraft:{item}", "weight": 1, "functions": [{
+        "function": "minecraft:set_components", "components": {
+            "minecraft:custom_data": {"vigil_make": f"artifact:{a}"},
+            "minecraft:item_name": {"text": name, "color": "light_purple"}}}]}
+               for a, (item, name) in ARTIFACTS.items()]
+    return {"rolls": 1, "entries": [{"type": "minecraft:empty", "weight": len(entries) * (one_in - 1)}] + entries}
+
+
 CHESTS = {
     "sky_island": [secret([("phoenix_feather", 2), ("seeker_compass", 1)]),
                    filler([("feather", 8, 2, 6), ("emerald", 6, 1, 4), ("gold_ingot", 6, 1, 4), ("phantom_membrane", 5, 1, 3),
@@ -3007,7 +3026,7 @@ def build():
         write(f"recipe/{item_id}.json", recipe(item_id))
     for name, pools in CHESTS.items():
         # The arena's altar chest: sealed until the boss is beaten, so it holds a little more.
-        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [bonus(), bonus(), book()]})
+        write(f"loot_table/chests/{name}.json", {"type": "minecraft:chest", "pools": pools + [bonus(), bonus(), book(), artifact(3)]})
     for name, (fn, biomes, step, height, heightmap, spacing, sep, salt, terrain) in STRUCTURES.items():
         arena = grand(name, arena_doors(name, fn()))
         # The old single-piece name stays, so structures generated before still find their template.
@@ -3027,10 +3046,10 @@ def build():
                    fallback=f"vigil:{name}/rooms"))
         # Room chests: the structure's everyday loot, now and then one of its secret items.
         write(f"loot_table/chests/{name}_room.json", {"type": "minecraft:chest", "pools": [
-            CHESTS[name][-1], CHESTS[name][0], bonus(), book()]})
+            CHESTS[name][-1], CHESTS[name][0], bonus(), book(), artifact(15)]})
         # Locked vaults: the best loot in the structure, behind a Dungeon Key.
         write(f"loot_table/chests/{name}_keyvault.json", {"type": "minecraft:chest", "pools": [
-            CHESTS[name][-1], CHESTS[name][-1], CHESTS[name][0], bonus(), bonus(), bonus(), book(), book(),
+            CHESTS[name][-1], CHESTS[name][-1], CHESTS[name][0], bonus(), bonus(), bonus(), book(), book(), artifact(2),
             {"rolls": 1, "entries": [{"type": "minecraft:item", "name": "minecraft:netherite_ingot", "weight": 1},
                                      {"type": "minecraft:item", "name": "minecraft:enchanted_golden_apple", "weight": 1},
                                      {"type": "minecraft:item", "name": "minecraft:totem_of_undying", "weight": 2}]}]})

@@ -293,6 +293,7 @@ public final class Protection {
             if (SecretItems.phoenix(p, source)) {
                 return false;
             }
+            Artifacts.onDeath(p);
             Trades.cancelFor(p, SecureTrade.CancelReason.DIED);
             Deaths.onDeath(p, source);
             Teams.onKill(p, killer);
