@@ -431,6 +431,381 @@
   ],
   "scale": 0.8941
  },
+ "dragon_adult": {
+  "parts": [
+   {
+    "id": "dragon_adult__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.854,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "dragon_adult__legf_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.2876,
+     0.6239,
+     0.4601
+    ],
+    "role": "leg_front",
+    "side": -1
+   },
+   {
+    "id": "dragon_adult__legf_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.2876,
+     0.6239,
+     0.4601
+    ],
+    "role": "leg_front",
+    "side": 1
+   },
+   {
+    "id": "dragon_adult__legb_r",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     -0.2876,
+     0.6239,
+     -0.3451
+    ],
+    "role": "leg_back",
+    "side": -1
+   },
+   {
+    "id": "dragon_adult__legb_l",
+    "parent": null,
+    "phase": 6.283,
+    "pivot": [
+     0.2876,
+     0.6239,
+     -0.3451
+    ],
+    "role": "leg_back",
+    "side": 1
+   },
+   {
+    "id": "dragon_adult__head",
+    "parent": "dragon_adult__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.1991,
+     0.6902
+    ],
+    "role": "head",
+    "side": 0
+   },
+   {
+    "id": "dragon_adult__jaw",
+    "parent": "dragon_adult__head",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.3142,
+     1.3804
+    ],
+    "role": "jaw",
+    "side": 0
+   },
+   {
+    "id": "dragon_adult__wing_r",
+    "parent": "dragon_adult__body",
+    "phase": 0.0,
+    "pivot": [
+     -0.3451,
+     1.1991,
+     0.115
+    ],
+    "role": "wing",
+    "side": -1
+   },
+   {
+    "id": "dragon_adult__wing_l",
+    "parent": "dragon_adult__body",
+    "phase": 0.0,
+    "pivot": [
+     0.3451,
+     1.1991,
+     0.115
+    ],
+    "role": "wing",
+    "side": 1
+   },
+   {
+    "id": "dragon_adult__tail",
+    "parent": "dragon_adult__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.854,
+     -0.6902
+    ],
+    "role": "tail",
+    "side": 0
+   }
+  ],
+  "scale": 3.4974
+ },
+ "dragon_hatchling": {
+  "parts": [
+   {
+    "id": "dragon_hatchling__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.854,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "dragon_hatchling__legf_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.2876,
+     0.6239,
+     0.4601
+    ],
+    "role": "leg_front",
+    "side": -1
+   },
+   {
+    "id": "dragon_hatchling__legf_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.2876,
+     0.6239,
+     0.4601
+    ],
+    "role": "leg_front",
+    "side": 1
+   },
+   {
+    "id": "dragon_hatchling__legb_r",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     -0.2876,
+     0.6239,
+     -0.3451
+    ],
+    "role": "leg_back",
+    "side": -1
+   },
+   {
+    "id": "dragon_hatchling__legb_l",
+    "parent": null,
+    "phase": 6.283,
+    "pivot": [
+     0.2876,
+     0.6239,
+     -0.3451
+    ],
+    "role": "leg_back",
+    "side": 1
+   },
+   {
+    "id": "dragon_hatchling__head",
+    "parent": "dragon_hatchling__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.1991,
+     0.6902
+    ],
+    "role": "head",
+    "side": 0
+   },
+   {
+    "id": "dragon_hatchling__jaw",
+    "parent": "dragon_hatchling__head",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.3142,
+     1.3804
+    ],
+    "role": "jaw",
+    "side": 0
+   },
+   {
+    "id": "dragon_hatchling__wing_r",
+    "parent": "dragon_hatchling__body",
+    "phase": 0.0,
+    "pivot": [
+     -0.3451,
+     1.1991,
+     0.115
+    ],
+    "role": "wing",
+    "side": -1
+   },
+   {
+    "id": "dragon_hatchling__wing_l",
+    "parent": "dragon_hatchling__body",
+    "phase": 0.0,
+    "pivot": [
+     0.3451,
+     1.1991,
+     0.115
+    ],
+    "role": "wing",
+    "side": 1
+   },
+   {
+    "id": "dragon_hatchling__tail",
+    "parent": "dragon_hatchling__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.854,
+     -0.6902
+    ],
+    "role": "tail",
+    "side": 0
+   }
+  ],
+  "scale": 0.6995
+ },
+ "dragon_young": {
+  "parts": [
+   {
+    "id": "dragon_young__body",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.854,
+     0.0
+    ],
+    "role": "body",
+    "side": 0
+   },
+   {
+    "id": "dragon_young__legf_r",
+    "parent": null,
+    "phase": 0.0,
+    "pivot": [
+     -0.2876,
+     0.6239,
+     0.4601
+    ],
+    "role": "leg_front",
+    "side": -1
+   },
+   {
+    "id": "dragon_young__legf_l",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     0.2876,
+     0.6239,
+     0.4601
+    ],
+    "role": "leg_front",
+    "side": 1
+   },
+   {
+    "id": "dragon_young__legb_r",
+    "parent": null,
+    "phase": 3.142,
+    "pivot": [
+     -0.2876,
+     0.6239,
+     -0.3451
+    ],
+    "role": "leg_back",
+    "side": -1
+   },
+   {
+    "id": "dragon_young__legb_l",
+    "parent": null,
+    "phase": 6.283,
+    "pivot": [
+     0.2876,
+     0.6239,
+     -0.3451
+    ],
+    "role": "leg_back",
+    "side": 1
+   },
+   {
+    "id": "dragon_young__head",
+    "parent": "dragon_young__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.1991,
+     0.6902
+    ],
+    "role": "head",
+    "side": 0
+   },
+   {
+    "id": "dragon_young__jaw",
+    "parent": "dragon_young__head",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     1.3142,
+     1.3804
+    ],
+    "role": "jaw",
+    "side": 0
+   },
+   {
+    "id": "dragon_young__wing_r",
+    "parent": "dragon_young__body",
+    "phase": 0.0,
+    "pivot": [
+     -0.3451,
+     1.1991,
+     0.115
+    ],
+    "role": "wing",
+    "side": -1
+   },
+   {
+    "id": "dragon_young__wing_l",
+    "parent": "dragon_young__body",
+    "phase": 0.0,
+    "pivot": [
+     0.3451,
+     1.1991,
+     0.115
+    ],
+    "role": "wing",
+    "side": 1
+   },
+   {
+    "id": "dragon_young__tail",
+    "parent": "dragon_young__body",
+    "phase": 0.0,
+    "pivot": [
+     0.0,
+     0.854,
+     -0.6902
+    ],
+    "role": "tail",
+    "side": 0
+   }
+  ],
+  "scale": 1.7487
+ },
  "drowned_captain": {
   "parts": [
    {

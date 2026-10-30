@@ -66,6 +66,7 @@ public final class Ticker {
         EdgeKeep.tick(ticks);
         StructureMobs.tick(ticks);
         Pets.tick(ticks);
+        Dragons.tick(ticks);
         Mounts.tick(ticks);
         Artifacts.tick(ticks);
         WeatherEvents.tick(ticks);

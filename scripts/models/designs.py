@@ -1366,6 +1366,47 @@ def chorus_knight():
     return m
 
 
+DRAGON_SCALE = Mat(["#2a0606", "#430c0a", "#621610", "#84241a"], "scales", veins="#ff8a1f", vein_density=0.03)
+DRAGON_BELLY = Mat(["#7a4c0c", "#a8701c", "#cf9a30", "#efc65a"], "bands")
+DRAGON_WING = Mat(["#300808", "#4a0e0c", "#661812", "#80261c"], cell=2, veins="#a8441a", vein_density=0.08)
+DRAGON_HORN = Mat(["#3a2e20", "#5a4a34", "#7e6a4c", "#a89270"], cell=1)
+
+
+def dragon(name):
+    """A fire dragon: red scales and a gold belly, a long neck and horned head with burning eyes, four clawed legs,
+    great bat wings and a long spiked tail. One design, built at three sizes as it grows."""
+    m = Model(name)
+    m.part("body", (0, 14, 0), "body")
+    m.box((-7, 9, -12), (14, 12, 24), DRAGON_SCALE)
+    m.box((-6, 8, -10), (12, 2, 20), DRAGON_BELLY)
+    for i, z in enumerate((8, 3, -2, -7)):
+        m.box((-1, 21, z), (2, 4 - i % 2, 3), DRAGON_HORN, rot=("x", -22.5))
+    for z in (6, -8):
+        m.part("legf" if z > 0 else "legb", (-5, 10, z + 2), "leg_front" if z > 0 else "leg_back", mirror=True)
+        m.pair((-7.5, 0, z), (4, 10, 4), DRAGON_SCALE)
+        claws(m, -5.5, 1, z + 4, DRAGON_HORN, n=3, length=2, spread=1)
+    # The neck and the head, held high in front.
+    m.part("head", (0, 20, 12), "head")
+    m.box((-3, 16, 10), (6, 8, 8), DRAGON_SCALE, rot=("x", -22.5, (0, 20, 12)))
+    m.box((-4.5, 22, 15), (9, 8, 9), DRAGON_SCALE,
+          decal={"south": face("#ffd25a", eye_w=2, eye_h=1, eye_row=0.3, gap=4, brow="#1a0402")})
+    m.box((-3, 22, 24), (6, 4, 6), DRAGON_SCALE, decal={"south": snout("#1a0402", "#f2e8d4")})
+    m.part("jaw", (0, 22, 24), "jaw", parent="head")
+    m.box((-2.5, 20, 23), (5, 2, 6), DRAGON_BELLY, decal={"south": jaw("#1a0402", "#f2e8d4")})
+    m.use("head")
+    m.pair((-4, 29, 16), (2, 6, 2), DRAGON_HORN, rot=("x", -45, (-3, 29, 17)))
+    # Wings.
+    m.part("wing", (-6, 20, 2), "wing", mirror=True)
+    m.pair((-28, 19, -6), (22, 1, 14), DRAGON_WING)
+    m.pair((-28, 19, 6), (22, 2, 2), DRAGON_HORN)
+    # Tail.
+    m.part("tail", (0, 14, -12), "tail")
+    m.box((-3, 11, -22), (6, 6, 10), DRAGON_SCALE)
+    m.box((-2, 12, -32), (4, 4, 10), DRAGON_SCALE)
+    m.box((-3, 12, -36), (6, 4, 4), DRAGON_HORN, rot=("y", 45))
+    return m
+
+
 MODELS = {
     "deepslate_colossus": (deepslate_colossus, 4.3), "drowned_warden": (drowned_warden, 3.3),
     "storm_phantom": (storm_phantom, 2.4), "forgemaster": (forgemaster, 3.7), "sand_colossus": (sand_colossus, 4.2),
@@ -1382,5 +1423,7 @@ MODELS = {
     "magma_lord": (magma_lord, 4.0), "frost_captain": (frost_captain, 3.8), "sky_templar": (sky_templar, 4.0),
     "foreman": (foreman, 3.6), "mummy_king": (mummy_king, 3.8), "swamp_witch": (swamp_witch, 3.9),
     "warped_shaman": (warped_shaman, 4.0), "cinder_king": (cinder_king, 4.4), "chorus_knight": (chorus_knight, 4.0),
+    "dragon_hatchling": (lambda: dragon("dragon_hatchling"), 1.4), "dragon_young": (lambda: dragon("dragon_young"), 3.5),
+    "dragon_adult": (lambda: dragon("dragon_adult"), 7.0),
     "deer": (deer, 1.9), "owl": (owl, 0.7),
 }

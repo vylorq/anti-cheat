@@ -94,6 +94,7 @@ public final class GiveMenu {
         for (String kind : com.vylorq.anticheat.feature.Mounts.KINDS) {
             out.add(com.vylorq.anticheat.feature.Mounts.whistle(kind));
         }
+        out.add(com.vylorq.anticheat.feature.Dragons.egg());
         for (String kind : com.vylorq.anticheat.feature.Pets.KINDS) {
             out.add(com.vylorq.anticheat.feature.Pets.token(kind));
         }
