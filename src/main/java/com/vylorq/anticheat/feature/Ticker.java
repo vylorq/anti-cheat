@@ -67,6 +67,8 @@ public final class Ticker {
         StructureMobs.tick(ticks);
         Pets.tick(ticks);
         Artifacts.tick(ticks);
+        Skills.tick(ticks);
+        Achievements.tick(ticks);
         OwnerXray.tick(ticks);
         LobbyFeature.seasonFx(ticks);
         Builds.tick(ticks);

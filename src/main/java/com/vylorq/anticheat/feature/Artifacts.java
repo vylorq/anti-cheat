@@ -223,6 +223,7 @@ public final class Artifacts {
                 }
                 p.getEntityWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_ANVIL_USE, SoundCategory.PLAYERS, 0.7f, 1.4f);
                 Msg.actionBar(p, "§d" + Msg.trFor(p, "artifacts.combined", title(DEFS.get(id), 2)));
+                Achievements.unlock(p, "feat:greater");
                 return true;
             }
         }
@@ -258,6 +259,7 @@ public final class Artifacts {
             ids.put(id, level);
             write(armor, ids);
             held.decrement(1);
+            Achievements.unlock(p, "artifact:" + id);
             p.getEntityWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_SMITHING_TABLE_USE, SoundCategory.PLAYERS, 0.8f, 1.3f);
             Msg.actionBar(p, "§a" + Msg.trFor(p, "artifacts.set", title(DEFS.get(id), level)));
             Set set = set(worn(p));

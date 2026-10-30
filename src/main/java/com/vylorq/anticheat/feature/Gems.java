@@ -248,6 +248,9 @@ public final class Gems {
                 continue;
             }
             ItemStack done = make(make);
+            if (done != null && make.startsWith("artifact:")) {
+                Achievements.unlock(p, make);
+            }
             if (done != null) {
                 done.setCount(Math.max(1, st.getCount()));
                 inv.setStack(i, done);

@@ -3374,5 +3374,22 @@
   "artifacts.max-level": "This artifact is already Greater.",
   "artifacts.combined": "The two became one: {0}!",
   "artifacts.need-two": "You need two of this artifact to combine them.",
-  "artifacts.set-made": "§dSet complete: §f{0}§d - {1}!"
+  "artifacts.set-made": "§dSet complete: §f{0}§d - {1}!",
+  "skills.mining": "Mining",
+  "skills.combat": "Combat",
+  "skills.farming": "Farming",
+  "skills.woodcutting": "Woodcutting",
+  "skills.levelup": "§b§lLevel up! §f{0} §7is now level §e{1}§7.",
+  "ach.unlocked": "§6§l★ Achievement: §f{0}",
+  "ach.title": "Achievement Book",
+  "ach.desc": "Everything you've beaten, found and learned.",
+  "ach.count": "{0} achievements",
+  "ach.skills": "Skills",
+  "ach.skills-perks": "§7Mining/Woodcutting/Farming: chance of double drops. Combat: harder hits.",
+  "ach.bosses": "Bosses",
+  "ach.structures": "Structures",
+  "ach.artifacts": "Artifacts",
+  "ach.biomes": "Biomes",
+  "ach.biomes-seen": "§7Biomes seen: §f{0}",
+  "ach.feats": "Feats"
 }

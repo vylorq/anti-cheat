@@ -133,6 +133,10 @@ public final class StructureMobs {
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((e, source) -> {
             if (Ac.running() && e instanceof MobEntity m && m.getCommandTags().contains(GUARDIAN_TAG)) {
                 guardianDrop(m);
+                if (source.getAttacker() instanceof net.minecraft.server.network.ServerPlayerEntity p) {
+                    Achievements.unlock(p, "feat:guardian");
+                    Skills.add(p, "combat", 40);
+                }
             }
         });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((e, w) -> HOMES.remove(e.getUuid()));

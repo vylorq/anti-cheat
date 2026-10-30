@@ -3374,5 +3374,22 @@
   "artifacts.max-level": "هذه القطعة الأثرية في أقوى مستوى بالفعل.",
   "artifacts.combined": "اندمجت القطعتان في واحدة: {0}!",
   "artifacts.need-two": "تحتاج قطعتين من هذه القطعة الأثرية لدمجهما.",
-  "artifacts.set-made": "§dاكتملت المجموعة: §f{0}§d - {1}!"
+  "artifacts.set-made": "§dاكتملت المجموعة: §f{0}§d - {1}!",
+  "skills.mining": "التعدين",
+  "skills.combat": "القتال",
+  "skills.farming": "الزراعة",
+  "skills.woodcutting": "الحطابة",
+  "skills.levelup": "§b§lارتقاء! §f{0} §7أصبح الآن في المستوى §e{1}§7.",
+  "ach.unlocked": "§6§l★ إنجاز: §f{0}",
+  "ach.title": "كتاب الإنجازات",
+  "ach.desc": "كل ما هزمته ووجدته وتعلمته.",
+  "ach.count": "{0} إنجاز",
+  "ach.skills": "المهارات",
+  "ach.skills-perks": "§7التعدين/الحطابة/الزراعة: فرصة لمضاعفة الغنائم. القتال: ضربات أقوى.",
+  "ach.bosses": "الزعماء",
+  "ach.structures": "المباني",
+  "ach.artifacts": "القطع الأثرية",
+  "ach.biomes": "المناطق الحيوية",
+  "ach.biomes-seen": "§7المناطق الحيوية التي رأيتها: §f{0}",
+  "ach.feats": "المآثر"
 }
