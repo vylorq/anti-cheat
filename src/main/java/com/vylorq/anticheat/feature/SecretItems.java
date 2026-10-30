@@ -785,7 +785,7 @@ public final class SecretItems {
         return is(s, MAGNET) && Boolean.TRUE.equals(s.get(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE));
     }
 
-    private static void magnetTick(ServerPlayerEntity p) {
+    static void magnetTick(ServerPlayerEntity p) {
         ServerWorld w = p.getEntityWorld();
         Vec3d c = p.getEntityPos().add(0, 0.6, 0);
         for (ItemEntity it : w.getEntitiesByClass(ItemEntity.class, p.getBoundingBox().expand(7), e -> e.isAlive() && !e.cannotPickup())) {

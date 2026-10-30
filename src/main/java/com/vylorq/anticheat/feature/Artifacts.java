@@ -6,7 +6,6 @@ import com.vylorq.anticheat.util.Msg;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -25,7 +24,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
-import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -228,14 +226,7 @@ public final class Artifacts {
         for (ServerPlayerEntity p : Ac.server().getPlayerManager().getPlayerList()) {
             List<String> w = worn(p);
             if (w.contains("magnet_ring")) {
-                Vec3d to = p.getEntityPos().add(0, 0.5, 0);
-                for (ItemEntity it : p.getEntityWorld().getEntitiesByClass(ItemEntity.class, p.getBoundingBox().expand(8), e -> !e.cannotPickup())) {
-                    Vec3d d = to.subtract(it.getEntityPos());
-                    if (d.lengthSquared() > 1) {
-                        it.setVelocity(d.normalize().multiply(0.45));
-                        it.velocityModified = true;
-                    }
-                }
+                SecretItems.magnetTick(p);
             }
             if (ticks % 20 != 0) {
                 continue;
