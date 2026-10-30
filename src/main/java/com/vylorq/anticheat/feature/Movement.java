@@ -189,6 +189,11 @@ public final class Movement {
      * Spears throw their holder forward (a charge while held, a lunge on a jab, faster with enchantments or a custom
      * spear): for a second and a half after one, the move is treated like a riptide's and not set back.
      */
+    /** A move the mod itself gives (a double jump, a blink): not set back for this many ticks. */
+    public static void grace(ServerPlayerEntity p, int ticks) {
+        SPEAR_UNTIL.merge(p.getUuid(), p.getEntityWorld().getTime() + ticks, Math::max);
+    }
+
     private static boolean spearLunge(ServerPlayerEntity p) {
         long now = p.getEntityWorld().getTime();
         var held = p.getMainHandStack();

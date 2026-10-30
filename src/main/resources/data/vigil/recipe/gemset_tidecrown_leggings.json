@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"frostshard\"}"
+    },
+    "A": "minecraft:diamond_leggings"
+  },
+  "result": {
+    "id": "minecraft:diamond_leggings",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:tidecrown:2"
+      },
+      "minecraft:item_name": {
+        "text": "Tidecrown Leggings",
+        "color": "#4fd6d0"
+      },
+      "minecraft:item_model": "vigil:x9aed92d585",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x9aed92d585"
+        ]
+      }
+    }
+  }
+}

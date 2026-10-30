@@ -1804,7 +1804,8 @@ def build():
         files[f"assets/vigil/models/item/{name}.json"] = json.dumps({"parent": parent, "textures": {"layer0": f"vigil:item/{name}"}}, indent=2).encode()
         by_base.setdefault("armor", []).append(name)
     ores = sorted(f[4:-4] for f in os.listdir(adir) if f.startswith("ore_"))
-    notes = {"ruby": 1, "sapphire": 2, "topaz": 3, "voidstone": 4, "bloodstone": 5}
+    notes = {"ruby": 1, "sapphire": 2, "topaz": 3, "voidstone": 4, "bloodstone": 5, "emberite": 6, "frostshard": 7, "starmetal": 8,
+             "soulstone": 9}
     files["assets/minecraft/blockstates/note_block.json"] = json.dumps({"multipart": [
         {"when": {"instrument": "dragon", "note": str(notes[o]), "powered": "false"}, "apply": {"model": f"vigil:block/ore_{o}"}}
         for o in ores] + [{"apply": {"model": "minecraft:block/note_block"}}]}, indent=2).encode()

@@ -67,7 +67,9 @@ public final class Gems {
     static {
         for (Gem g : List.of(new Gem("ruby", "Ruby", "§c", 1, 1, 3, 7), new Gem("sapphire", "Sapphire", "§9", 2, 1, 3, 7),
                 new Gem("topaz", "Topaz", "§6", 3, 1, 2, 5), new Gem("voidstone", "Voidstone", "§5", 4, 2, 6, 12),
-                new Gem("bloodstone", "Bloodstone", "§4", 5, 1, 4, 9))) {
+                new Gem("bloodstone", "Bloodstone", "§4", 5, 1, 4, 9), new Gem("emberite", "Emberite", "§6", 6, 1, 3, 7),
+                new Gem("frostshard", "Frostshard", "§b", 7, 1, 3, 7), new Gem("starmetal", "Starmetal", "§9", 8, 2, 8, 16),
+                new Gem("soulstone", "Soulstone", "§3", 9, 2, 6, 12))) {
             GEMS.put(g.id(), g);
         }
     }
@@ -167,6 +169,10 @@ public final class Gems {
             case "sapphire" -> "Makes Sapphire armor.";
             case "topaz" -> "Burns 4x longer than coal.";
             case "voidstone" -> "Use it with netherite gear in your other hand.";
+            case "emberite" -> "Makes Ember Armor.";
+            case "frostshard" -> "Makes Tidecrown Armor.";
+            case "starmetal" -> "Makes Golem Plate. Only found where meteors fell.";
+            case "soulstone" -> "Makes Shadowstep Armor.";
             default -> "Makes the Lantern of Dawn and Boiled Armor.";
         };
     }
@@ -273,6 +279,9 @@ public final class Gems {
             case "armor" -> {
                 var set = ArmorSets.SETS.get(parts[1]);
                 return set == null ? null : ArmorSets.piece(set, Integer.parseInt(parts[2]));
+            }
+            case "block" -> {
+                return SpecialBlocks.item(parts[1]);
             }
             case "dawn_lantern" -> {
                 return BoiledOmens.lantern();
@@ -384,6 +393,22 @@ public final class Gems {
                         .or(net.fabricmc.fabric.api.biome.v1.BiomeSelectors.includeByKey(net.minecraft.world.biome.BiomeKeys.DESERT)),
                 net.minecraft.world.gen.GenerationStep.Feature.UNDERGROUND_ORES,
                 net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.PLACED_FEATURE, Identifier.of("vigil", "ore_topaz")));
+        // Emberite in the Nether, Frostshard in snowy lands, Soulstone deep in the Deep Dark.
+        net.fabricmc.fabric.api.biome.v1.BiomeModifications.addFeature(net.fabricmc.fabric.api.biome.v1.BiomeSelectors.foundInTheNether(),
+                net.minecraft.world.gen.GenerationStep.Feature.UNDERGROUND_ORES,
+                net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.PLACED_FEATURE, Identifier.of("vigil", "ore_emberite")));
+        net.fabricmc.fabric.api.biome.v1.BiomeModifications.addFeature(net.fabricmc.fabric.api.biome.v1.BiomeSelectors.includeByKey(
+                        net.minecraft.world.biome.BiomeKeys.SNOWY_PLAINS, net.minecraft.world.biome.BiomeKeys.ICE_SPIKES,
+                        net.minecraft.world.biome.BiomeKeys.SNOWY_TAIGA, net.minecraft.world.biome.BiomeKeys.SNOWY_SLOPES,
+                        net.minecraft.world.biome.BiomeKeys.FROZEN_PEAKS, net.minecraft.world.biome.BiomeKeys.JAGGED_PEAKS,
+                        net.minecraft.world.biome.BiomeKeys.GROVE, net.minecraft.world.biome.BiomeKeys.FROZEN_RIVER,
+                        net.minecraft.world.biome.BiomeKeys.SNOWY_BEACH),
+                net.minecraft.world.gen.GenerationStep.Feature.UNDERGROUND_ORES,
+                net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.PLACED_FEATURE, Identifier.of("vigil", "ore_frostshard")));
+        net.fabricmc.fabric.api.biome.v1.BiomeModifications.addFeature(
+                net.fabricmc.fabric.api.biome.v1.BiomeSelectors.includeByKey(net.minecraft.world.biome.BiomeKeys.DEEP_DARK),
+                net.minecraft.world.gen.GenerationStep.Feature.UNDERGROUND_ORES,
+                net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.PLACED_FEATURE, Identifier.of("vigil", "ore_soulstone")));
     }
 
     public static List<Gem> all() {

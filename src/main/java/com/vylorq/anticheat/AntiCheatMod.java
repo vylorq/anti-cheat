@@ -63,6 +63,7 @@ public final class AntiCheatMod implements ModInitializer {
         com.vylorq.anticheat.feature.OwnerXray.register();
         com.vylorq.anticheat.feature.OrbitalStrike.register();
         com.vylorq.anticheat.feature.WorldWipe.register();
+        com.vylorq.anticheat.feature.SpecialBlocks.register();
         com.vylorq.anticheat.feature.DungeonKeys.register();
         com.vylorq.anticheat.feature.Builds.register();
         com.vylorq.anticheat.feature.BoiledOne.register();

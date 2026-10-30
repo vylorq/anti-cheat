@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "CHC",
+    "HOH",
+    "CHC"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "H": "minecraft:hopper",
+    "O": "minecraft:observer"
+  },
+  "result": {
+    "id": "minecraft:chiseled_copper",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "block:sorter"
+      },
+      "minecraft:item_name": {
+        "text": "Item Sorter",
+        "color": "dark_aqua"
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:phantom_membrane",
+    "A": "minecraft:diamond_helmet"
+  },
+  "result": {
+    "id": "minecraft:chainmail_helmet",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:silk:0"
+      },
+      "minecraft:item_name": {
+        "text": "Phantom Silk Helmet",
+        "color": "#cfc8ee"
+      },
+      "minecraft:item_model": "vigil:x0c475681d6",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x0c475681d6"
+        ]
+      }
+    }
+  }
+}

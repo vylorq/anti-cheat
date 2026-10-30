@@ -30,19 +30,35 @@ RAMPS = {
     "voidstone": ["#0a0214", "#25094a", "#4a1890", "#8040e0", "#e0c0ff"],
     "bloodstone": ["#100000", "#3d0000", "#7a0606", "#bf1717", "#ff6a6a"],
     "worldbreaker": ["#07060a", "#1e1a24", "#5a4318", "#c9952a", "#fff0a8"],
+    "emberite": ["#2a0500", "#7a1a00", "#d4480a", "#ff9a2a", "#ffe9a0"],
+    "frostshard": ["#0b2a4a", "#1f5f94", "#4fa6e0", "#a6e4ff", "#f2fdff"],
+    "starmetal": ["#1a1630", "#3b3a6e", "#7d84c9", "#c6ccf5", "#ffffff"],
+    "soulstone": ["#021417", "#06363c", "#0f6f73", "#3ec6c0", "#c8fff6"],
+    "ember": ["#1c0400", "#5e1400", "#b23a06", "#f07a1a", "#ffd27a"],
+    "silk": ["#2a2338", "#544a73", "#8f86b5", "#cfc8ee", "#fbf8ff"],
+    "tidecrown": ["#03243a", "#0b4f6e", "#1f8ea3", "#6fd8d0", "#e6fff6"],
+    "golem": ["#2a2a2a", "#55534f", "#8b877e", "#c7c1b2", "#f4efe2"],
+    "shadowstep": ["#020203", "#0e0d14", "#22202e", "#3d3a52", "#7a76a0"],
 }
 # Which of the game's armour each set is drawn from.
 SHAPE = {"abyssal": "netherite", "colossus": "netherite", "tempest": "netherite", "inferno": "netherite",
          "dune": "netherite", "glacier": "netherite", "thornback": "netherite", "hollow": "netherite",
-         "worldbreaker": "netherite"}
+         "worldbreaker": "netherite", "ember": "netherite", "golem": "netherite", "shadowstep": "netherite",
+         "silk": "chainmail", "tidecrown": "diamond"}
 ARMOR_SETS = ["emerald", "obsidian", "phantom", "tide", "abyssal", "colossus", "tempest", "inferno", "dune", "glacier",
-              "thornback", "hollow", "ruby", "sapphire", "worldbreaker"]
+              "thornback", "hollow", "ruby", "sapphire", "worldbreaker",
+              "ember", "silk", "tidecrown", "golem", "shadowstep"]
 PIECES = ["helmet", "chestplate", "leggings", "boots"]
-GEMS = {"ruby": "emerald", "sapphire": "diamond", "topaz": "quartz", "voidstone": "echo_shard", "bloodstone": "amethyst_shard"}
+GEMS = {"ruby": "emerald", "sapphire": "diamond", "topaz": "quartz", "voidstone": "echo_shard", "bloodstone": "amethyst_shard",
+        "emberite": "blaze_powder", "frostshard": "prismarine_crystals", "starmetal": "iron_ingot", "soulstone": "amethyst_shard"}
 # Raw chunk and ore each gem is drawn from (ore: the game's ore, its spots recoloured; deepslate or stone).
-RAWS = {"ruby": "raw_copper", "sapphire": "raw_iron", "topaz": "raw_gold", "voidstone": "raw_iron", "bloodstone": "raw_copper"}
+RAWS = {"ruby": "raw_copper", "sapphire": "raw_iron", "topaz": "raw_gold", "voidstone": "raw_iron", "bloodstone": "raw_copper",
+        "emberite": "raw_gold", "frostshard": "raw_iron", "starmetal": "raw_iron", "soulstone": "raw_copper"}
 ORE_FROM = {"ruby": ("emerald_ore", True), "sapphire": ("lapis_ore", False), "topaz": ("gold_ore", False),
-            "voidstone": ("diamond_ore", True), "bloodstone": ("redstone_ore", False)}
+            "voidstone": ("diamond_ore", True), "bloodstone": ("redstone_ore", False),
+            "frostshard": ("diamond_ore", False), "soulstone": ("lapis_ore", True)}
+# Newer ores: (ore texture, the rock it sits in): their spots are what differs from the plain rock.
+ORE_ON = {"emberite": ("nether_gold_ore", "netherrack"), "starmetal": ("emerald_ore", "blackstone")}
 # Which gems grow in deepslate (the rest in stone).
 ORES = {"ruby": True, "sapphire": False, "topaz": False, "voidstone": True, "bloodstone": False}
 TOOLS = ["sword", "pickaxe", "axe", "shovel", "hoe"]
@@ -91,6 +107,9 @@ ACCENT = {
     "thornback": ["#3a1f0a", "#7a4a1f", "#d6a35a"], "hollow": ["#6b4a00", "#d6a821", "#fff0a0"],
     "ruby": ["#6b4a00", "#d6a821", "#fff0a0"], "sapphire": ["#4a4f5c", "#c4ccd8", "#ffffff"],
     "worldbreaker": ["#0a4a6b", "#3fd0ff", "#e0faff"],
+    "ember": ["#3a1a00", "#ffb000", "#fff3a0"], "silk": ["#3a2a5a", "#b78cff", "#f2e6ff"],
+    "tidecrown": ["#6b4a00", "#ffd04a", "#fff6c8"], "golem": ["#3a1600", "#c05a1a", "#ffb27a"],
+    "shadowstep": ["#2a0040", "#a020ff", "#e6b0ff"],
 }
 
 
@@ -187,6 +206,29 @@ def main(src):
                     ps[x, y] = a_
         out = bg.copy()
         # a dark rim round each spot (the gem sits in the rock), then the recoloured spots
+        pout = out.load()
+        dark = hexc(RAMPS[g][0])
+        for y in range(o.height):
+            for x in range(o.width):
+                if ps[x, y][3] == 0 and any(0 <= x + dx < o.width and 0 <= y + dy < o.height and ps[x + dx, y + dy][3] > 0
+                                            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                    r_, g_, b_, a_ = pout[x, y]
+                    pout[x, y] = ((r_ + dark[0]) // 3, (g_ + dark[1]) // 3, (b_ + dark[2]) // 3, 255)
+        out.alpha_composite(recolor(spots, RAMPS[g]))
+        out.save(os.path.join(OUT, f"ore_{g}.png"))
+        recolor(Image.open(os.path.join(src, "items", RAWS[g] + ".png")), RAMPS[g]).save(os.path.join(OUT, f"raw_{g}.png"))
+    for g, (ore, rock) in ORE_ON.items():
+        o = Image.open(os.path.join(src, "blocks", ore + ".png")).convert("RGBA")
+        plain = Image.open(os.path.join(src, "blocks", ("netherrack" if ore.startswith("nether") else "stone") + ".png")).convert("RGBA")
+        bg = Image.open(os.path.join(src, "blocks", rock + ".png")).convert("RGBA")
+        po, pp = o.load(), plain.load()
+        spots = Image.new("RGBA", o.size, (0, 0, 0, 0))
+        ps = spots.load()
+        for y in range(o.height):
+            for x in range(o.width):
+                if sum(abs(po[x, y][k] - pp[x, y][k]) for k in range(3)) > 60:
+                    ps[x, y] = po[x, y]
+        out = bg.copy()
         pout = out.load()
         dark = hexc(RAMPS[g][0])
         for y in range(o.height):

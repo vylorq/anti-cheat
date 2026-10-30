@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"frostshard\"}"
+    },
+    "A": "minecraft:diamond_chestplate"
+  },
+  "result": {
+    "id": "minecraft:diamond_chestplate",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:tidecrown:1"
+      },
+      "minecraft:item_name": {
+        "text": "Tidecrown Chestplate",
+        "color": "#4fd6d0"
+      },
+      "minecraft:item_model": "vigil:xd223c95bbf",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:xd223c95bbf"
+        ]
+      }
+    }
+  }
+}

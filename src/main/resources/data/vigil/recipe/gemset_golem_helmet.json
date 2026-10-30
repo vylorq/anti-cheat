@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "fabric:type": "fabric:custom_data",
+      "base": "minecraft:disc_fragment_5",
+      "nbt": "{vigil_gem:\"starmetal\"}"
+    },
+    "A": "minecraft:netherite_helmet"
+  },
+  "result": {
+    "id": "minecraft:netherite_helmet",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:golem:0"
+      },
+      "minecraft:item_name": {
+        "text": "Golem Helmet",
+        "color": "#d8d2c2"
+      },
+      "minecraft:item_model": "vigil:xad9599fdde",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:xad9599fdde"
+        ]
+      }
+    }
+  }
+}

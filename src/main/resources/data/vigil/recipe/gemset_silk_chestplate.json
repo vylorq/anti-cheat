@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "MAM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:phantom_membrane",
+    "A": "minecraft:diamond_chestplate"
+  },
+  "result": {
+    "id": "minecraft:chainmail_chestplate",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "vigil_make": "armor:silk:1"
+      },
+      "minecraft:item_name": {
+        "text": "Phantom Silk Chestplate",
+        "color": "#cfc8ee"
+      },
+      "minecraft:item_model": "vigil:x5330313d76",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "vigil:x5330313d76"
+        ]
+      }
+    }
+  }
+}
