@@ -1872,6 +1872,7 @@ public final class Bosses {
 
     private static void defeated(ServerWorld w, Live l, Entity killer) {
         state().killed++;
+        Achievements.bossDefeated(w, l.kind.id(), l.mob.getEntityPos());
         save();
         Vec3d at = l.mob.getEntityPos();
         ExperienceOrbEntity.spawn(w, at, l.cursed ? 1000 : 500);
@@ -2081,6 +2082,17 @@ public final class Bosses {
 
     public static List<String> kinds() {
         return List.copyOf(KINDS.keySet());
+    }
+
+    /** A boss's display name ("The Magma Lord"), or the id. */
+    public static String nameOf(String kind) {
+        Kind k = KINDS.get(kind);
+        return k == null ? kind : k.name();
+    }
+
+    /** Every boss structure (each boss's home), in order. */
+    public static List<String> structures() {
+        return KINDS.values().stream().map(Kind::structure).distinct().toList();
     }
 
     public static void ownerSpawn(ServerPlayerEntity p, String kind) {

@@ -115,6 +115,7 @@ public final class WeaponSockets {
         gem.decrement(1);
         p.getEntityWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, SoundCategory.PLAYERS, 1f, 1.4f);
         Msg.actionBar(p, "§a" + Msg.trFor(p, "wsocket.done"));
+        Achievements.unlock(p, "feat:socket");
         return true;
     }
 
