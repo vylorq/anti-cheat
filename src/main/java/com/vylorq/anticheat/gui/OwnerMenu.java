@@ -535,6 +535,7 @@ public final class OwnerMenu {
         all.add(new Content("boiled:pages", com.vylorq.anticheat.feature.BoiledHaunts.page(p, 1), "Torn Pages"));
         all.add(new Content("boiled:cursed_bone", com.vylorq.anticheat.feature.BoiledDread.cursedBone(), "Cursed Bone"));
         all.add(new Content("vanilla:mace", new ItemStack(Items.HEAVY_CORE), "Heavy Core (mace)"));
+        all.add(new Content("pets", com.vylorq.anticheat.feature.Pets.token("wolf"), "Pets (wolf, fox, golem)"));
         Menu m = Menu.std(Category.VIGIL, Msg.trFor(p, "owner.title"), Msg.trFor(p, "content.title"));
         m.renderer(menu -> menu.list(all, x -> {
                     boolean on = com.vylorq.anticheat.feature.ContentToggles.on(x.key());

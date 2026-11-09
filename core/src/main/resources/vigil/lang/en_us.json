@@ -3457,5 +3457,6 @@
   "dragon.ab.hatchling": "Hatchling: small fire breath at monsters, Night Vision for you",
   "dragon.ab.young": "Young: hotter breath, Fire Resistance, sneak while falling to glide",
   "dragon.ab.adult": "Adult: great soul-fire breath, a roar that throws monsters back, healing when well fed",
-  "dragon.ab.note": "§8It never attacks players. A hungry dragon won't fight."
+  "dragon.ab.note": "§8It never attacks players. A hungry dragon won't fight.",
+  "pets.off": "Pets are turned off on this server."
 }
