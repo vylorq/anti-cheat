@@ -71,6 +71,10 @@ public final class Pets {
     }
 
     private static void use(ServerPlayerEntity p, String kind) {
+        if (!ContentToggles.on("pets")) {
+            Msg.actionBar(p, "§c" + Msg.trFor(p, "pets.off"));
+            return;
+        }
         MobEntity old = PETS.remove(p.getUuid());
         if (old != null && !old.isRemoved()) {
             old.discard();
@@ -132,6 +136,16 @@ public final class Pets {
     /** Twice a second: pets keep up with their owners and go for what's going for them. */
     public static void tick(long ticks) {
         if (ticks % 10 != 0 || PETS.isEmpty()) {
+            return;
+        }
+        if (!ContentToggles.on("pets")) {
+            // Turned off: every pet that's out goes home.
+            PETS.values().forEach(m -> {
+                if (!m.isRemoved()) {
+                    m.discard();
+                }
+            });
+            PETS.clear();
             return;
         }
         var it = PETS.entrySet().iterator();

@@ -25,7 +25,12 @@ public final class ContentToggles {
 
     public static final class State {
         public Set<String> off = new HashSet<>();
+        /** Things that start off (DEFAULT_OFF) and that the owner has turned on. */
+        public Set<String> on = new HashSet<>();
     }
+
+    /** Off until the owner turns them on. */
+    static final Set<String> DEFAULT_OFF = Set.of("pets");
 
     private static State state;
     /** The owner taking something from a menu: always allowed. */
@@ -49,6 +54,9 @@ public final class ContentToggles {
             if (state.off == null) {
                 state.off = new HashSet<>();
             }
+            if (state.on == null) {
+                state.on = new HashSet<>();
+            }
         }
         return state;
     }
@@ -63,6 +71,9 @@ public final class ContentToggles {
     }
 
     public static boolean on(String key) {
+        if (DEFAULT_OFF.contains(key)) {
+            return state().on.contains(key);
+        }
         return !state().off.contains(key);
     }
 
@@ -86,6 +97,15 @@ public final class ContentToggles {
     }
 
     public static void set(String key, boolean on) {
+        if (DEFAULT_OFF.contains(key)) {
+            if (on) {
+                state().on.add(key);
+            } else {
+                state().on.remove(key);
+            }
+            save();
+            return;
+        }
         if (on) {
             state().off.remove(key);
         } else {
@@ -116,6 +136,7 @@ public final class ContentToggles {
                 case "gem" -> "gem:" + p[1];
                 case "dawn_lantern" -> "boiled:lantern";
                 case "boiled" -> "boiled:armor";
+                case "pet" -> "pets";
                 default -> null;
             };
         }
@@ -140,6 +161,9 @@ public final class ContentToggles {
         }
         if (BoiledDread.isCursed(s)) {
             return "boiled:cursed_bone";
+        }
+        if (ItemConv.tag(s, Pets.TOKEN) != null) {
+            return "pets";
         }
         if (s.isOf(Items.HEAVY_CORE)) {
             return "vanilla:mace";
